@@ -1,44 +1,86 @@
-# Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+# Node Modules
+node_modules/
 
-## User settings
-xcuserdata/
+# Angular Build Output
+dist/
+out-tsc/
 
-## Obj-C/Swift specific
-*.hmap
+# Environment Files
+src/environments/environment*.ts
+.env
 
-## App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
+# Compiled TypeScript files
+*.tsbuildinfo
 
-# CocoaPods
-#
-# We recommend against adding the Pods directory to your .gitignore. However
-# you should judge for yourself, the pros and cons are mentioned at:
-# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
-#
-# Pods/
-#
-# Add this line if you want to avoid checking in source code from the Xcode workspace
-# *.xcworkspace
+# Logs and Reports
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
 
-# Carthage
-#
-# Add this line if you want to avoid checking in source code from Carthage dependencies.
-# Carthage/Checkouts
+# IDE-specific (VS Code and Visual Studio)
+.vs/
+.vscode/
+.vscode/*
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.csproj.user
+*.user
 
-Carthage/Build/
+# Bootstrap and Tailwind Build Files
+bootstrap/
+tailwind/
 
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo.
-# Instead, use fastlane to re-generate the screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/#source-control
+# C# Build Outputs
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.pyo
+*.pyc
+*.pid
+*.manifest
+*.nupkg
+*.local
+*.config
+*.pyo
+*.pyc
 
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots/**/*.png
-fastlane/test_output
+# Entity Framework Migrations
+Migrations/
+
+# .NET User Secrets
+**/appsettings.*.json
+
+# Windows & OS Specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# MongoDB (optional - if using MongoDB dump files)
+dump/
+*.bson
+
+# Sensitive Files
+*.pem
+*.key
+*.crt
+
+# Temp files and text files (optional)
+*.temp
+*.tmp
+*.txt
+~$*
+
