@@ -10,18 +10,18 @@
     /// </summary>
     public class MongoDbService
     {
-        private readonly IMongoDatabase db;
+        public IMongoDatabase db { get; }
 
         public MongoDbService(IOptions<MongoDbSettings> settings, IMongoClient client)
         {
             db = client.GetDatabase(settings.Value.DatabaseName);
         }
 
-        public IMongoCollection<Collection> GetCollection<Collection>(string collectionName)
+        public IMongoCollection<T> GetCollection<T>()
         {
-            return db.GetCollection<Collection>(collectionName);
+            // Τροποποιήστε το όνομα του μοντέλου συλλογής T σε πεζά γράμματα και πληθυντικό για ασφάλεια της αντιστοίχισης ονομάτων
+            return db.GetCollection<T>((!typeof(T).Name.EndsWith("s")) ? typeof(T).Name.ToLower() + "s" : typeof(T).Name.ToLower());
         }
-
 
         /// <summary>
         /// Διαγράφει όλη τη βάση. Χρήση για testing

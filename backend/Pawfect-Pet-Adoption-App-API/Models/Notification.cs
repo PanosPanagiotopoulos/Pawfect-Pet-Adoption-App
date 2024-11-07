@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Pawfect_Pet_Adoption_App_API.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Models.EnumTypes;
 using System.ComponentModel.DataAnnotations;
 
 /// <summary>

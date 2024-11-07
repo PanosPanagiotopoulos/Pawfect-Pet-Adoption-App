@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Pawfect_Pet_Adoption_App_API.Models
+namespace Pawfect_Pet_Adoption_App_API.Models.HelperModels
 {
     /// <summary>
     ///   Οι ώρες λειτουργίας του καταφυγίου
