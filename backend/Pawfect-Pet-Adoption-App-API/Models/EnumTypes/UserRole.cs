@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.EnumTypes
+﻿namespace Pawfect_Pet_Adoption_App_API.Models.EnumTypes
 {
     /// <summary>
     ///   Ολοι οι τύποι χρηστών του συστήματος

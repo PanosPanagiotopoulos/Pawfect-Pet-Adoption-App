@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Models;
+using Pawfect_Pet_Adoption_App_API.Models.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Services;
 
 public class Seeder
@@ -15,7 +15,7 @@ public class Seeder
     public void Seed()
     {
         // Κάνε "Seed" τη βάση μόνο άν δεν΄έχει ήδη γίνει
-        if (this.dbService.GetCollection<User>("users").CountDocuments(FilterDefinition<User>.Empty) == 0)
+        if (this.dbService.GetCollection<User>().CountDocuments(FilterDefinition<User>.Empty) == 0)
         {
             SeedAnimalTypes();
             SeedBreeds();
@@ -37,7 +37,7 @@ public class Seeder
 
     private void SeedAnimalTypes()
     {
-        var animalTypesCollection = this.dbService.GetCollection<AnimalType>("animaltypes");
+        var animalTypesCollection = this.dbService.GetCollection<AnimalType>();
         if (animalTypesCollection.CountDocuments(FilterDefinition<AnimalType>.Empty) == 0)
         {
             var animalTypes = new List<AnimalType>
@@ -52,8 +52,8 @@ public class Seeder
 
     private void SeedBreeds()
     {
-        var breedsCollection = this.dbService.GetCollection<Breed>("breeds");
-        var animalTypesCollection = this.dbService.GetCollection<AnimalType>("animaltypes");
+        var breedsCollection = this.dbService.GetCollection<Breed>();
+        var animalTypesCollection = this.dbService.GetCollection<AnimalType>();
         var animalTypes = animalTypesCollection.Find(FilterDefinition<AnimalType>.Empty).ToList();
 
         if (breedsCollection.CountDocuments(FilterDefinition<Breed>.Empty) == 0)
@@ -70,7 +70,7 @@ public class Seeder
 
     private void SeedUsers()
     {
-        var usersCollection = this.dbService.GetCollection<User>("users");
+        var usersCollection = this.dbService.GetCollection<User>();
         if (usersCollection.CountDocuments(FilterDefinition<User>.Empty) == 0)
         {
             var users = new List<User>
@@ -85,8 +85,8 @@ public class Seeder
 
     private void SeedShelters()
     {
-        var sheltersCollection = this.dbService.GetCollection<Shelter>("shelters");
-        var usersCollection = this.dbService.GetCollection<User>("users");
+        var sheltersCollection = this.dbService.GetCollection<Shelter>();
+        var usersCollection = this.dbService.GetCollection<User>();
         var shelterUsers = usersCollection.Find(u => u.Role == UserRole.Shelter).ToList();
 
         if (sheltersCollection.CountDocuments(FilterDefinition<Shelter>.Empty) == 0)
@@ -114,10 +114,10 @@ public class Seeder
 
     private void SeedAnimals()
     {
-        var animalsCollection = this.dbService.GetCollection<Animal>("animals");
-        var breedsCollection = this.dbService.GetCollection<Breed>("breeds");
-        var sheltersCollection = this.dbService.GetCollection<Shelter>("shelters");
-        var animalTypesCollection = this.dbService.GetCollection<AnimalType>("animaltypes");
+        var animalsCollection = this.dbService.GetCollection<Animal>();
+        var breedsCollection = this.dbService.GetCollection<Breed>();
+        var sheltersCollection = this.dbService.GetCollection<Shelter>();
+        var animalTypesCollection = this.dbService.GetCollection<AnimalType>();
 
         var breeds = breedsCollection.Find(FilterDefinition<Breed>.Empty).ToList();
         var shelters = sheltersCollection.Find(FilterDefinition<Shelter>.Empty).ToList();
@@ -149,9 +149,9 @@ public class Seeder
 
     private void SeedAdoptionApplications()
     {
-        var applicationsCollection = this.dbService.GetCollection<AdoptionApplication>("adoptionapplications");
-        var usersCollection = this.dbService.GetCollection<User>("users");
-        var animalsCollection = this.dbService.GetCollection<Animal>("animals");
+        var applicationsCollection = this.dbService.GetCollection<AdoptionApplication>();
+        var usersCollection = this.dbService.GetCollection<User>();
+        var animalsCollection = this.dbService.GetCollection<Animal>();
 
         var users = usersCollection.Find(u => u.Role == UserRole.User).ToList();
         var animals = animalsCollection.Find(FilterDefinition<Animal>.Empty).ToList();
@@ -170,9 +170,9 @@ public class Seeder
 
     private void SeedConversations()
     {
-        var conversationsCollection = this.dbService.GetCollection<Conversation>("conversations");
-        var usersCollection = this.dbService.GetCollection<User>("users");
-        var animalsCollection = this.dbService.GetCollection<Animal>("animals");
+        var conversationsCollection = this.dbService.GetCollection<Conversation>();
+        var usersCollection = this.dbService.GetCollection<User>();
+        var animalsCollection = this.dbService.GetCollection<Animal>();
 
         var users = usersCollection.Find(FilterDefinition<User>.Empty).ToList();
         var animals = animalsCollection.Find(FilterDefinition<Animal>.Empty).ToList();
@@ -191,8 +191,8 @@ public class Seeder
 
     private void SeedMessages()
     {
-        var messagesCollection = this.dbService.GetCollection<Message>("messages");
-        var conversationsCollection = this.dbService.GetCollection<Conversation>("conversations");
+        var messagesCollection = this.dbService.GetCollection<Message>();
+        var conversationsCollection = this.dbService.GetCollection<Conversation>();
         var conversations = conversationsCollection.Find(FilterDefinition<Conversation>.Empty).ToList();
 
         if (messagesCollection.CountDocuments(FilterDefinition<Message>.Empty) == 0)
@@ -209,8 +209,8 @@ public class Seeder
 
     private void SeedReports()
     {
-        var reportsCollection = this.dbService.GetCollection<Report>("reports");
-        var usersCollection = this.dbService.GetCollection<User>("users");
+        var reportsCollection = this.dbService.GetCollection<Report>();
+        var usersCollection = this.dbService.GetCollection<User>();
         var users = usersCollection.Find(FilterDefinition<User>.Empty).ToList();
 
         if (reportsCollection.CountDocuments(FilterDefinition<Report>.Empty) == 0)
@@ -227,8 +227,8 @@ public class Seeder
 
     private void SeedNotifications()
     {
-        var notificationsCollection = this.dbService.GetCollection<Notification>("notifications");
-        var usersCollection = this.dbService.GetCollection<User>("users");
+        var notificationsCollection = this.dbService.GetCollection<Notification>();
+        var usersCollection = this.dbService.GetCollection<User>();
         var users = usersCollection.Find(FilterDefinition<User>.Empty).ToList();
 
         if (notificationsCollection.CountDocuments(FilterDefinition<Notification>.Empty) == 0)
