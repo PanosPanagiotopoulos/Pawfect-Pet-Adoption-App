@@ -1,14 +1,20 @@
 ﻿using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Database;
+using Pawfect_Pet_Adoption_App_API.DevTools.Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Ρύθμιση Controllers , να δέχονται και custom annotations για Enum
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<JsonExceptionFilter>();
+});
 
 // Ρύθμιση της υπηρεσίας MongoDB
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));

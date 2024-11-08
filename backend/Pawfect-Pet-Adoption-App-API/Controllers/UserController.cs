@@ -33,6 +33,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         [HttpGet("id")]
         public async Task<IActionResult> GetUserById([FromQuery] string id)
         {
+
             try
             {
                 if (await _userService.GetUserByIdAsync(id) is GUserDTO user && user != null)
@@ -47,6 +48,16 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             {
                 return RequestHandlerTool.HandleInternalServerError(e, "GET");
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateUser([FromBody] CUserDTO user)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            return Ok(user);
         }
     }
 }
