@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
 using MongoDB.Driver;
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
@@ -49,8 +50,19 @@ builder.Services.AddValidatorsFromAssemblyContaining<AdoptionApplicationValidato
 
 
 
-// Builders (DTO)
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+// Configure Auto Mapper
+builder.Services.AddAutoMapper(
+    typeof(UserBuilder),
+    typeof(ShelterBuilder),
+    typeof(ReportBuilder),
+    typeof(NotificationBuilder),
+    typeof(MessageBuilder),
+    typeof(ConversationBuilder),
+    typeof(AnimalTypeBuilder),
+    typeof(BreedBuilder),
+    typeof(AnimalBuilder),
+    typeof(AdoptionApplicationBuilder)
+);
 
 // Repositories
 builder.Services.AddScoped(typeof(IGeneralRepo<>), typeof(GeneralRepo<>));

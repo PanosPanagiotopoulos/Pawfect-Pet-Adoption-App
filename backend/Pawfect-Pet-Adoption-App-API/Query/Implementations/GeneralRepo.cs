@@ -24,10 +24,11 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
             return await _collection.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task<bool> AddAsync(T entity)
+        public async Task<string> AddAsync(T entity)
         {
             await _collection.InsertOneAsync(entity);
-            return true;
+            string? id = entity.GetType().GetProperty("Id").GetValue(entity).ToString();
+            return string.IsNullOrEmpty(id) ? throw new MongoException("Couldn't add to collection") : id;
         }
 
         public async Task<bool> UpdateAsync(T entity)
