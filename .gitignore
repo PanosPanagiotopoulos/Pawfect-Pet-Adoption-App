@@ -57,6 +57,8 @@ Migrations/
 
 # .NET User Secrets
 **/appsettings.*.json
+/backend/Pawfect-Pet-Adoption-App-API/appsettings.json
+backend/Pawfect-Pet-Adoption-App-API/appsettings.json
 
 # Windows & OS Specific
 Thumbs.db

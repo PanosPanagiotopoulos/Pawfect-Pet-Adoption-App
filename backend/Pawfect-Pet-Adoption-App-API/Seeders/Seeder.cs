@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Models;
-using Pawfect_Pet_Adoption_App_API.Models.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Services;
 
 public class Seeder
@@ -181,9 +181,9 @@ public class Seeder
         {
             var conversations = new List<Conversation>
             {
-                new Conversation { Users = new List<string> { users[0].Id, users[1].Id }, AnimalId = animals[0].Id },
-                new Conversation { Users = new List<string> { users[1].Id, users[2].Id }, AnimalId = animals[1].Id },
-                new Conversation { Users = new List<string> { users[2].Id, users[0].Id }, AnimalId = animals[2].Id }
+                new Conversation { UserIds = new List<string> { users[0].Id, users[1].Id }, AnimalId = animals[0].Id },
+                new Conversation { UserIds = new List<string> { users[1].Id, users[2].Id }, AnimalId = animals[1].Id },
+                new Conversation { UserIds = new List<string> { users[2].Id, users[0].Id }, AnimalId = animals[2].Id }
             };
             conversationsCollection.InsertMany(conversations);
         }
@@ -199,9 +199,9 @@ public class Seeder
         {
             var messages = new List<Message>
             {
-                new Message { ConversationId = conversations[0].Id, SenderId = conversations[0].Users[0], RecepientId = conversations[0].Users[1], Content = "Hello, I'm interested in adopting Buddy." },
-                new Message { ConversationId = conversations[1].Id, SenderId = conversations[1].Users[0], RecepientId = conversations[1].Users[1], Content = "Is Mittens still available?" },
-                new Message { ConversationId = conversations[2].Id, SenderId = conversations[2].Users[0], RecepientId = conversations[2].Users[1], Content = "How is Thumper's health?" }
+                new Message { ConversationId = conversations[0].Id, SenderId = conversations[0].UserIds[0], RecepientId = conversations[0].UserIds[1], Content = "Hello, I'm interested in adopting Buddy." },
+                new Message { ConversationId = conversations[1].Id, SenderId = conversations[1].UserIds[0], RecepientId = conversations[1].UserIds[1], Content = "Is Mittens still available?" },
+                new Message { ConversationId = conversations[2].Id, SenderId = conversations[2].UserIds[0], RecepientId = conversations[2].UserIds[1], Content = "How is Thumper's health?" }
             };
             messagesCollection.InsertMany(messages);
         }
