@@ -17,7 +17,7 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
         /// Προσθέτει ένα νέο στοιχείο.
         /// </summary>
         /// <param name="entity">Τα δεδομένα του στοιχείου.</param>
-        Task<bool> AddAsync(T entity);
+        Task<string> AddAsync(T entity);
         /// <summary>
         /// Ενημερώνει το μοντέλο.
         /// </summary>
