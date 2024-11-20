@@ -10,6 +10,9 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
         // Builder για Entity : User
         public UserBuilder()
         {
+            // Mapping για nested object : Location
+            CreateMap<Location, Location>();
+
             // Mapping για το Entity : User σε User για χρήση του σε αντιγραφή αντικειμένων
             CreateMap<User, User>();
 
