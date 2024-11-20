@@ -13,19 +13,15 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="FluentValidation" Version="11.10.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\AdoptionApplication\" />
-    <Folder Include="DTOs\Animal\" />
-    <Folder Include="DTOs\Message\" />
-    <Folder Include="DTOs\Conversation\" />
-    <Folder Include="DTOs\NewFolder\" />
-    <Folder Include="DTOs\Notification\" />
-    <Folder Include="DTOs\Report\" />
-    <Folder Include="DTOs\Shelter\" />
+    <Folder Include="Builders\" />
   </ItemGroup>
 
 </Project>

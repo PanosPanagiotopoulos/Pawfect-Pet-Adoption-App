@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.DTOs.User;
+using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Services;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -36,7 +36,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
             try
             {
-                if (await _userService.GetUserByIdAsync(id) is GUserDTO user && user != null)
+                if (await _userService.GetUserByIdAsync(id) is UserDto user && user != null)
                 {
                     return Ok(user);
                 }
@@ -51,7 +51,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] CUserDTO user)
+        public async Task<IActionResult> CreateUser([FromBody] UserPersist user)
         {
             if (!ModelState.IsValid)
             {

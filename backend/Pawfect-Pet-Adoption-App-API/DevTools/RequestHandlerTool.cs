@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Pawfect_Pet_Adoption_App_API.DevTools
 {
@@ -18,7 +19,7 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
         /// <returns></returns>
         public static IActionResult HandleInternalServerError(Exception error, string method, string filepath = "< Not included >", string extraInfo = "")
         {
-            string errorMessage = $"Internal server error occurred while processing the request.\nCause: ${error.Message}\nTrace: {error.StackTrace}\nExtra info: ${extraInfo}";
+            string errorMessage = $"\n---------------------------------------------------------\nInternal server error occurred while processing the request.\nCause: ${error.Message}\nTrace: {error.StackTrace}\nInner Exception: {error.InnerException}\nData: {JsonConvert.SerializeObject(error.Data, Formatting.Indented)}\nExtra info: ${extraInfo}\n---------------------------------------------------------\n";
             Console.WriteLine(errorMessage);
             return new ObjectResult(errorMessage)
             {
