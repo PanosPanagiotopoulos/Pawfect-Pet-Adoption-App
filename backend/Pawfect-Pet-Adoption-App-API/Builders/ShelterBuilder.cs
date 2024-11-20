@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
@@ -9,6 +10,11 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
         // Builder για Entity : Shelter
         public ShelterBuilder()
         {
+            // Mapping για nested object : OpeningHours
+            CreateMap<OperatingHours, OperatingHours>();
+            // Mapping για nested object : SocialMedia
+            CreateMap<SocialMedia, SocialMedia>();
+
             // Mapping για το Entity : Shelter σε Shelter για χρήση του σε αντιγραφή αντικειμένων
             CreateMap<Shelter, Shelter>();
 
