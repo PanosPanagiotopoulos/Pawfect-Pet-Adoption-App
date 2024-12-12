@@ -69,6 +69,15 @@
         /// </value>
         public bool IsVerified { get; set; }
 
+        /// <value>
+        /// Υποδηλώνει άν το κινητό του χρήστη έχουν επιβεβαιωθεί
+        /// </value>
+        public bool HasPhoneVerified { get; set; }
+        /// <value>
+        /// Υποδηλώνει άν το email του χρήστη έχουν επιβεβαιωθεί
+        /// </value>
+        public bool HasEmailVerified { get; set; }
+
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

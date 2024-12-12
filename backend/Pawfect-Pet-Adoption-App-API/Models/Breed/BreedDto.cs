@@ -6,7 +6,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Breed
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public string TypeId { get; set; }
         public AnimalTypeDto? AnimalType { get; set; }
         public string Description { get; set; }
         public DateTime CreatedAt { get; set; }

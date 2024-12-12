@@ -22,7 +22,7 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
         /// Ενημερώνει το μοντέλο.
         /// </summary>
         /// <param name="entity">Τα δεδομένα του στοιχείου (πρέπει να περιλαμβάνει το αναγνωριστικό).</param>
-        Task<bool> UpdateAsync(T entity);
+        Task<string> UpdateAsync(T entity);
         /// <summary>
         /// Διαγράφει το μοντέλο.
         /// </summary>

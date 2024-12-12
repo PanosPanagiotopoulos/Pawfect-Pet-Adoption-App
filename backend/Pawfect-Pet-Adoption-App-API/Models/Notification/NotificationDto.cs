@@ -6,7 +6,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Notification
     public class NotificationDto
     {
         public string Id { get; set; }
-        public string UserId { get; set; }
         public UserDto? User { get; set; }
         public NotificationType Type { get; set; }
         public string Content { get; set; }

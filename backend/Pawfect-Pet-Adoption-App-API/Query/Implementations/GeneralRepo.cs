@@ -20,7 +20,7 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 
         public async Task<T> GetByIdAsync(string id)
         {
-            var filter = Builders<T>.Filter.Eq("_id", new ObjectId(id));
+            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", new ObjectId(id));
             return await _collection.Find(filter).FirstOrDefaultAsync();
         }
 
@@ -31,17 +31,23 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
             return string.IsNullOrEmpty(id) ? throw new MongoException("Couldn't add to collection") : id;
         }
 
-        public async Task<bool> UpdateAsync(T entity)
+        public async Task<string> UpdateAsync(T entity)
         {
-            var filter = Builders<T>.Filter.Eq("_id", entity.GetType().GetProperty("Id").GetValue(entity, null));
-            var result = await _collection.ReplaceOneAsync(filter, entity);
-            return result.ModifiedCount > 0;
+            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", entity.GetType().GetProperty("Id").GetValue(entity, null));
+            ReplaceOneResult result = await _collection.ReplaceOneAsync(filter, entity);
+            if (result.ModifiedCount > 0)
+            {
+                string id = entity.GetType().GetProperty("Id").GetValue(entity).ToString();
+                return id;
+            }
+
+            throw new MongoException("Update failed");
         }
 
         public async Task<bool> DeleteAsync(string id)
         {
-            var filter = Builders<T>.Filter.Eq("_id", new ObjectId(id));
-            var result = await _collection.DeleteOneAsync(filter);
+            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", new ObjectId(id));
+            DeleteResult result = await _collection.DeleteOneAsync(filter);
             return result.DeletedCount > 0;
         }
 

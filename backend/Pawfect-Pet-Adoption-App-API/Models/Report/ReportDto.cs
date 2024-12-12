@@ -10,10 +10,8 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Report
         /// <value>
         /// Το Id του χρήστη που έκανε το report.
         /// </value>
-        public string ReporterId { get; set; }
         public UserDto? Reporter { get; set; }
 
-        public string ReportedId { get; set; }
         public UserDto? Reported { get; set; }
 
         /// <value>Ο τύπος αναφοράς βάση του συστήματος.</value>

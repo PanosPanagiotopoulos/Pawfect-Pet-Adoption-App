@@ -6,11 +6,8 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Message
     public class MessageDto
     {
         public string Id { get; set; }
-        public string ConversationId { get; set; }
         public ConversationDto? Conversation { get; set; }
-        public string SenderId { get; set; }
         public UserDto? Sender { get; set; }
-        public string RecepientId { get; set; }
         public UserDto? Recipient { get; set; }
         public string Content { get; set; }
         public bool IsRead { get; set; }

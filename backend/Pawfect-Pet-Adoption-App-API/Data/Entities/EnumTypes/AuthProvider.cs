@@ -5,7 +5,7 @@
     /// </summary>
     public enum AuthProvider
     {
-        Google = 1,
-        Local = 2
+        Local = 1,
+        Google = 2
     }
 }

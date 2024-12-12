@@ -8,6 +8,7 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
     /// </summary>
     public interface IUserRepository : IGeneralRepo<User>
     {
+        // TEST METHOD //
         Task<IEnumerable<User>> GetAllAsync();
     }
 }

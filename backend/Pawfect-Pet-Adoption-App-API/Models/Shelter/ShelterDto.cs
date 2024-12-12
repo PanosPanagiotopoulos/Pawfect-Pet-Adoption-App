@@ -11,7 +11,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
         /// <value>
         /// Τα δεδομένα του αντίστοιχου χρήστη για το καταφύγιο
         /// </value>
-        public string UserId { get; set; }
         public UserDto? User { get; set; }
 
         public string ShelterName { get; set; }

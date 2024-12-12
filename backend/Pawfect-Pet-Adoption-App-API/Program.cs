@@ -3,6 +3,7 @@ using FluentValidation.AspNetCore;
 using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data;
+using Pawfect_Pet_Adoption_App_API.Models;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
@@ -16,12 +17,27 @@ using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Ρυθμήσεις Logger //
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration) // Load configuration from appsettings.json
+    .Enrich.FromLogContext() // Enrich logs with contextual information
+    .CreateLogger();
+
+// Use Serilog middleware to log using ILogger
+builder.Host.UseSerilog();
+// - Ρυθμήσεις Logger //
+
+// Προσθήκη JSON configuration αρχείων //
+builder.Configuration.AddJsonFile("APIs_Configurations.json", optional: false);
+// -- Προσθήκη JSON configuration αρχείων -- //
 
 // Ρύθμιση της υπηρεσίας MongoDB
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
-builder.Services.AddSingleton<IMongoClient>(s => new MongoClient(builder.Configuration.GetValue<string>("MongoDbSettings:ConnectionString")));
+builder.Services.AddSingleton<IMongoClient>(s => new MongoClient(builder.Configuration.GetValue<string>("MongoDbSettings:MongoDb")));
 builder.Services.AddScoped(s => s.GetRequiredService<IMongoClient>().GetDatabase(builder.Configuration.GetValue<string>("MongoDbSettings:DatabaseName")));
 // -- Ρύθμιση της υπηρεσίας MongoDB
 
@@ -32,7 +48,7 @@ builder.Services.AddTransient<Seeder>();
 // Ρύθμιση Controllers , μαζί με δυνατότητα χρήσης Fluent Validation , χωρις auto validation, θα γίνει μικτά auto κ mannual
 builder.Services.AddControllers()
     .AddFluentValidation(
-        fv => fv.DisableDataAnnotationsValidation = false
+        fv => fv.DisableDataAnnotationsValidation = true
     );
 
 // Register auto validation for persist dtos
@@ -46,22 +62,25 @@ builder.Services.AddValidatorsFromAssemblyContaining<BreedValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AnimalTypeValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AnimalValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AdoptionApplicationValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<OTPVerificationValidator>();
+
 // -- Register auto validation for persist dtos
 
 
 
 // Configure Auto Mapper
 builder.Services.AddAutoMapper(
-    typeof(UserBuilder),
-    typeof(ShelterBuilder),
-    typeof(ReportBuilder),
-    typeof(NotificationBuilder),
-    typeof(MessageBuilder),
-    typeof(ConversationBuilder),
-    typeof(AnimalTypeBuilder),
-    typeof(BreedBuilder),
-    typeof(AnimalBuilder),
-    typeof(AdoptionApplicationBuilder)
+    typeof(AutoUserBuilder),
+    typeof(AutoShelterBuilder),
+    typeof(AutoReportBuilder),
+    typeof(AutoNotificationBuilder),
+    typeof(AutoMessageBuilder),
+    typeof(AutoConversationBuilder),
+    typeof(AutoAnimalTypeBuilder),
+    typeof(AutoBreedBuilder),
+    typeof(AutoAnimalBuilder),
+    typeof(AutoAdoptionApplicationBuilder)
 );
 
 // Repositories
@@ -80,16 +99,40 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 
 // Services
-builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ISmsService, SmsService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<MongoDbService>();
 // -- Services
+
+// Προσθήκη Memory Cache services
+builder.Services.AddMemoryCache();
+// -- Προσθήκη Memory Cache services
+
+// Προσθήκη HttpClient //
+builder.Services.AddHttpClient();
+// -- Προσθήκη HttpClient //
+
+// Προσθήκη CORS υπηρεσιών για διαχείρηση ασφάλειας των origins
+builder.Services.AddCors(options =>
+{
+    // Προσωρινά τα αποδεχόμαστε όλα
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+// -- Προσθήκη CORS υπηρεσιών για διαχείρηση ασφάλειας των origins
 
 
 // Πρόσθεση endpoints και SwaggerUI για την ανάπτυξη, doccumentation και testing του API
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// -- Πρόσθεση endpoints και SwaggerUI για την ανάπτυξη, doccumentation και testing του API
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Καθορισμός Seeding της βάσης
 if (args.Length == 1 && args[0].ToLower() == "seeddata")
@@ -119,6 +162,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
+app.UseCors("AllowAll");
 app.MapControllers();
 
 app.Run();

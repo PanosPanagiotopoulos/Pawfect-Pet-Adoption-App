@@ -4,11 +4,11 @@ using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
 {
-    public class ShelterBuilder : Profile
+    public class AutoShelterBuilder : Profile
     {
         // Builders για μετατροπές object απο Entities σε Μοντέλα κάποιας χρήσης και αντίστροφα
         // Builder για Entity : Shelter
-        public ShelterBuilder()
+        public AutoShelterBuilder()
         {
             // Mapping για nested object : OpeningHours
             CreateMap<OperatingHours, OperatingHours>();
@@ -18,13 +18,12 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
             // Mapping για το Entity : Shelter σε Shelter για χρήση του σε αντιγραφή αντικειμένων
             CreateMap<Shelter, Shelter>();
 
-            // GET Response Dto Μοντέλα
-            CreateMap<Shelter, ShelterDto>();
-            CreateMap<ShelterDto, Shelter>();
-
             // POST Request Dto Μοντέλα
             CreateMap<Shelter, ShelterPersist>();
             CreateMap<ShelterPersist, Shelter>();
         }
     }
+
+    // TODO: GET Response Dto Μοντέλα
+
 }

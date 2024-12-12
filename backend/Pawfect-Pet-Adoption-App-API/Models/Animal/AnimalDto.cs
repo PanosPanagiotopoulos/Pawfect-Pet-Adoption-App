@@ -14,11 +14,8 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Animal
         public string Description { get; set; }
         public double Weight { get; set; }
         public string HealthStatus { get; set; }
-        public string ShelterId { get; set; }
         public ShelterDto? Shelter { get; set; }
-        public string BreedId { get; set; }
         public BreedDto? Breed { get; set; }
-        public string TypeId { get; set; }
         public AnimalTypeDto? Type { get; set; }
         public string[] Photos { get; set; }
         public AdoptionStatus AdoptionStatus { get; set; }
