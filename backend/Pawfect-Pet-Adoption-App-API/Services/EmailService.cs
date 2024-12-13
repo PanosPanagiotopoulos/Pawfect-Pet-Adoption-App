@@ -27,7 +27,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             SendGridClient client = new SendGridClient(apiKey);
             EmailAddress from = new EmailAddress(fromEmail, fromName);
             EmailAddress to = new EmailAddress(email);
-            SendGridMessage msg = MailHelper.CreateSingleEmail(from, to, subject, message, message);
+            SendGridMessage msg = MailHelper.CreateSingleEmail(from, to, "Pawfect : " + subject, message, message);
 
             Response response = await client.SendEmailAsync(msg);
 

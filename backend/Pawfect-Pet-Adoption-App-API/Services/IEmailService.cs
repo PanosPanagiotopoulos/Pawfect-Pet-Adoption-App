@@ -1,8 +1,17 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Services
+﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+
+namespace Pawfect_Pet_Adoption_App_API.Services
 {
     // Interface για την υπηρεσία API διαχείρησης και αποστολής Email
     public interface IEmailService
     {
+        // Email templates
+        public static readonly Dictionary<EmailType, string> EmailTemplates = new Dictionary<EmailType, string>
+        {
+            { EmailType.Verification, "Καλως ήρθες στην οικογένεια του Pawfect. Παρακαλώ επιβεβαίωσε το email σου στον σύνδεσμο παρακάτω:<br><br><a href=\"{0}\" style=\"background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block;\">Verify Email</a>" },
+            { EmailType.Reset_Password, "Επαναφορά κωδικού στην υπηρεσία Pawfect. Παρακαλώ επιβεβαίωσε το email σου για την επαναφορά στον σύνδεσμο παρακάτω:<br><br><a href=\"{0}\" style=\"background-color: #4CAF50; color: white; padding: 10px 20px; text-align: center; text-decoration: none; display: inline-block;\">Verify Email</a>" }
+        };
+
         // Κατασκευή ενώς unique token για verification με χρήση Guid
         static string GenerateRefreshToken() { return Guid.NewGuid().ToString(); }
 

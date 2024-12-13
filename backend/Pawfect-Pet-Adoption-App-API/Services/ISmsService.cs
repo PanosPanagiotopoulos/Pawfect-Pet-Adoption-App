@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using System.Text.RegularExpressions;
 
 namespace Pawfect_Pet_Adoption_App_API.Services
 {
@@ -43,6 +44,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             { "41", 9 },  // Switzerland
             { "420", 9 }, // Czech Republic
         };
+        // SMS templates
+        public static readonly Dictionary<SmsType, string> SmsTemplates = new Dictionary<SmsType, string>
+        {
+            { SmsType.OTP, "Ο κωδικός OTP σου είναι : {0}" }
+        };
+
 
 
         // Αποστολή SMS σε χρήστη  

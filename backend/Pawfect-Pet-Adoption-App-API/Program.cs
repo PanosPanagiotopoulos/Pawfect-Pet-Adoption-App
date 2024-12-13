@@ -32,6 +32,7 @@ builder.Host.UseSerilog();
 // - Ρυθμήσεις Logger //
 
 // Προσθήκη JSON configuration αρχείων //
+builder.Configuration.AddJsonFile("Cache_Configurations.json", optional: false);
 builder.Configuration.AddJsonFile("APIs_Configurations.json", optional: false);
 // -- Προσθήκη JSON configuration αρχείων -- //
 
@@ -64,7 +65,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<AnimalValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AdoptionApplicationValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<OTPVerificationValidator>();
-
 // -- Register auto validation for persist dtos
 
 
@@ -102,6 +102,7 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<RequestService>();
 builder.Services.AddScoped<MongoDbService>();
 // -- Services
 
@@ -112,6 +113,10 @@ builder.Services.AddMemoryCache();
 // Προσθήκη HttpClient //
 builder.Services.AddHttpClient();
 // -- Προσθήκη HttpClient //
+
+// Προσθήκη HttpContextAccessor για διαχείρηση των Request δεδομένων και του API //
+builder.Services.AddHttpContextAccessor();
+// -- Προσθήκη HttpContextAccessor για διαχείρηση των Request δεδομένων και του API //
 
 // Προσθήκη CORS υπηρεσιών για διαχείρηση ασφάλειας των origins
 builder.Services.AddCors(options =>

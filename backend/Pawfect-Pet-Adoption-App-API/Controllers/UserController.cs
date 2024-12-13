@@ -22,24 +22,6 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             this._logger = logger;
             this._memoryCache = memoryCache;
         }
-
-        [HttpGet("id")]
-        public async Task<IActionResult> GetUserById([FromQuery] string id)
-        {
-
-            try
-            {
-                //if (await _userService.GetUserByIdAsync(id) is UserDto user && user != null)
-                //{
-                return Ok();
-                //}
-            }
-            catch (Exception e)
-            {
-                return RequestHandlerTool.HandleInternalServerError(e, "GET");
-            }
-        }
-
         /*
          Example Payload:
         
@@ -84,7 +66,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         }
 
         [HttpPost("send/otp")]
-        public async Task<IActionResult> SendOtp([FromBody] string phonenumber)
+        public async Task<IActionResult> SendOtp([FromBody] string? phonenumber)
         {
             if (!ModelState.IsValid)
             {
@@ -94,7 +76,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             try
             {
                 // Αποστέλουμε otp στον αριθμό τηλεφώνου και το αποθηκέυουμε στην cache
-                await _userService.GenerateNewOtp(phonenumber);
+                await _userService.GenerateNewOtpAsync(phonenumber);
 
                 return Ok();
             }
@@ -107,7 +89,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         }
 
         [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyUserOtp([FromBody] string email, [FromBody] string phonenumber, [FromBody] OTPVerification otpVerification)
+        public async Task<IActionResult> VerifyUserOtp([FromBody] string? email, [FromBody] string? phonenumber, [FromBody] OTPVerification otpVerification)
         {
             if (!ModelState.IsValid)
             {
@@ -124,7 +106,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
                 }
 
                 // Κάνουμε update τον χρήστη με verified αριθμό τηλεφώνου
-                if ((await _userService.PersistUser(new UserPersist
+                if ((await _userService.PersistUserAsync(new UserPersist
                 {
                     Email = email,
                     HasPhoneVerified = true
@@ -146,7 +128,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         }
 
         [HttpPost("send/email-verification")]
-        public async Task<IActionResult> SendEmailVerification([FromBody] string email)
+        public async Task<IActionResult> SendEmailVerification([FromBody] string? email)
         {
             if (!ModelState.IsValid)
             {
@@ -169,7 +151,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         }
 
         [HttpPost("verify-email")]
-        public async Task<IActionResult> VerifyEmail([FromBody] string email, [FromBody] string token)
+        public async Task<IActionResult> VerifyEmail([FromBody] string? email, [FromBody] string? token)
         {
             if (!ModelState.IsValid)
             {
@@ -186,7 +168,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
                 }
 
                 // Κάνουμε update τον χρήστη με verified αριθμό τηλεφώνου
-                if ((await _userService.PersistUser(new UserPersist
+                if ((await _userService.PersistUserAsync(new UserPersist
                 {
                     Email = email,
                     HasEmailVerified = true
@@ -218,7 +200,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
             try
             {
-                if (!(await _userService.VerifyUser(toRegisterUser)))
+                if (!(await _userService.VerifyUserAsync(toRegisterUser)))
                 {
                     ModelState.AddModelError("error", "Έλειψη απαραίτητων κριτηρίων για πλήρη επιβεβαίωση χρήστη");
                     return BadRequest(ModelState);
@@ -230,6 +212,57 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             {
                 // LOGS //
                 _logger.LogError(e, "Error προσπαθόντας να κάνουμε verify τον χρήστη");
+                return RequestHandlerTool.HandleInternalServerError(e, "POST");
+            }
+        }
+
+        [HttpPost("send/reset-password-email")]
+        public async Task<IActionResult> SendResetPasswordEmail([FromBody] string? email)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                // Αποστολή reset-password email για έναρξη επαναφοράς κωδικού
+                await _userService.SendResetPasswordEmailAsync(email);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Αποτυχία αποστολής reset password email");
+                return RequestHandlerTool.HandleInternalServerError(e, "POST");
+            }
+        }
+
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword([FromBody] string? email, [FromBody] string? token, [FromBody] string? newPassword)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                // Reset the password
+                if (!await _userService.ResetPasswordAsync(email, newPassword, token))
+                {
+                    // LOGS //
+                    _logger.LogError("Αποτυχία επαναφοράς κωδικού");
+                    ModelState.AddModelError("error", "Αποτυχία επαναφοράς κωδικού");
+                    return BadRequest(ModelState);
+                }
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                // LOGS //
+                _logger.LogError(e, "Αποτυχία επαναφοράς κωδικού");
                 return RequestHandlerTool.HandleInternalServerError(e, "POST");
             }
         }
