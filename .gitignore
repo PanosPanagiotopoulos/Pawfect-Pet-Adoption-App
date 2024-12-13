@@ -9,6 +9,9 @@ out-tsc/
 src/environments/environment*.ts
 .env
 
+# API Configuration Keys of Backend
+backend/Pawfect-Pet-Adoption-App-API/APIs_Configurations.json
+
 # Compiled TypeScript files
 *.tsbuildinfo
 
