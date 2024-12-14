@@ -15,7 +15,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services
         // Κατασκευή ενώς unique token για verification με χρήση Guid
         static string GenerateRefreshToken() { return Guid.NewGuid().ToString(); }
 
-        // Αποστολή email σε χρήστη για επιβεβαίωση του email του
+        /// <summary>
+        /// Αποστολή email σε χρήστη για επιβεβαίωση του email του.
+        /// </summary>
+        /// <param name="email">Η διεύθυνση email του χρήστη.</param>
+        /// <param name="subject">Το θέμα του email.</param>
+        /// <param name="message">Το μήνυμα του email.</param>
+        /// <exception cref="InvalidDataException">Ρίχνεται όταν οι παράμετροι για το configuration δεν βρέθηκαν.</exception>
+        /// <exception cref="InvalidOperationException">Ρίχνεται όταν αποτυγχάνει η αποστολή του email.</exception>
         Task SendEmailAsync(string email, string subject, string message);
     }
 }

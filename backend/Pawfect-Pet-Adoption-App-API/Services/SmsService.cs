@@ -14,7 +14,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
         {
             _httpClient = httpClient;
             _configuration = configuration;
-            this._logger = logger;
+            _logger = logger;
         }
 
         public async Task SendSmsAsync(string phoneNumber, string message)
@@ -27,12 +27,17 @@ namespace Pawfect_Pet_Adoption_App_API.Services
                 throw new InvalidDataException("Wrong configuration data found");
             }
 
-            _logger.LogInformation($"Sms service url : {smsServiceUrl}");
-            _logger.LogInformation($"Sms API key : {apiKey}");
-
 
             // Κατασκευάζουμε τον αριθμό τηλεφώνου μόνο με με τα νούμερα του και στην αρχή τον κωδικό της χώρας για την υπηρεσία
             string cleanedPhonenumber = ISmsService.ParsePhoneNumber(phoneNumber);
+
+            string? fromPhonenumber = _configuration["SmsService:From"];
+            if (string.IsNullOrEmpty(fromPhonenumber))
+            {
+                // LOGS //
+                _logger.LogError("From phone number to send SMS not found.");
+                throw new InvalidOperationException("From phone configuration not found at SMS Service");
+            }
 
             // Κατασκευή payload για το SMS API
             var payload = new
@@ -46,7 +51,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
                             new { to = phoneNumber}
                         },
                         // Τωρινό Sender ID απο την υπηρεσία
-                        from = "447491163443",
+                        from = fromPhonenumber,
                         text = message
                     }
                 }

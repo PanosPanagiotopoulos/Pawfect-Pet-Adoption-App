@@ -17,13 +17,6 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
             this._db = dbService.db;
             this._collection = dbService.GetCollection<T>();
         }
-
-        public async Task<T> GetByIdAsync(string id)
-        {
-            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", new ObjectId(id));
-            return await _collection.Find(filter).FirstOrDefaultAsync();
-        }
-
         public async Task<string> AddAsync(T entity)
         {
             await _collection.InsertOneAsync(entity);

@@ -11,6 +11,7 @@ src/environments/environment*.ts
 
 # API Configuration Keys of Backend
 backend/Pawfect-Pet-Adoption-App-API/APIs_Configurations.json
+backend/Pawfect-Pet-Adoption-App-API/Authentication.json
 
 # Compiled TypeScript files
 *.tsbuildinfo

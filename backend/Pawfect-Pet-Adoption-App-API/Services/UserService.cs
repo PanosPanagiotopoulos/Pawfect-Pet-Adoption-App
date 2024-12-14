@@ -35,7 +35,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             this._configuration = configuration;
         }
 
-        public async Task<string> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
+        public async Task<string?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
         {
             // Ελέγξτε αν ο χρήστης υπάρχει ήδη. Αν ναι, επιστρέψτε το υπάρχον ID του χρήστη.
             if (
@@ -83,11 +83,16 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             await _smsService.SendSmsAsync(phonenumber, string.Format(ISmsService.SmsTemplates[SmsType.OTP], newOtp));
         }
 
-        public bool VerifyOtp(string? phonenumber, OTPVerification otpVerification)
+        public bool VerifyOtp(string? phonenumber, int? OTP)
         {
             if (string.IsNullOrEmpty(phonenumber))
             {
                 throw new InvalidDataException("Δεν βρέθηκε αριθμός τηλεφώνου για την επαλήθευση OTP");
+            }
+
+            if (!OTP.HasValue)
+            {
+                throw new InvalidDataException("Δεν βρέθηκε απεσταλμένος OTP για την επαλήθευση OTP");
             }
 
             // Ελέγξτε αν το OTP υπάρχει στην cache.
@@ -97,7 +102,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             }
 
             // Επαληθεύστε το OTP.
-            if (!(cachedOtp == otpVerification.Otp))
+            if (!(cachedOtp == OTP.Value))
             {
                 throw new InvalidDataException("Λάθος κωδικός OTP");
             }
@@ -172,7 +177,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             try
             {
                 // Ανακτήστε τον χρήστη με βάση το ID ή το email.
-                User user = await RetrieveUserAsync(toRegisterUser.User.Id, toRegisterUser.User.Email);
+                User? user = await RetrieveUserAsync(toRegisterUser.User.Id, toRegisterUser.User.Email);
 
                 // Αν ο χρήστης δεν υπάρχει, ρίξτε εξαίρεση.
                 if (user == null)
@@ -197,6 +202,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services
                                      $"Κριτήρια: Αριθμός Τηλεφώνου : {user.HasPhoneVerified}\n" +
                                      $"Κριτήρια: Email : {user.HasEmailVerified}");
                     return false;
+                }
+
+                // Σε περίπτωση που δεν είναι End-User , θα πρέπει να σταλεί ειδοποίηση σε admin για αν επιβεβαιωθεί
+                if (!(user.Role == UserRole.User))
+                {
+                    // TODO: Στείλτε ειδοποίηση στον admin για να επιβεβαιώσει τον χρήστη
                 }
 
                 return true;
@@ -295,7 +306,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
 
         public async Task<string?> PersistUserAsync(UserPersist userPersist, bool allowCreation = true)
         {
-            User workingUser = null;
+            User? workingUser = null;
             try
             {
                 // Ανακτήστε τον χρήστη με βάση το ID ή το email.
@@ -307,11 +318,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services
                     if (!allowCreation)
                     {
                         // LOGS //
-                        _logger.LogWarning("Έγινε άπότρεψη προσπάθειας κατασκευής χρήστη χωρίς δικαίωμα");
+                        _logger.LogWarning("Έγινε άπότρεψη προσπάθειας κατασκευής χρήστη χωρίς δικαίωμα κατασκευής");
                         return null;
                     }
 
                     workingUser = _mapper.Map<User>(userPersist);
+
+                    // Hash τα credentials συνθηματικών του χρήστη
+                    HashLoginCredentials(ref workingUser);
+
                     workingUser.CreatedAt = DateTime.UtcNow;
                     workingUser.UpdatedAt = DateTime.UtcNow;
 
@@ -332,7 +347,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
 
         public async Task<string?> PersistUserAsync(User user, bool allowCreation = true)
         {
-            User workingUser = null;
+            User? workingUser = null;
             try
             {
                 // Ανακτήστε τον χρήστη με βάση το ID ή το email.
@@ -344,11 +359,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services
                     if (!allowCreation)
                     {
                         // LOGS //
-                        _logger.LogWarning("Έγινε άπότρεψη προσπάθειας κατασκευής χρήστη χωρίς δικαίωμα");
+                        _logger.LogWarning("Έγινε άπότρεψη προσπάθειας κατασκευής χρήστη χωρίς δικαίωμα κατασκευής");
                         return null;
                     }
 
                     workingUser = _mapper.Map<User>(user);
+
+                    // Hash τα credentials συνθηματικών του χρήστη
+                    HashLoginCredentials(ref workingUser);
+
                     workingUser.CreatedAt = DateTime.UtcNow;
                     workingUser.UpdatedAt = DateTime.UtcNow;
 
@@ -371,7 +390,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             // Ανακτήστε τον χρήστη με βάση το ID.
             if (!string.IsNullOrEmpty(id))
             {
-                return await _userRepository.GetByIdAsync(id);
+                return await _userRepository.FindAsync(user => user.Id == id);
             }
             // Ανακτήστε τον χρήστη με βάση το email.
             else if (!string.IsNullOrEmpty(email))
@@ -380,6 +399,20 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             }
 
             return null;
+        }
+
+        // Συνάρτηση για hasing των credentials συνθηματικού του χρήστη
+        private void HashLoginCredentials(ref User user)
+        {
+            switch (user.AuthProvider)
+            {
+                case AuthProvider.Local:
+                    user.Password = Security.HashValue(user.Password);
+                    break;
+                default:
+                    user.AuthProviderId = Security.HashValue(user.AuthProviderId);
+                    break;
+            }
         }
     }
 }

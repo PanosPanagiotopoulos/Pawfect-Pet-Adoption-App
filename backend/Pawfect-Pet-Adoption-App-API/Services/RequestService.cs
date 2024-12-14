@@ -4,10 +4,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services
 {
     public class RequestService
     {
-        private readonly HttpContextAccessor _httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<RequestService> _logger;
 
-        public RequestService(HttpContextAccessor httpContextAccessor, ILogger<RequestService> logger)
+        public RequestService(IHttpContextAccessor httpContextAccessor, ILogger<RequestService> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;

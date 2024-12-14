@@ -1,5 +1,8 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data;
@@ -18,6 +21,8 @@ using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services;
 using Serilog;
+using System.Text;
+
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +39,7 @@ builder.Host.UseSerilog();
 // Προσθήκη JSON configuration αρχείων //
 builder.Configuration.AddJsonFile("Cache_Configurations.json", optional: false);
 builder.Configuration.AddJsonFile("APIs_Configurations.json", optional: false);
+builder.Configuration.AddJsonFile("Authentication.json", optional: false);
 // -- Προσθήκη JSON configuration αρχείων -- //
 
 // Ρύθμιση της υπηρεσίας MongoDB
@@ -48,9 +54,7 @@ builder.Services.AddTransient<Seeder>();
 
 // Ρύθμιση Controllers , μαζί με δυνατότητα χρήσης Fluent Validation , χωρις auto validation, θα γίνει μικτά auto κ mannual
 builder.Services.AddControllers()
-    .AddFluentValidation(
-        fv => fv.DisableDataAnnotationsValidation = true
-    );
+    .AddFluentValidation(fv => fv.DisableDataAnnotationsValidation = true);
 
 // Register auto validation for persist dtos
 builder.Services.AddValidatorsFromAssemblyContaining<UserValidator>();
@@ -64,7 +68,6 @@ builder.Services.AddValidatorsFromAssemblyContaining<AnimalTypeValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AnimalValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<AdoptionApplicationValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<OTPVerificationValidator>();
 // -- Register auto validation for persist dtos
 
 
@@ -104,19 +107,19 @@ builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<RequestService>();
 builder.Services.AddScoped<MongoDbService>();
+
+// * Το JWT Service θα είναι Singleton γιατί είναι stateless και απλά παρέχει υπηρεσίες Authentication
+builder.Services.AddSingleton<JwtService>();
+
 // -- Services
-
-// Προσθήκη Memory Cache services
-builder.Services.AddMemoryCache();
-// -- Προσθήκη Memory Cache services
-
-// Προσθήκη HttpClient //
-builder.Services.AddHttpClient();
-// -- Προσθήκη HttpClient //
 
 // Προσθήκη HttpContextAccessor για διαχείρηση των Request δεδομένων και του API //
 builder.Services.AddHttpContextAccessor();
 // -- Προσθήκη HttpContextAccessor για διαχείρηση των Request δεδομένων και του API //
+
+// Προσθήκη HttpClient //
+builder.Services.AddHttpClient();
+// -- Προσθήκη HttpClient //
 
 // Προσθήκη CORS υπηρεσιών για διαχείρηση ασφάλειας των origins
 builder.Services.AddCors(options =>
@@ -131,10 +134,54 @@ builder.Services.AddCors(options =>
 });
 // -- Προσθήκη CORS υπηρεσιών για διαχείρηση ασφάλειας των origins
 
+// Προσθήκη JWT Token Αυθεντικοποίησης
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = true;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            string tokenId = context.SecurityToken.Id;
+            JwtService revokedTokensService = context.HttpContext.RequestServices.GetRequiredService<JwtService>();
+
+            if (revokedTokensService.IsTokenRevoked(tokenId))
+            {
+                context.Fail("Αυτό το token είναι πλέον revoked.");
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+// -- Προσθήκη JWT Token Αυθεντικοποίησης
+
+// Προσθήκη Memory Cache services
+builder.Services.AddMemoryCache();
+// -- Προσθήκη Memory Cache services
 
 // Πρόσθεση endpoints και SwaggerUI για την ανάπτυξη, doccumentation και testing του API
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Pawfect Pet Adoption API", Version = "v1" });
+    options.CustomSchemaIds(type => type.FullName); // Avoid duplicate schema names
+});
 // -- Πρόσθεση endpoints και SwaggerUI για την ανάπτυξη, doccumentation και testing του API
 
 WebApplication app = builder.Build();
@@ -147,11 +194,11 @@ async void SeedData(IHost app)
 {
     try
     {
-        var scopedFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
-        using var scope = scopedFactory.CreateScope();
-        var seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
+        IServiceScopeFactory scopedFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+        using IServiceScope scope = scopedFactory.CreateScope();
+        Seeder seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
         seeder.Seed();
-        Console.WriteLine("Ο σποράς των δεδομένων ολοκληρώθηκε με επιτυχία.");
+        Console.WriteLine("Η φόρτωση temporary δεδομένων ολοκληρώθηκε με επιτυχία.");
     }
     catch (Exception ex)
     {
@@ -165,9 +212,20 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseDeveloperExceptionPage();
+
+// Προσθήκη HTTPS πρωτοκόλλου επικοινωνίας
 app.UseHttpsRedirection();
+
+// Προσθήκη Αυθεντικοποίησης
+app.UseAuthentication();
+// Προσθήκη Authorisation
 app.UseAuthorization();
+
+// Επιβολή των CORS κανόνων
 app.UseCors("AllowAll");
+
+// Προσθήκη Controlller ROutes
 app.MapControllers();
 
 app.Run();

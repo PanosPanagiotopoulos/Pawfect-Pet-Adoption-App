@@ -9,11 +9,6 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
     public interface IGeneralRepo<T> where T : class
     {
         /// <summary>
-        /// Επιστρέφει το μοντέλο με βάση το αναγνωριστικό.
-        /// </summary>
-        /// <param name="id">Το αναγνωριστικό.</param>
-        Task<T> GetByIdAsync(string id);
-        /// <summary>
         /// Προσθέτει ένα νέο στοιχείο.
         /// </summary>
         /// <param name="entity">Τα δεδομένα του στοιχείου.</param>
