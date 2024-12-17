@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Caching.Memory;
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 
 namespace Pawfect_Pet_Adoption_App_API.Services
@@ -19,11 +22,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services
         private readonly IEmailService _emailService;
         private readonly RequestService _requestService;
         private readonly IConfiguration _configuration;
+        private readonly UserQuery _userQuery;
+        private readonly UserBuilder _userBuilder;
 
         public UserService(IUserRepository userRepository, IMapper mapper
                            , ILogger<UserService> logger, IMemoryCache memoryCache
                            , ISmsService smsService, IEmailService emailService
-                           , RequestService requestService, IConfiguration configuration)
+                           , RequestService requestService, IConfiguration configuration
+                           , UserQuery userQuery, UserBuilder userBuilder)
         {
             this._userRepository = userRepository;
             this._mapper = mapper;
@@ -33,6 +39,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services
             this._emailService = emailService;
             this._requestService = requestService;
             this._configuration = configuration;
+            this._userQuery = userQuery;
+            this._userBuilder = userBuilder;
         }
 
         public async Task<string?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
@@ -413,6 +421,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services
                     user.AuthProviderId = Security.HashValue(user.AuthProviderId);
                     break;
             }
+        }
+
+        public async Task<IEnumerable<UserDto>> QueryUsersAsync(UserLookup userLookup)
+        {
+            List<User> queriedUsers = await userLookup.EnrichLookup(_userQuery).CollectAsync();
+            return await _userBuilder.BuildDto(queriedUsers, userLookup.Fields.ToList());
         }
     }
 }

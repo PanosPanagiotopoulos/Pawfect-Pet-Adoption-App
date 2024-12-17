@@ -12,11 +12,13 @@ using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Breed;
 using Pawfect_Pet_Adoption_App_API.Models.Conversation;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Message;
 using Pawfect_Pet_Adoption_App_API.Models.Notification;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services;
@@ -103,15 +105,61 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // Services
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IShelterService, ShelterService>();
+builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<IConversationService, ConversationService>();
+builder.Services.AddScoped<IBreedService, BreedService>();
+builder.Services.AddScoped<IAnimalTypeService, AnimalTypeService>();
+builder.Services.AddScoped<IAnimalService, AnimalService>();
+builder.Services.AddScoped<IAdoptionApplicationService, AdoptionApplicationService>();
 builder.Services.AddScoped<ISmsService, SmsService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<RequestService>();
 builder.Services.AddScoped<MongoDbService>();
 
+// Lazy Services
+builder.Services.AddScoped(provider => new Lazy<IUserService>(() => provider.GetRequiredService<IUserService>()));
+builder.Services.AddScoped(provider => new Lazy<IShelterService>(() => provider.GetRequiredService<IShelterService>()));
+// -- Lazy Services
+
+// Search Service ως HttpClient για καλύτερο management στα requests στον Search Server
+builder.Services.AddHttpClient<SearchService>(client =>
+{
+    client.BaseAddress = new Uri("http://localhost:5000"); // Search server URL
+});
+
 // * Το JWT Service θα είναι Singleton γιατί είναι stateless και απλά παρέχει υπηρεσίες Authentication
 builder.Services.AddSingleton<JwtService>();
 
 // -- Services
+
+// Querying Services
+builder.Services.AddScoped<UserQuery>();
+builder.Services.AddScoped<ShelterQuery>();
+builder.Services.AddScoped<ReportQuery>();
+builder.Services.AddScoped<NotificationQuery>();
+builder.Services.AddScoped<MessageQuery>();
+builder.Services.AddScoped<ConversationQuery>();
+builder.Services.AddScoped<BreedQuery>();
+builder.Services.AddScoped<AnimalQuery>();
+builder.Services.AddScoped<AnimalTypeQuery>();
+builder.Services.AddScoped<AdoptionApplicationQuery>();
+// -- Querying Services
+
+// Lookup Objects Services
+builder.Services.AddScoped<AnimalLookup>();
+builder.Services.AddScoped<UserLookup>();
+builder.Services.AddScoped<ShelterLookup>();
+builder.Services.AddScoped<NotificationLookup>();
+builder.Services.AddScoped<ReportLookup>();
+builder.Services.AddScoped<ConversationLookup>();
+builder.Services.AddScoped<MessageLookup>();
+builder.Services.AddScoped<AdoptionApplicationLookup>();
+builder.Services.AddScoped<BreedLookup>();
+builder.Services.AddScoped<AnimalTypeLookup>();
+// -- Lookup Objects Services
 
 // Προσθήκη HttpContextAccessor για διαχείρηση των Request δεδομένων και του API //
 builder.Services.AddHttpContextAccessor();

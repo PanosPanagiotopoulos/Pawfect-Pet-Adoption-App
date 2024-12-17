@@ -15,7 +15,6 @@
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
-        // Must be unique for each user
         public string Email { get; set; }
 
         [BsonIgnoreIfNull]

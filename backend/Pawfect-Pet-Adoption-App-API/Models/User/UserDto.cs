@@ -15,6 +15,8 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
         public AuthProvider AuthProvider { get; set; }
         public string? AuthProviderId { get; set; }
         public bool IsVerified { get; set; }
+        public bool HasPhoneVerified { get; set; }
+        public bool HasEmailVerified { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

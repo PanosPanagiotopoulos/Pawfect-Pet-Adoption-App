@@ -1,11 +1,19 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 
 namespace Pawfect_Pet_Adoption_App_API.Services
 {
     public interface IUserService
     {
+        /// <summary>
+        /// Querying δεδομένων χρήστη.
+        /// </summary>
+        /// <param name="userLookup">Τα στοιχεία ζητούμενα στοιχεία querying για τον χρήστη.</param>
+        /// <returns>Το Λίστα απο DTO user.</returns>
+        Task<IEnumerable<UserDto>> QueryUsersAsync(UserLookup userLookup);
+
         /// <summary>
         /// Εγγραφή μη επιβεβαιωμένου χρήστη.
         /// </summary>
