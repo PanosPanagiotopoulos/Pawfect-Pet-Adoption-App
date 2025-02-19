@@ -5,11 +5,11 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Notification
 {
     public class NotificationDto
     {
-        public string Id { get; set; }
+        public String Id { get; set; }
         public UserDto? User { get; set; }
         public NotificationType Type { get; set; }
-        public string Content { get; set; }
-        public bool IsRead { get; set; }
+        public String Content { get; set; }
+        public Boolean IsRead { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

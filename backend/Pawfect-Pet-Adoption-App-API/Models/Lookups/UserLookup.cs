@@ -16,19 +16,19 @@
 
 
         // Λίστα με τα αναγνωριστικά των χρηστών
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Λίστα με τα ονόματα των χρηστών
-        public List<string>? FullNames { get; set; }
+        public List<String>? FullNames { get; set; }
 
         // Λίστα με τους ρόλους των χρηστών
         public List<UserRole>? Roles { get; set; }
 
         // Λίστα με τις πόλεις των χρηστών
-        public List<string>? Cities { get; set; }
+        public List<String>? Cities { get; set; }
 
         // Λίστα με τους ταχυδρομικούς κώδικες των χρηστών
-        public List<string>? Zipcodes { get; set; }
+        public List<String>? Zipcodes { get; set; }
 
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
         public DateTime? CreatedFrom { get; set; }

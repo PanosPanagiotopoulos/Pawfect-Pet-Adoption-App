@@ -17,7 +17,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
                 .MinimumLength(10)
                 .WithMessage("Η περιγραφή πρέπει να έχει τουλάχιστον 10 χαρακτήρες");
 
-            When(shelter => !string.IsNullOrEmpty(shelter.Website), () =>
+            When(shelter => !String.IsNullOrEmpty(shelter.Website), () =>
             {
                 // Ελέγξτε αν το link της ιστοσελίδας είναι σωστά διαμορφωμένο
                 RuleFor(shelter => shelter.Website)

@@ -10,13 +10,13 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public String Id { get; set; }
 
-        public string Name { get; set; }
+        public String Name { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string TypeId { get; set; }
-        public string Description { get; set; }
+        public String TypeId { get; set; }
+        public String Description { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

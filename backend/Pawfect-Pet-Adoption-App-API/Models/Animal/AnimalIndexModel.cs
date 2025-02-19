@@ -4,8 +4,8 @@
     public class AnimalIndexModel
     {
         // Id στη Μongo
-        public string Id { get; set; }
+        public String Id { get; set; }
         // Text representation των στοιχείων προς αναζήτηση για το ζώο
-        public string Text { get; set; }
+        public String Text { get; set; }
     }
 }

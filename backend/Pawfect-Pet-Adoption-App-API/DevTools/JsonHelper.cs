@@ -9,11 +9,11 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
     public static class JsonHelper
     {
         /// <summary>
-        /// Serializes an object to JSON string without including null values.
+        /// Serializes an object to JSON String without including null values.
         /// </summary>
         /// <param name="obj">The object to be serialized.</param>
-        /// <returns>The JSON string representation of the object.</returns>
-        public static string SerializeObjectFormatted(object obj)
+        /// <returns>The JSON String representation of the object.</returns>
+        public static String SerializeObjectFormatted(object obj)
         {
             var settings = new JsonSerializerSettings
             {

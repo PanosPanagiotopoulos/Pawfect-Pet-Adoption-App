@@ -10,7 +10,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models
             When(socialMediaData => socialMediaData != null, () =>
             {
                 // Όταν τα δεδομένα των κοινωνικών μέσων υπάρχουν
-                When(socialMedia => !string.IsNullOrEmpty(socialMedia.Facebook), () =>
+                When(socialMedia => !String.IsNullOrEmpty(socialMedia.Facebook), () =>
                 {
                     // Όταν το πεδίο Facebook δεν είναι κενό
                     RuleFor(socialMedia => socialMedia.Facebook)
@@ -19,7 +19,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models
                     .WithMessage("Παρακαλώ εισάγετε έγκυρο link Facebook");
                 });
 
-                When(socialMedia => !string.IsNullOrEmpty(socialMedia.Instagram), () =>
+                When(socialMedia => !String.IsNullOrEmpty(socialMedia.Instagram), () =>
                 {
                     // Όταν το πεδίο Instagram δεν είναι κενό
                     RuleFor(socialMedia => socialMedia.Instagram)

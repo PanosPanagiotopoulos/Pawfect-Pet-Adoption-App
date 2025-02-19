@@ -11,22 +11,22 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public String Id { get; set; }
 
         /// <value>
         /// Το Id του χρήστη που έκανε το report.
         /// </value>
         [BsonRepresentation(BsonType.ObjectId)]
-        public string ReporterId { get; set; }
+        public String ReporterId { get; set; }
 
         /// <value>Το Id του χρήστη που έλαβε το report.</value>
         [BsonRepresentation(BsonType.ObjectId)]
-        public string ReportedId { get; set; }
+        public String ReportedId { get; set; }
 
         /// <value>Ο τύπος αναφοράς βάση του συστήματος.</value>
         public ReportType Type { get; set; }
 
-        public string Reason { get; set; }
+        public String Reason { get; set; }
 
 
         /// 

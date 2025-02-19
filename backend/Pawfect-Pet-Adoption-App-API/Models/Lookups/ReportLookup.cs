@@ -14,13 +14,13 @@
         }
 
         // Λίστα με τα αναγνωριστικά των αναφορών
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Λίστα με τα αναγνωριστικά των αναφέροντων χρηστών
-        public List<string>? ReporteredIds { get; set; }
+        public List<String>? ReporteredIds { get; set; }
 
         // Λίστα με τα αναγνωριστικά των αναφερόμενων χρηστών
-        public List<string>? ReportedIds { get; set; }
+        public List<String>? ReportedIds { get; set; }
 
         // Λίστα με τους τύπους των αναφορών
         public List<ReportType>? ReportTypes { get; set; }

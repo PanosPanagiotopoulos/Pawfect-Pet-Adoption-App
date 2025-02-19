@@ -2,10 +2,10 @@
 {
     public class ConversationPersist
     {
-        public string Id { get; set; }
+        public String Id { get; set; }
 
-        public List<string> UserIds { get; set; }
+        public List<String> UserIds { get; set; }
 
-        public string AnimalId { get; set; }
+        public String AnimalId { get; set; }
     }
 }

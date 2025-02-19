@@ -9,7 +9,7 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
         /// </summary>
         /// <param name="date">Η ημερομηνία που θα ελεγχθεί.</param>
         /// <returns>Επιστρέφει true αν η ημερομηνία είναι έγκυρη, αλλιώς false.</returns>
-        public static bool BeAValidDate(DateTime? date)
+        public static Boolean BeAValidDate(DateTime? date)
         {
             return date.HasValue && date.Value != default(DateTime);
         }
@@ -19,7 +19,7 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
         /// </summary>
         /// <param name="id">Το id που θα ελεγχθεί.</param>
         /// <returns>Επιστρέφει true αν το id είναι έγκυρο ObjectId, αλλιώς false.</returns>
-        public static bool IsObjectId(string? id)
+        public static Boolean IsObjectId(String? id)
         {
             if (id == null) return true;
 

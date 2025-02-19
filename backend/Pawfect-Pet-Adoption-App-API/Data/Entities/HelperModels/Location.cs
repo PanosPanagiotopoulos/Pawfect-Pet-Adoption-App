@@ -3,12 +3,12 @@
 /// </summary>
 public class Location
 {
-    public string Address { get; set; }
+    public String Address { get; set; }
 
-    public string Number { get; set; }
-    public string City { get; set; }
+    public String Number { get; set; }
+    public String City { get; set; }
 
-    public string ZipCode { get; set; }
+    public String ZipCode { get; set; }
 
 
 }

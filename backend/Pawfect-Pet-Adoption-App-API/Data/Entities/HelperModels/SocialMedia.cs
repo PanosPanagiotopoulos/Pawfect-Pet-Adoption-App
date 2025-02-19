@@ -5,8 +5,8 @@
     /// </summary>
     public class SocialMedia
     {
-        public string? Facebook { get; set; }
+        public String? Facebook { get; set; }
 
-        public string? Instagram { get; set; }
+        public String? Instagram { get; set; }
     }
 }

@@ -5,27 +5,33 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 {
     public abstract class BaseBuilder<M, E>
     {
-        protected Lookup? LookupParams { get; set; }
+        protected Lookup LookupParams { get; set; }
 
         public abstract BaseBuilder<M, E> SetLookup(Lookup lookup);
 
-        public abstract Task<List<M>> BuildDto(List<E> entities, List<string> fields);
-        protected virtual (List<string>, Dictionary<string, List<string>>) ExtractBuildFields(List<string> fields)
+        public abstract Task<List<M>> BuildDto(List<E> entities, List<String> fields);
+        protected virtual (List<String>, Dictionary<String, List<String>>) ExtractBuildFields(List<String> fields)
         {
             // 1) Πάρτε τα πεδία του entity που πρέπει να είναι στη λίστα fields
-            List<string> entityProperties = EntityHelper.GetAllPropertyNames(typeof(E)).ToList();
+            List<String> entityProperties = EntityHelper.GetAllPropertyNames(typeof(E)).ToList();
 
             // Η λίστα επιστροφής των ξένων κλειδιών του entity
-            Dictionary<string, List<string>> foreignEntityFields = new Dictionary<string, List<string>>();
-            List<string> nativeFields = new List<string>();
+            Dictionary<String, HashSet<String>> foreignEntityFields = new Dictionary<String, HashSet<String>>();
+            HashSet<String> nativeFields = new HashSet<String>();
 
             // Αν τα πεδία είναι άδεια ή null, πάρτε όλα τα native πεδία μόνο
-            if (fields == null || !fields.Any())
+            if (fields == null || !fields.Any() || (fields.Contains("*") && fields.Count == 1))
             {
-                return (entityProperties, foreignEntityFields);
+                return (entityProperties, foreignEntityFields.ToDictionary(x => x.Key, x => x.Value.ToList()));
             }
 
-            foreach (string field in fields)
+            if (fields.Contains("*"))
+            {
+                foreach (String property in entityProperties.Where(prop => !prop.EndsWith("Id")))
+                    nativeFields.Add(property);
+            }
+
+            foreach (String field in fields)
             {
                 /*
                  * Αν η ιδιότητα δεν είναι στα πεδία, αυτό σημαίνει ότι είναι ιδιότητα άλλου entity
@@ -35,15 +41,15 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
                 {
                     // Πάρτε το πεδίο που είναι ξένο και θα χρειαστεί να το προσπελάσετε μέσω ερωτήματος ξένου κλειδιού
                     // Για παράδειγμα, μια είσοδος μπορεί να είναι: WorkPosition.Name.Branch. Χρειαζόμαστε το Name.Branch για να το περάσουμε σε έναν άλλο builder
-                    string[] propertyFields = field.Split(".");
+                    String[] propertyFields = field.Split(".");
 
-                    string foreignEntity = propertyFields[0];
-                    string foreignFieldProperty = string.Join(".", propertyFields.Skip(1));
+                    String foreignEntity = propertyFields[0];
+                    String foreignFieldProperty = String.Join(".", propertyFields.Skip(1));
 
                     // Προσθέστε το ξένο πεδίο στα build fields
                     if (!foreignEntityFields.ContainsKey(foreignEntity))
                     {
-                        foreignEntityFields[foreignEntity] = new List<string>();
+                        foreignEntityFields[foreignEntity] = new HashSet<String>();
                     }
                     foreignEntityFields[foreignEntity].Add(foreignFieldProperty);
 
@@ -55,7 +61,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
             }
 
             // Επιστροφή και των δύο λιστών ως tuple
-            return (nativeFields, foreignEntityFields);
+            return (nativeFields.ToList(), foreignEntityFields.ToDictionary(x => x.Key, x => x.Value.ToList()));
         }
     }
 }

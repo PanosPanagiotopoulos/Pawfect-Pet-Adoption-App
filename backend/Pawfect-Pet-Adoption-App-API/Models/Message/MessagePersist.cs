@@ -2,16 +2,16 @@
 {
     public class MessagePersist
     {
-        public string Id { get; set; }
+        public String Id { get; set; }
 
-        public string ConversationId { get; set; }
+        public String ConversationId { get; set; }
 
-        public string SenderId { get; set; }
+        public String SenderId { get; set; }
 
-        public string RecepientId { get; set; }
+        public String RecipientId { get; set; }
 
-        public string Content { get; set; }
+        public String Content { get; set; }
 
-        public bool IsRead { get; set; } = false;
+        public Boolean IsRead { get; set; } = false;
     }
 }

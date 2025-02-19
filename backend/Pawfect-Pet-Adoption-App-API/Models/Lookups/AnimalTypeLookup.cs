@@ -16,10 +16,10 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
         public AnimalTypeLookup() { }
 
         // Λίστα από IDs τύπων ζώων για φιλτράρισμα
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Ονομασία τύπων ζώων για φιλτράρισμα
-        public string? Name { get; set; }
+        public String? Name { get; set; }
 
         /// <summary>
         /// Εμπλουτίζει το AnimalTypeQuery με τα φίλτρα και τις επιλογές του lookup.

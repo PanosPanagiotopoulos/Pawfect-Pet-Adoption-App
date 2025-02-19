@@ -20,7 +20,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Message
                 .WithMessage("Το ID του αποστολέα δεν είναι σε σωστή μορφή.");
 
             // Το ID του παραλήπτη είναι απαραίτητο
-            RuleFor(message => message.RecepientId)
+            RuleFor(message => message.RecipientId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
                 .WithMessage("Το ID του παραλήπτη δεν είναι σε σωστή μορφή.");

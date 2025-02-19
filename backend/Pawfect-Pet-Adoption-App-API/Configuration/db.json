@@ -1,0 +1,9 @@
+{
+  "MongoDbSettings": {
+	"MongoDb": "%{MongoDb}%",
+	"DatabaseName": "%{DatabaseName}%"
+  },
+  "DatabaseSettings": {
+	"DatabaseName": "%{DatabaseName}%"
+  }
+}

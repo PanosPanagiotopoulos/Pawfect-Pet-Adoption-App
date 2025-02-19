@@ -4,11 +4,11 @@ namespace Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication
 {
     public class AdoptionApplicationPersist
     {
-        public string Id { get; set; }
-        public string UserId { get; set; }
-        public string AnimalId { get; set; }
-        public string ShelterId { get; set; }
+        public String Id { get; set; }
+        public String UserId { get; set; }
+        public String AnimalId { get; set; }
+        public String ShelterId { get; set; }
         public ApplicationStatus Status { get; set; } = ApplicationStatus.Pending;
-        public string ApplicationDetails { get; set; }
+        public String ApplicationDetails { get; set; }
     }
 }

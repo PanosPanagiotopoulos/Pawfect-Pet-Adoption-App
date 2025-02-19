@@ -11,16 +11,16 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public String Id { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; }
+        public String UserId { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string AnimalId { get; set; }
+        public String AnimalId { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string ShelterId { get; set; }
+        public String ShelterId { get; set; }
 
         /// <value>
         /// Η κατάσταση του αιτήματος υιοθεσίας
@@ -31,7 +31,7 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
         /// Γενικές πληροφορίες απο τον χρήστη για την υιοθεσία
         /// </value>
 
-        public string ApplicationDetails { get; set; }
+        public String ApplicationDetails { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

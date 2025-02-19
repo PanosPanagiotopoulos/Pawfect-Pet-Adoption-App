@@ -5,8 +5,8 @@ namespace Pawfect_Pet_Adoption_App_API.Models
 {
     public class OperatingHoursValidator : AbstractValidator<OperatingHours>
     {
-        private readonly string OperatingHoursRegex = @"^(?:[01]\d|2[0-3]):[0-5]\d,(?:[01]\d|2[0-3]):[0-5]\d$";
-        private readonly string OperatingHoursErrorMessage = "Η μορφή ώρας πρέπει να είναι ΩΩ:ΛΛ,ΩΩ:ΛΛ";
+        private readonly String OperatingHoursRegex = @"^(?:[01]\d|2[0-3]):[0-5]\d,(?:[01]\d|2[0-3]):[0-5]\d$";
+        private readonly String OperatingHoursErrorMessage = "Η μορφή ώρας πρέπει να είναι ΩΩ:ΛΛ,ΩΩ:ΛΛ";
 
         public OperatingHoursValidator()
         {

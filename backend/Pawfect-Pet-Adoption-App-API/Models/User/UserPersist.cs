@@ -4,14 +4,14 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
 {
     public class UserPersist
     {
-        public string Id { get; set; }
+        public String Id { get; set; }
 
-        public string Email { get; set; }
+        public String Email { get; set; }
 
-        public string? Password { get; set; }
+        public String? Password { get; set; }
 
 
-        public string FullName { get; set; }
+        public String FullName { get; set; }
 
 
         /// <value>
@@ -22,7 +22,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
         /// <value>
         /// Ο αριθμός τηλεφώνου του χρήστη στο σύστημα
         /// </value>
-        public string Phone { get; set; }
+        public String Phone { get; set; }
 
 
         /// <value>
@@ -40,10 +40,10 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
         /// <value>
         /// To id του χρήστη στην εξωτερική υπηρεσία που επέλεξε να εγγραφεί/συνδεθεί
         /// </value>
-        public string? AuthProviderId { get; set; }
+        public String? AuthProviderId { get; set; }
 
-        public bool HasPhoneVerified { get; set; }
-        public bool HasEmailVerified { get; set; }
+        public Boolean HasPhoneVerified { get; set; }
+        public Boolean HasEmailVerified { get; set; }
 
     }
 }

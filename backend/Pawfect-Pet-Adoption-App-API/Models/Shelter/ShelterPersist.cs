@@ -9,24 +9,24 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public String Id { get; set; }
 
         /// <value>
         /// Το id του αντίστοιχου χρήστη που αυτόυ του καταφυγίου
         /// Αναφορά σε User
         /// </value>
         [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; }
+        public String UserId { get; set; }
 
-        public string ShelterName { get; set; }
+        public String ShelterName { get; set; }
 
-        public string Description { get; set; }
+        public String Description { get; set; }
 
 
         /// <value>
         /// Η ιστοσελίδα του καταφυγίου
         /// </value>
-        public string? Website { get; set; }
+        public String? Website { get; set; }
 
         /// <value>
         /// Τα Links για τα Social Media του καταφυγίου
@@ -51,6 +51,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
         /// Βλέπει σε admin user αφού επιβεβαιωθεί
         /// </value>
         [BsonRepresentation(BsonType.ObjectId)]
-        public string? VerifiedBy { get; set; }
+        public String? VerifiedBy { get; set; }
     }
 }

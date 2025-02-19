@@ -17,16 +17,16 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
         public AnimalLookup() { }
 
         // Λίστα από IDs ζώων για φιλτράρισμα
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Λίστα από IDs καταφυγίων για φιλτράρισμα
-        public List<string>? ShelterIds { get; set; }
+        public List<String>? ShelterIds { get; set; }
 
         // Λίστα από IDs φυλών για φιλτράρισμα
-        public List<string>? BreedIds { get; set; }
+        public List<String>? BreedIds { get; set; }
 
         // Λίστα από IDs τύπων για φιλτράρισμα
-        public List<string>? TypeIds { get; set; }
+        public List<String>? TypeIds { get; set; }
 
         // Λίστα από καταστάσεις υιοθεσίας για φιλτράρισμα
         public List<AdoptionStatus>? AdoptionStatuses { get; set; }

@@ -11,10 +11,10 @@
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public String Id { get; set; }
 
 
-        public string Name { get; set; }
+        public String Name { get; set; }
 
 
         public double Age { get; set; }
@@ -22,7 +22,7 @@
         public Gender Gender { get; set; }
 
 
-        public string Description { get; set; }
+        public String Description { get; set; }
 
 
         public double Weight { get; set; }
@@ -31,31 +31,31 @@
         /// <value>
         /// Περιγραφή της κατάστασης υγείας του ζώου.
         /// </value>
-        public string HealthStatus { get; set; }
+        public String HealthStatus { get; set; }
 
 
         /// <value>
         /// Tο id του καταφυγίου που ανήκει το ζώο.
         /// </value>
-        public string ShelterId { get; set; }
+        public String ShelterId { get; set; }
 
 
         /// <value>
         /// Το id της ράτσας του ζώου στο σύστημα
         /// </value>
-        public string BreedId { get; set; }
+        public String BreedId { get; set; }
 
 
         /// <value>
         /// Το id του τύπου ζώου στο σύστημα    
         /// /// </value>
-        public string TypeId { get; set; }
+        public String TypeId { get; set; }
 
 
         /// <value>
         /// Οι φωτογραφίες του ζώου στο σύστημα , σε μορφη URL όπου είναι αποθηκευμένες στο AWS S3
         /// </value>
-        public string[] Photos { get; set; }
+        public String[] Photos { get; set; }
 
 
         /// <value>

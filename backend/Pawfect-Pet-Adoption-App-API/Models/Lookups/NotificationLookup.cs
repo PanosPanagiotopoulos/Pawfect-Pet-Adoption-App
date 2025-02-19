@@ -16,10 +16,10 @@
         public NotificationLookup() { }
 
         // Λίστα με τα IDs των ειδοποιήσεων για φιλτράρισμα
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Λίστα με τα IDs των χρηστών για φιλτράρισμα
-        public List<string>? UserIds { get; set; }
+        public List<String>? UserIds { get; set; }
 
         // Λίστα με τους τύπους ειδοποιήσεων για φιλτράρισμα
         public List<NotificationType>? NotificationTypes { get; set; }

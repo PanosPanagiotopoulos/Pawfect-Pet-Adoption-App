@@ -5,7 +5,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Report
 {
     public class ReportDto
     {
-        public string Id { get; set; }
+        public String Id { get; set; }
 
         /// <value>
         /// Το Id του χρήστη που έκανε το report.
@@ -17,7 +17,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Report
         /// <value>Ο τύπος αναφοράς βάση του συστήματος.</value>
         public ReportType Type { get; set; }
 
-        public string Reason { get; set; }
+        public String Reason { get; set; }
 
 
         /// 

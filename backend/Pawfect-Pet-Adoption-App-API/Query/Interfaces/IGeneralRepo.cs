@@ -12,18 +12,18 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
         /// Προσθέτει ένα νέο στοιχείο.
         /// </summary>
         /// <param name="entity">Τα δεδομένα του στοιχείου.</param>
-        Task<string> AddAsync(T entity);
+        Task<String> AddAsync(T entity);
         /// <summary>
         /// Ενημερώνει το μοντέλο.
         /// </summary>
         /// <param name="entity">Τα δεδομένα του στοιχείου (πρέπει να περιλαμβάνει το αναγνωριστικό).</param>
-        Task<string> UpdateAsync(T entity);
+        Task<String> UpdateAsync(T entity);
         /// <summary>
         /// Διαγράφει το μοντέλο.
         /// </summary>
         /// <param name="id">Το αναγνωριστικό του μοντέλου που θα διαγραφεί.</param>
-        Task<bool> DeleteAsync(string id);
-        Task<bool> DeleteAsync(T entity);
+        Task<Boolean> DeleteAsync(String id);
+        Task<Boolean> DeleteAsync(T entity);
 
         /// <summary>
         /// Ελέγχει αν υπάρχει ένα στοιχείο με βάση την δοθείσα συνθήκη. 
@@ -31,8 +31,8 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
         /// ένα στοιχείο που ταιριάζει με τις παραμέτρους που χρειάζεται για την κλήση.
         /// </summary>
         /// <param name="predicate">Η συνθήκη για τον έλεγχο της ύπαρξης ενός στοιχείου.</param>
-        /// <returns>Ένα boolean που υποδηλώνει αν υπάρχει ένα στοιχείο που ταιριάζει με τη συνθήκη.</returns>
-        Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate);
+        /// <returns>Ένα Booleanean που υποδηλώνει αν υπάρχει ένα στοιχείο που ταιριάζει με τη συνθήκη.</returns>
+        Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate);
 
         /// <summary>
         /// Ελέγχει αν υπάρχει ένα στοιχείο με βάση την δοθείσα συνθήκη. 
@@ -40,8 +40,8 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
         /// που ταιριάζει με τις παραμέτρους που χρειάζεται για την κλήση.
         /// </summary>
         /// <param name="predicate">Η συνθήκη για τον έλεγχο της ύπαρξης ενός στοιχείου.</param>
-        /// <returns>Ένα boolean που υποδηλώνει αν υπάρχει ένα στοιχείο που ταιριάζει με τη συνθήκη.</returns>
-        Task<T> FindAsync(Expression<Func<T, bool>> predicate);
+        /// <returns>Ένα Booleanean που υποδηλώνει αν υπάρχει ένα στοιχείο που ταιριάζει με τη συνθήκη.</returns>
+        Task<T> FindAsync(Expression<Func<T, Boolean>> predicate);
 
     }
 }

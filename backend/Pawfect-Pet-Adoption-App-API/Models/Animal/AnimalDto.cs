@@ -7,17 +7,17 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Animal
 {
     public class AnimalDto
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
+        public String Id { get; set; }
+        public String Name { get; set; }
         public double Age { get; set; }
         public Gender Gender { get; set; }
-        public string Description { get; set; }
+        public String Description { get; set; }
         public double Weight { get; set; }
-        public string HealthStatus { get; set; }
+        public String HealthStatus { get; set; }
         public ShelterDto? Shelter { get; set; }
         public BreedDto? Breed { get; set; }
         public AnimalTypeDto? Type { get; set; }
-        public string[] Photos { get; set; }
+        public String[] Photos { get; set; }
         public AdoptionStatus AdoptionStatus { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

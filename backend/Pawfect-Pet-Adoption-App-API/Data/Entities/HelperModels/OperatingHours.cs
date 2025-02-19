@@ -5,17 +5,17 @@
     /// </summary>
     public class OperatingHours
     {
-        public string Monday { get; set; }
+        public String Monday { get; set; }
 
-        public string Tuesday { get; set; }
+        public String Tuesday { get; set; }
 
-        public string Wednesday { get; set; }
+        public String Wednesday { get; set; }
 
-        public string Thursday { get; set; }
+        public String Thursday { get; set; }
 
-        public string Friday { get; set; }
-        public string Saturday { get; set; }
+        public String Friday { get; set; }
+        public String Saturday { get; set; }
 
-        public string Sunday { get; set; }
+        public String Sunday { get; set; }
     }
 }

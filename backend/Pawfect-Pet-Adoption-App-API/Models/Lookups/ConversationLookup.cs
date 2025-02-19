@@ -17,13 +17,13 @@
         public ConversationLookup() { }
 
         // Λίστα με τα IDs των συνομιλιών
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Λίστα με τα IDs των χρηστών
-        public List<string>? UserIds { get; set; }
+        public List<String>? UserIds { get; set; }
 
         // Λίστα με τα IDs των ζώων
-        public List<string>? AnimalIds { get; set; }
+        public List<String>? AnimalIds { get; set; }
 
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
         public DateTime? CreateFrom { get; set; }

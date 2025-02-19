@@ -18,9 +18,9 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
         /// <param name="filepath">Το αρχείο που προέκυψε.</param>
         /// <param name="extraInfo">Πρόσθετες πληροφορίες για την ανατροφοδότηση.</param>
         /// <returns>IActionResult για την επστροφή σε request</returns>
-        public static IActionResult HandleInternalServerError(Exception error, string method = "< Δεν περιλαμβάνεται στο μήνυμα >", string filepath = "< Δεν περιλαμβάνεται στο μήνυμα >", string extraInfo = "< Δεν περιλαμβάνεται >")
+        public static IActionResult HandleInternalServerError(Exception error, String method = "< Δεν περιλαμβάνεται στο μήνυμα >", String filepath = "< Δεν περιλαμβάνεται στο μήνυμα >", String extraInfo = "< Δεν περιλαμβάνεται >")
         {
-            string errorMessage = $"\n---------------------------------------------------------\nΠροέκυψε εσωτερικό σφάλμα του διακομιστή κατά την επεξεργασία του αιτήματος.\nΑιτία: ${error.Message}\nΑνίχνευση: {error.StackTrace}\nΕσωτερική Εξαίρεση: {error.InnerException}\nΔεδομένα: {JsonConvert.SerializeObject(error.Data, Formatting.Indented)}\nΠρόσθετες πληροφορίες: ${extraInfo}\n---------------------------------------------------------\n";
+            String errorMessage = $"\n---------------------------------------------------------\nΠροέκυψε εσωτερικό σφάλμα του διακομιστή κατά την επεξεργασία του αιτήματος.\nΑιτία: ${error.Message}\nΑνίχνευση: {error.StackTrace}\nΕσωτερική Εξαίρεση: {error.InnerException}\nΔεδομένα: {JsonConvert.SerializeObject(error.Data, Formatting.Indented)}\nΠρόσθετες πληροφορίες: ${extraInfo}\n---------------------------------------------------------\n";
             Log.Error(error, errorMessage);
             return new ObjectResult(errorMessage)
             {

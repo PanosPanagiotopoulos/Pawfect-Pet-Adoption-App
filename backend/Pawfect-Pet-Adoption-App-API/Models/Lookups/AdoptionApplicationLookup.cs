@@ -16,14 +16,14 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
         public AdoptionApplicationLookup() { }
 
         // Λίστα με τα αναγνωριστικά των αιτήσεων υιοθεσίας
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
         // Λίστα με τα αναγνωριστικά των χρηστών
-        public List<string>? UserIds { get; set; }
+        public List<String>? UserIds { get; set; }
         // Λίστα με τα αναγνωριστικά των ζώων
-        public List<string>? AnimalIds { get; set; }
+        public List<String>? AnimalIds { get; set; }
         // Λίστα με τα αναγνωριστικά των καταφυγίων
 
-        public List<string>? ShelterIds { get; set; }
+        public List<String>? ShelterIds { get; set; }
         // Λίστα με τις καταστάσεις υιοθεσίας
         public List<AdoptionStatus>? Status { get; set; }
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)

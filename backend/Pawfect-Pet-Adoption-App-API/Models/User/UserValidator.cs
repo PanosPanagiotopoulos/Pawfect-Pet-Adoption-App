@@ -46,12 +46,12 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
             {
                 RuleFor(user => user.AuthProviderId)
                 .Cascade(CascadeMode.Stop)
-                .Must(authProviderId => !string.IsNullOrEmpty(authProviderId))
+                .Must(authProviderId => !String.IsNullOrEmpty(authProviderId))
                 .WithMessage("To id του χρήστη στην εξωτερική υπηρεσία που επέλεξε να εγγραφεί/συνδεθεί είναι απαραίτητο.");
 
                 RuleFor(user => user.Password)
                     .Cascade(CascadeMode.Stop)
-                    .Must(password => string.IsNullOrEmpty(password))
+                    .Must(password => String.IsNullOrEmpty(password))
                     .WithMessage("Μην στέλνεται κωδικό εφόσον έχετε ταυτοποιηθεί απο εξωτερική υπηρεσία.");
             });
 
@@ -67,7 +67,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
 
                 RuleFor(user => user.AuthProviderId)
                     .Cascade(CascadeMode.Stop)
-                    .Must(authProviderId => string.IsNullOrEmpty(authProviderId))
+                    .Must(authProviderId => String.IsNullOrEmpty(authProviderId))
                     .WithMessage("Μην στέλνεται κωδικό id εξωτερικής υπηρεσίας εφόσον έχετε ταυτοποιηθεί απο εσωτερική υπηρεσία.");
             });
         }

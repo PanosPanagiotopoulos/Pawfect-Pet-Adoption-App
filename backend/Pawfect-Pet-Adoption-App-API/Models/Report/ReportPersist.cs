@@ -4,20 +4,20 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Report
 {
     public class ReportPersist
     {
-        public string Id { get; set; }
+        public String Id { get; set; }
 
         /// <value>
         /// Το Id του χρήστη που έκανε το report.
         /// </value>
-        public string ReporterId { get; set; }
+        public String ReporterId { get; set; }
 
         /// <value>Το Id του χρήστη που έλαβε το report.</value>
-        public string ReportedId { get; set; }
+        public String ReportedId { get; set; }
 
         /// <value>Ο τύπος αναφοράς βάση του συστήματος.</value>
         public ReportType Type { get; set; }
 
-        public string Reason { get; set; }
+        public String Reason { get; set; }
 
 
         /// 

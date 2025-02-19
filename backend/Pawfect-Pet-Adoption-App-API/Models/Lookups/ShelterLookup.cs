@@ -16,16 +16,16 @@
         public ShelterLookup() { }
 
         // Λίστα με τα αναγνωριστικά των καταφυγίων
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Λίστα με τα αναγνωριστικά των χρηστών
-        public List<string>? UserIds { get; set; }
+        public List<String>? UserIds { get; set; }
 
         // Λίστα με τις καταστάσεις επιβεβαίωσης
         public List<VerificationStatus>? VerificationStatuses { get; set; }
 
         // Λίστα με τα αναγνωριστικά των admin που επιβεβαίωσαν
-        public List<string>? VerifiedBy { get; set; }
+        public List<String>? VerifiedBy { get; set; }
 
         /// <summary>
         /// Εμπλουτίζει το ShelterQuery με τα φίλτρα και τις επιλογές του lookup.

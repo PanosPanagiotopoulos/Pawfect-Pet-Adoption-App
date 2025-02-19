@@ -27,10 +27,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
         public override BaseBuilder<AnimalTypeDto, AnimalType> SetLookup(Lookup lookup) { base.LookupParams = lookup; return this; }
 
         // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-        public override async Task<List<AnimalTypeDto>> BuildDto(List<AnimalType> entities, List<string> fields)
+        public override async Task<List<AnimalTypeDto>> BuildDto(List<AnimalType> entities, List<String> fields)
         {
             // Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
-            (List<string> nativeFields, Dictionary<string, List<string>> foreignEntitiesFields) = ExtractBuildFields(fields);
+            (List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
 
             List<AnimalTypeDto> result = new List<AnimalTypeDto>();
             foreach (AnimalType e in entities)

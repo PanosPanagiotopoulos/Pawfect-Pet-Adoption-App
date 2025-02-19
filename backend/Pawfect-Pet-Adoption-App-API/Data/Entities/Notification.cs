@@ -12,16 +12,16 @@
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public String Id { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; }
+        public String UserId { get; set; }
 
         public NotificationType Type { get; set; }
 
-        public string Content { get; set; }
+        public String Content { get; set; }
 
-        public bool IsRead { get; set; }
+        public Boolean IsRead { get; set; }
 
         public DateTime CreatedAt { get; set; }
     }

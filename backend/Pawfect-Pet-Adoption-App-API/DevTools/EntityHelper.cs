@@ -9,7 +9,7 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
         /// </summary>
         /// <param name="type">The type to get the column names from.</param>
         /// <returns>A collection of column names.</returns>
-        public static ICollection<string> GetAllPropertyNames(Type type)
+        public static ICollection<String> GetAllPropertyNames(Type type)
         {
             return type.GetProperties().Select(p => p.Name).ToList();
         }
@@ -19,16 +19,16 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
         /// </summary>
         /// <param name="value">The value to check.</param>
         /// <returns>True if the value is the default value, otherwise false.</returns>
-        public static bool IsDefaultValue(object value)
+        public static Boolean IsDefaultValue(object value)
         {
             if (value == null) return true;
 
             var type = value.GetType();
 
-            // If object is of string type
-            if (type == typeof(string))
+            // If object is of String type
+            if (type == typeof(String))
             {
-                return string.IsNullOrEmpty((string)value);
+                return String.IsNullOrEmpty((String)value);
             }
 
             // If it is any other object    

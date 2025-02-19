@@ -17,16 +17,16 @@
         public MessageLookup() { }
 
         // Λίστα από IDs μηνυμάτων
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Λίστα από IDs συνομιλιών
-        public List<string>? ConversationIds { get; set; }
+        public List<String>? ConversationIds { get; set; }
 
         // Λίστα από IDs αποστολέων
-        public List<string>? SenderIds { get; set; }
+        public List<String>? SenderIds { get; set; }
 
         // Λίστα από IDs παραληπτών
-        public List<string>? RecipientIds { get; set; }
+        public List<String>? RecipientIds { get; set; }
 
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
         public DateTime? CreateFrom { get; set; }

@@ -10,20 +10,20 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public String Id { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string ConversationId { get; set; }
+        public String ConversationId { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string SenderId { get; set; }
+        public String SenderId { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public string RecepientId { get; set; }
+        public String RecipientId { get; set; }
 
-        public string Content { get; set; }
+        public String Content { get; set; }
 
-        public bool IsRead { get; set; }
+        public Boolean IsRead { get; set; }
 
         public DateTime CreatedAt { get; set; }
     }

@@ -8,8 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Configuration\environment.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <_ContentIncludedByDefault Remove="appsettings.json" />
     <_ContentIncludedByDefault Remove="Authentication.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Configuration\environment.json" />
   </ItemGroup>
 
   <ItemGroup>

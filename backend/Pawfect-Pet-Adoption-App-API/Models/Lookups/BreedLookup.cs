@@ -18,10 +18,10 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
         public BreedLookup() { }
 
         // Λίστα με τα αναγνωριστικά των φυλών
-        public List<string>? Ids { get; set; }
+        public List<String>? Ids { get; set; }
 
         // Λίστα με τα αναγνωριστικά των τύπων
-        public List<string>? TypeIds { get; set; }
+        public List<String>? TypeIds { get; set; }
 
         // Ημερομηνία έναρξης φιλτραρίσματος (δημιουργήθηκε από)
         public DateTime? CreatedFrom { get; set; }

@@ -1,0 +1,12 @@
+{
+  "SendGrid": {
+    "ApiKey": "%{SendGridApiKey}%",
+    "FromEmail": "%{SendGridFromEmail}%",
+    "FromName": "%{SendGridFromName}%"
+  },
+  "SmsService": {
+    "Url": "%{SmsUrl}%",
+    "ApiKey": "%{SmsApiKey}%",
+    "From": "%{SmsFrom}%"
+  }
+}

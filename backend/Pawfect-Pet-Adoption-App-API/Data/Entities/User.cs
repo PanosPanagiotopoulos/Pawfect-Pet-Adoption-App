@@ -13,15 +13,15 @@
 
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
+        public String Id { get; set; }
 
-        public string Email { get; set; }
+        public String Email { get; set; }
 
         [BsonIgnoreIfNull]
-        public string? Password { get; set; } // Only needed for local credentials
+        public String? Password { get; set; } // Only needed for local credentials
 
 
-        public string FullName { get; set; }
+        public String FullName { get; set; }
 
 
         /// <value>
@@ -33,7 +33,7 @@
         /// <value>
         /// Ο αριθμός τηλεφώνου του χρήστη στο σύστημα
         /// </value>
-        public string Phone { get; set; }
+        public String Phone { get; set; }
 
 
         /// <value>
@@ -45,8 +45,8 @@
         /// Το id καταφυγίου με τα υπόλοιπα δεδομένα για τον συγκεκριμένο χρήστη.
         /// </value>
         /// Μόνο για χρήστες-καταφύγια
-        [BsonIgnoreIfNull]
-        public string? ShelterId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public String? ShelterId { get; set; }
 
 
         /// <value>
@@ -60,22 +60,22 @@
         /// To id του χρήστη στην εξωτερική υπηρεσία που επέλεξε να εγγραφεί/συνδεθεί
         /// </value>
         [BsonIgnoreIfNull]
-        public string? AuthProviderId { get; set; }
+        public String? AuthProviderId { get; set; }
 
 
         /// <value>
         /// Υποδηλώνει άν τα στοιχεία του χρήστη έχουν επιβεβαιωθεί
         /// </value>
-        public bool IsVerified { get; set; }
+        public Boolean IsVerified { get; set; }
 
         /// <value>
         /// Υποδηλώνει άν το κινητό του χρήστη έχουν επιβεβαιωθεί
         /// </value>
-        public bool HasPhoneVerified { get; set; }
+        public Boolean HasPhoneVerified { get; set; }
         /// <value>
         /// Υποδηλώνει άν το email του χρήστη έχουν επιβεβαιωθεί
         /// </value>
-        public bool HasEmailVerified { get; set; }
+        public Boolean HasEmailVerified { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
