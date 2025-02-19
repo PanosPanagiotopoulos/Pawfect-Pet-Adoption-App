@@ -2,19 +2,14 @@
 node_modules/
 
 # Angular Build Output
-dist/
-out-tsc/
+frontend/dist/
+frontend/out-tsc/
 
-# Environment Files
-src/environments/environment*.ts
-.env
-
-# API Configuration Keys of Backend
-backend/Pawfect-Pet-Adoption-App-API/APIs_Configurations.json
-backend/Pawfect-Pet-Adoption-App-API/Authentication.json
-
-# Compiled TypeScript files
-*.tsbuildinfo
+# Environment and Configuration Files
+frontend/.env
+frontend/src/environments/environment*.ts
+backend/Pawfect-Pet-Adoption-App-API/Configuration/environment.json
+backend/Pawfect-Pet-Adoption-App-API/.env
 
 # Logs and Reports
 npm-debug.log*
@@ -23,10 +18,11 @@ yarn-error.log*
 pnpm-debug.log*
 *.log
 
-# IDE-specific (VS Code and Visual Studio)
+# IDE-specific (VS Code, Visual Studio, JetBrains)
 .vs/
 .vscode/
-.vscode/*
+frontend/.vscode/
+backend/Pawfect-Pet-Adoption-App-API/.vscode/
 .idea/
 *.suo
 *.ntvs*
@@ -36,35 +32,32 @@ pnpm-debug.log*
 *.user
 
 # Bootstrap and Tailwind Build Files
-bootstrap/
-tailwind/
+frontend/bootstrap/
+frontend/tailwind/
 
 # C# Build Outputs
-bin/
-obj/
-*.dll
-*.exe
-*.pdb
-*.cache
-*.pyo
-*.pyc
-*.pid
-*.manifest
-*.nupkg
-*.local
-*.config
-*.pyo
-*.pyc
+backend/Pawfect-Pet-Adoption-App-API/bin/
+backend/Pawfect-Pet-Adoption-App-API/obj/
+backend/Pawfect-Pet-Adoption-App-API/*.dll
+backend/Pawfect-Pet-Adoption-App-API/*.exe
+backend/Pawfect-Pet-Adoption-App-API/*.pdb
+backend/Pawfect-Pet-Adoption-App-API/*.cache
+backend/Pawfect-Pet-Adoption-App-API/*.pyo
+backend/Pawfect-Pet-Adoption-App-API/*.pyc
+backend/Pawfect-Pet-Adoption-App-API/*.pid
+backend/Pawfect-Pet-Adoption-App-API/*.manifest
+backend/Pawfect-Pet-Adoption-App-API/*.nupkg
+backend/Pawfect-Pet-Adoption-App-API/*.local
+backend/Pawfect-Pet-Adoption-App-API/*.config
 
 # Entity Framework Migrations
-Migrations/
+backend/Pawfect-Pet-Adoption-App-API/Migrations/
 
-# .NET User Secrets
-**/appsettings.*.json
-/backend/Pawfect-Pet-Adoption-App-API/appsettings.json
+# .NET User Secrets and App Settings
+backend/Pawfect-Pet-Adoption-App-API/appsettings.*.json
 backend/Pawfect-Pet-Adoption-App-API/appsettings.json
 
-# Windows & OS Specific
+# Windows & OS Specific Files
 Thumbs.db
 ehthumbs.db
 Desktop.ini
@@ -75,7 +68,7 @@ $RECYCLE.BIN/
 Icon?
 ._*
 
-# MongoDB (optional - if using MongoDB dump files)
+# MongoDB Dump Files (if applicable)
 dump/
 *.bson
 
@@ -84,9 +77,9 @@ dump/
 *.key
 *.crt
 
-# Temp files and text files (optional)
+# Temporary and Miscellaneous Files
 *.temp
 *.tmp
-*.txt
+frontend/*.txt
+backend/Pawfect-Pet-Adoption-App-API/*.txt
 ~$*
-
