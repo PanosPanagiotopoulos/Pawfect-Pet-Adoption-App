@@ -35,6 +35,9 @@ backend/Pawfect-Pet-Adoption-App-API/.vscode/
 frontend/bootstrap/
 frontend/tailwind/
 
+# Python Search Service
+backend/Pawfect-Search-Server/
+
 # C# Build Outputs
 backend/Pawfect-Pet-Adoption-App-API/bin/
 backend/Pawfect-Pet-Adoption-App-API/obj/
