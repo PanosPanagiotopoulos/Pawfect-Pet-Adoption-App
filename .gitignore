@@ -52,6 +52,8 @@ backend/Pawfect-Pet-Adoption-App-API/*.manifest
 backend/Pawfect-Pet-Adoption-App-API/*.nupkg
 backend/Pawfect-Pet-Adoption-App-API/*.local
 backend/Pawfect-Pet-Adoption-App-API/*.config
+backend/Pawfect-Pet-Adoption-App-API/logs/
+
 
 # Entity Framework Migrations
 backend/Pawfect-Pet-Adoption-App-API/Migrations/
