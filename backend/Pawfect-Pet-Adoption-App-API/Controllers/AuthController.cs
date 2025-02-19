@@ -7,13 +7,14 @@
 	using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 	using Pawfect_Pet_Adoption_App_API.DevTools;
 	using Pawfect_Pet_Adoption_App_API.Models;
+	using Pawfect_Pet_Adoption_App_API.Models.Authorization;
 	using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 	using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
 	using System.IdentityModel.Tokens.Jwt;
 
 	[ApiController]
-	[Route("api/[controller]")]
+	[Route("api/auth")]
 	public class AuthController : ControllerBase
 	{
 		private readonly IUserService _userService;
@@ -92,7 +93,7 @@
 					return RequestHandlerTool.HandleInternalServerError(new InvalidOperationException("Αποτυχία παραγωγής JWT Token"), "POST");
 				}
 
-				return Ok(new { Token = token, Role = user.Role.ToString() });
+				return Ok(new LoggedAccount() { Token = token, Role = user.Role, LoggedAt = DateTime.UtcNow });
 			}
 			catch (Exception e)
 			{

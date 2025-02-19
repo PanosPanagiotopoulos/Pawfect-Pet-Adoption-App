@@ -7,5 +7,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.NotificationServices
 	{
 		// Συνάρτηση για query στα notifications
 		Task<IEnumerable<NotificationDto>> QueryNotificationsAsync(NotificationLookup notificationLookup);
+
+		Task<NotificationDto?> Get(String id, List<String> fields);
 	}
 }

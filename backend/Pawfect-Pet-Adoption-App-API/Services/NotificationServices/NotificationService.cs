@@ -22,5 +22,23 @@ namespace Pawfect_Pet_Adoption_App_API.Services.NotificationServices
 			List<Notification> queriedNotifications = await notificationLookup.EnrichLookup(_notificationQuery).CollectAsync();
 			return await _notificationBuilder.SetLookup(notificationLookup).BuildDto(queriedNotifications, notificationLookup.Fields.ToList());
 		}
+
+		public async Task<NotificationDto?> Get(String id, List<String> fields)
+		{
+			NotificationLookup lookup = new NotificationLookup(_notificationQuery);
+			lookup.Ids = new List<String> { id };
+			lookup.Fields = fields;
+			lookup.PageSize = 1;
+			lookup.Offset = 0;
+
+			List<Notification> notification = await lookup.EnrichLookup().CollectAsync();
+
+			if (notification == null)
+			{
+				throw new InvalidDataException("Δεν βρέθηκε ειδοποίηση με αυτό το ID");
+			}
+
+			return (await _notificationBuilder.SetLookup(lookup).BuildDto(notification, fields)).FirstOrDefault();
+		}
 	}
 }

@@ -21,5 +21,23 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 			List<AdoptionApplication> queriedAdoptionApplications = await adoptionApplicationLookup.EnrichLookup(_adoptionApplicationQuery).CollectAsync();
 			return await _adoptionApplicationBuilder.SetLookup(adoptionApplicationLookup).BuildDto(queriedAdoptionApplications, adoptionApplicationLookup.Fields.ToList());
 		}
+
+		public async Task<AdoptionApplicationDto?> Get(String id, List<String> fields)
+		{
+			AdoptionApplicationLookup lookup = new AdoptionApplicationLookup(_adoptionApplicationQuery);
+			lookup.Ids = new List<String> { id };
+			lookup.Fields = fields;
+			lookup.PageSize = 1;
+			lookup.Offset = 0;
+
+			List<AdoptionApplication> adoptionApplication = await lookup.EnrichLookup().CollectAsync();
+
+			if (adoptionApplication == null)
+			{
+				throw new InvalidDataException("Δεν βρέθηκε αίτηση  υιοθεσίας με αυτό το ID");
+			}
+
+			return (await _adoptionApplicationBuilder.SetLookup(lookup).BuildDto(adoptionApplication, fields)).FirstOrDefault();
+		}
 	}
 }

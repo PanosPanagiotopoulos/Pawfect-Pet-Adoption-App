@@ -92,10 +92,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Κατασκευή των dtos
 			List<ShelterDto> shelterDtos = (await _shelterService.Value.QuerySheltersAsync(_shelterLookup)).ToList();
 
+			if (shelterDtos == null || !shelterDtos.Any()) return null;
+
 			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ ShelterId -> ShelterDto ]
 			Dictionary<String, ShelterDto> shelterDtoMap = shelterDtos.ToDictionary(x => x.Id);
-
-			if (shelterDtoMap.Count == 0) { return null; }
 
 			// Ταίριασμα του προηγούμενου Dictionary με τους users δημιουργώντας ένα Dictionary : [ UserId -> ShelterId ] 
 			return users.ToDictionary(x => x.Id, x => !String.IsNullOrEmpty(x.ShelterId) ? shelterDtoMap[x.ShelterId] : null);

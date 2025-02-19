@@ -2,9 +2,11 @@
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels;
+using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
 using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
@@ -33,11 +35,21 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 	{
 		private readonly UserLookup _userLookup;
 		private readonly Lazy<IUserService> _userService;
+		private readonly AnimalLookup _animalLookup;
+		private readonly Lazy<IAnimalService> _animalService;
 
-		public ShelterBuilder(UserLookup userLookup, Lazy<IUserService> userService)
+		public ShelterBuilder
+		(
+		  UserLookup userLookup,
+		  Lazy<IUserService> userService,
+		  AnimalLookup animalLookup,
+		  Lazy<IAnimalService> animalService
+		)
 		{
 			_userLookup = userLookup;
 			_userService = userService;
+			_animalLookup = animalLookup;
+			_animalService = animalService;
 		}
 
 		// Ορίστε τις παραμέτρους αναζήτησης για τον κατασκευαστή
@@ -54,6 +66,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				? (await CollectUsers(entities, foreignEntitiesFields[nameof(User)]))
 				: null;
 
+			Dictionary<String, List<AnimalDto>>? animalsMap = foreignEntitiesFields.ContainsKey(nameof(Animal))
+				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Animal)]))
+				: null;
+
 			List<ShelterDto> result = new List<ShelterDto>();
 			foreach (Shelter e in entities)
 			{
@@ -67,6 +83,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (nativeFields.Contains(nameof(Shelter.VerificationStatus))) dto.VerificationStatus = e.VerificationStatus;
 				if (nativeFields.Contains(nameof(Shelter.VerifiedBy))) dto.VerifiedBy = e.VerifiedBy;
 				if (userMap != null && userMap.ContainsKey(e.Id)) dto.User = userMap[e.Id];
+				if (animalsMap != null && animalsMap.ContainsKey(e.Id)) dto.Animals = animalsMap[e.Id];
 
 				result.Add(dto);
 			}
@@ -74,7 +91,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			return await Task.FromResult(result);
 		}
 
-		private async Task<Dictionary<String, UserDto>> CollectUsers(List<Shelter> shelters, List<String> userFields)
+		private async Task<Dictionary<String, UserDto>?> CollectUsers(List<Shelter> shelters, List<String> userFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = shelters.Select(x => x.UserId).Distinct().ToList();
@@ -91,11 +108,41 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Κατασκευή των dtos
 			List<UserDto> userDtos = (await _userService.Value.QueryUsersAsync(_userLookup)).ToList();
 
+			if (userDtos == null || !userDtos.Any()) return null;
+
 			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
 			Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> UserId ] 
 			return shelters.ToDictionary(x => x.Id, x => userDtoMap[x.UserId]);
+		}
+
+		private async Task<Dictionary<String, List<AnimalDto>>?> CollectAnimals(List<Shelter> shelters, List<String> animalFields)
+		{
+			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
+			List<String> shelterIds = shelters.Select(x => x.Id).Distinct().ToList();
+
+			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+			_animalLookup.Offset = LookupParams.Offset;
+			// Γενική τιμή για τη λήψη των dtos
+			_animalLookup.PageSize = LookupParams.PageSize;
+			_animalLookup.SortDescending = LookupParams.SortDescending;
+			_animalLookup.Query = null;
+			_animalLookup.ShelterIds = shelterIds;
+			// Ensure ShelterId will come back from the build
+			if (!animalFields.Contains(nameof(Shelter) + "." + nameof(Shelter.Id))) animalFields.Add(nameof(Shelter) + "." + nameof(Shelter.Id));
+			_animalLookup.Fields = animalFields;
+
+			// Κατασκευή των dtos
+			List<AnimalDto> animalDtos = (await _animalService.Value.QueryAnimalsAsync(_animalLookup)).ToList();
+
+			if (animalDtos == null || !animalDtos.Any()) return null;
+
+			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
+			Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
+
+			// Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> List<AnimalId> ] 
+			return animalDtos.GroupBy(a => a.Shelter!.Id).ToDictionary(g => g.Key, g => g.ToList());
 		}
 	}
 }

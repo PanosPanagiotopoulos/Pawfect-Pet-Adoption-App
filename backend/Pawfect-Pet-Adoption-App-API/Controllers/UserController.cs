@@ -11,7 +11,7 @@ using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
 	[ApiController]
-	[Route("api/[controller]")]
+	[Route("api/user")]
 	public class UserController : ControllerBase
 	{
 		private readonly IUserService _userService;
@@ -29,7 +29,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// Query χρήστες.
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
-		[HttpGet]
+		[HttpGet("query")]
 		[ProducesResponseType(200, Type = typeof(IEnumerable<UserDto>))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(404)]
@@ -43,18 +43,57 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				IEnumerable<UserDto>? queriedUsers = await _userService.QueryUsersAsync(userLookup);
+				IEnumerable<UserDto>? models = await _userService.QueryUsersAsync(userLookup);
 
-				if (queriedUsers == null)
+				if (models == null)
 				{
 					return NotFound();
 				}
 
-				return Ok(queriedUsers);
+				return Ok(models);
 			}
 			catch (Exception e)
 			{
 				_logger.LogError(e, "Error καθώς κάναμε query users");
+				return RequestHandlerTool.HandleInternalServerError(e, "GET");
+			}
+		}
+
+		/// <summary>
+		/// Query χρήστες.
+		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
+		/// </summary>
+		[HttpGet("{id}")]
+		[ProducesResponseType(200, Type = typeof(UserDto))]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(404)]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> GetUser([FromQuery] String id, List<String> fields)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				UserDto? model = await _userService.Get(id, fields);
+
+				if (model == null)
+				{
+					return NotFound();
+				}
+
+				return Ok(model);
+			}
+			catch (InvalidDataException e)
+			{
+				_logger.LogError(e, "Δεν βρέθηκε χρήστης");
+				return NotFound()
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e, "Error καθώς κάναμε query user");
 				return RequestHandlerTool.HandleInternalServerError(e, "GET");
 			}
 		}

@@ -22,5 +22,23 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 			List<Animal> queriedAnimals = await animalLookup.EnrichLookup(_animalQuery).CollectAsync();
 			return await _animalBuilder.SetLookup(animalLookup).BuildDto(queriedAnimals, animalLookup.Fields.ToList());
 		}
+
+		public async Task<AnimalDto?> Get(String id, List<String> fields)
+		{
+			AnimalLookup lookup = new AnimalLookup(_animalQuery);
+			lookup.Ids = new List<String> { id };
+			lookup.Fields = fields;
+			lookup.PageSize = 1;
+			lookup.Offset = 0;
+
+			List<Animal> animal = await lookup.EnrichLookup().CollectAsync();
+
+			if (animal == null)
+			{
+				throw new InvalidDataException("Δεν βρέθηκε ζώο με αυτό το ID");
+			}
+
+			return (await _animalBuilder.SetLookup(lookup).BuildDto(animal, fields)).FirstOrDefault();
+		}
 	}
 }

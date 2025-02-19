@@ -443,5 +443,23 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			List<User> queriedUsers = await userLookup.EnrichLookup(_userQuery).CollectAsync();
 			return await _userBuilder.SetLookup(userLookup).BuildDto(queriedUsers, userLookup.Fields.ToList());
 		}
+
+		public async Task<UserDto?> Get(String id, List<String> fields)
+		{
+			UserLookup lookup = new UserLookup(_userQuery);
+			lookup.Ids = new List<String> { id };
+			lookup.Fields = fields;
+			lookup.PageSize = 1;
+			lookup.Offset = 0;
+
+			List<User> user = await lookup.EnrichLookup().CollectAsync();
+
+			if (user == null)
+			{
+				throw new InvalidDataException("Δεν βρέθηκε χρήστης με αυτό το ID");
+			}
+
+			return (await _userBuilder.SetLookup(lookup).BuildDto(user, fields)).FirstOrDefault();
+		}
 	}
 }

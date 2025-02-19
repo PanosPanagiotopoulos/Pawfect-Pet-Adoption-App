@@ -14,6 +14,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <returns>Το Λίστα απο DTO user.</returns>
 		Task<IEnumerable<UserDto>> QueryUsersAsync(UserLookup userLookup);
 
+		Task<UserDto?> Get(String id, List<String> fields);
+
 		/// <summary>
 		/// Εγγραφή μη επιβεβαιωμένου χρήστη.
 		/// </summary>
