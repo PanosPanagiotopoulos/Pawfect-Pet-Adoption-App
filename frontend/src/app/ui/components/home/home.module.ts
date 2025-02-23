@@ -20,6 +20,7 @@ import { FeatureCardComponent } from './feature-card/feature-card.component';
 import { FooterComponent } from './footer/footer.component';
 import { HeroSectionComponent } from './hero-section/hero-section.component';
 import { AiMatchingSectionComponent } from './ai-matching-section/ai-matching-section.component';
+import { AnimationDirective } from './shared/directives/animation.directive';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { AiMatchingSectionComponent } from './ai-matching-section/ai-matching-se
     FeatureCardComponent,
     FooterComponent,
     HeroSectionComponent,
-    AiMatchingSectionComponent
+    AiMatchingSectionComponent,
+    AnimationDirective
   ],
   imports: [
     CommonModule,

@@ -3,14 +3,26 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'app-ai-matching-section',
   template: `
-    <div class="bg-gray-800/50 backdrop-blur-lg border border-gray-700/50 rounded-3xl shadow-xl p-6 sm:p-8 md:p-12 mb-20 transform hover:scale-[1.02] transition-all duration-300">
+    <div 
+      appAnimation
+      [animationDelay]="0"
+      class="bg-gray-800/50 backdrop-blur-lg border border-gray-700/50 rounded-3xl shadow-xl p-6 sm:p-8 md:p-12 mb-20 transform hover:scale-[1.02] transition-all duration-300"
+      style="transform: scale(0.95);">
       <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-        <div class="space-y-6 md:space-y-8 animate-slide-right">
-          <h2 class="text-3xl md:text-4xl font-bold gradient-text">
+        <div class="space-y-6 md:space-y-8">
+          <h2 
+            appAnimation
+            [animationDelay]="300"
+            class="text-3xl md:text-4xl font-bold gradient-text"
+            style="transform: translateX(-50px);">
             AI-Powered Pet Matching
           </h2>
           <div class="space-y-4 md:space-y-6">
-            <div class="flex items-start transform hover:-translate-y-1 transition-transform duration-300">
+            <div 
+              appAnimation
+              [animationDelay]="400"
+              class="flex items-start transform hover:-translate-y-1 transition-transform duration-300"
+              style="transform: translateY(20px);">
               <div class="flex-shrink-0">
                 <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 text-white shadow-lg">
                   <ng-icon name="lucideHeart" [size]="'24'"></ng-icon>
@@ -21,7 +33,11 @@ import { Component } from '@angular/core';
                 <p class="mt-2 text-sm md:text-base text-gray-400">Our System uses smart techniques and AI to analyze your preferences and browses for an available pet listed to us</p>
               </div>
             </div>
-            <div class="flex items-start transform hover:-translate-y-1 transition-transform duration-300">
+            <div 
+              appAnimation
+              [animationDelay]="500"
+              class="flex items-start transform hover:-translate-y-1 transition-transform duration-300"
+              style="transform: translateY(20px);">
               <div class="flex-shrink-0">
                 <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-secondary-500 to-primary-500 text-white shadow-lg">
                   <ng-icon name="lucideMessageCircle" [size]="'24'"></ng-icon>
@@ -34,8 +50,11 @@ import { Component } from '@angular/core';
             </div>
           </div>
         </div>
-        <!-- Modified image section to show on mobile -->
-        <div class="relative animate-slide-left block">
+        <div 
+          appAnimation
+          [animationDelay]="600"
+          class="relative block"
+          style="transform: translateX(50px);">
           <div class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-2xl transform rotate-6"></div>
           <img 
             src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 

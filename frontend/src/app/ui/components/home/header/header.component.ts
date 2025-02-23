@@ -18,8 +18,8 @@ import { MobileMenuComponent } from '../../shared/mobile-menu/mobile-menu.compon
     NgIconsModule,
     NavLinkComponent,
     AuthButtonComponent,
-    MobileMenuComponent
-  ]
+    MobileMenuComponent,
+  ],
 })
 export class HeaderComponent {
   isMobileMenuOpen = false;

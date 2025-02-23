@@ -7,7 +7,12 @@
 
 .animate-gradient {
   background-size: 200% 200%;
-  animation: gradient 15s ease infinite;
+  animation: gradient 8s linear infinite;
+}
+
+.animate-gradient-slow {
+  background-size: 200% 200%;
+  animation: gradient 15s linear infinite;
 }
 
 /* Floating Animation */
@@ -51,7 +56,7 @@
 }
 
 .animate-fade-in {
-  animation: fadeIn 1s ease-out forwards;
+  animation: fadeIn 0.5s ease-out forwards;
 }
 
 /* Slide Animations */
@@ -89,15 +94,15 @@
 }
 
 .animate-slide-up {
-  animation: slideUp 0.6s ease-out forwards;
+  animation: slideUp 0.5s ease-out forwards;
 }
 
 .animate-slide-right {
-  animation: slideRight 0.6s ease-out forwards;
+  animation: slideRight 0.5s ease-out forwards;
 }
 
 .animate-slide-left {
-  animation: slideLeft 0.6s ease-out forwards;
+  animation: slideLeft 0.5s ease-out forwards;
 }
 
 /* Bounce In Animation */
@@ -121,5 +126,5 @@
 }
 
 .animate-bounce-in {
-  animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }

@@ -4,12 +4,23 @@ import { NgIconsModule } from '@ng-icons/core';
 @Component({
   selector: 'app-feature-card',
   template: `
-    <div class="bg-white p-10 rounded-2xl shadow-xl transform hover:-translate-y-1 transition-transform duration-300">
-      <div [class]="'rounded-full w-16 h-16 flex items-center justify-center mb-6 mx-auto ' + bgColor">
-        <ng-icon [name]="icon" [class]="iconColor" [size]="'32'"></ng-icon>
+    <div 
+      appAnimation
+      [animationDelay]="0"
+      class="relative p-8 rounded-2xl shadow-xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden"
+      style="transform: scale(0.95);">
+      <!-- Gradient background with animation -->
+      <div class="absolute inset-0 bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 animate-gradient"></div>
+      <div class="absolute inset-0 bg-gradient-to-r from-primary-500/30 via-secondary-500/30 to-accent-500/30 animate-gradient-slow opacity-70"></div>
+      
+      <!-- Content -->
+      <div class="relative z-10">
+        <div [class]="'rounded-full w-16 h-16 flex items-center justify-center mb-6 mx-auto ' + bgColor">
+          <ng-icon [name]="icon" [class]="iconColor" [size]="'32'"></ng-icon>
+        </div>
+        <h3 class="text-2xl font-semibold mb-4 text-white">{{title}}</h3>
+        <p class="text-gray-200 leading-relaxed">{{description}}</p>
       </div>
-      <h3 class="text-2xl font-semibold mb-4 text-gray-800">{{title}}</h3>
-      <p class="text-gray-600 leading-relaxed">{{description}}</p>
     </div>
   `,
   standalone: false
@@ -20,4 +31,5 @@ export class FeatureCardComponent {
   @Input() description!: string;
   @Input() bgColor!: string;
   @Input() iconColor!: string;
+  @Input() gradientClass!: string;
 }
