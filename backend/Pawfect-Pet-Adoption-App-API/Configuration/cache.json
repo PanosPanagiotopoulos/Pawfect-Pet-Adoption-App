@@ -1,5 +1,5 @@
 {
-  "auth": {
-    "timeInCache":  10
+  "Cache": {
+    "TokensCacheTime":  10
   }
 }

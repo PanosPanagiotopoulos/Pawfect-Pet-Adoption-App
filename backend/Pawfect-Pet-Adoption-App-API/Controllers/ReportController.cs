@@ -8,7 +8,7 @@ using Pawfect_Pet_Adoption_App_API.Services.ReportServices;
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
 	[ApiController]
-	[Route("api/report")]
+	[Route("api/reports")]
 	public class ReportController : ControllerBase
 	{
 		private readonly IReportService _reportService;
@@ -92,5 +92,43 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 				return RequestHandlerTool.HandleInternalServerError(e, "GET");
 			}
 		}
+
+		/// <summary>
+		/// Persist a report.
+		/// </summary>
+		[HttpPost("persist")]
+		[ProducesResponseType(200, Type = typeof(ReportDto))]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> Persist([FromBody] ReportPersist model)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				ReportDto? report = await _reportService.Persist(model);
+
+				if (report == null)
+				{
+					return RequestHandlerTool.HandleInternalServerError(new Exception("Failed to save model. Null return"), "POST");
+				}
+
+				return Ok(report);
+			}
+			catch (InvalidOperationException e)
+			{
+				_logger.LogError(e, "Αποτυχία αποθήκευσης αναφοράς");
+				return NotFound();
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e, "Error ενώ κάναμε persist report");
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
+			}
+		}
+
 	}
 }

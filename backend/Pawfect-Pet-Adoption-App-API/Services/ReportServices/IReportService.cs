@@ -9,5 +9,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 		Task<IEnumerable<ReportDto>> QueryReportsAsync(ReportLookup reportLookup);
 
 		Task<ReportDto?> Get(String id, List<String> fields);
+
+		Task<ReportDto?> Persist(ReportPersist persist);
 	}
 }

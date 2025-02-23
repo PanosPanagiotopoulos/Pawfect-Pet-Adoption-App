@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Options;
+
+using Newtonsoft.Json;
+
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 
 using System.Text;
 
@@ -7,21 +11,25 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 	public class SmsService : ISmsService
 	{
 		private readonly HttpClient _httpClient;
-		private readonly IConfiguration _configuration;
+		private readonly SmsApiConfig _configuration;
 		private readonly ILogger<SmsService> _logger;
 
-		public SmsService(HttpClient httpClient, IConfiguration configuration
-						   , ILogger<SmsService> logger)
+		public SmsService
+		(
+			HttpClient httpClient,
+			IOptions<SmsApiConfig> configuration,
+			ILogger<SmsService> logger
+		)
 		{
 			_httpClient = httpClient;
-			_configuration = configuration;
+			_configuration = configuration.Value;
 			_logger = logger;
 		}
 
 		public async Task SendSmsAsync(String phoneNumber, String message)
 		{
-			String? smsServiceUrl = _configuration["SmsService:Url"];
-			String? apiKey = _configuration["SmsService:ApiKey"];
+			String? smsServiceUrl = _configuration.Url;
+			String? apiKey = _configuration.ApiKey;
 
 			if (String.IsNullOrWhiteSpace(smsServiceUrl) || String.IsNullOrEmpty(apiKey))
 			{
@@ -32,7 +40,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 			// Κατασκευάζουμε τον αριθμό τηλεφώνου μόνο με με τα νούμερα του και στην αρχή τον κωδικό της χώρας για την υπηρεσία
 			String cleanedPhonenumber = ISmsService.ParsePhoneNumber(phoneNumber);
 
-			String? fromPhonenumber = _configuration["SmsService:From"];
+			String? fromPhonenumber = _configuration.From;
 			if (String.IsNullOrEmpty(fromPhonenumber))
 			{
 				// LOGS //

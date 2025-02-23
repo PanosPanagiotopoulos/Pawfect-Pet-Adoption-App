@@ -8,7 +8,7 @@ using Pawfect_Pet_Adoption_App_API.Services.NotificationServices;
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
 	[ApiController]
-	[Route("api/notification")]
+	[Route("api/notifications")]
 	public class NotificationController : ControllerBase
 	{
 		private readonly INotificationService _notificationService;
@@ -90,6 +90,43 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 			{
 				_logger.LogError(e, "Error ενώ κάναμε query notification");
 				return RequestHandlerTool.HandleInternalServerError(e, "GET");
+			}
+		}
+
+		/// <summary>
+		/// Persist a notification.
+		/// </summary>
+		[HttpPost("persist")]
+		[ProducesResponseType(200, Type = typeof(NotificationDto))]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> Persist([FromBody] NotificationPersist model)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				NotificationDto? notification = await _notificationService.Persist(model);
+
+				if (notification == null)
+				{
+					return RequestHandlerTool.HandleInternalServerError(new Exception("Failed to save model. Null return"), "POST");
+				}
+
+				return Ok(notification);
+			}
+			catch (InvalidOperationException e)
+			{
+				_logger.LogError(e, "Αποτυχία αποθήκευσης ειδοποίησης");
+				return NotFound();
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e, "Error ενώ κάναμε persist notification");
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
 			}
 		}
 	}

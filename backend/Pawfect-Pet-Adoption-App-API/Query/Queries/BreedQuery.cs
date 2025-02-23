@@ -53,7 +53,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				IEnumerable<ObjectId> referenceIds = TypeIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
 
 				// Ensure that only valid ObjectId values are passed in the filter
-				filter &= builder.In("TypeId", referenceIds.Where(id => id != ObjectId.Empty));
+				filter &= builder.In("AnimalTypeId", referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
 			// Εφαρμόζει φίλτρο για την ημερομηνία έναρξης

@@ -1,8 +1,11 @@
-﻿using Pawfect_Pet_Adoption_App_API.Builders;
+﻿using AutoMapper;
+
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 {
@@ -10,11 +13,21 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 	{
 		private readonly ReportQuery _reportQuery;
 		private readonly ReportBuilder _reportBuilder;
+		private readonly IReportRepository _reportRepository;
+		private readonly IMapper _mapper;
 
-		public ReportService(ReportQuery reportQuery, ReportBuilder reportBuilder)
+		public ReportService
+			(
+				ReportQuery reportQuery,
+				ReportBuilder reportBuilder,
+				IReportRepository reportRepository,
+				IMapper mapper
+			)
 		{
 			_reportQuery = reportQuery;
 			_reportBuilder = reportBuilder;
+			_reportRepository = reportRepository;
+			_mapper = mapper;
 		}
 
 		public async Task<IEnumerable<ReportDto>> QueryReportsAsync(ReportLookup reportLookup)
@@ -40,5 +53,44 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 
 			return (await _reportBuilder.SetLookup(lookup).BuildDto(report, fields)).FirstOrDefault();
 		}
+
+		public async Task<ReportDto?> Persist(ReportPersist persist)
+		{
+			Boolean isUpdate = await _reportRepository.ExistsAsync(x => x.Id == persist.Id);
+			Report data = new Report();
+			String dataId = String.Empty;
+			if (isUpdate)
+			{
+				_mapper.Map(persist, data);
+				data.UpdatedAt = DateTime.UtcNow;
+				dataId = await _reportRepository.UpdateAsync(data);
+			}
+			else
+			{
+				_mapper.Map(persist, data);
+				data.Id = null; // Ensure new ID is generated
+				data.CreatedAt = DateTime.UtcNow;
+				data.UpdatedAt = DateTime.UtcNow;
+				dataId = await _reportRepository.AddAsync(data);
+			}
+
+			if (String.IsNullOrEmpty(dataId))
+			{
+				throw new InvalidOperationException("Αποτυχία κατά το persist της αναφοράς");
+			}
+
+			// Return dto model
+			ReportLookup lookup = new ReportLookup(_reportQuery);
+			lookup.Ids = new List<String> { dataId };
+			lookup.Fields = new List<String> { "*", nameof(User) + ".*" };
+			lookup.Offset = 0;
+			lookup.PageSize = 1;
+
+			return (
+					 await _reportBuilder.SetLookup(lookup)
+					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
+					).FirstOrDefault();
+		}
+
 	}
 }

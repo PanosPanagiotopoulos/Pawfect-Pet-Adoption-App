@@ -1,17 +1,24 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Options;
 
-using Pawfect_Pet_Adoption_App_API.Models;
+using Newtonsoft.Json;
+
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 {
 	public class AuthService : IAuthService
 	{
-		private readonly IConfiguration _configuration;
+		private readonly GoogleOauth2Config _googleOauth2Config;
 		private readonly ILogger<AuthService> _logger;
 
-		public AuthService(IConfiguration configuration, ILogger<AuthService> logger)
+		public AuthService
+		(
+			IOptions<GoogleOauth2Config> configuration,
+			ILogger<AuthService> logger
+		)
 		{
-			_configuration = configuration;
+			_googleOauth2Config = configuration.Value;
 			_logger = logger;
 		}
 
@@ -38,8 +45,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 
 		public async Task<GoogleTokenResponse?> ExchangeCodeForAccessToken(String? authorizationCode)
 		{
-			String? clientId = _configuration["Google:ClientId"];
-			String? clientSecret = _configuration["Google:ClientSecret"];
+			String? clientId = _googleOauth2Config.ClientId;
+			String? clientSecret = _googleOauth2Config.ClientSecret;
 
 			if (String.IsNullOrEmpty(clientId) || String.IsNullOrEmpty(clientSecret) || String.IsNullOrEmpty(authorizationCode))
 			{

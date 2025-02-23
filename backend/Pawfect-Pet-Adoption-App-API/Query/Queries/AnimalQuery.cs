@@ -88,7 +88,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				IEnumerable<ObjectId> referenceIds = TypeIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
 
 				// Ensure that only valid ObjectId values are passed in the filter
-				filter &= builder.In("TypeId", referenceIds.Where(id => id != ObjectId.Empty));
+				filter &= builder.In("AnimalTypeId", referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
 			// Εφαρμόζει φίλτρο για τις καταστάσεις υιοθεσίας
@@ -124,7 +124,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			}
 
 
-			return filter;
+			return await Task.FromResult(filter);
 		}
 
 		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
@@ -151,7 +151,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				if (item.Equals(nameof(AnimalDto.UpdatedAt))) projectionFields.Add(nameof(Animal.UpdatedAt));
 				if (item.StartsWith(nameof(AnimalDto.Shelter))) projectionFields.Add(nameof(Animal.ShelterId));
 				if (item.StartsWith(nameof(AnimalDto.Breed))) projectionFields.Add(nameof(Animal.BreedId));
-				if (item.StartsWith(nameof(AnimalDto.Type))) projectionFields.Add(nameof(Animal.TypeId));
+				if (item.StartsWith(nameof(AnimalDto.AnimalType))) projectionFields.Add(nameof(Animal.AnimalTypeId));
 			}
 
 			return projectionFields.ToList();

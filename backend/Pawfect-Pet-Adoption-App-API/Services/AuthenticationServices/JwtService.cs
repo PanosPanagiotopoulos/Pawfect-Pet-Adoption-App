@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
-using Pawfect_Pet_Adoption_App_API.Models.Jwt;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -19,14 +21,21 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 		/// <summary>
 		/// Η διαμόρφωση της εφαρμογής (ρυθμίσεις από appsettings.json)
 		/// </summary>
-		private readonly IConfiguration _configuration;
+		private readonly JwtConfig _jwtConfiguration;
+		private readonly CacheConfig _cacheConfiguration;
 		private readonly ILogger<JwtService> _logger;
 		private readonly IMemoryCache _memoryCache;
 
-		public JwtService(IConfiguration configuration, ILogger<JwtService> logger
-						  , IMemoryCache memoryCache)
+		public JwtService
+		(
+			IOptions<JwtConfig> jwtConfiguration,
+			IOptions<CacheConfig> cacheConfiguration,
+			ILogger<JwtService> logger,
+			IMemoryCache memoryCache
+		)
 		{
-			_configuration = configuration;
+			_jwtConfiguration = jwtConfiguration.Value;
+			_cacheConfiguration = cacheConfiguration.Value;
 			_logger = logger;
 			_memoryCache = memoryCache;
 		}
@@ -40,22 +49,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 		/// <returns>Ένα JWT token σε μορφή String</returns>
 		public String? GenerateJwtToken(String userId, String email, String role)
 		{
-			String? issuer = _configuration["Jwt:Issuer"]; // Εκδότης του token
-			String? audience = _configuration["Jwt:Audience"]; // Αποδέκτης του token
-			String? jwtKey = _configuration["Jwt:Key"]; // Μυστικό Κλειδί JWT token
+			String? issuer = _jwtConfiguration.Issuer; // Εκδότης του token
+			List<String>? audiences = _jwtConfiguration.Audiences; // Αποδέκτης του token
+			String? jwtKey = _jwtConfiguration.Key; // Μυστικό Κλειδί JWT token
 
-			if (String.IsNullOrEmpty(issuer) || String.IsNullOrEmpty(audience) || String.IsNullOrEmpty(jwtKey))
+			if (String.IsNullOrEmpty(issuer) || audiences == null || !audiences.Any() || String.IsNullOrEmpty(jwtKey))
 			{
 				// LOGS //
 				_logger.LogError("Δεν βρέθηκε configuration για τον εκδότη ή τον αποδέκτη του JWT ή του μυστικού κλειδιού JWT");
 				return null;
-			}
-
-			if (!double.TryParse(_configuration["jwt:timeInCache"], out double timeInCache))
-			{
-				// LOGS //
-				_logger.LogError("Δεν βρέθηκε configuration για τον χρόνο στη cache");
-				timeInCache = 60.0;
 			}
 
 			// Δημιουργεί τις απαιτούμενες δηλώσεις (claims) για το JWT
@@ -72,12 +74,17 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 			// Ορίζει την κρυπτογράφηση HMAC-SHA256
 			SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+			// Add multiple audiences as a custom claim
+			foreach (String audience in audiences)
+			{
+				claims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
+			}
+
 			// Δημιουργεί το JWT token
 			JwtSecurityToken token = new JwtSecurityToken(
 				issuer: issuer,
-				audience: audience,
 				claims: claims, // Δηλώσεις που περιλαμβάνονται στο token
-				expires: DateTime.UtcNow.AddMinutes(timeInCache), // Λήξη του token (σε 1 ώρα)
+				expires: DateTime.UtcNow.AddMinutes(_cacheConfiguration.TokensCacheTime), // Λήξη του token (σε 1 ώρα)
 				signingCredentials: creds // Διαπιστευτήρια κρυπτογράφησης
 			);
 
@@ -133,9 +140,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 				throw new ArgumentException("JWT Issuer δεν βρεθηκε.");
 			}
 
-			if (String.IsNullOrEmpty(jwtSettings.Audience))
+			if (jwtSettings.Audiences == null || !jwtSettings.Audiences.Any())
 			{
-				throw new ArgumentException("JWT Audience δεν βρεθηκε.");
+				throw new ArgumentException("JWT audiencess δεν βρεθηκε.");
 			}
 
 			return jwtSettings;

@@ -125,20 +125,20 @@ public class Seeder
 			var animals = new List<Animal>
 			{
 				new Animal { Name = "Buddy", Age = 3, Gender = Gender.Male, Description = "Friendly and playful", Weight = 25, HealthStatus = "Good"
-				, ShelterId = shelters[0].Id, BreedId = breeds[0].Id, TypeId = animalTypes[0].Id, AdoptionStatus = AdoptionStatus.Available
+				, ShelterId = shelters[0].Id, BreedId = breeds[0].Id, AnimalTypeId = animalTypes[0].Id, AdoptionStatus = AdoptionStatus.Available
 				, Photos = new[] { "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
 									"https://images.unsplash.com/photo-1574158622681-2d41c4939f82",
-									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" } },
+									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" }.ToList() },
 				new Animal { Name = "Mittens", Age = 2, Gender = Gender.Female, Description = "Calm and affectionate", Weight = 10, HealthStatus = "Good",
-					ShelterId = shelters[0].Id, BreedId = breeds[1].Id, TypeId = animalTypes[1].Id, AdoptionStatus = AdoptionStatus.Available
+					ShelterId = shelters[0].Id, BreedId = breeds[1].Id, AnimalTypeId = animalTypes[1].Id, AdoptionStatus = AdoptionStatus.Available
 					, Photos = new[] { "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
 									"https://images.unsplash.com/photo-1574158622681-2d41c4939f82",
-									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" } },
+									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" }.ToList() },
 				new Animal { Name = "Thumper", Age = 1, Gender = Gender.Male, Description = "Energetic and curious", Weight = 3, HealthStatus = "Excellent",
-					ShelterId = shelters[0].Id, BreedId = breeds[2].Id, TypeId = animalTypes[2].Id, AdoptionStatus = AdoptionStatus.Available,
+					ShelterId = shelters[0].Id, BreedId = breeds[2].Id, AnimalTypeId = animalTypes[2].Id, AdoptionStatus = AdoptionStatus.Available,
 					Photos = new[] { "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
 									"https://images.unsplash.com/photo-1574158622681-2d41c4939f82",
-									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" } }
+									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" }.ToList() }
 			};
 			animalsCollection.InsertMany(animals);
 		}

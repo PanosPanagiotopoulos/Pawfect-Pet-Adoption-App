@@ -8,7 +8,7 @@ using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
 	[ApiController]
-	[Route("api/animal")]
+	[Route("api/animals")]
 	public class AnimalController : ControllerBase
 	{
 		private readonly IAnimalService _animalService;
@@ -90,6 +90,43 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 			{
 				_logger.LogError(e, "Error καθώς κάναμε query animal");
 				return RequestHandlerTool.HandleInternalServerError(e, "GET");
+			}
+		}
+
+		/// <summary>
+		/// Persist an animal.
+		/// </summary>
+		[HttpPost("persist")]
+		[ProducesResponseType(200, Type = typeof(AnimalDto))]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> Persist([FromBody] AnimalPersist model)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				AnimalDto? animal = await _animalService.Persist(model);
+
+				if (animal == null)
+				{
+					return RequestHandlerTool.HandleInternalServerError(new Exception("Failed to save model. Null return"), "POST");
+				}
+
+				return Ok(animal);
+			}
+			catch (InvalidOperationException e)
+			{
+				_logger.LogError(e, "Αποτυχία αποθήκευσης ζώου");
+				return NotFound();
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e, "Error ενώ κάναμε persist animal");
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
 			}
 		}
 	}

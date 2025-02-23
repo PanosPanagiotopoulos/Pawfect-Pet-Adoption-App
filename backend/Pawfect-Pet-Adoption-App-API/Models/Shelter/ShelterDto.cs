@@ -7,16 +7,16 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
 {
 	public class ShelterDto
 	{
-		public String Id { get; set; }
+		public String? Id { get; set; }
 
 		/// <value>
 		/// Τα δεδομένα του αντίστοιχου χρήστη για το καταφύγιο
 		/// </value>
 		public UserDto? User { get; set; }
 
-		public String ShelterName { get; set; }
+		public String? ShelterName { get; set; }
 
-		public String Description { get; set; }
+		public String? Description { get; set; }
 
 
 		/// <value>
@@ -41,7 +41,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
 		/// [ Pending, Verified, Rejected ]
 		/// </value>
 		/// 
-		public VerificationStatus VerificationStatus { get; set; }
+		public VerificationStatus? VerificationStatus { get; set; }
 
 
 		/// <value>
@@ -50,6 +50,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
 		/// </value>
 		public String? VerifiedBy { get; set; }
 
-		public List<AnimalDto> Animals { get; set; }
+		public List<AnimalDto>? Animals { get; set; }
 	}
 }

@@ -1,0 +1,48 @@
+<div class="min-h-screen relative overflow-hidden bg-gray-900">
+  <!-- Background elements -->
+  <div class="fixed inset-0 z-0">
+    <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"></div>
+    <div class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"></div>
+    
+    <!-- Animated gradient orbs -->
+    <div class="absolute top-0 left-0 w-[800px] h-[800px] bg-gradient-to-br from-primary-600/5 to-accent-600/5 rounded-full blur-3xl animate-float-1 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute top-1/2 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-secondary-600/5 to-primary-600/5 rounded-full blur-3xl animate-float-2 translate-x-1/2"></div>
+    <div class="absolute bottom-0 left-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-accent-600/5 to-secondary-600/5 rounded-full blur-3xl animate-float-3 -translate-x-1/2 translate-y-1/2"></div>
+  </div>
+  
+  <!-- Main Content -->
+  <main class="relative z-10">
+    <div class="max-w-7xl mx-auto px-4 pt-32 pb-20">
+      <app-hero-section></app-hero-section>
+      <app-ai-matching-section></app-ai-matching-section>
+
+      <!-- Feature Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-20">
+        <app-feature-card
+          *ngFor="let feature of features; let i = index"
+          [icon]="feature.icon"
+          [title]="feature.title"
+          [description]="feature.description"
+          [bgColor]="feature.bgColor"
+          [iconColor]="feature.iconColor"
+          [style.animation-delay]="i * 200 + 'ms'">
+        </app-feature-card>
+      </div>
+      
+      <!-- CTA Section -->
+      <div class="text-center animate-bounce-in">
+        <a routerLink="/search"
+           class="inline-flex items-center px-8 sm:px-12 py-4 sm:py-5 bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-600 text-white rounded-full text-lg sm:text-xl font-semibold hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] transition-all duration-300 transform hover:-translate-y-1 animate-gradient">
+          Start Matching Now
+          <ng-icon name="lucideHeart" class="ml-2 animate-pulse" [size]="'24'"></ng-icon>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer with proper z-index and positioning -->
+  <footer class="relative z-10">
+    <app-footer></app-footer>
+  </footer>
+</div>

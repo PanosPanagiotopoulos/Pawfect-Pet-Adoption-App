@@ -4,8 +4,10 @@ using Microsoft.OpenApi.Models;
 
 using MongoDB.Driver;
 
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
+using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models;
-using Pawfect_Pet_Adoption_App_API.Models.Jwt;
 using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices.Extentions;
@@ -87,7 +89,7 @@ public class Program
 		IConfiguration configuration = configBuilder.Build();
 
 		// Replace placeholders with actual values
-		configuration = ReplacePlaceholders(configuration);
+		configuration = ConfigurationHandler.ReplacePlaceholders(configuration);
 
 		// Set the configuration to the builder
 		builder.Configuration.AddConfiguration(configuration);
@@ -114,29 +116,6 @@ public class Program
 		}
 	}
 
-	private static IConfiguration ReplacePlaceholders(IConfiguration configuration)
-	{
-		Dictionary<String, String?> environmentVariables = configuration.AsEnumerable().ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-		foreach (KeyValuePair<String, String?> kvp in environmentVariables.ToList())
-		{
-			if (kvp.Value != null && kvp.Value.Contains("%{") && kvp.Value.Contains("}%"))
-			{
-				String placeholderKey = kvp.Value.Trim('%', '{', '}');
-				if (environmentVariables.TryGetValue(placeholderKey, out String envValue))
-				{
-					configuration[kvp.Key] = envValue;
-				}
-				else
-				{
-					throw new Exception($"Placeholder '{placeholderKey}' not found in environment configuration.");
-				}
-			}
-		}
-
-		return configuration;
-	}
-
 	public static void ConfigureServices(WebApplicationBuilder builder)
 	{
 		// Logger configuration
@@ -149,6 +128,9 @@ public class Program
 		builder.Services.AddScoped(s =>
 			s.GetRequiredService<IMongoClient>().GetDatabase(builder.Configuration.GetValue<String>("MongoDbConfig:DatabaseName")));
 
+		// Cache Configuration
+		builder.Services.Configure<CacheConfig>(builder.Configuration.GetSection("Cache"));
+
 		// Services
 		builder.Services
 		.AddQueryAndBuilderServices()
@@ -157,10 +139,10 @@ public class Program
 		.AddAnimalServices()
 		.AddAnimalTypeServices()
 		.AddBreedServices()
-		.AddAuthenticationServices()
+		.AddAuthenticationServices(builder.Configuration.GetSection("Authentication"))
 		.AddBreedServices()
 		.AddConversationServices()
-		.AddEmailServices()
+		.AddEmailServices(builder.Configuration.GetSection("SendGrid"))
 		.AddHttpServices()
 		.AddMessageServices()
 		.AddMongoServices()
@@ -168,24 +150,26 @@ public class Program
 		.AddReportServices()
 		.AddSearchServices()
 		.AddShelterServices()
-		.AddSmsServices()
+		.AddSmsServices(builder.Configuration.GetSection("SmsService"))
 		.AddUserServices();
 
 		// HttpContextAccessor
 		builder.Services.AddHttpContextAccessor();
 
+
 		// CORS
+		List<String> allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<List<String>>() ?? new List<String>();
 		builder.Services.AddCors(options =>
 		{
-			options.AddPolicy("AllowAll", policyBuilder =>
+			options.AddPolicy("Cors", policyBuilder =>
 			{
-				policyBuilder.AllowAnyOrigin()
-							 .AllowAnyMethod()
+				policyBuilder.WithOrigins(allowedOrigins.ToArray())
+							 .WithMethods("GET", "POST", "PUT", "DELETE")
 							 .AllowAnyHeader();
 			});
 		});
 
-		JwtConfig jwtConfig = JwtService.GetJwtSettings(builder.Configuration);
+		JwtConfig jwtConfig = JwtService.GetJwtSettings(builder.Configuration.GetSection("Authentication"));
 		// Authentication and JWT
 		builder.Services.AddAuthentication(options =>
 		{
@@ -203,7 +187,7 @@ public class Program
 				ValidateLifetime = true,
 				ValidateIssuerSigningKey = true,
 				ValidIssuer = jwtConfig.Issuer,
-				ValidAudience = jwtConfig.Audience,
+				ValidAudiences = jwtConfig.Audiences,
 				IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtConfig.Key)),
 			};
 			options.Events = new JwtBearerEvents
@@ -245,9 +229,10 @@ public class Program
 
 		app.UseHttpsRedirection();
 
-		app.UseCors("AllowAll");
+		app.UseCors("Cors");
 
 		app.UseAuthentication();
+
 		app.UseAuthorization();
 
 		app.MapControllers();

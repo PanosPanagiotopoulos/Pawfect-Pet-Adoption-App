@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: 124, 58, 237;   /* primary-600 */
+  --color-secondary: 219, 39, 119; /* secondary-600 */
+  --color-accent: 79, 70, 229;    /* accent-600 */
+}
+
+@layer base {
+  body {
+    @apply antialiased text-gray-900 bg-gradient-to-br from-primary-50 via-secondary-50 to-accent-50;
+  }
+
+  h1 {
+    @apply text-4xl font-bold text-gray-900;
+  }
+
+  h2 {
+    @apply text-3xl font-semibold text-gray-800;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold text-gray-800;
+  }
+
+  h4 {
+    @apply text-xl font-medium text-gray-800;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-accent-600 text-white 
+           hover:shadow-lg hover:shadow-primary-500/30 hover:-translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply bg-gradient-to-r from-secondary-600 to-primary-600 text-white 
+           hover:shadow-lg hover:shadow-secondary-500/30 hover:-translate-y-0.5;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300
+           p-6 backdrop-blur-sm backdrop-filter;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-600 
+           bg-clip-text text-transparent;
+  }
+
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-md;
+  }
+}
+
+/* Custom Animations */
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 8s linear infinite;
+}
+
+.animate-gradient-slow {
+  background-size: 200% 200%;
+  animation: gradient 15s linear infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+html {
+  scroll-behavior: smooth;
+}

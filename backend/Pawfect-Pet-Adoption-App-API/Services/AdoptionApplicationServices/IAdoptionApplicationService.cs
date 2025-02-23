@@ -9,5 +9,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 		Task<IEnumerable<AdoptionApplicationDto>> QueryAdoptionApplicationsAsync(AdoptionApplicationLookup adoptionApplicationLookup);
 
 		Task<AdoptionApplicationDto?> Get(String id, List<String> fields);
+
+		Task<AdoptionApplicationDto?> Persist(AdoptionApplicationPersist persist);
 	}
 }

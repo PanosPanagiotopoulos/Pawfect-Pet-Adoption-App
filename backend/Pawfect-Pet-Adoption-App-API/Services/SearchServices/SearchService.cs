@@ -1,4 +1,4 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models;
+﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 
 using System.Text;

@@ -8,7 +8,7 @@ using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices;
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
 	[ApiController]
-	[Route("api/adoptionApplication")]
+	[Route("api/adoption-applications")]
 	public class AdoptionApplicationController : ControllerBase
 	{
 		private readonly IAdoptionApplicationService _adoptionApplicationService;
@@ -83,13 +83,50 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 			}
 			catch (InvalidDataException e)
 			{
-				_logger.LogError(e, "Δεν βρέθηκε ειδοποίηση");
+				_logger.LogError(e, "Δεν βρέθηκε αιτηση");
 				return NotFound();
 			}
 			catch (Exception e)
 			{
 				_logger.LogError(e, "Error ενώ κάναμε query adoptionApplication");
 				return RequestHandlerTool.HandleInternalServerError(e, "GET");
+			}
+		}
+
+		/// <summary>
+		/// Persist an adoption application
+		/// </summary>
+		[HttpPost("persist")]
+		[ProducesResponseType(200, Type = typeof(AdoptionApplicationDto))]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> Persist([FromBody] AdoptionApplicationPersist model)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				AdoptionApplicationDto? adoptionApplication = await _adoptionApplicationService.Persist(model);
+
+				if (adoptionApplication == null)
+				{
+					return RequestHandlerTool.HandleInternalServerError(new Exception("Failed to save model. Null return"), "POST");
+				}
+
+				return Ok(adoptionApplication);
+			}
+			catch (InvalidOperationException e)
+			{
+				_logger.LogError(e, "Αποτυχία αποθήκευσης αίτησης");
+				return NotFound();
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e, "Error ενώ κάναμε persist adoptionApplication");
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
 			}
 		}
 	}

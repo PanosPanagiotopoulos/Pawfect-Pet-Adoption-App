@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
 
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
@@ -26,15 +28,20 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		private readonly ISmsService _smsService;
 		private readonly IEmailService _emailService;
 		private readonly RequestService _requestService;
-		private readonly IConfiguration _configuration;
+		private readonly CacheConfig _cacheConfig;
 		private readonly UserQuery _userQuery;
 		private readonly UserBuilder _userBuilder;
 
-		public UserService(IUserRepository userRepository, IMapper mapper
-						   , ILogger<UserService> logger, IMemoryCache memoryCache
-						   , ISmsService smsService, IEmailService emailService
-						   , RequestService requestService, IConfiguration configuration
-						   , UserQuery userQuery, UserBuilder userBuilder)
+		public UserService
+		(
+			IUserRepository userRepository, IMapper mapper,
+			ILogger<UserService> logger, IMemoryCache memoryCache,
+			ISmsService smsService, IEmailService emailService,
+			RequestService requestService,
+			IOptions<CacheConfig> configuration,
+			UserQuery userQuery,
+			UserBuilder userBuilder
+		)
 		{
 			_userRepository = userRepository;
 			_mapper = mapper;
@@ -43,7 +50,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			_smsService = smsService;
 			_emailService = emailService;
 			_requestService = requestService;
-			_configuration = configuration;
+			_cacheConfig = configuration.Value;
 			_userQuery = userQuery;
 			_userBuilder = userBuilder;
 		}
@@ -86,14 +93,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// Δημιουργήστε ένα νέο OTP και αποθηκεύστε το στην cache.
 			int newOtp = ISmsService.GenerateOtp();
 
-			if (!double.TryParse(_configuration["auth:timeInCache"], out double timeInCache))
-			{
-				// LOGS //
-				_logger.LogError("Δεν βρέθηκε configuration για τον χρόνο στη cache");
-				timeInCache = 15.0;
-			}
-
-			_memoryCache.Set(phonenumber, newOtp, TimeSpan.FromMinutes(timeInCache));
+			_memoryCache.Set(phonenumber, newOtp, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
 
 			// Στείλτε το OTP μέσω SMS.
 			await _smsService.SendSmsAsync(phonenumber, String.Format(ISmsService.SmsTemplates[SmsType.OTP], newOtp));
@@ -146,15 +146,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				_memoryCache.Remove(email);
 			}
 
-			if (!double.TryParse(_configuration["auth:timeInCache"], out double timeInCache))
-			{
-				// LOGS //
-				_logger.LogError("Δεν βρέθηκε configuration για τον χρόνο στη cache");
-				timeInCache = 15.0;
-			}
-
 			// Αποθηκεύστε το νέο token στην cache.
-			_memoryCache.Set(email, token, TimeSpan.FromMinutes(timeInCache));
+			_memoryCache.Set(email, token, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
 
 			// Δημιουργήστε το URL επιβεβαίωσης.
 			String verificationUrl = Path.Join(_requestService.GetBaseURI(), $"auth/verify-email?&token={token}");
@@ -254,16 +247,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				_memoryCache.Remove(email);
 			}
 
-			// Παίρνουμε τον χρόνο που θα δοθεί για την επαναφορά
-			if (!double.TryParse(_configuration["auth:timeInCache"], out double timeInCache))
-			{
-				// LOGS //
-				_logger.LogError("Δεν βρέθηκε ο χρόνος στην cache στο configuration");
-				timeInCache = 15.0;
-			}
-
 			// Store the new token in cache
-			_memoryCache.Set(email, token, TimeSpan.FromMinutes(timeInCache));
+			_memoryCache.Set(email, token, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
 
 			// Δημιουργία reset password URL
 			String resetPasswordUrl = Path.Join(_requestService.GetBaseURI(), $"auth/reset-password?&token={token}");

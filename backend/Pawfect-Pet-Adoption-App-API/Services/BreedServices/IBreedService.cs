@@ -7,5 +7,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.BreedServices
 	{
 		// Συνάρτηση για query στα breeds
 		Task<IEnumerable<BreedDto>> QueryBreedsAsync(BreedLookup breedLookup);
+
+		Task<BreedDto?> Persist(BreedPersist persist);
+
 	}
 }

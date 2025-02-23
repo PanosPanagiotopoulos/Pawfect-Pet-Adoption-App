@@ -30,6 +30,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 	public class AnimalBuilder : BaseBuilder<AnimalDto, Animal>
 	{
+		private readonly ILogger<AnimalBuilder> _logger;
 		private readonly BreedLookup _breedLookup;
 		private readonly Lazy<IBreedService> _breedService;
 		private readonly ShelterLookup _shelterLookup;
@@ -37,10 +38,18 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		private readonly AnimalTypeLookup _animalTypeLookup;
 		private readonly Lazy<IAnimalTypeService> _animalTypeService;
 
-		public AnimalBuilder(BreedLookup breedLookup, Lazy<IBreedService> breedService,
-							 ShelterLookup shelterLookup, Lazy<IShelterService> shelterService
-							, AnimalTypeLookup animalTypeLookup, Lazy<IAnimalTypeService> animalTypeService)
+		public AnimalBuilder
+		(
+			ILogger<AnimalBuilder> logger,
+			BreedLookup breedLookup,
+			Lazy<IBreedService> breedService,
+			ShelterLookup shelterLookup,
+			Lazy<IShelterService> shelterService,
+			AnimalTypeLookup animalTypeLookup,
+			Lazy<IAnimalTypeService> animalTypeService
+		)
 		{
+			_logger = logger;
 			_breedLookup = breedLookup;
 			_breedService = breedService;
 			_shelterLookup = shelterLookup;
@@ -91,7 +100,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (nativeFields.Contains(nameof(Animal.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 				if (breedMap != null && breedMap.ContainsKey(e.Id)) dto.Breed = breedMap[e.Id];
 				if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
-				if (animalTypeMap != null && animalTypeMap.ContainsKey(e.Id)) dto.Type = animalTypeMap[e.Id];
+				if (animalTypeMap != null && animalTypeMap.ContainsKey(e.Id)) dto.AnimalType = animalTypeMap[e.Id];
 
 
 				result.Add(dto);
@@ -127,16 +136,15 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		private async Task<Dictionary<String, AnimalTypeDto>> CollectAnimalTypes(List<Animal> animals, List<String> animalTypesFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
-			List<String> animalTypeIds = animals.Select(x => x.TypeId).Distinct().ToList();
-
+			List<String> animalTypeIds = animals.Select(x => x.AnimalTypeId).Distinct().ToList();
 			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_breedLookup.Offset = LookupParams.Offset;
+			_animalTypeLookup.Offset = LookupParams.Offset;
 			// Γενική τιμή για τη λήψη των dtos
-			_breedLookup.PageSize = LookupParams.PageSize;
-			_breedLookup.SortDescending = LookupParams.SortDescending;
-			_breedLookup.Query = null;
-			_breedLookup.Ids = animalTypeIds;
-			_breedLookup.Fields = animalTypesFields;
+			_animalTypeLookup.PageSize = LookupParams.PageSize;
+			_animalTypeLookup.SortDescending = LookupParams.SortDescending;
+			_animalTypeLookup.Query = null;
+			_animalTypeLookup.Ids = animalTypeIds;
+			_animalTypeLookup.Fields = animalTypesFields;
 
 			// Κατασκευή των dtos
 			List<AnimalTypeDto> animalTypeDtos = (await _animalTypeService.Value.QueryAnimalTypesAsync(_animalTypeLookup)).ToList();
@@ -145,7 +153,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			Dictionary<String, AnimalTypeDto> animalTypeDtoMap = animalTypeDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα animals δημιουργώντας ένα Dictionary : [ AnimalId -> AnimalTypeId ] 
-			return animals.ToDictionary(x => x.Id, x => animalTypeDtoMap[x.TypeId]);
+			return animals.ToDictionary(x => x.Id, x => animalTypeDtoMap[x.AnimalTypeId]);
 		}
 
 		private async Task<Dictionary<String, ShelterDto>> CollectShelters(List<Animal> animals, List<String> shelterFields)
@@ -154,13 +162,13 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			List<String> shelterIds = animals.Select(x => x.ShelterId).Distinct().ToList();
 
 			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_breedLookup.Offset = LookupParams.Offset;
+			_shelterLookup.Offset = LookupParams.Offset;
 			// Γενική τιμή για τη λήψη των dtos
-			_breedLookup.PageSize = LookupParams.PageSize;
-			_breedLookup.SortDescending = LookupParams.SortDescending;
-			_breedLookup.Query = null;
-			_breedLookup.Ids = shelterIds;
-			_breedLookup.Fields = shelterFields;
+			_shelterLookup.PageSize = LookupParams.PageSize;
+			_shelterLookup.SortDescending = LookupParams.SortDescending;
+			_shelterLookup.Query = null;
+			_shelterLookup.Ids = shelterIds;
+			_shelterLookup.Fields = shelterFields;
 
 			// Κατασκευή των dtos
 			List<ShelterDto> shelterDtos = (await _shelterService.Value.QuerySheltersAsync(_shelterLookup)).ToList();

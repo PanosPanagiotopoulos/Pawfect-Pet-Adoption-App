@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Options;
+
+using Newtonsoft.Json;
+
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -9,18 +13,18 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmailServices
 {
 	public class EmailService : IEmailService
 	{
-		private readonly IConfiguration _configuration;
+		private readonly EmailApiConfig _configuration;
 
-		public EmailService(IConfiguration configuration)
+		public EmailService(IOptions<EmailApiConfig> configuration)
 		{
-			_configuration = configuration;
+			_configuration = configuration.Value;
 		}
 
 		public async Task SendEmailAsync(String email, String subject, String message)
 		{
-			String? apiKey = _configuration["SendGrid:ApiKey"];
-			String? fromName = _configuration["SendGrid:FromName"];
-			String? fromEmail = _configuration["SendGrid:FromEmail"];
+			String? apiKey = _configuration.ApiKey;
+			String? fromName = _configuration.FromName;
+			String? fromEmail = _configuration.FromEmail;
 
 			if (String.IsNullOrEmpty(apiKey) || String.IsNullOrEmpty(fromName) || String.IsNullOrEmpty(fromEmail))
 			{

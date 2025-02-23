@@ -7,5 +7,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 	{
 		// Συνάρτηση για query στα animal types
 		Task<IEnumerable<AnimalTypeDto>> QueryAnimalTypesAsync(AnimalTypeLookup animalTypeLookup);
+
+		Task<AnimalTypeDto?> Persist(AnimalTypePersist persist);
+
 	}
 }

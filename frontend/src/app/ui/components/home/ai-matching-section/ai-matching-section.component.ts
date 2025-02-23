@@ -1,0 +1,50 @@
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-ai-matching-section',
+  template: `
+    <div class="bg-gray-800/50 backdrop-blur-lg border border-gray-700/50 rounded-3xl shadow-xl p-6 sm:p-8 md:p-12 mb-20 transform hover:scale-[1.02] transition-all duration-300">
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+        <div class="space-y-6 md:space-y-8 animate-slide-right">
+          <h2 class="text-3xl md:text-4xl font-bold gradient-text">
+            AI-Powered Pet Matching
+          </h2>
+          <div class="space-y-4 md:space-y-6">
+            <div class="flex items-start transform hover:-translate-y-1 transition-transform duration-300">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 text-white shadow-lg">
+                  <ng-icon name="lucideHeart" [size]="'24'"></ng-icon>
+                </div>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg md:text-xl font-semibold text-white">Preference Matching</h3>
+                <p class="mt-2 text-sm md:text-base text-gray-400">Our System uses smart techniques and AI to analyze your preferences and browses for an available pet listed to us</p>
+              </div>
+            </div>
+            <div class="flex items-start transform hover:-translate-y-1 transition-transform duration-300">
+              <div class="flex-shrink-0">
+                <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-secondary-500 to-primary-500 text-white shadow-lg">
+                  <ng-icon name="lucideMessageCircle" [size]="'24'"></ng-icon>
+                </div>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg md:text-xl font-semibold text-white">Direct Communication</h3>
+                <p class="mt-2 text-sm md:text-base text-gray-400">Connect directly with shelters and pet owners through our secure messaging system.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Modified image section to show on mobile -->
+        <div class="relative animate-slide-left block">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-2xl transform rotate-6"></div>
+          <img 
+            src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+            alt="Happy dog" 
+            class="rounded-2xl shadow-xl relative z-10 w-full h-auto object-cover"
+          >
+        </div>
+      </div>
+    </div>
+  `
+})
+export class AiMatchingSectionComponent {}

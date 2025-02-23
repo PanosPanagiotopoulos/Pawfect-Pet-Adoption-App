@@ -65,7 +65,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			return await Task.FromResult(result);
 		}
 
-		private async Task<Dictionary<String, List<UserDto>>> CollectUsers(List<Message> messages, List<String> userFields)
+		private async Task<Dictionary<String, List<UserDto>>?> CollectUsers(List<Message> messages, List<String> userFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = messages.SelectMany(x => new[] { x.SenderId, x.RecipientId }).Distinct().ToList();
@@ -81,6 +81,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 			// Κατασκευή των dtos
 			List<UserDto> userDtos = (await _userService.Value.QueryUsersAsync(_userLookup)).ToList();
+
+			if (userDtos == null || userDtos.Count < 2) return null;
 
 			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
 			Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
