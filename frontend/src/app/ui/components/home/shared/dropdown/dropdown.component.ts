@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 
@@ -10,7 +10,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
     <div class="relative inline-block">
       <!-- Trigger -->
       <div
-        #trigger
         (click)="toggle()"
         class="transform transition-transform duration-200"
         [class.scale-105]="isOpen"
@@ -21,11 +20,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
       <!-- Dropdown Menu -->
       <div
         *ngIf="isOpen"
-        #dropdownMenu
         [@dropdownAnimation]
-        class="absolute z-50 w-48 py-2 bg-gradient-to-b from-gray-900 to-gray-800 rounded-2xl shadow-lg ring-1 ring-white/10"
-        [style.left]="dropdownPosition.left"
-        [style.top]="dropdownPosition.top"
+        class="absolute z-50 w-48 py-2 bg-gradient-to-b from-gray-900 to-gray-800 rounded-2xl shadow-lg ring-1 ring-white/10 transform -translate-x-1/2 left-1/2 mt-4"
         role="menu"
         aria-orientation="vertical"
         aria-labelledby="user-menu-button"
@@ -48,13 +44,13 @@ import { trigger, transition, style, animate } from '@angular/animations';
       transition(':enter', [
         style({
           opacity: 0,
-          transform: 'translateY(-10px)',
+          transform: 'translate(-50%, -20px) scale(0.95)',
         }),
         animate(
           '200ms cubic-bezier(0.4, 0, 0.2, 1)',
           style({
             opacity: 1,
-            transform: 'translateY(0)',
+            transform: 'translate(-50%, 0) scale(1)',
           })
         ),
       ]),
@@ -63,7 +59,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
           '150ms cubic-bezier(0.4, 0, 0.2, 1)',
           style({
             opacity: 0,
-            transform: 'translateY(-10px)',
+            transform: 'translate(-50%, -20px) scale(0.95)',
           })
         ),
       ]),
@@ -80,42 +76,16 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
 })
 export class DropdownComponent {
-  @ViewChild('trigger') triggerEl!: ElementRef;
-  @ViewChild('dropdownMenu') dropdownEl!: ElementRef;
   @Input() isOpen = false;
   @Output() isOpenChange = new EventEmitter<boolean>();
-
-  dropdownPosition = {
-    left: '0',
-    top: '100%'
-  };
 
   toggle(): void {
     this.isOpen = !this.isOpen;
     this.isOpenChange.emit(this.isOpen);
-
-    if (this.isOpen) {
-      setTimeout(() => this.updateDropdownPosition(), 0);
-    }
   }
 
   close(): void {
     this.isOpen = false;
     this.isOpenChange.emit(this.isOpen);
-  }
-
-  private updateDropdownPosition(): void {
-    if (!this.triggerEl || !this.dropdownEl) return;
-
-    const triggerRect = this.triggerEl.nativeElement.getBoundingClientRect();
-    const dropdownRect = this.dropdownEl.nativeElement.getBoundingClientRect();
-    
-    // Center the dropdown under the trigger
-    const left = -(dropdownRect.width - triggerRect.width) / 2;
-    
-    this.dropdownPosition = {
-      left: `${left}px`,
-      top: `${triggerRect.height + 8}px` // Add 8px gap
-    };
   }
 }

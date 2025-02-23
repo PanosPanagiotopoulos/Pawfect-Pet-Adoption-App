@@ -43,7 +43,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
 		public String? AuthProviderId { get; set; }
 
 		// *TODO* Set how the saving , parsing and validation of form file data will be done
-		public List<IFormFile>? AttachedPhotos { get; set; }
+		public IFormFile? AttachedPhoto { get; set; }
 
 		public Boolean HasPhoneVerified { get; set; }
 		public Boolean HasEmailVerified { get; set; }

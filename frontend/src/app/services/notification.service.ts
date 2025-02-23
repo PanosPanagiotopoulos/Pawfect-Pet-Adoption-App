@@ -9,7 +9,9 @@ import {
   NotificationPersist,
 } from '../models/notification/notification.model';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class NotificationService {
   constructor(
     private installationConfiguration: InstallationConfigurationService,

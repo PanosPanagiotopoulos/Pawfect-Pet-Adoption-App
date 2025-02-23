@@ -65,7 +65,7 @@
 		public String? AuthProviderId { get; set; }
 
 		[BsonIgnoreIfNull]
-		public List<String>? Photos { get; set; }
+		public String? ProfilePhoto { get; set; }
 
 		/// <value>
 		/// Υποδηλώνει άν τα στοιχεία του χρήστη έχουν επιβεβαιωθεί

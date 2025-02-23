@@ -62,6 +62,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (nativeFields.Contains(nameof(User.Phone))) dto.Phone = e.Phone;
 				if (nativeFields.Contains(nameof(User.Location))) dto.Location = e.Location;
 				if (nativeFields.Contains(nameof(User.AuthProvider))) dto.AuthProvider = e.AuthProvider;
+				if (nativeFields.Contains(nameof(User.ProfilePhoto))) dto.ProfilePhoto = e.ProfilePhoto;
 				if (nativeFields.Contains(nameof(User.IsVerified))) dto.IsVerified = e.IsVerified;
 				if (nativeFields.Contains(nameof(User.HasPhoneVerified))) dto.HasPhoneVerified = e.HasPhoneVerified;
 				if (nativeFields.Contains(nameof(User.HasEmailVerified))) dto.HasEmailVerified = e.HasEmailVerified;

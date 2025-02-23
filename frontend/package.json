@@ -22,6 +22,7 @@
     "@ng-icons/core": "^29.5.2",
     "@ng-icons/heroicons": "^29.5.2",
     "@ng-icons/lucide": "^29.5.2",
+    "jwt-decode": "^4.0.0",
     "lucide": "^0.453.0",
     "lucide-angular": "^0.344.0",
     "moment": "^2.30.1",

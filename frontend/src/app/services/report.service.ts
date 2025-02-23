@@ -6,7 +6,9 @@ import { catchError } from 'rxjs/operators';
 import { ReportLookup } from '../lookup/report-lookup';
 import { Report, ReportPersist } from '../models/report/report.model';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class ReportService {
   constructor(
     private installationConfiguration: InstallationConfigurationService,

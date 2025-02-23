@@ -8,7 +8,9 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class AdoptionApplicationService {
   constructor(
     private installationConfiguration: InstallationConfigurationService,

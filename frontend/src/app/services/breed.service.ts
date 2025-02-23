@@ -6,7 +6,9 @@ import { catchError } from 'rxjs/operators';
 import { BreedLookup } from '../lookup/breed-lookup';
 import { Breed, BreedPersist } from '../models/breed/breed.model';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class BreedService {
   constructor(
     private installationConfiguration: InstallationConfigurationService,

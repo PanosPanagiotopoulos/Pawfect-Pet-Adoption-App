@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../common/services/base-http.service';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
-import { Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { User } from '../models/user/user.model';
 import {
@@ -9,17 +9,24 @@ import {
   LoginPayload,
   RegisterPayload,
 } from '../models/auth/auth.model';
+import { jwtDecode } from 'jwt-decode';
+import { JwtPayload } from '../common/models/jwt.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private _loggedAccount: LoggedAccount | null = null;
+  private authStateSubject = new BehaviorSubject<boolean>(false);
+  public authState$ = this.authStateSubject.asObservable();
 
   constructor(
     private installationConfiguration: InstallationConfigurationService,
     private http: BaseHttpService
-  ) {}
+  ) {
+    // Initialize auth state on service creation
+    this.authStateSubject.next(!!this.getToken());
+  }
 
   private get apiBase(): string {
     return `${this.installationConfiguration.appServiceAddress}auth`;
@@ -125,13 +132,26 @@ export class AuthService {
 
   // Token and Authentication Status Helpers
 
-  isLoggedIn(): boolean {
-    return !!this.getToken();
+  isLoggedIn(): Observable<boolean> {
+    return this.authState$;
   }
 
   getToken(): string | null {
     const account = this.loadLoggedAccount();
     return account ? account.token : null;
+  }
+
+  getUserId(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
+      return decoded.nameid;
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
   }
 
   getUserRole(): string | null {
@@ -142,11 +162,13 @@ export class AuthService {
   private setLoggedAccount(account: LoggedAccount): void {
     this._loggedAccount = account;
     sessionStorage.setItem('loggedAccount', JSON.stringify(account));
+    this.authStateSubject.next(true);
   }
 
   private clearLoggedAccount(): void {
     this._loggedAccount = null;
     sessionStorage.removeItem('loggedAccount');
+    this.authStateSubject.next(false);
   }
 
   private loadLoggedAccount(): LoggedAccount | null {

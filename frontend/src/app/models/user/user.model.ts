@@ -10,7 +10,7 @@ export interface User {
   Shelter?: Shelter;
   AuthProvider?: AuthProvider;
   AuthProviderId?: string;
-  Photos?: string[];
+  ProfilePhoto?: string;
   IsVerified?: boolean;
   HasPhoneVerified?: boolean;
   HasEmailVerified?: boolean;
@@ -28,7 +28,7 @@ export interface UserPersist {
   Location: Location;
   AuthProvider: AuthProvider;
   AuthProviderId?: string;
-  AttachedPhotos?: File[];
+  AttachedPhoto?: File;
   HasPhoneVerified: boolean;
   HasEmailVerified: boolean;
 }

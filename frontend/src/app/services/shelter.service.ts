@@ -6,7 +6,9 @@ import { catchError } from 'rxjs/operators';
 import { ShelterLookup } from '../lookup/shelter-lookup';
 import { Shelter, ShelterPersist } from '../models/shelter/shelter.model';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class ShelterService {
   constructor(
     private installationConfiguration: InstallationConfigurationService,

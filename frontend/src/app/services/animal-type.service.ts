@@ -9,7 +9,9 @@ import {
   AnimalTypePersist,
 } from '../models/animal-type/animal-type.model';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class AnimalTypeService {
   constructor(
     private installationConfiguration: InstallationConfigurationService,

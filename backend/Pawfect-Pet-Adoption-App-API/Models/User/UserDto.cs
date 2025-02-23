@@ -14,7 +14,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
 		public ShelterDto? Shelter { get; set; }
 		public AuthProvider? AuthProvider { get; set; }
 		public String? AuthProviderId { get; set; }
-		public List<String>? Photos { get; set; }
+		public String? ProfilePhoto { get; set; }
 		public Boolean? IsVerified { get; set; }
 		public Boolean? HasPhoneVerified { get; set; }
 		public Boolean? HasEmailVerified { get; set; }

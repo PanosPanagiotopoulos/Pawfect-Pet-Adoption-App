@@ -6,7 +6,9 @@ import { catchError } from 'rxjs/operators';
 import { UserLookup } from '../lookup/user-lookup';
 import { User, UserPersist } from '../models/user/user.model';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root',
+})
 export class UserService {
   constructor(
     private installationConfiguration: InstallationConfigurationService,
