@@ -10,7 +10,7 @@ import {
 } from '../models/animal-type/animal-type.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AnimalTypeService {
   constructor(

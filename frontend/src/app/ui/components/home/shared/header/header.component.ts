@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { NgIconsModule } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
 import { NavLinkComponent } from '../nav-link/nav-link.component';
@@ -41,7 +41,8 @@ export class HeaderComponent extends BaseComponent {
 
   constructor(
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private router: Router
   ) {
     super();
 
@@ -58,7 +59,6 @@ export class HeaderComponent extends BaseComponent {
             (user: User) => {
               this.currentUser = user;
             },
-
             (error) => {
               console.error(error);
             }
@@ -66,7 +66,7 @@ export class HeaderComponent extends BaseComponent {
       }
 
       this.isLoggedIn = isLoggedInFlag;
-      this.isLoggedIn = true;
+      this.currentUser = undefined;
     });
   }
 
@@ -92,5 +92,15 @@ export class HeaderComponent extends BaseComponent {
           console.error(error);
         }
       );
+  }
+
+  navigateToLogin(): void {
+    if (this.router.url !== '/auth/login') {
+      this.router.navigate(['/auth/login']);
+    }
+  }
+
+  isLoginRoute(): boolean {
+    return this.router.url === '/auth/login';
   }
 }

@@ -7,7 +7,7 @@ import { ReportLookup } from '../lookup/report-lookup';
 import { Report, ReportPersist } from '../models/report/report.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ReportService {
   constructor(

@@ -1,42 +1,103 @@
-<div
-  class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
->
-  <div class="max-w-md w-full space-y-8">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-      Sign in to your account
-    </h2>
-    <form [formGroup]="loginForm" class="mt-8 space-y-6">
-      <div class="rounded-md shadow-sm -space-y-px">
-        <div>
-          <input
-            formControlName="email"
-            type="email"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-            placeholder="Email address"
-          />
+<div class="min-h-screen flex items-center justify-center bg-gray-900 pt-6">
+  <!-- Background elements -->
+  <div class="fixed inset-0 z-0">
+    <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"></div>
+    <div class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"></div>
+  </div>
+
+  <div class="max-w-md w-full mx-4 z-10">
+    <!-- Logo -->
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-bold">
+        <span class="bg-gradient-to-r from-primary-400 via-secondary-400 to-accent-400 bg-clip-text text-transparent animate-gradient">
+          Welcome Back
+        </span>
+      </h2>
+      <p class="mt-2 text-gray-400">Sign in to your account</p>
+    </div>
+
+    <!-- Login Form -->
+    <div class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-12 border border-white/10">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-8">
+        <!-- Form inputs with more space between them -->
+        <div class="space-y-10">
+          <div class="mb-8">
+            <app-form-input
+              [form]="loginForm"
+              controlName="email"
+              type="email"
+              placeholder="Email address"
+            ></app-form-input>
+          </div>
+
+          <div class="mt-8">
+            <app-form-input
+              [form]="loginForm"
+              controlName="password"
+              type="password"
+              placeholder="Password"
+            ></app-form-input>
+          </div>
         </div>
-        <div>
-          <input
-            formControlName="password"
-            type="password"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-            placeholder="Password"
-          />
+
+        <div class="flex items-center justify-between">
+          <div class="text-sm">
+            <a routerLink="/auth/forgot-password" class="text-primary-400 hover:text-primary-300 transition-colors">
+              Forgot your password?
+            </a>
+          </div>
         </div>
+
+        <!-- Buttons with more space between them -->
+        <div class="space-y-6">
+          <div>
+            <app-auth-button
+              type="submit"
+              [isLoading]="isLoading"
+              [disabled]="loginForm.invalid"
+              icon="lucideUser"
+            >
+              Sign in
+            </app-auth-button>
+          </div>
+
+          <!-- Google Sign In Button -->
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-600"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 text-gray-400 bg-gray-900/95">Or continue with</span>
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              (click)="loginWithGoogle()"
+              class="w-full flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-md
+                     shadow-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 
+                     focus:ring-gray-500 transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-md 
+                     active:bg-gray-100 group"
+            >
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt="Google logo"
+                class="w-5 h-5 mr-2 transition-transform duration-300 group-hover:scale-110"
+              />
+              <span class="text-gray-700 font-medium">Continue with Google</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="text-center text-sm">
+        <span class="text-gray-400">Don't have an account?</span>
+        <a routerLink="/auth/sign-up" class="ml-1 text-primary-400 hover:text-primary-300 transition-colors">
+          Sign up
+        </a>
       </div>
-      <div>
-        <button
-          type="submit"
-          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Sign in
-        </button>
-      </div>
-    </form>
-    <div class="text-center">
-      <a routerLink="/signup" class="text-blue-600 hover:text-blue-500">
-        Don't have an account? Sign up
-      </a>
     </div>
   </div>
 </div>

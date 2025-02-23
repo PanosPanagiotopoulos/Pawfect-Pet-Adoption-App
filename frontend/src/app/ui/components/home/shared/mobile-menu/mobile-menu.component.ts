@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NgIconsModule } from '@ng-icons/core';
 import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
@@ -83,14 +83,14 @@ import { User } from 'src/app/models/user/user.model';
         class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700"
       >
         <ng-container *ngIf="!isLoggedIn; else logoutButton">
-          <a
-            routerLink="/auth/login"
-            (click)="close.emit()"
-            class="flex items-center justify-center space-x-2 w-full p-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
+          <button
+            (click)="navigateToLogin()"
+            [disabled]="isLoginRoute()"
+            class="flex items-center justify-center space-x-2 w-full p-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             <ng-icon name="lucideUser" [size]="'20'"></ng-icon>
             <span class="font-medium">Login</span>
-          </a>
+          </button>
         </ng-container>
 
         <ng-template #logoutButton>
@@ -127,8 +127,21 @@ export class MobileMenuComponent {
     },
   ];
 
+  constructor(private router: Router) {}
+
   logout(): void {
     console.log('Logging out...');
     this.close.emit();
+  }
+
+  navigateToLogin(): void {
+    if (!this.isLoginRoute()) {
+      this.router.navigate(['/auth/login']);
+      this.close.emit();
+    }
+  }
+
+  isLoginRoute(): boolean {
+    return this.router.url === '/auth/login';
   }
 }

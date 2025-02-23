@@ -1,58 +1,354 @@
-<div
-  class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8"
->
-  <div class="max-w-md w-full space-y-8">
-    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-      Create your account
-    </h2>
-    <form [formGroup]="signupForm" class="mt-8 space-y-6">
-      <div class="rounded-md shadow-sm -space-y-px">
-        <div>
-          <input
-            formControlName="firstName"
-            type="text"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-            placeholder="First Name"
-          />
-        </div>
-        <div>
-          <input
-            formControlName="lastName"
-            type="text"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-            placeholder="Last Name"
-          />
-        </div>
-        <div>
-          <input
-            formControlName="email"
-            type="email"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-            placeholder="Email address"
-          />
-        </div>
-        <div>
-          <input
-            formControlName="password"
-            type="password"
-            class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-            placeholder="Password"
-          />
+<div class="min-h-screen flex items-center justify-center bg-gray-900 pt-32">
+  <!-- Background elements -->
+  <div class="fixed inset-0 z-0">
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"
+    ></div>
+  </div>
+
+  <div class="w-full max-w-xl md:max-w-2xl mx-4 z-10">
+    <!-- Progress Steps -->
+    <div class="flex justify-between items-center mb-8 relative">
+      <div class="absolute inset-0 mt-5">
+        <div class="h-1 bg-gray-700 rounded-full">
+          <div
+            class="h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-all duration-500"
+            [style.width]="((currentStep - 1) / 2) * 100 + '%'"
+          ></div>
         </div>
       </div>
-      <div>
-        <button
-          type="submit"
-          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+
+      <div
+        *ngFor="let step of [1, 2, 3]"
+        class="relative z-10 flex flex-col items-center"
+      >
+        <div
+          [class]="
+            'w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ' +
+            (currentStep >= step
+              ? 'bg-gradient-to-r from-primary-500 to-accent-500 text-white'
+              : 'bg-gray-700 text-gray-400')
+          "
         >
-          Sign up
-        </button>
+          {{ step }}
+        </div>
+        <span
+          class="mt-2 text-sm"
+          [class]="currentStep >= step ? 'text-white' : 'text-gray-400'"
+        >
+          {{
+            step === 1
+              ? "Registration"
+              : step === 2
+              ? "Verification"
+              : "Confirmation"
+          }}
+        </span>
       </div>
-    </form>
-    <div class="text-center">
-      <a routerLink="/login" class="text-blue-600 hover:text-blue-500">
-        Already have an account? Sign in
-      </a>
+    </div>
+
+    <!-- Registration Form (Step 1) -->
+    <div
+      *ngIf="currentStep === SignupStep.Registration"
+      class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8 border border-white/10"
+    >
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-white mb-2">Create Account</h2>
+        <p class="text-gray-400">Fill in your details to get started</p>
+      </div>
+
+      <form
+        [formGroup]="registrationForm"
+        (ngSubmit)="onSubmitRegistration()"
+        class="space-y-8"
+      >
+        <!-- Basic Information -->
+        <div class="space-y-6">
+          <app-form-input
+            [form]="registrationForm"
+            controlName="fullName"
+            type="text"
+            placeholder="Full Name"
+          >
+          </app-form-input>
+
+          <div class="mb-16">
+            <app-form-input
+              [form]="registrationForm"
+              controlName="email"
+              type="email"
+              placeholder="Email Address"
+            >
+            </app-form-input>
+          </div>
+          <div class="mb-16">
+            <app-form-input
+              [form]="registrationForm"
+              controlName="password"
+              type="password"
+              placeholder="Password"
+            >
+            </app-form-input>
+          </div>
+
+          <div class="mb-16">
+            <app-form-input
+              [form]="registrationForm"
+              controlName="phone"
+              type="tel"
+              placeholder="Phone Number"
+            >
+            </app-form-input>
+          </div>
+
+          <!-- Location Information -->
+          <div class="space-y-8">
+            <h3 class="text-lg font-medium text-white mb-6">
+              Location Information
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <app-form-input
+                [form]="getLocationForm()"
+                controlName="city"
+                type="text"
+                placeholder="City"
+              >
+              </app-form-input>
+
+              <app-form-input
+                [form]="getLocationForm()"
+                controlName="zipCode"
+                type="text"
+                placeholder="ZIP Code"
+              >
+              </app-form-input>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <app-form-input
+                [form]="getLocationForm()"
+                controlName="address"
+                type="text"
+                placeholder="Street Address"
+              >
+              </app-form-input>
+
+              <app-form-input
+                [form]="getLocationForm()"
+                controlName="number"
+                type="text"
+                placeholder="Number"
+              >
+              </app-form-input>
+            </div>
+          </div>
+
+          <!-- Shelter Toggle -->
+          <div class="flex items-center space-x-3 pt-4">
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                formControlName="isShelter"
+                class="sr-only peer"
+              />
+              <div
+                class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"
+              ></div>
+            </label>
+            <span class="text-gray-300">Register as Shelter</span>
+          </div>
+        </div>
+
+        <!-- Shelter Information -->
+        <div
+          *ngIf="registrationForm.get('isShelter')?.value"
+          class="space-y-6 pt-4 border-t border-gray-700"
+        >
+          <h3 class="text-lg font-medium text-white">Shelter Information</h3>
+
+          <div class="space-y-6">
+            <app-form-input
+              [form]="getShelterForm()"
+              controlName="shelterName"
+              type="text"
+              placeholder="Shelter Name"
+            >
+            </app-form-input>
+
+            <div class="space-y-3">
+              <label class="block text-sm font-medium text-gray-400"
+                >Description</label
+              >
+              <textarea
+                [formControl]="getShelterDescriptionControl()"
+                rows="3"
+                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-300"
+                placeholder="Tell us about your shelter"
+              >
+              </textarea>
+            </div>
+           
+            <div class="mb-16">
+              <app-form-input
+                [form]="getShelterForm()"
+                controlName="website"
+                type="url"
+                placeholder="Website (Optional)"
+              >
+              </app-form-input>
+            </div>
+
+            <!-- Social Media -->
+            <div class="space-y-6">
+              <h4 class="text-md font-medium text-white">
+                Social Media (Optional)
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <app-form-input
+                  [form]="getSocialMediaForm()"
+                  controlName="facebook"
+                  type="url"
+                  placeholder="Facebook URL"
+                >
+                </app-form-input>
+
+                <app-form-input
+                  [form]="getSocialMediaForm()"
+                  controlName="instagram"
+                  type="url"
+                  placeholder="Instagram URL"
+                >
+                </app-form-input>
+              </div>
+            </div>
+
+            <!-- Operating Hours -->
+            <div class="space-y-6 mb-8">
+              <div class="flex items-center justify-between">
+                <h4 class="text-md font-medium text-white">Operating Hours</h4>
+                <span class="text-sm text-gray-400">(Optional)</span>
+              </div>
+              
+              <p class="text-sm text-gray-400 mb-4">
+                Set your shelter's operating hours. If you set hours for one day, you must set them for all days.
+              </p>
+
+              <div class="space-y-6">
+                <app-time-input
+                  *ngFor="let day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']"
+                  [form]="getOperatingHoursForm()"
+                  [controlName]="day"
+                ></app-time-input>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-6">
+          <app-auth-button
+            type="submit"
+            [isLoading]="isLoading"
+            [disabled]="registrationForm.invalid"
+            icon="lucideUser"
+          >
+            Create Account
+          </app-auth-button>
+        </div>
+      </form>
+
+      <div class="text-center text-sm">
+        <span class="text-gray-400">Already have an account?</span>
+        <a
+          routerLink="/auth/login"
+          class="ml-1 text-primary-400 hover:text-primary-300 transition-colors"
+        >
+          Sign in
+        </a>
+      </div>
+    </div>
+
+    <!-- OTP Verification (Step 2) -->
+    <div
+      *ngIf="currentStep === SignupStep.OtpVerification"
+      class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-6 border border-white/10"
+    >
+      <div class="text-center">
+        <h2 class="text-2xl font-bold text-white mb-2">Verify Your Phone</h2>
+        <p class="text-gray-400">Enter the 6-digit code sent to your phone</p>
+      </div>
+
+      <form [formGroup]="otpForm" (ngSubmit)="onSubmitOtp()" class="space-y-6">
+        <app-form-input
+          [form]="otpForm"
+          controlName="otp"
+          type="text"
+          placeholder="Enter OTP"
+          maxLength="6"
+        >
+        </app-form-input>
+
+        <div class="flex justify-center">
+          <button
+            type="button"
+            (click)="resendOtp()"
+            [disabled]="resendOtpTimer > 0"
+            class="text-primary-400 hover:text-primary-300 transition-colors disabled:text-gray-600"
+          >
+            {{
+              resendOtpTimer > 0
+                ? "Resend code in " + resendOtpTimer + "s"
+                : "Resend code"
+            }}
+          </button>
+        </div>
+
+        <app-auth-button
+          type="submit"
+          [isLoading]="isLoading"
+          [disabled]="otpForm.invalid"
+          icon="lucideUser"
+        >
+          Verify OTP
+        </app-auth-button>
+      </form>
+    </div>
+
+    <!-- Email Confirmation (Step 3) -->
+    <div
+      *ngIf="currentStep === SignupStep.EmailConfirmation"
+      class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-6 border border-white/10 text-center"
+    >
+      <div
+        class="w-16 h-16 mx-auto bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center"
+      >
+        <ng-icon name="lucideCheck" [size]="'32'" class="text-white"></ng-icon>
+      </div>
+
+      <div>
+        <h2 class="text-2xl font-bold text-white mb-2">
+          Registration Complete!
+        </h2>
+        <p class="text-gray-400">
+          We've sent a confirmation email to your inbox. Please verify your
+          email to complete the registration process.
+        </p>
+      </div>
+
+      <div class="pt-4">
+        <a
+          routerLink="/auth/login"
+          class="inline-block w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
+        >
+          Proceed to Login
+        </a>
+      </div>
     </div>
   </div>
 </div>

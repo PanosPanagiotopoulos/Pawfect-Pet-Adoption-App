@@ -7,7 +7,7 @@ import { BreedLookup } from '../lookup/breed-lookup';
 import { Breed, BreedPersist } from '../models/breed/breed.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BreedService {
   constructor(

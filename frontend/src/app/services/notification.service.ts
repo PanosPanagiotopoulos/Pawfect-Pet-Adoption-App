@@ -10,7 +10,7 @@ import {
 } from '../models/notification/notification.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NotificationService {
   constructor(

@@ -7,7 +7,7 @@ import { ShelterLookup } from '../lookup/shelter-lookup';
 import { Shelter, ShelterPersist } from '../models/shelter/shelter.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ShelterService {
   constructor(

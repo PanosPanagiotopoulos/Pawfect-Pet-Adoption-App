@@ -31,6 +31,7 @@ export class InstallationConfigurationService extends BaseComponent {
       tap((config: InstallationConfig) => {
         this._appServiceAddress = config.appServiceAddress || './';
         this._disableAuth = config.disableAuth || false;
+        console.log('Installation Configuration Loaded');
         console.log(this.appServiceAddress, this.disableAuth);
       })
     );
