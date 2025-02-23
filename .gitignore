@@ -8,6 +8,8 @@ frontend/out-tsc/
 # Environment and Configuration Files
 frontend/.env
 frontend/src/environments/environment*.ts
+frontend/src/configs/config.json
+
 backend/Pawfect-Pet-Adoption-App-API/Configuration/environment.json
 backend/Pawfect-Pet-Adoption-App-API/.env
 
