@@ -1,7 +1,8 @@
 import { Directive, ElementRef, Input, AfterViewInit } from '@angular/core';
 
 @Directive({
-  selector: '[appAnimation]'
+  selector: '[appAnimation]',
+  standalone: true,
 })
 export class AnimationDirective implements AfterViewInit {
   @Input() animationDelay: number = 0;
@@ -16,7 +17,7 @@ export class AnimationDirective implements AfterViewInit {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             // Add visible class after a small delay to ensure transition works
             setTimeout(() => {
@@ -29,7 +30,7 @@ export class AnimationDirective implements AfterViewInit {
       },
       {
         threshold: this.threshold,
-        rootMargin: '50px'
+        rootMargin: '50px',
       }
     );
 
