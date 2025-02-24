@@ -27,6 +27,8 @@ import { InstallationConfigurationService } from './common/services/installation
 import { HttpClientModule } from '@angular/common/http';
 import { BaseHttpService } from './common/services/base-http.service';
 import { HeaderComponent } from './ui/components/home/shared/header/header.component';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 @NgModule({
   declarations: [AppComponent],
@@ -39,8 +41,10 @@ import { HeaderComponent } from './ui/components/home/shared/header/header.compo
     }),
     CommonModule,
     FormsModule,
-    HttpClientModule,
     ReactiveFormsModule,
+    HttpClientModule,
+    MatFormFieldModule,
+    MatInputModule,
     NgIconsModule.withIcons({
       lucideHeart,
       lucideSearch,

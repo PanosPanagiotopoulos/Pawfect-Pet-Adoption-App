@@ -98,3 +98,24 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* Angular Material Theme Overrides */
+.mat-form-field {
+  width: 100%;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  color: rgba(255, 255, 255, 0.1);
+}
+
+.mat-form-field-appearance-outline.mat-focused .mat-form-field-outline-thick {
+  color: var(--color-primary);
+}
+
+.mat-form-field-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.mat-input-element {
+  color: white !important;
+}

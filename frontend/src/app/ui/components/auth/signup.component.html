@@ -98,13 +98,12 @@
           </div>
 
           <div class="mb-16">
-            <app-form-input
+            <app-phone-input
               [form]="registrationForm"
-              controlName="phone"
-              type="tel"
-              placeholder="Phone Number"
+              countryCodeControl="countryCode"
+              phoneNumberControl="phoneNumber"
             >
-            </app-form-input>
+            </app-phone-input>
           </div>
 
           <!-- Location Information -->
@@ -194,7 +193,7 @@
               >
               </textarea>
             </div>
-           
+
             <div class="mb-16">
               <app-form-input
                 [form]="getShelterForm()"
@@ -235,14 +234,25 @@
                 <h4 class="text-md font-medium text-white">Operating Hours</h4>
                 <span class="text-sm text-gray-400">(Optional)</span>
               </div>
-              
+
               <p class="text-sm text-gray-400 mb-4">
-                Set your shelter's operating hours. If you set hours for one day, you must set them for all days.
+                Set your shelter's operating hours. If you set hours for one
+                day, you must set them for all days.
               </p>
 
               <div class="space-y-6">
                 <app-time-input
-                  *ngFor="let day of ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']"
+                  *ngFor="
+                    let day of [
+                      'monday',
+                      'tuesday',
+                      'wednesday',
+                      'thursday',
+                      'friday',
+                      'saturday',
+                      'sunday'
+                    ]
+                  "
                   [form]="getOperatingHoursForm()"
                   [controlName]="day"
                 ></app-time-input>
@@ -250,6 +260,22 @@
             </div>
           </div>
         </div>
+
+        <!-- Google Sign In Section -->
+        <div class="relative text-center my-8">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-gray-600"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="px-2 text-gray-400 bg-gray-900/95"
+              >or continue with</span
+            >
+          </div>
+        </div>
+
+        <app-google-login-button
+          (login)="registerWithGoogle()"
+        ></app-google-login-button>
 
         <div class="pt-6">
           <app-auth-button

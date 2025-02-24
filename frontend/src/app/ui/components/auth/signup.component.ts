@@ -1,20 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl, FormControl } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  AbstractControl,
+  FormControl,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AuthService } from 'src/app/services/auth.service';
 import { RegisterPayload } from 'src/app/models/auth/auth.model';
 import { UserRole } from 'src/app/models/user/user.model';
 import { takeUntil } from 'rxjs';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NgIconsModule } from '@ng-icons/core';
-import { TimeInputComponent } from './shared/time-input/time-input.component';
-import { FormFieldComponent } from './shared/form-field/form-field.component';
-import { ValidationMessageComponent } from './shared/validation-message/validation-message.component';
-import { FormInputComponent } from './shared/form-input/form-input.component';
-import { AuthButtonComponent } from './shared/auth-button/auth-button.component';
+import { CustomValidators } from './validators/custom.validators';
 
 interface LocationFormGroup extends FormGroup {
   controls: {
@@ -60,7 +58,10 @@ interface RegistrationFormGroup extends FormGroup {
     password: AbstractControl;
     fullName: AbstractControl;
     phone: AbstractControl;
+    countryCode: AbstractControl;
+    phoneNumber: AbstractControl;
     role: AbstractControl;
+    hasEmailVerified: AbstractControl;
     isShelter: AbstractControl;
     location: LocationFormGroup;
     shelter: ShelterFormGroup;
@@ -76,14 +77,13 @@ interface OtpFormGroup extends FormGroup {
 enum SignupStep {
   Registration = 1,
   OtpVerification = 2,
-  EmailConfirmation = 3
+  EmailConfirmation = 3,
 }
 
 @Component({
   selector: 'app-signup',
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.css'],
-  standalone: false
 })
 export class SignupComponent extends BaseComponent implements OnInit {
   currentStep = SignupStep.Registration;
@@ -107,81 +107,143 @@ export class SignupComponent extends BaseComponent implements OnInit {
 
   private initializeForms(): void {
     const operatingHoursGroup = this.fb.group({
-      monday: [''],
-      tuesday: [''],
-      wednesday: [''],
-      thursday: [''],
-      friday: [''],
-      saturday: [''],
-      sunday: ['']
-    });
-
-    operatingHoursGroup.valueChanges.subscribe(hours => {
-      const hasAnyHours = Object.values(hours).some(time => time);
-      if (hasAnyHours) {
-        Object.keys(hours).forEach(day => {
-          const control = operatingHoursGroup.get(day);
-          control?.setValidators([
-            Validators.required,
-            Validators.pattern(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9],([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
-          ]);
-          control?.updateValueAndValidity({ emitEvent: false });
-        });
-      } else {
-        Object.keys(hours).forEach(day => {
-          const control = operatingHoursGroup.get(day);
-          control?.clearValidators();
-          control?.updateValueAndValidity({ emitEvent: false });
-        });
-      }
+      monday: ['09:00,17:00'],
+      tuesday: ['09:00,17:00'],
+      wednesday: ['09:00,17:00'],
+      thursday: ['09:00,17:00'],
+      friday: ['09:00,17:00'],
+      saturday: ['09:00,17:00'],
+      sunday: ['09:00,17:00'],
     });
 
     this.registrationForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
-      fullName: ['', Validators.required],
-      phone: ['', [Validators.required, Validators.pattern(/^\+?[1-9]\d{1,14}$/)]],
-      role: [UserRole.User],
+      password: [
+        '',
+        [Validators.required, CustomValidators.passwordValidator()],
+      ],
+      fullName: ['', [Validators.required, Validators.minLength(5)]],
+      phone: [''],
+      countryCode: ['+30', Validators.required],
+      phoneNumber: [
+        '',
+        [Validators.required, Validators.pattern(/^\d{1,14}$/)],
+      ],
+      role: [
+        UserRole.User,
+        [Validators.required, CustomValidators.roleValidator()],
+      ],
+      hasEmailVerified: [false],
       isShelter: [false],
       location: this.fb.group({
-        city: ['', Validators.required],
-        zipCode: ['', Validators.required],
-        address: ['', Validators.required],
-        number: ['', Validators.required]
+        city: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(2),
+            Validators.maxLength(50),
+          ],
+        ],
+        zipCode: [
+          '',
+          [Validators.required, Validators.pattern(/^\d{5}(-\d{4})?$/)],
+        ],
+        address: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(3),
+            Validators.maxLength(100),
+          ],
+        ],
+        number: [
+          '',
+          [
+            Validators.required,
+            Validators.pattern(/^\d+$/),
+            Validators.minLength(1),
+            Validators.maxLength(5),
+          ],
+        ],
       }) as LocationFormGroup,
       shelter: this.fb.group({
-        shelterName: ['', Validators.required],
+        shelterName: [''],
         description: [''],
         website: [''],
         socialMedia: this.fb.group({
           facebook: [''],
-          instagram: ['']
+          instagram: [''],
         }) as SocialMediaFormGroup,
-        operatingHours: operatingHoursGroup
-      }) as ShelterFormGroup
+        operatingHours: operatingHoursGroup,
+      }) as ShelterFormGroup,
     }) as RegistrationFormGroup;
 
-    this.otpForm = this.fb.group({
-      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]]
-    }) as OtpFormGroup;
+    // Subscribe to isShelter changes to update validations
+    this.registrationForm
+      .get('isShelter')
+      ?.valueChanges.subscribe((isShelter) => {
+        const role = isShelter ? UserRole.Shelter : UserRole.User;
+        this.registrationForm.patchValue({ role });
 
-    this.registrationForm.get('isShelter')?.valueChanges.subscribe(isShelter => {
-      const role = isShelter ? UserRole.Shelter : UserRole.User;
-      this.registrationForm.patchValue({ role });
-      
-      const shelterForm = this.getShelterForm();
-      if (shelterForm) {
+        const shelterForm = this.getShelterForm();
+
+        // Update shelter form validators
         if (isShelter) {
-          shelterForm.get('shelterName')?.setValidators(Validators.required);
-          shelterForm.get('description')?.setValidators(Validators.required);
+          shelterForm
+            .get('shelterName')
+            ?.setValidators([Validators.required, Validators.minLength(3)]);
+          shelterForm
+            .get('description')
+            ?.setValidators([Validators.required, Validators.minLength(10)]);
+
+          // Update operating hours validators
+          Object.keys(operatingHoursGroup.controls).forEach((key) => {
+            operatingHoursGroup
+              .get(key)
+              ?.setValidators([
+                Validators.required,
+                CustomValidators.operatingHoursValidator(),
+              ]);
+          });
+
+          // Update social media validators
+          shelterForm
+            .get('socialMedia.facebook')
+            ?.setValidators(CustomValidators.socialMediaValidator('facebook'));
+          shelterForm
+            .get('socialMedia.instagram')
+            ?.setValidators(CustomValidators.socialMediaValidator('instagram'));
         } else {
+          // Clear all shelter-related validators when not a shelter
           shelterForm.get('shelterName')?.clearValidators();
           shelterForm.get('description')?.clearValidators();
+
+          Object.keys(operatingHoursGroup.controls).forEach((key) => {
+            operatingHoursGroup.get(key)?.clearValidators();
+          });
+
+          shelterForm.get('socialMedia.facebook')?.clearValidators();
+          shelterForm.get('socialMedia.instagram')?.clearValidators();
+
+          // Reset shelter form values
+          shelterForm.reset();
         }
-        shelterForm.updateValueAndValidity();
-      }
-    });
+
+        // Update validation state for all shelter form controls
+        shelterForm.get('shelterName')?.updateValueAndValidity();
+        shelterForm.get('description')?.updateValueAndValidity();
+        shelterForm.get('socialMedia.facebook')?.updateValueAndValidity();
+        shelterForm.get('socialMedia.instagram')?.updateValueAndValidity();
+        operatingHoursGroup.updateValueAndValidity();
+      });
+
+    this.otpForm = this.fb.group({
+      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+    }) as OtpFormGroup;
   }
+
+  // *TODO* Implement register with Google
+  registerWithGoogle(): void {}
 
   getShelterForm(): ShelterFormGroup {
     return this.registrationForm.get('shelter') as ShelterFormGroup;
@@ -196,7 +258,9 @@ export class SignupComponent extends BaseComponent implements OnInit {
   }
 
   getOperatingHoursForm(): OperatingHoursFormGroup {
-    return this.getShelterForm().get('operatingHours') as OperatingHoursFormGroup;
+    return this.getShelterForm().get(
+      'operatingHours'
+    ) as OperatingHoursFormGroup;
   }
 
   getShelterDescriptionControl(): FormControl {
@@ -215,10 +279,16 @@ export class SignupComponent extends BaseComponent implements OnInit {
   }
 
   onSubmitRegistration(): void {
+    const formValue = this.registrationForm.value;
+
+    const separator = (key: string, value: any) => {
+      return value ? value : 'Not set';
+    };
+    console.log(JSON.stringify(formValue, separator, 2));
     if (this.registrationForm.valid) {
       this.isLoading = true;
       const formValue = this.registrationForm.value;
-      
+
       const payload: RegisterPayload = {
         user: {
           Id: '',
@@ -230,8 +300,8 @@ export class SignupComponent extends BaseComponent implements OnInit {
           Location: formValue.location,
           AuthProvider: 1,
           HasPhoneVerified: false,
-          HasEmailVerified: false
-        }
+          HasEmailVerified: formValue.hasEmailVerified || false,
+        },
       };
 
       if (formValue.isShelter) {
@@ -244,26 +314,31 @@ export class SignupComponent extends BaseComponent implements OnInit {
           SocialMedia: formValue.shelter.socialMedia,
           OperatingHours: formValue.shelter.operatingHours,
           VerificationStatus: 1,
-          VerifiedBy: ''
+          VerifiedBy: '',
         };
       }
 
-      this.authService.register(payload)
-        .pipe(takeUntil(this._destroyed))
-        .subscribe({
-          next: (userId) => {
-            this.userId = userId;
-            this.startOtpTimer();
-            this.currentStep = SignupStep.OtpVerification;
-            this.isLoading = false;
-          },
-          error: (error) => {
-            console.error('Registration error:', error);
-            this.isLoading = false;
-          }
-        });
+      this.userId = 'userId';
+      this.startOtpTimer();
+      this.currentStep = SignupStep.OtpVerification;
+      this.isLoading = false;
+      // this.authService
+      //   .register(payload)
+      //   .pipe(takeUntil(this._destroyed))
+      //   .subscribe({
+      //     next: (userId) => {
+      // this.userId = userId;
+      // this.startOtpTimer();
+      // this.currentStep = SignupStep.OtpVerification;
+      // this.isLoading = false;
+      //     },
+      //     error: (error) => {
+      //       console.error('Registration error:', error);
+      //       this.isLoading = false;
+      //     },
+      // });
     } else {
-      Object.keys(this.registrationForm.controls).forEach(key => {
+      Object.keys(this.registrationForm.controls).forEach((key) => {
         const control = this.registrationForm.get(key);
         if (control?.invalid) {
           control.markAsTouched();
@@ -278,25 +353,29 @@ export class SignupComponent extends BaseComponent implements OnInit {
       const { otp } = this.otpForm.value;
       const { phone, email } = this.registrationForm.value;
 
-      this.authService.verifyOtp(phone, otp, this.userId, email)
-        .pipe(takeUntil(this._destroyed))
-        .subscribe({
-          next: () => {
-            this.currentStep = SignupStep.EmailConfirmation;
-            this.isLoading = false;
-          },
-          error: (error) => {
-            console.error('OTP verification error:', error);
-            this.isLoading = false;
-          }
-        });
+      this.currentStep = SignupStep.EmailConfirmation;
+      this.isLoading = false;
+      // this.authService
+      //   .verifyOtp(phone, otp, this.userId, email)
+      //   .pipe(takeUntil(this._destroyed))
+      //   .subscribe({
+      //     next: () => {
+      //       this.currentStep = SignupStep.EmailConfirmation;
+      //       this.isLoading = false;
+      //     },
+      //     error: (error) => {
+      //       console.error('OTP verification error:', error);
+      //       this.isLoading = false;
+      //     },
+      //   });
     }
   }
 
   resendOtp(): void {
     if (this.resendOtpTimer === 0) {
       const { phone } = this.registrationForm.value;
-      this.authService.sendOtp(phone)
+      this.authService
+        .sendOtp(phone)
         .pipe(takeUntil(this._destroyed))
         .subscribe({
           next: () => {
@@ -304,7 +383,7 @@ export class SignupComponent extends BaseComponent implements OnInit {
           },
           error: (error) => {
             console.error('Resend OTP error:', error);
-          }
+          },
         });
     }
   }

@@ -4,8 +4,6 @@ import { Router } from '@angular/router';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AuthService } from 'src/app/services/auth.service';
 import { takeUntil } from 'rxjs';
-import { FormInputComponent } from './shared/form-input/form-input.component';
-import { AuthButtonComponent } from './shared/auth-button/auth-button.component';
 
 @Component({
   selector: 'app-login',
@@ -66,7 +64,16 @@ export class LoginComponent extends BaseComponent implements OnInit {
   }
 
   loginWithGoogle(): void {
-    // Implement Google login
-    console.log('Google login not implemented yet');
+    this.authService
+      .loginWithGoogle('')
+      .pipe(takeUntil(this._destroyed))
+      .subscribe({
+        next: () => {
+          this.router.navigate(['/']);
+        },
+        error: (error) => {
+          console.error('Google login error:', error);
+        },
+      });
   }
 }

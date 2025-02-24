@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgIconsModule } from '@ng-icons/core';
 
@@ -6,6 +6,7 @@ import { NgIconsModule } from '@ng-icons/core';
   selector: 'app-auth-button',
   standalone: true,
   imports: [CommonModule, NgIconsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <button
       [type]="type"
@@ -51,7 +52,7 @@ import { NgIconsModule } from '@ng-icons/core';
         <ng-content></ng-content>
       </span>
     </button>
-  `,
+  `
 })
 export class AuthButtonComponent {
   @Input() type: 'button' | 'submit' = 'button';

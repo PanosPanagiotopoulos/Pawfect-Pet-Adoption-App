@@ -68,6 +68,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 			// Χαρτογραφήστε τα δεδομένα του χρήστη και ορίστε τον χρήστη ως μη επιβεβαιωμένο.
 			User user = _mapper.Map<User>(registerPersist.User);
+
+			// *TODO* Make email verified and save shelter data if exist with user id as reference
+
 			user.IsVerified = false;
 			user.HasPhoneVerified = false;
 			user.HasEmailVerified = false;
