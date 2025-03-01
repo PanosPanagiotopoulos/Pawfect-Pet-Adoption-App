@@ -8,33 +8,27 @@ import {
   lucideUser,
   lucideCheck,
   lucideX,
-  lucideLogOut
+  lucideLogOut,
+  lucideClock,
+  lucideUpload,
+  lucideFile,
 } from '@ng-icons/lucide';
 
 import { LoginComponent } from './login.component';
 import { SignupComponent } from './signup.component';
-import { FormInputComponent } from './shared/form-input/form-input.component';
 import { AuthButtonComponent } from './shared/auth-button/auth-button.component';
-import { TimeInputComponent } from './shared/time-input/time-input.component';
-import { FormFieldComponent } from './shared/form-field/form-field.component';
-import { ValidationMessageComponent } from './shared/validation-message/validation-message.component';
-import { PhoneInputComponent } from './shared/phone-input/phone-input.component';
+import { ValidationMessageComponent } from '../../../common/ui/validation-message.component';
 import { GoogleLoginButtonComponent } from './shared/google-login-button/google-login-button.component';
+import { PersonalInfoComponent } from './sign-up-steps/personal-info/personal-info.component';
+import { AccountDetailsComponent } from './sign-up-steps/account-details/account-details.component';
+import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
+import { FormInputComponent } from 'src/app/common/ui/form-input.component';
+import { TimeInputComponent } from 'src/app/common/ui/time-input.component';
+import { PhoneInputComponent } from 'src/app/common/ui/phone-input.component';
+import { TextAreaInputComponent } from 'src/app/common/ui/text-area-input.component';
+import { FileDropAreaComponent } from 'src/app/common/ui/file-drop-area.component';
 
-const COMPONENTS = [
-  LoginComponent,
-  SignupComponent
-];
-
-const STANDALONE_COMPONENTS = [
-  FormInputComponent,
-  AuthButtonComponent,
-  TimeInputComponent,
-  FormFieldComponent,
-  ValidationMessageComponent,
-  PhoneInputComponent,
-  GoogleLoginButtonComponent
-];
+const COMPONENTS = [LoginComponent, SignupComponent];
 
 @NgModule({
   declarations: [...COMPONENTS],
@@ -44,16 +38,29 @@ const STANDALONE_COMPONENTS = [
     ReactiveFormsModule,
     RouterModule.forChild([
       { path: 'login', component: LoginComponent },
-      { path: 'sign-up', component: SignupComponent }
+      { path: 'sign-up', component: SignupComponent },
     ]),
     NgIconsModule.withIcons({
       lucideHeart,
       lucideUser,
       lucideCheck,
       lucideX,
-      lucideLogOut
+      lucideLogOut,
+      lucideClock,
+      lucideUpload,
+      lucideFile,
     }),
-    ...STANDALONE_COMPONENTS
-  ]
+    FormInputComponent,
+    AuthButtonComponent,
+    TimeInputComponent,
+    ValidationMessageComponent,
+    PhoneInputComponent,
+    GoogleLoginButtonComponent,
+    PersonalInfoComponent,
+    AccountDetailsComponent,
+    ShelterInfoComponent,
+    TextAreaInputComponent,
+    FileDropAreaComponent,
+  ],
 })
-export class AuthModule { }
+export class AuthModule {}

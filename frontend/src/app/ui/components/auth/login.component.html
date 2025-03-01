@@ -11,10 +11,10 @@
     <div class="text-center mb-12">
       <h2 class="text-3xl font-bold">
         <span class="bg-gradient-to-r from-primary-400 via-secondary-400 to-accent-400 bg-clip-text text-transparent animate-gradient">
-          Welcome Back
+          Καλώς ήρθατε
         </span>
       </h2>
-      <p class="mt-2 text-gray-400">Sign in to your account</p>
+      <p class="mt-2 text-gray-400">Συνδεθείτε στον λογαριασμό σας</p>
     </div>
 
     <!-- Login Form -->
@@ -27,7 +27,7 @@
               [form]="loginForm"
               controlName="email"
               type="email"
-              placeholder="Email address"
+              placeholder="Διεύθυνση Email"
             ></app-form-input>
           </div>
 
@@ -36,7 +36,7 @@
               [form]="loginForm"
               controlName="password"
               type="password"
-              placeholder="Password"
+              placeholder="Κωδικός πρόσβασης"
             ></app-form-input>
           </div>
         </div>
@@ -44,7 +44,7 @@
         <div class="flex items-center justify-between">
           <div class="text-sm">
             <a routerLink="/auth/forgot-password" class="text-primary-400 hover:text-primary-300 transition-colors">
-              Forgot your password?
+              Ξεχάσατε τον κωδικό σας;
             </a>
           </div>
         </div>
@@ -57,8 +57,9 @@
               [isLoading]="isLoading"
               [disabled]="loginForm.invalid"
               icon="lucideUser"
+              (buttonClick)="onSubmit()"
             >
-              Sign in
+              Σύνδεση
             </app-auth-button>
           </div>
 
@@ -68,20 +69,20 @@
               <div class="w-full border-t border-gray-600"></div>
             </div>
             <div class="relative flex justify-center text-sm">
-              <span class="px-2 text-gray-400 bg-gray-900/95">or continue with</span>
+              <span class="px-2 text-gray-400 bg-gray-900/95">ή συνεχίστε με</span>
             </div>
           </div>
 
           <div>
-            <app-google-login-button (login)="loginWithGoogle()"></app-google-login-button>
+            <app-google-login-button [isLoading]="isLoading" (login)="loginWithGoogle()"></app-google-login-button>
           </div>
         </div>
       </form>
 
       <div class="text-center text-sm">
-        <span class="text-gray-400">Don't have an account?</span>
+        <span class="text-gray-400">Δεν έχετε λογαριασμό;</span>
         <a routerLink="/auth/sign-up" class="ml-1 text-primary-400 hover:text-primary-300 transition-colors">
-          Sign up
+          Εγγραφή
         </a>
       </div>
     </div>

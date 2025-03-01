@@ -14,18 +14,22 @@
 
   <div class="w-full max-w-xl md:max-w-2xl mx-4 z-10">
     <!-- Progress Steps -->
-    <div class="flex justify-between items-center mb-8 relative">
+    <div
+      class="flex justify-between items-center mb-8 relative px-4 overflow-hidden"
+    >
       <div class="absolute inset-0 mt-5">
         <div class="h-1 bg-gray-700 rounded-full">
           <div
             class="h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-all duration-500"
-            [style.width]="((currentStep - 1) / 2) * 100 + '%'"
+            [style.width]="
+              ((currentStep - 1) / (showShelterInfo ? 4 : 3)) * 100 + '%'
+            "
           ></div>
         </div>
       </div>
 
       <div
-        *ngFor="let step of [1, 2, 3]"
+        *ngFor="let step of showShelterInfo ? [1, 2, 3, 4, 5] : [1, 2, 4, 5]"
         class="relative z-10 flex flex-col items-center"
       >
         <div
@@ -36,278 +40,121 @@
               : 'bg-gray-700 text-gray-400')
           "
         >
-          {{ step }}
+          {{ step === 5 ? 4 : step === 4 ? 3 : step }}
         </div>
         <span
-          class="mt-2 text-sm"
+          class="mt-2 text-sm text-center"
           [class]="currentStep >= step ? 'text-white' : 'text-gray-400'"
         >
           {{
             step === 1
-              ? "Registration"
+              ? "Προσωπικά Στοιχεία"
               : step === 2
-              ? "Verification"
-              : "Confirmation"
+              ? "Λογαριασμός"
+              : step === 3
+              ? "Καταφύγιο"
+              : step === 4
+              ? "Επαλήθευση"
+              : "Επιβεβαίωση"
           }}
         </span>
       </div>
     </div>
 
-    <!-- Registration Form (Step 1) -->
+    <!-- Personal Info Step -->
     <div
-      *ngIf="currentStep === SignupStep.Registration"
+      *ngIf="currentStep === SignupStep.PersonalInfo"
+      [@slideInOut]="currentStep"
       class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8 border border-white/10"
     >
-      <div class="text-center">
-        <h2 class="text-2xl font-bold text-white mb-2">Create Account</h2>
-        <p class="text-gray-400">Fill in your details to get started</p>
+      <app-personal-info
+        [form]="getPersonalInfoForm()"
+        (next)="onPersonalInfoNext()"
+      ></app-personal-info>
+
+      <!-- Shelter Toggle -->
+      <div
+        class="flex items-center space-x-3 pt-4 border-t border-gray-700 mt-4"
+      >
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            [ngModel]="registrationForm.get('isShelter')?.value"
+            (ngModelChange)="
+              registrationForm.get('isShelter')?.setValue($event)
+            "
+            class="sr-only peer"
+          />
+          <div
+            class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"
+          ></div>
+        </label>
+        <span class="text-gray-300">Εγγραφή ως Καταφύγιο</span>
       </div>
 
-      <form
-        [formGroup]="registrationForm"
-        (ngSubmit)="onSubmitRegistration()"
-        class="space-y-8"
-      >
-        <!-- Basic Information -->
-        <div class="space-y-6">
-          <app-form-input
-            [form]="registrationForm"
-            controlName="fullName"
-            type="text"
-            placeholder="Full Name"
-          >
-          </app-form-input>
-
-          <div class="mb-16">
-            <app-form-input
-              [form]="registrationForm"
-              controlName="email"
-              type="email"
-              placeholder="Email Address"
-            >
-            </app-form-input>
-          </div>
-          <div class="mb-16">
-            <app-form-input
-              [form]="registrationForm"
-              controlName="password"
-              type="password"
-              placeholder="Password"
-            >
-            </app-form-input>
-          </div>
-
-          <div class="mb-16">
-            <app-phone-input
-              [form]="registrationForm"
-              countryCodeControl="countryCode"
-              phoneNumberControl="phoneNumber"
-            >
-            </app-phone-input>
-          </div>
-
-          <!-- Location Information -->
-          <div class="space-y-8">
-            <h3 class="text-lg font-medium text-white mb-6">
-              Location Information
-            </h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <app-form-input
-                [form]="getLocationForm()"
-                controlName="city"
-                type="text"
-                placeholder="City"
-              >
-              </app-form-input>
-
-              <app-form-input
-                [form]="getLocationForm()"
-                controlName="zipCode"
-                type="text"
-                placeholder="ZIP Code"
-              >
-              </app-form-input>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <app-form-input
-                [form]="getLocationForm()"
-                controlName="address"
-                type="text"
-                placeholder="Street Address"
-              >
-              </app-form-input>
-
-              <app-form-input
-                [form]="getLocationForm()"
-                controlName="number"
-                type="text"
-                placeholder="Number"
-              >
-              </app-form-input>
-            </div>
-          </div>
-
-          <!-- Shelter Toggle -->
-          <div class="flex items-center space-x-3 pt-4">
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                formControlName="isShelter"
-                class="sr-only peer"
-              />
-              <div
-                class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"
-              ></div>
-            </label>
-            <span class="text-gray-300">Register as Shelter</span>
-          </div>
+      <!-- Google Sign In Section -->
+      <div class="relative text-center my-8">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-600"></div>
         </div>
-
-        <!-- Shelter Information -->
-        <div
-          *ngIf="registrationForm.get('isShelter')?.value"
-          class="space-y-6 pt-4 border-t border-gray-700"
-        >
-          <h3 class="text-lg font-medium text-white">Shelter Information</h3>
-
-          <div class="space-y-6">
-            <app-form-input
-              [form]="getShelterForm()"
-              controlName="shelterName"
-              type="text"
-              placeholder="Shelter Name"
-            >
-            </app-form-input>
-
-            <div class="space-y-3">
-              <label class="block text-sm font-medium text-gray-400"
-                >Description</label
-              >
-              <textarea
-                [formControl]="getShelterDescriptionControl()"
-                rows="3"
-                class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 focus:outline-none transition-all duration-300"
-                placeholder="Tell us about your shelter"
-              >
-              </textarea>
-            </div>
-
-            <div class="mb-16">
-              <app-form-input
-                [form]="getShelterForm()"
-                controlName="website"
-                type="url"
-                placeholder="Website (Optional)"
-              >
-              </app-form-input>
-            </div>
-
-            <!-- Social Media -->
-            <div class="space-y-6">
-              <h4 class="text-md font-medium text-white">
-                Social Media (Optional)
-              </h4>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <app-form-input
-                  [form]="getSocialMediaForm()"
-                  controlName="facebook"
-                  type="url"
-                  placeholder="Facebook URL"
-                >
-                </app-form-input>
-
-                <app-form-input
-                  [form]="getSocialMediaForm()"
-                  controlName="instagram"
-                  type="url"
-                  placeholder="Instagram URL"
-                >
-                </app-form-input>
-              </div>
-            </div>
-
-            <!-- Operating Hours -->
-            <div class="space-y-6 mb-8">
-              <div class="flex items-center justify-between">
-                <h4 class="text-md font-medium text-white">Operating Hours</h4>
-                <span class="text-sm text-gray-400">(Optional)</span>
-              </div>
-
-              <p class="text-sm text-gray-400 mb-4">
-                Set your shelter's operating hours. If you set hours for one
-                day, you must set them for all days.
-              </p>
-
-              <div class="space-y-6">
-                <app-time-input
-                  *ngFor="
-                    let day of [
-                      'monday',
-                      'tuesday',
-                      'wednesday',
-                      'thursday',
-                      'friday',
-                      'saturday',
-                      'sunday'
-                    ]
-                  "
-                  [form]="getOperatingHoursForm()"
-                  [controlName]="day"
-                ></app-time-input>
-              </div>
-            </div>
-          </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 text-gray-400 bg-gray-900/95">ή συνεχίστε με</span>
         </div>
+      </div>
 
-        <!-- Google Sign In Section -->
-        <div class="relative text-center my-8">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-gray-600"></div>
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-2 text-gray-400 bg-gray-900/95"
-              >or continue with</span
-            >
-          </div>
-        </div>
-
-        <app-google-login-button
-          (login)="registerWithGoogle()"
-        ></app-google-login-button>
-
-        <div class="pt-6">
-          <app-auth-button
-            type="submit"
-            [isLoading]="isLoading"
-            [disabled]="registrationForm.invalid"
-            icon="lucideUser"
-          >
-            Create Account
-          </app-auth-button>
-        </div>
-      </form>
+      <app-google-login-button
+        [isLoading]="isLoading"
+        (login)="loginWithGoogle()"
+      ></app-google-login-button>
 
       <div class="text-center text-sm">
-        <span class="text-gray-400">Already have an account?</span>
+        <span class="text-gray-400">Έχετε ήδη λογαριασμό;</span>
         <a
           routerLink="/auth/login"
           class="ml-1 text-primary-400 hover:text-primary-300 transition-colors"
         >
-          Sign in
+          Σύνδεση
         </a>
       </div>
     </div>
 
-    <!-- OTP Verification (Step 2) -->
+    <!-- Account Details Step -->
+    <div
+      *ngIf="currentStep === SignupStep.AccountDetails"
+      [@slideInOut]="currentStep"
+      class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8 border border-white/10"
+    >
+      <app-account-details
+        [form]="getAccountDetailsForm()"
+        (next)="onAccountDetailsNext()"
+        (back)="onAccountDetailsBack()"
+      ></app-account-details>
+    </div>
+
+    <!-- Shelter Info Step -->
+    <div
+      *ngIf="currentStep === SignupStep.ShelterInfo"
+      [@slideInOut]="currentStep"
+      class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8 border border-white/10"
+    >
+      <app-shelter-info
+        [form]="registrationForm"
+        (back)="onShelterInfoBack()"
+        (submit)="onShelterInfoNext()"
+      ></app-shelter-info>
+    </div>
+
+    <!-- OTP Verification Step -->
     <div
       *ngIf="currentStep === SignupStep.OtpVerification"
+      [@slideInOut]="currentStep"
       class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-6 border border-white/10"
     >
       <div class="text-center">
-        <h2 class="text-2xl font-bold text-white mb-2">Verify Your Phone</h2>
-        <p class="text-gray-400">Enter the 6-digit code sent to your phone</p>
+        <h2 class="text-2xl font-bold text-white mb-2">Επαλήθευση Τηλεφώνου</h2>
+        <p class="text-gray-400">
+          Εισάγετε τον 6ψήφιο κωδικό που στάλθηκε στο τηλέφωνό σας
+        </p>
       </div>
 
       <form [formGroup]="otpForm" (ngSubmit)="onSubmitOtp()" class="space-y-6">
@@ -315,7 +162,7 @@
           [form]="otpForm"
           controlName="otp"
           type="text"
-          placeholder="Enter OTP"
+          placeholder="Εισάγετε OTP"
           maxLength="6"
         >
         </app-form-input>
@@ -329,8 +176,8 @@
           >
             {{
               resendOtpTimer > 0
-                ? "Resend code in " + resendOtpTimer + "s"
-                : "Resend code"
+                ? "Επαναποστολή κωδικού σε " + resendOtpTimer + "δ"
+                : "Επαναποστολή κωδικού"
             }}
           </button>
         </div>
@@ -340,15 +187,17 @@
           [isLoading]="isLoading"
           [disabled]="otpForm.invalid"
           icon="lucideUser"
+          (buttonClick)="onSubmitOtp()"
         >
-          Verify OTP
+          Επαλήθευση OTP
         </app-auth-button>
       </form>
     </div>
 
-    <!-- Email Confirmation (Step 3) -->
+    <!-- Email Confirmation Step -->
     <div
       *ngIf="currentStep === SignupStep.EmailConfirmation"
+      [@slideInOut]="currentStep"
       class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-6 border border-white/10 text-center"
     >
       <div
@@ -359,11 +208,11 @@
 
       <div>
         <h2 class="text-2xl font-bold text-white mb-2">
-          Registration Complete!
+          Η Εγγραφή Ολοκληρώθηκε!
         </h2>
         <p class="text-gray-400">
-          We've sent a confirmation email to your inbox. Please verify your
-          email to complete the registration process.
+          Έχουμε στείλει ένα email επιβεβαίωσης στο email σας. Παρακαλούμε
+          επαληθεύστε το email σας για να ολοκληρώσετε τη διαδικασία εγγραφής.
         </p>
       </div>
 
@@ -372,7 +221,7 @@
           routerLink="/auth/login"
           class="inline-block w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
         >
-          Proceed to Login
+          Μετάβαση στη Σύνδεση
         </a>
       </div>
     </div>

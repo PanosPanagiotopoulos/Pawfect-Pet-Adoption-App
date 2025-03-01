@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgIconsModule } from '@ng-icons/core';
 
@@ -15,6 +15,9 @@ import { NgIconsModule } from '@ng-icons/core';
       class="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent 
              text-sm font-medium rounded-xl text-white transition-all duration-300 
              transform hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
+      [attr.aria-busy]="isLoading"
+      [attr.aria-disabled]="disabled"
+      (click)="onClick()"
     >
       <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-primary-500/0 
                   via-white/5 to-primary-500/0 group-hover:animate-shimmer -z-10"></div>
@@ -32,6 +35,7 @@ import { NgIconsModule } from '@ng-icons/core';
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <circle
           class="opacity-25"
@@ -60,4 +64,11 @@ export class AuthButtonComponent {
   @Input() disabled: boolean = false;
   @Input() icon?: string;
   @Input() buttonClass: string = 'bg-gradient-to-r from-primary-600 to-accent-600 hover:shadow-lg hover:shadow-primary-500/20';
+  @Output() buttonClick = new EventEmitter<void>();
+
+  onClick(): void {
+    if (!this.isLoading && !this.disabled) {
+      this.buttonClick.emit();
+    }
+  }
 }

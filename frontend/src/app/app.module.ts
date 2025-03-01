@@ -19,6 +19,10 @@ import {
   lucidePhone,
   lucideMail,
   lucideLogOut,
+  lucideClock,
+  lucideUpload,
+  lucideFile,
+  lucideCheck,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -57,11 +61,18 @@ import { MatInputModule } from '@angular/material/input';
       lucideHouse,
       lucideInfo,
       lucideLogOut,
+      lucideClock,
+      lucideUpload,
+      lucideFile,
+      lucideCheck,
     }),
     HomeModule,
     HeaderComponent,
   ],
-  providers: [InstallationConfigurationService, BaseHttpService],
+  providers: [
+    InstallationConfigurationService, 
+    BaseHttpService
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

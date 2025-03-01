@@ -37,43 +37,68 @@ export class LoginComponent extends BaseComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Mark all fields as touched to trigger validation messages immediately
+    this.markFormGroupTouched(this.loginForm);
+    
     if (this.loginForm.valid) {
       this.isLoading = true;
       const { email, password } = this.loginForm.value;
 
-      this.authService
-        .login(email, password)
-        .pipe(takeUntil(this._destroyed))
-        .subscribe({
-          next: () => {
-            this.router.navigate(['/']);
-          },
-          error: (error) => {
-            console.error('Login error:', error);
-            this.isLoading = false;
-          },
-        });
-    } else {
-      Object.keys(this.loginForm.controls).forEach(key => {
-        const control = this.loginForm.get(key);
-        if (control?.invalid) {
-          control.markAsTouched();
-        }
-      });
+      // For testing without backend
+      setTimeout(() => {
+        this.isLoading = false;
+        this.router.navigate(['/']);
+      }, 1500);
+
+      // Uncomment this when ready to connect to backend
+      // this.authService
+      //   .login(email, password)
+      //   .pipe(takeUntil(this._destroyed))
+      //   .subscribe({
+      //     next: () => {
+      //       this.router.navigate(['/']);
+      //     },
+      //     error: (error) => {
+      //       console.error('Login error:', error);
+      //       this.isLoading = false;
+      //     },
+      //   });
     }
   }
 
   loginWithGoogle(): void {
-    this.authService
-      .loginWithGoogle('')
-      .pipe(takeUntil(this._destroyed))
-      .subscribe({
-        next: () => {
-          this.router.navigate(['/']);
-        },
-        error: (error) => {
-          console.error('Google login error:', error);
-        },
-      });
+    // For testing without backend
+    this.isLoading = true;
+    setTimeout(() => {
+      this.isLoading = false;
+      this.router.navigate(['/']);
+    }, 1500);
+
+    // Uncomment this when ready to connect to backend
+    // this.authService
+    //   .loginWithGoogle('')
+    //   .pipe(takeUntil(this._destroyed))
+    //   .subscribe({
+    //     next: () => {
+    //       this.router.navigate(['/']);
+    //     },
+    //     error: (error) => {
+    //       console.error('Google login error:', error);
+    //     },
+    //   });
+  }
+  
+  // Helper method to mark all controls in a form group as touched
+  private markFormGroupTouched(formGroup: FormGroup) {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      } else if (control) {
+        control.markAsTouched();
+        control.markAsDirty();
+        control.updateValueAndValidity();
+      }
+    });
   }
 }

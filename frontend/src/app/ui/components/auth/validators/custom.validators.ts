@@ -26,6 +26,25 @@ export class CustomValidators {
     };
   }
 
+  static matchValidator(matchTo: string): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.parent) {
+        return null;
+      }
+      
+      const matchControl = control.parent.get(matchTo);
+      if (!matchControl) {
+        return null;
+      }
+      
+      if (control.value !== matchControl.value) {
+        return { mismatch: true };
+      }
+      
+      return null;
+    };
+  }
+
   static phoneNumberValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) {
@@ -69,6 +88,11 @@ export class CustomValidators {
       if (!control.value) {
         return null;
       }
+      
+      // If the value is 'closed', it's valid
+      if (control.value === 'closed') {
+        return null;
+      }
 
       const [openTime, closeTime] = control.value.split(',');
       if (!openTime || !closeTime) {
@@ -88,13 +112,6 @@ export class CustomValidators {
       }
 
       return null;
-    };
-  }
-
-  static roleValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const validRoles = [UserRole.User, UserRole.Shelter, UserRole.Admin];
-      return validRoles.includes(control.value) ? null : { invalidRole: true };
     };
   }
 }

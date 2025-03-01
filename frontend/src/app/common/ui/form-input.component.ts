@@ -1,7 +1,13 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ValidationMessageComponent } from '../validation-message/validation-message.component';
+import { ValidationMessageComponent } from 'src/app/common/ui/validation-message.component';
 
 @Component({
   selector: 'app-form-input',
@@ -24,6 +30,8 @@ import { ValidationMessageComponent } from '../validation-message/validation-mes
                transition-all duration-300"
         [placeholder]="placeholder"
         [maxLength]="maxLength"
+        (input)="onInputChange($event)"
+        (blur)="onBlur()"
       />
 
       <!-- Floating label -->
@@ -52,10 +60,12 @@ import { ValidationMessageComponent } from '../validation-message/validation-mes
       <app-validation-message
         [id]="controlName + '-error'"
         [control]="form.get(controlName)"
-        [field]="placeholder">
+        [field]="placeholder"
+        [showImmediately]="true"
+      >
       </app-validation-message>
     </div>
-  `
+  `,
 })
 export class FormInputComponent {
   @Input() form!: FormGroup;
@@ -63,29 +73,55 @@ export class FormInputComponent {
   @Input() type: string = 'text';
   @Input() placeholder: string = '';
   @Input() maxLength?: string = '200';
+  @Output() valueChange = new EventEmitter<any>();
 
   get isInvalid(): boolean {
     const control = this.form.get(this.controlName);
-    return !!(control?.invalid && control?.touched);
+    return !!(control?.invalid && (control?.touched || control?.dirty));
   }
 
   get inputClass(): string {
     const control = this.form.get(this.controlName);
-    const isInvalid = control?.invalid && control?.touched;
-    
+    const isInvalid = control?.invalid && (control?.touched || control?.dirty);
+
     return `
       border-white/10
-      ${isInvalid ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:border-primary-500/50 focus:ring-primary-500/20'}
+      ${
+        isInvalid
+          ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
+          : 'focus:border-primary-500/50 focus:ring-primary-500/20'
+      }
     `;
   }
 
   get labelClass(): string {
     const control = this.form.get(this.controlName);
-    const isInvalid = control?.invalid && control?.touched;
-    
+    const isInvalid = control?.invalid && (control?.touched || control?.dirty);
+
     return `
       text-gray-400
       ${isInvalid ? 'text-red-400' : 'peer-focus:text-primary-400'}
     `;
+  }
+
+  onInputChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.valueChange.emit(input.value);
+
+    // Mark as dirty to trigger validation immediately
+    const control = this.form.get(this.controlName);
+    if (control) {
+      control.markAsDirty();
+      control.updateValueAndValidity();
+    }
+  }
+
+  onBlur(): void {
+    // Mark as touched on blur to ensure validation shows
+    const control = this.form.get(this.controlName);
+    if (control) {
+      control.markAsTouched();
+      control.updateValueAndValidity();
+    }
   }
 }

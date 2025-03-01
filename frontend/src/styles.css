@@ -95,6 +95,18 @@
   50% { opacity: 0.5; }
 }
 
+/* Form validation highlight effect */
+@keyframes highlightError {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.highlight-error {
+  animation: highlightError 1.5s ease-out;
+  border-color: rgba(239, 68, 68, 0.7) !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
