@@ -53,7 +53,6 @@ import { FormInputComponent } from 'src/app/common/ui/form-input.component';
           <li
             *ngFor="let error of validationErrors"
             class="cursor-pointer hover:underline"
-            (click)="scrollToErrorField(error)"
           >
             {{ error.message }}
           </li>
@@ -121,7 +120,6 @@ export class AccountDetailsComponent {
   validationErrors: {
     field: string;
     message: string;
-    element?: HTMLElement;
   }[] = [];
   showErrorSummary = false;
 
@@ -160,9 +158,6 @@ export class AccountDetailsComponent {
 
     if (this.form.valid && !this.passwordMismatch()) {
       this.next.emit();
-    } else {
-      // Scroll to the first invalid field
-      this.scrollToFirstInvalidField();
     }
   }
 
@@ -189,13 +184,10 @@ export class AccountDetailsComponent {
     // Check password
     const passwordControl = this.form.get('password');
     if (passwordControl?.invalid) {
-      const element = this.findElementForControl('password');
-
       if (passwordControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'password',
           message: 'Ο κωδικός πρόσβασης είναι υποχρεωτικός',
-          element,
         });
       } else {
         // Check specific password validation errors
@@ -203,7 +195,6 @@ export class AccountDetailsComponent {
           this.validationErrors.push({
             field: 'password',
             message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες',
-            element,
           });
         }
 
@@ -212,7 +203,6 @@ export class AccountDetailsComponent {
             field: 'password',
             message:
               'Ο κωδικός πρέπει να περιέχει τουλάχιστον ένα κεφαλαίο γράμμα',
-            element,
           });
         }
 
@@ -220,7 +210,6 @@ export class AccountDetailsComponent {
           this.validationErrors.push({
             field: 'password',
             message: 'Ο κωδικός πρέπει να περιέχει τουλάχιστον ένα πεζό γράμμα',
-            element,
           });
         }
 
@@ -228,7 +217,6 @@ export class AccountDetailsComponent {
           this.validationErrors.push({
             field: 'password',
             message: 'Ο κωδικός πρέπει να περιέχει τουλάχιστον έναν αριθμό',
-            element,
           });
         }
 
@@ -236,8 +224,7 @@ export class AccountDetailsComponent {
           this.validationErrors.push({
             field: 'password',
             message:
-              'Ο κωδικός πρέπει να περιέχει τουλάχιστον έναν ειδικό χαρακτήρα',
-            element,
+              'Ο κωδικός πρέπει να περιέχει τουλάχιστ on έναν ειδικό χαρακτήρα',
           });
         }
       }
@@ -246,13 +233,10 @@ export class AccountDetailsComponent {
     // Check confirm password
     const confirmPasswordControl = this.form.get('confirmPassword');
     if (confirmPasswordControl?.invalid || this.passwordMismatch()) {
-      const element = this.findElementForControl('confirmPassword');
-
       if (confirmPasswordControl?.errors?.['required']) {
         this.validationErrors.push({
           field: 'confirmPassword',
           message: 'Η επιβεβαίωση κωδικού είναι υποχρεωτική',
-          element,
         });
       } else if (
         this.passwordMismatch() ||
@@ -261,148 +245,8 @@ export class AccountDetailsComponent {
         this.validationErrors.push({
           field: 'confirmPassword',
           message: 'Οι κωδικοί δεν ταιριάζουν',
-          element,
         });
       }
     }
-  }
-
-  // Find element for a control
-  private findElementForControl(controlName: string): HTMLElement | undefined {
-    // Try to find the element
-    let element = this.formContainer.nativeElement.querySelector(
-      `[formcontrolname="${controlName}"]`
-    ) as HTMLElement;
-
-    // If not found, try to find by ID
-    if (!element) {
-      element = this.formContainer.nativeElement.querySelector(
-        `#${controlName}`
-      ) as HTMLElement;
-    }
-
-    return element;
-  }
-
-  // Scroll to a specific error field
-  scrollToErrorField(error: {
-    field: string;
-    message: string;
-    element?: HTMLElement;
-  }): void {
-    if (error.element) {
-      // Highlight the element
-      this.highlightElement(error.element);
-
-      // Scroll to the element
-      error.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      // Focus the element if it's an input
-      if (
-        error.element instanceof HTMLInputElement ||
-        error.element instanceof HTMLTextAreaElement ||
-        error.element instanceof HTMLSelectElement
-      ) {
-        error.element.focus();
-      }
-    } else {
-      // If no element is found, try to find it again
-      const element = this.findElementForControl(error.field);
-      if (element) {
-        this.highlightElement(element);
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if (
-          element instanceof HTMLInputElement ||
-          element instanceof HTMLTextAreaElement ||
-          element instanceof HTMLSelectElement
-        ) {
-          element.focus();
-        }
-      }
-    }
-  }
-
-  // Add highlight effect to an element
-  private highlightElement(element: HTMLElement): void {
-    // Add a temporary highlight class
-    element.classList.add('highlight-error');
-
-    // Remove the class after animation completes
-    setTimeout(() => {
-      element.classList.remove('highlight-error');
-    }, 1500);
-  }
-
-  // Scroll to the first invalid field
-  private scrollToFirstInvalidField(): void {
-    setTimeout(() => {
-      try {
-        if (this.validationErrors.length > 0) {
-          // First scroll to error summary
-          const errorSummary =
-            this.formContainer.nativeElement.querySelector('.bg-red-500\\/10');
-          if (errorSummary) {
-            errorSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            // If no error summary, scroll to the first invalid field
-            const firstError = this.validationErrors[0];
-            if (firstError.element) {
-              this.scrollToErrorField(firstError);
-            } else {
-              // Try to find the first invalid control
-              const invalidControls = this.findInvalidControls(this.form);
-              if (invalidControls.length > 0) {
-                const controlName = this.getControlName(invalidControls[0]);
-                const element = this.findElementForControl(controlName);
-                if (element) {
-                  this.highlightElement(element);
-                  element.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                  });
-                }
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error scrolling to invalid field:', error);
-        // Fallback: scroll to the top of the form
-        this.formContainer.nativeElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-      }
-    }, 100);
-  }
-
-  // Find all invalid controls in a form group
-  private findInvalidControls(formGroup: FormGroup): FormControl[] {
-    const invalidControls: FormControl[] = [];
-
-    Object.keys(formGroup.controls).forEach((key) => {
-      const control = formGroup.get(key);
-      if (control instanceof FormGroup) {
-        // If it's a nested form group, recursively find invalid controls
-        invalidControls.push(...this.findInvalidControls(control));
-      } else if (control && control.invalid) {
-        invalidControls.push(control as FormControl);
-      }
-    });
-
-    return invalidControls;
-  }
-
-  // Get the name of a control
-  private getControlName(control: FormControl): string {
-    let controlName = '';
-
-    Object.keys(this.form.controls).forEach((name) => {
-      if (this.form.controls[name] === control) {
-        controlName = name;
-      }
-    });
-
-    return controlName;
   }
 }

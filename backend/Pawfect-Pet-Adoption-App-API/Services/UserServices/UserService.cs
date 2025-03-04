@@ -10,11 +10,13 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.EmailServices;
 using Pawfect_Pet_Adoption_App_API.Services.HttpServices;
+using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
 using Pawfect_Pet_Adoption_App_API.Services.SmsServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
@@ -31,6 +33,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		private readonly CacheConfig _cacheConfig;
 		private readonly UserQuery _userQuery;
 		private readonly UserBuilder _userBuilder;
+		private readonly Lazy<IShelterService> _shelterService;
 
 		public UserService
 		(
@@ -40,7 +43,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			RequestService requestService,
 			IOptions<CacheConfig> configuration,
 			UserQuery userQuery,
-			UserBuilder userBuilder
+			UserBuilder userBuilder,
+			Lazy<IShelterService> shelterService
 		)
 		{
 			_userRepository = userRepository;
@@ -53,31 +57,45 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			_cacheConfig = configuration.Value;
 			_userQuery = userQuery;
 			_userBuilder = userBuilder;
+			_shelterService = shelterService;
 		}
 
-		public async Task<String?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
+		public async Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
 		{
 			// Ελέγξτε αν ο χρήστης υπάρχει ήδη. Αν ναι, επιστρέψτε το υπάρχον ID του χρήστη.
-			if (
-				await _userRepository.FindAsync(user => user.Email == registerPersist.User.Email)
-				is User existingUser && existingUser != null
-				)
+			User user = await _userRepository.FindAsync(user => user.Email == registerPersist.User.Email);
+			if (user == null)
 			{
-				return existingUser.Id;
+				// Χαρτογραφήστε τα δεδομένα του χρήστη και ορίστε τον χρήστη ως μη επιβεβαιωμένο.
+				user = _mapper.Map<User>(registerPersist.User);
+				user.IsVerified = false;
+
+				// *TODO* Make email verified and save shelter data if exist with user id as reference
+
+				// Αποθηκεύστε τα δεδομένα του χρήστη.
+				UserDto newUser = await Persist(user, true, new() { nameof(UserDto.Id) });
+
+				if (newUser == null)
+				{
+					throw new Exception("Αποτυχια perisiting του νεου χρηστη");
+				}
+
+				// Save shelter data if any 
+				if (registerPersist.Shelter != null)
+				{
+					registerPersist.Shelter.UserId = newUser.Id;
+					ShelterDto newShelter = await _shelterService.Value.Persist(registerPersist.Shelter, new() { nameof(ShelterDto.Id) });
+					if (newShelter == null)
+					{
+						throw new Exception("Αποτυχια persisting shelter");
+					}
+
+					user.Id = newUser.Id;
+					user.ShelterId = newShelter.Id;
+				}
 			}
 
-			// Χαρτογραφήστε τα δεδομένα του χρήστη και ορίστε τον χρήστη ως μη επιβεβαιωμένο.
-			User user = _mapper.Map<User>(registerPersist.User);
-
-			// *TODO* Make email verified and save shelter data if exist with user id as reference
-
-			user.IsVerified = false;
-			user.HasPhoneVerified = false;
-			user.HasEmailVerified = false;
-
-
-			// Αποθηκεύστε τα δεδομένα του χρήστη.
-			return await PersistUserAsync(user);
+			return await Persist(user, true);
 		}
 
 		public async Task GenerateNewOtpAsync(String? phonenumber)
@@ -222,7 +240,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					// TODO: Στείλτε ειδοποίηση στον admin για να επιβεβαιώσει τον χρήστη
 				}
 
-				await PersistUserAsync(user, false);
+				await Persist(user, false, new() { nameof(UserDto.Id) });
 
 				return true;
 			}
@@ -300,7 +318,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				resetPasswordUser.Password = password;
 				HashLoginCredentials(ref resetPasswordUser);
 				// Κάνουμε update τον χρήστη με τον νέο κωδικό
-				await PersistUserAsync(resetPasswordUser, false);
+				await Persist(resetPasswordUser, false, new() { nameof(UserDto.Id) });
 
 				return true;
 			}
@@ -313,49 +331,65 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 		}
 
-		public async Task<String?> PersistUserAsync(UserPersist userPersist, Boolean allowCreation = true)
+		public async Task<UserDto?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null)
 		{
-			User? workingUser = null;
-			try
 			{
-				// Ανακτήστε τον χρήστη με βάση το ID ή το email.
-				workingUser = await RetrieveUserAsync(userPersist.Id, userPersist.Email);
-
-				// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
-				if (workingUser == null)
+				User? workingUser = null;
+				try
 				{
-					if (!allowCreation)
+					// Ανακτήστε τον χρήστη με βάση το ID ή το email.
+					workingUser = await RetrieveUserAsync(userPersist.Id, userPersist.Email);
+
+					// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
+					if (workingUser == null)
 					{
-						// LOGS //
-						_logger.LogWarning("Έγινε άπότρεψη προσπάθειας κατασκευής χρήστη χωρίς δικαίωμα κατασκευής");
-						return null;
+						if (!allowCreation)
+						{
+							// LOGS //
+							_logger.LogWarning("Έγινε άπότρεψη προσπάθειας κατασκευής χρήστη χωρίς δικαίωμα κατασκευής");
+							return null;
+						}
+
+						workingUser = _mapper.Map<User>(userPersist);
+
+						// Hash τα credentials συνθηματικών του χρήστη
+						HashLoginCredentials(ref workingUser);
+
+						workingUser.CreatedAt = DateTime.UtcNow;
+						workingUser.UpdatedAt = DateTime.UtcNow;
+
+						workingUser.Id = await _userRepository.AddAsync(workingUser);
+						if (String.IsNullOrEmpty(workingUser.Id))
+						{
+							throw new Exception("Αποτυχία peristing νέου χρήστη");
+						}
 					}
 
-					workingUser = _mapper.Map<User>(userPersist);
+					else
+					{
+						workingUser.UpdatedAt = DateTime.UtcNow;
+						await _userRepository.UpdateAsync(workingUser);
+					}
 
-					// Hash τα credentials συνθηματικών του χρήστη
-					HashLoginCredentials(ref workingUser);
+					// Return dto model
+					UserLookup lookup = new UserLookup(_userQuery);
+					lookup.Ids = new List<String> { workingUser.Id };
+					lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
+					lookup.Offset = 0;
+					lookup.PageSize = 1;
 
-					workingUser.CreatedAt = DateTime.UtcNow;
-					workingUser.UpdatedAt = DateTime.UtcNow;
-
-					return await _userRepository.AddAsync(workingUser);
+					return (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
 				}
-
-				// Ενημερώστε τον υπάρχοντα χρήστη.
-				_mapper.Map(userPersist, workingUser);
-				workingUser.UpdatedAt = DateTime.UtcNow;
-				return await _userRepository.UpdateAsync(workingUser);
-			}
-			catch (Exception e)
-			{
-				// LOGS //
-				_logger.LogError(e, "Σφάλμα στο persisting του χρήστη : " + e.Message);
-				return null;
+				catch (Exception e)
+				{
+					// Καταγράψτε το σφάλμα.
+					_logger.LogError(e, "Σφάλμα στο persisting του χρήστη");
+					return null;
+				}
 			}
 		}
 
-		public async Task<String?> PersistUserAsync(User user, Boolean allowCreation = true)
+		public async Task<UserDto?> Persist(User user, Boolean allowCreation = true, List<String> buildFields = null)
 		{
 			User? workingUser = null;
 			try
@@ -381,13 +415,29 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					workingUser.CreatedAt = DateTime.UtcNow;
 					workingUser.UpdatedAt = DateTime.UtcNow;
 
-					return await _userRepository.AddAsync(workingUser);
+					workingUser.Id = await _userRepository.AddAsync(workingUser);
+					if (String.IsNullOrEmpty(workingUser.Id))
+					{
+						throw new Exception("Αποτυχία peristing νέου χρήστη");
+					}
 				}
 
-				// Ενημερώστε τον υπάρχοντα χρήστη.
-				_mapper.Map(user, workingUser);
-				workingUser.UpdatedAt = DateTime.UtcNow;
-				return await _userRepository.UpdateAsync(user);
+				else
+				{
+					// Ενημερώστε τον υπάρχοντα χρήστη.
+					_mapper.Map(user, workingUser);
+					workingUser.UpdatedAt = DateTime.UtcNow;
+					await _userRepository.UpdateAsync(user);
+				}
+
+				// Return dto model
+				UserLookup lookup = new UserLookup(_userQuery);
+				lookup.Ids = new List<String> { workingUser.Id };
+				lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
+				lookup.Offset = 0;
+				lookup.PageSize = 1;
+
+				return (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
 			}
 			catch (Exception e)
 			{

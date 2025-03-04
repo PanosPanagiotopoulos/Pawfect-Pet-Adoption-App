@@ -38,13 +38,14 @@ import { ValidationMessageComponent } from './validation-message.component';
       <!-- File drop area -->
       <div
         #dropArea
-        class="relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300"
+        class="relative border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all duration-300 max-w-full"
         [ngClass]="{
           'border-primary-500': isDragging,
           'border-white/20': !isDragging && !isInvalid,
           'border-red-500': isInvalid,
           'bg-primary-500/5': isDragging,
-          'bg-white/5': !isDragging
+          'bg-white/5': !isDragging,
+          'hover:border-primary-400/50 hover:bg-primary-500/5': !isInvalid
         }"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
@@ -61,16 +62,16 @@ import { ValidationMessageComponent } from './validation-message.component';
           [attr.aria-describedby]="controlName + '-error'"
         />
 
-        <div class="space-y-4">
+        <div class="space-y-2 sm:space-y-4">
           <ng-icon
             name="lucideUpload"
-            [size]="'48'"
+            [size]="'36'"
             class="text-gray-400 group-hover:text-primary-400 transition-colors duration-300"
           ></ng-icon>
 
-          <div class="space-y-2">
-            <p class="text-gray-300">{{ dragDropText }}</p>
-            <p class="text-sm text-gray-500">{{ acceptText }}</p>
+          <div class="space-y-1 sm:space-y-2">
+            <p class="text-gray-300 text-sm sm:text-base">{{ dragDropText }}</p>
+            <p class="text-xs sm:text-sm text-gray-500">{{ acceptText }}</p>
           </div>
         </div>
       </div>
@@ -87,23 +88,23 @@ import { ValidationMessageComponent } from './validation-message.component';
             *ngFor="let file of selectedFiles; let i = index"
             class="flex items-center justify-between p-2 bg-white/5 rounded-lg mb-2 group"
           >
-            <div class="flex items-center">
+            <div class="flex items-center overflow-hidden">
               <ng-icon
                 name="lucideFile"
                 [size]="'20'"
-                class="text-gray-400 mr-2"
+                class="text-gray-400 mr-2 flex-shrink-0"
               ></ng-icon>
-              <span class="text-sm text-gray-300 truncate max-w-xs">{{
+              <span class="text-sm text-gray-300 truncate">{{
                 file.name
               }}</span>
-              <span class="text-xs text-gray-500 ml-2"
+              <span class="text-xs text-gray-500 ml-2 flex-shrink-0"
                 >({{ formatFileSize(file.size) }})</span
               >
             </div>
 
             <button
               type="button"
-              class="p-1 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+              class="p-1 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
               (click)="removeFile(i)"
               aria-label="Remove file"
             >
@@ -172,6 +173,18 @@ export class FileDropAreaComponent {
   selectedFiles: File[] = [];
 
   constructor(private cdr: ChangeDetectorRef) {}
+
+  ngOnInit() {
+    // Initialize from existing value if present
+    const currentValue = this.form.get(this.controlName)?.value;
+    if (currentValue) {
+      if (this.multiple && Array.isArray(currentValue)) {
+        this.selectedFiles = currentValue;
+      } else if (!this.multiple && currentValue instanceof File) {
+        this.selectedFiles = [currentValue];
+      }
+    }
+  }
 
   get isInvalid(): boolean {
     const control = this.form.get(this.controlName);
@@ -316,8 +329,19 @@ export class FileDropAreaComponent {
     const control = this.form.get(this.controlName);
     if (control) {
       if (this.selectedFiles.length > 0) {
-        control.setValue(
-          this.multiple ? this.selectedFiles : this.selectedFiles[0]
+        // Set the actual File object
+        const valueToSet = this.multiple
+          ? this.selectedFiles
+          : this.selectedFiles[0];
+        control.setValue(valueToSet);
+
+
+        // For debugging
+        console.log(
+          `File control '${this.controlName}' updated with:`,
+          this.multiple
+            ? `${this.selectedFiles.length} files`
+            : this.selectedFiles[0].name
         );
       } else {
         control.setValue(null);

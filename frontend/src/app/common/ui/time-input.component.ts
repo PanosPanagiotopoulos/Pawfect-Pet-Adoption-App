@@ -5,6 +5,7 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -105,9 +106,12 @@ export class TimeInputComponent implements OnInit {
   @Input() controlName!: string;
   @Output() timeChange = new EventEmitter<string>();
 
-  openingTime: string = '09:00';
-  closingTime: string = '17:00';
+  openingTime: string = '';
+  closingTime: string = '';
   isClosed: boolean = false;
+  isModified: boolean = false;
+
+  constructor(private cdr: ChangeDetectorRef) {}
 
   get isTimeInvalid(): boolean {
     const control = this.form.get(this.controlName);
@@ -119,26 +123,36 @@ export class TimeInputComponent implements OnInit {
     if (currentValue) {
       if (currentValue === 'closed') {
         this.isClosed = true;
-      } else {
+        this.isModified = true;
+      } else if (currentValue.includes(',')) {
         const [open, close] = currentValue.split(',');
-        this.openingTime = open || '09:00';
-        this.closingTime = close || '17:00';
+        this.openingTime = open || '';
+        this.closingTime = close || '';
+        this.isModified = true;
       }
     }
   }
 
   onClosedChange(): void {
+    this.isModified = true;
+    
     if (this.isClosed) {
       // Set value to 'closed'
       this.form.get(this.controlName)?.setValue('closed');
       this.form.get(this.controlName)?.setErrors(null);
     } else {
-      // Restore previous time values
-      this.form
-        .get(this.controlName)
-        ?.setValue(`${this.openingTime},${this.closingTime}`);
-      // Validate time range
-      this.validateTimeRange();
+      // Restore previous time values or set to empty
+      if (!this.openingTime && !this.closingTime) {
+        this.form.get(this.controlName)?.setValue('');
+        this.form.get(this.controlName)?.setErrors(null);
+      } else {
+        // Use existing times if available
+        const timeValue = `${this.openingTime},${this.closingTime}`;
+        this.form.get(this.controlName)?.setValue(timeValue);
+        
+        // Validate time range
+        this.validateTimeRange();
+      }
     }
 
     // Mark as dirty to trigger validation immediately
@@ -151,6 +165,7 @@ export class TimeInputComponent implements OnInit {
 
   onTimeChange(event: Event, type: 'open' | 'close'): void {
     const input = event.target as HTMLInputElement;
+    this.isModified = true;
 
     if (type === 'open') {
       this.openingTime = input.value;
@@ -184,6 +199,12 @@ export class TimeInputComponent implements OnInit {
       } else {
         this.form.get(this.controlName)?.setErrors(null);
       }
+    } else if ((this.openingTime && !this.closingTime) || (!this.openingTime && this.closingTime)) {
+      // If only one time is provided, it's incomplete
+      this.form.get(this.controlName)?.setErrors({ incomplete: true });
+    } else if (!this.isModified) {
+      // If no times are provided and component hasn't been modified, it's valid
+      this.form.get(this.controlName)?.setErrors(null);
     }
   }
 }

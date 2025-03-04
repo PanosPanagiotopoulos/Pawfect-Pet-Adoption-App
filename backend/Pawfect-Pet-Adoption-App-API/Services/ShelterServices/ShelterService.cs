@@ -60,7 +60,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			return (await _shelterBuilder.SetLookup(lookup).BuildDto(shelter, fields)).FirstOrDefault();
 		}
 
-		public async Task<ShelterDto?> Persist(ShelterPersist persist)
+		public async Task<ShelterDto?> Persist(ShelterPersist persist, List<String> buildFields = null)
 		{
 
 			Boolean isUpdate = await _shelterRepository.ExistsAsync(x => x.Id == persist.Id);
@@ -96,7 +96,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			// Return dto model
 			ShelterLookup lookup = new ShelterLookup(_shelterQuery);
 			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = new List<String> { "*", nameof(User) + ".*" };
+			lookup.Fields = buildFields ?? new List<String> { "*", nameof(User) + ".*" };
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 

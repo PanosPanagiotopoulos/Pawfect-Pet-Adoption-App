@@ -12,26 +12,31 @@ import {
   lucideClock,
   lucideUpload,
   lucideFile,
+  lucideTrash,
+  lucideImage,
+  lucideCamera,
 } from '@ng-icons/lucide';
 
 import { LoginComponent } from './login.component';
 import { SignupComponent } from './signup.component';
+import { ValidationMessageComponent } from './shared/validation-message/validation-message.component';
 import { AuthButtonComponent } from './shared/auth-button/auth-button.component';
-import { ValidationMessageComponent } from '../../../common/ui/validation-message.component';
 import { GoogleLoginButtonComponent } from './shared/google-login-button/google-login-button.component';
 import { PersonalInfoComponent } from './sign-up-steps/personal-info/personal-info.component';
 import { AccountDetailsComponent } from './sign-up-steps/account-details/account-details.component';
+import { PreferencesComponent } from './sign-up-steps/preferences/preferences.component';
 import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
 import { FormInputComponent } from 'src/app/common/ui/form-input.component';
-import { TimeInputComponent } from 'src/app/common/ui/time-input.component';
+import { FormFieldComponent } from 'src/app/common/ui/form-field.component';
 import { PhoneInputComponent } from 'src/app/common/ui/phone-input.component';
+import { TimeInputComponent } from 'src/app/common/ui/time-input.component';
+import { ClockTimePickerComponent } from 'src/app/common/ui/clock-time-picker.component';
 import { TextAreaInputComponent } from 'src/app/common/ui/text-area-input.component';
 import { FileDropAreaComponent } from 'src/app/common/ui/file-drop-area.component';
-
-const COMPONENTS = [LoginComponent, SignupComponent];
+import { OtpInputComponent } from 'src/app/common/ui/otp-input.component';
 
 @NgModule({
-  declarations: [...COMPONENTS],
+  declarations: [LoginComponent, SignupComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -49,18 +54,26 @@ const COMPONENTS = [LoginComponent, SignupComponent];
       lucideClock,
       lucideUpload,
       lucideFile,
+      lucideTrash,
+      lucideImage,
+      lucideCamera,
     }),
     FormInputComponent,
-    AuthButtonComponent,
-    TimeInputComponent,
+    FormFieldComponent,
     ValidationMessageComponent,
     PhoneInputComponent,
-    GoogleLoginButtonComponent,
+    TimeInputComponent,
+    ClockTimePickerComponent,
+    TextAreaInputComponent,
+    FileDropAreaComponent,
+    PreferencesComponent,
     PersonalInfoComponent,
     AccountDetailsComponent,
     ShelterInfoComponent,
-    TextAreaInputComponent,
-    FileDropAreaComponent,
+    AuthButtonComponent,
+    GoogleLoginButtonComponent,
+    OtpInputComponent,
   ],
+  exports: [LoginComponent, SignupComponent],
 })
 export class AuthModule {}

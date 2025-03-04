@@ -47,7 +47,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 		/// <param name="email">Το email του χρήστη.</param>
 		/// <param name="role">Ο ρόλος του χρήστη.</param>
 		/// <returns>Ένα JWT token σε μορφή String</returns>
-		public String? GenerateJwtToken(String userId, String email, String role)
+		public String? GenerateJwtToken(String userId, String email, String role, String isEmailVerified, String isVerified)
 		{
 			String? issuer = _jwtConfiguration.Issuer; // Εκδότης του token
 			List<String>? audiences = _jwtConfiguration.Audiences; // Αποδέκτης του token
@@ -65,7 +65,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 		{
 			new Claim(ClaimTypes.NameIdentifier, userId), // Αναγνωριστικό χρήστη
             new Claim(JwtRegisteredClaimNames.Email, email), // Email χρήστη
-            new Claim(ClaimTypes.Role, role), // Ρόλος χρήστη
+			new Claim("isEmailVerified", isEmailVerified), // Flag επιβεβαιωσης χρηστη
+			new Claim("isVerified", isVerified), // Flag επιβεβαιωσης χρηστη
+			new Claim(ClaimTypes.Role, role), // Ρόλος χρήστη
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique Id του token 
         };
 

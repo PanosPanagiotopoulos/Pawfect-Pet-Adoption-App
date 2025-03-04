@@ -9,6 +9,7 @@
 	using Pawfect_Pet_Adoption_App_API.DevTools;
 	using Pawfect_Pet_Adoption_App_API.Models;
 	using Pawfect_Pet_Adoption_App_API.Models.Authorization;
+	using Pawfect_Pet_Adoption_App_API.Models.User;
 	using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 	using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
@@ -81,12 +82,12 @@
 					return Unauthorized("Λάθος credentials χρήστη");
 				}
 
-				if (!user.IsVerified)
+				if (!user.HasPhoneVerified)
 				{
 					return Unauthorized("Ο χρήστης δεν έχει επιβεβαιώσει τα στοιχεία του.");
 				}
 
-				String? token = _jwtService.GenerateJwtToken(user.Id, user.Email, user.Role.ToString());
+				String? token = _jwtService.GenerateJwtToken(user.Id, user.Email, user.Role.ToString(), user.HasEmailVerified.ToString(), user.IsVerified.ToString());
 				if (token == null)
 				{
 					// LOGS //
@@ -94,7 +95,7 @@
 					return RequestHandlerTool.HandleInternalServerError(new InvalidOperationException("Αποτυχία παραγωγής JWT Token"), "POST");
 				}
 
-				return Ok(new LoggedAccount() { Token = token, Role = user.Role, LoggedAt = DateTime.UtcNow });
+				return Ok(new LoggedAccount() { Token = token, Role = user.Role, LoggedAt = DateTime.UtcNow, IsEmailVerified = user.HasEmailVerified, IsVerified = user.IsVerified });
 			}
 			catch (Exception e)
 			{
@@ -242,7 +243,7 @@
 				}
 
 				verifyPhoneUser.HasPhoneVerified = true;
-				if ((await _userService.PersistUserAsync(verifyPhoneUser, false) is String userId && String.IsNullOrEmpty(userId)))
+				if ((await _userService.Persist(verifyPhoneUser, false) is UserDto user && user == null))
 				{
 					// LOGS //
 					_logger.LogError("Failed to verify phonenumber. The user with this email or id failed to update");
@@ -323,7 +324,7 @@
 				}
 
 				verifyEmailUser.HasEmailVerified = true;
-				if ((await _userService.PersistUserAsync(verifyEmailUser, false) is String userId && String.IsNullOrEmpty(userId)))
+				if ((await _userService.Persist(verifyEmailUser, false) is UserDto user && user == null))
 				{
 					// LOGS //
 					_logger.LogError("Failed to verify email. The user with this email or id failed to update");

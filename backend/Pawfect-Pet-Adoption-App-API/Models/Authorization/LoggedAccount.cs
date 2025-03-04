@@ -6,6 +6,8 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Authorization
 	{
 		public String Token { get; set; }
 		public UserRole Role { get; set; }
+		public Boolean IsEmailVerified { get; set; }
+		public Boolean IsVerified { get; set; }
 		public DateTime LoggedAt { get; set; }
 	}
 }

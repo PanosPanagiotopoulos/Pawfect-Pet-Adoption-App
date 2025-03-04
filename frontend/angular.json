@@ -21,7 +21,8 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/configs/config.json"
+              "src/configs/config.json",
+              "src/configs/environment.json"
             ],
             "styles": ["src/styles.css"],
             "scripts": []
@@ -70,7 +71,8 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/configs/config.json"
+              "src/configs/config.json",
+              "src/configs/environment.json"
             ],
             "styles": ["src/styles.css"],
             "scripts": []

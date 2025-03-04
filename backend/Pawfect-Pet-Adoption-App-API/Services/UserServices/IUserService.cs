@@ -22,7 +22,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <param name="registerPersist">Τα στοιχεία του χρήστη για εγγραφή.</param>
 		/// <returns>Το ID του εγγεγραμμένου χρήστη.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η εγγραφή του χρήστη.</exception>
-		Task<String?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist);
+		Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist);
 
 		/// <summary>
 		/// Επαλήθευση OTP χρήστη.
@@ -61,7 +61,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <param name="allowCreation">Επιτρέπει τη δημιουργία νέου χρήστη αν δεν υπάρχει.</param>
 		/// <returns>Το ID του αποθηκευμένου χρήστη.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποθήκευση του χρήστη.</exception>
-		Task<String?> PersistUserAsync(UserPersist userPersist, Boolean allowCreation = true);
+		Task<UserDto?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null);
 
 		/// <summary>
 		/// Αποθήκευση χρήστη.
@@ -70,7 +70,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <param name="allowCreation">Επιτρέπει τη δημιουργία νέου χρήστη αν δεν υπάρχει.</param>
 		/// <returns>Το ID του αποθηκευμένου χρήστη.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποθήκευση του χρήστη.</exception>
-		Task<String?> PersistUserAsync(User user, Boolean allowCreation = true);
+		Task<UserDto?> Persist(User user, Boolean allowCreation = true, List<String> buildFields = null);
 
 		/// <summary>
 		/// Επαλήθευση χρήστη.

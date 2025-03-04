@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AuthService } from 'src/app/services/auth.service';
 import { takeUntil } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { SignupStep } from './signup.component';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +15,7 @@ import { takeUntil } from 'rxjs';
 export class LoginComponent extends BaseComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
+  errorMessage: string | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -37,6 +40,9 @@ export class LoginComponent extends BaseComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Clear any previous error messages
+    this.errorMessage = null;
+    
     // Mark all fields as touched to trigger validation messages immediately
     this.markFormGroupTouched(this.loginForm);
     
@@ -45,47 +51,101 @@ export class LoginComponent extends BaseComponent implements OnInit {
       const { email, password } = this.loginForm.value;
 
       // For testing without backend
-      setTimeout(() => {
-        this.isLoading = false;
-        this.router.navigate(['/']);
-      }, 1500);
+      // setTimeout(() => {
+      //   this.isLoading = false;
+      //   this.router.navigate(['/']);
+      // }, 1500);
 
       // Uncomment this when ready to connect to backend
-      // this.authService
-      //   .login(email, password)
-      //   .pipe(takeUntil(this._destroyed))
-      //   .subscribe({
-      //     next: () => {
-      //       this.router.navigate(['/']);
-      //     },
-      //     error: (error) => {
-      //       console.error('Login error:', error);
-      //       this.isLoading = false;
-      //     },
-      //   });
+      this.authService
+        .login(email, password)
+        .pipe(takeUntil(this._destroyed))
+        .subscribe({
+          next: (response) => {
+            // Check if user is verified
+            if (response && !response.isEmailVerified) {
+              // User exists but email is not verified
+              // Store email in session storage to pre-fill the signup form
+              sessionStorage.setItem('unverifiedEmail', email);
+              
+              // Navigate to signup page at email verification step
+              this.navigateToEmailVerification();
+            } else {
+              // User is verified, proceed with normal login flow
+              this.router.navigate(['/']);
+            }
+            this.isLoading = false;
+          },
+          error: (error: HttpErrorResponse) => {
+            this.isLoading = false;
+            
+            if (error.status === 200 && error.error?.isEmailVerified === false) {
+              // This is a special case where the backend returns 200 but with isEmailVerified = false
+              sessionStorage.setItem('unverifiedEmail', email);
+              this.navigateToEmailVerification();
+            } else {
+              // Handle other errors
+              this.handleLoginError(error);
+            }
+          },
+        });
+    }
+  }
+
+  private navigateToEmailVerification(): void {
+    // Navigate to signup page with email verification step
+    this.router.navigate(['/auth/sign-up'], { 
+      state: { 
+        step: SignupStep.EmailConfirmation,
+        fromLogin: true
+      } 
+    });
+  }
+
+  private handleLoginError(error: any): void {
+    console.error('Login error:', error);
+    
+    if (error.status === 401) {
+      this.errorMessage = 'Λάθος email ή κωδικός πρόσβασης';
+    } else if (error.status === 403) {
+      this.errorMessage = 'Ο λογαριασμός σας έχει απενεργοποιηθεί';
+    } else {
+      this.errorMessage = 'Παρουσιάστηκε σφάλμα κατά τη σύνδεση. Παρακαλώ δοκιμάστε ξανά αργότερα.';
     }
   }
 
   loginWithGoogle(): void {
-    // For testing without backend
+    this.errorMessage = null;
     this.isLoading = true;
-    setTimeout(() => {
-      this.isLoading = false;
-      this.router.navigate(['/']);
-    }, 1500);
+    
+    // For testing without backend
+    // setTimeout(() => {
+    //   this.isLoading = false;
+    //   this.router.navigate(['/']);
+    // }, 1500);
 
     // Uncomment this when ready to connect to backend
-    // this.authService
-    //   .loginWithGoogle('')
-    //   .pipe(takeUntil(this._destroyed))
-    //   .subscribe({
-    //     next: () => {
-    //       this.router.navigate(['/']);
-    //     },
-    //     error: (error) => {
-    //       console.error('Google login error:', error);
-    //     },
-    //   });
+    this.authService
+      .loginWithGoogle('')
+      .pipe(takeUntil(this._destroyed))
+      .subscribe({
+        next: (response) => {
+          // Check if user is verified
+          if (response && !response.isEmailVerified) {
+            // User exists but email is not verified
+            sessionStorage.setItem('unverifiedEmail', response.email || '');
+            this.navigateToEmailVerification();
+          } else {
+            // User is verified, proceed with normal login flow
+            this.router.navigate(['/']);
+          }
+          this.isLoading = false;
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.handleLoginError(error);
+        },
+      });
   }
   
   // Helper method to mark all controls in a form group as touched

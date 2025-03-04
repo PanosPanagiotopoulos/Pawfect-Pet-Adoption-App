@@ -34,7 +34,7 @@ import { lucideClock, lucideX } from '@ng-icons/lucide';
       <!-- Time selection (shown only when not closed) -->
       <div *ngIf="!isClosed" class="flex items-center justify-between">
         <div class="flex items-center space-x-2">
-          <span class="text-gray-400 text-sm">{{ openTime }}</span>
+          <span class="text-gray-400 text-sm">{{ openTime || 'Επιλέξτε ώρα' }}</span>
           <button 
             (click)="openTimePicker('open')" 
             class="p-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors"
@@ -48,7 +48,7 @@ import { lucideClock, lucideX } from '@ng-icons/lucide';
         <span class="text-gray-400 mx-2">έως</span>
         
         <div class="flex items-center space-x-2">
-          <span class="text-gray-400 text-sm">{{ closeTime }}</span>
+          <span class="text-gray-400 text-sm">{{ closeTime || 'Επιλέξτε ώρα' }}</span>
           <button 
             (click)="openTimePicker('close')" 
             class="p-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors"
@@ -124,13 +124,14 @@ import { lucideClock, lucideX } from '@ng-icons/lucide';
 })
 export class ClockTimePickerComponent implements OnInit {
   @Input() day!: string;
-  @Input() initialValue: string = '09:00,17:00';
+  @Input() initialValue: string = '';
   @Output() timeChange = new EventEmitter<{day: string, openTime: string, closeTime: string}>();
 
-  openTime: string = '09:00';
-  closeTime: string = '17:00';
+  openTime: string = '';
+  closeTime: string = '';
   isClosed: boolean = false;
   error: string | null = null;
+  isModified: boolean = false;
   
   // Time picker modal
   showTimePicker: boolean = false;
@@ -146,16 +147,20 @@ export class ClockTimePickerComponent implements OnInit {
   parseInitialValue() {
     if (this.initialValue === 'closed') {
       this.isClosed = true;
-    } else {
+      this.isModified = true;
+    } else if (this.initialValue && this.initialValue !== '') {
       const parts = this.initialValue.split(',');
       if (parts.length === 2) {
         this.openTime = parts[0];
         this.closeTime = parts[1];
+        this.isModified = true;
       }
     }
   }
 
   onClosedChange() {
+    this.isModified = true;
+    
     if (this.isClosed) {
       this.emitTimeChange('closed', 'closed');
     } else {
@@ -177,6 +182,8 @@ export class ClockTimePickerComponent implements OnInit {
 
   confirmTimeSelection() {
     if (this.tempTime) {
+      this.isModified = true;
+      
       if (this.currentPickerType === 'open') {
         this.openTime = this.tempTime;
       } else {
@@ -201,6 +208,14 @@ export class ClockTimePickerComponent implements OnInit {
         this.error = null;
         return true;
       }
+    } else if ((this.openTime && !this.closeTime) || (!this.openTime && this.closeTime)) {
+      // If only one time is provided
+      this.error = 'Πρέπει να συμπληρώσετε και τις δύο ώρες';
+      return false;
+    } else if (!this.isModified) {
+      // If no times are provided and component hasn't been modified, it's valid
+      this.error = null;
+      return true;
     }
     return true;
   }

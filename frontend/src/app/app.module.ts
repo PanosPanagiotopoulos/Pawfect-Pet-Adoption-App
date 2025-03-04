@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
@@ -33,6 +33,13 @@ import { BaseHttpService } from './common/services/base-http.service';
 import { HeaderComponent } from './ui/components/home/shared/header/header.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+
+// Factory function for APP_INITIALIZER
+export function initializeApp(
+  installationConfigService: InstallationConfigurationService
+) {
+  return () => installationConfigService.loadConfig().toPromise();
+}
 
 @NgModule({
   declarations: [AppComponent],
@@ -70,8 +77,14 @@ import { MatInputModule } from '@angular/material/input';
     HeaderComponent,
   ],
   providers: [
-    InstallationConfigurationService, 
-    BaseHttpService
+    InstallationConfigurationService,
+    BaseHttpService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      deps: [InstallationConfigurationService],
+      multi: true,
+    },
   ],
   bootstrap: [AppComponent],
 })

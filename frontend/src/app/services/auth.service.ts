@@ -12,6 +12,11 @@ import {
 import { jwtDecode } from 'jwt-decode';
 import { JwtPayload } from '../common/models/jwt.model';
 
+export interface LoginResponse extends LoggedAccount {
+  isEmailVerified: boolean;
+  email?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -33,19 +38,22 @@ export class AuthService {
   }
 
   // Authentication functions
-  login(email: string, password: string): Observable<LoggedAccount> {
+  login(email: string, password: string): Observable<LoginResponse> {
     const url = `${this.apiBase}/login`;
     const payload: LoginPayload = { email, password, loginProvider: 1 };
 
-    return this.http.post<LoggedAccount>(url, payload).pipe(
-      tap((response: LoggedAccount) => {
-        this.setLoggedAccount(response);
+    return this.http.post<LoginResponse>(url, payload).pipe(
+      tap((response: LoginResponse) => {
+        // Only set logged account if email is verified
+        if (response.isEmailVerified) {
+          this.setLoggedAccount(response);
+        }
       }),
       catchError((error: any) => throwError(error))
     );
   }
 
-  loginWithGoogle(accessToken: string): Observable<LoggedAccount> {
+  loginWithGoogle(accessToken: string): Observable<LoginResponse> {
     const url = `${this.apiBase}/login`;
     const payload: LoginPayload = {
       email: '',
@@ -54,9 +62,12 @@ export class AuthService {
       providerAccessCode: accessToken,
     };
 
-    return this.http.post<LoggedAccount>(url, payload).pipe(
-      tap((response: LoggedAccount) => {
-        this.setLoggedAccount(response);
+    return this.http.post<LoginResponse>(url, payload).pipe(
+      tap((response: LoginResponse) => {
+        // Only set logged account if email is verified
+        if (response.isEmailVerified) {
+          this.setLoggedAccount(response);
+        }
       }),
       catchError((error: any) => throwError(error))
     );

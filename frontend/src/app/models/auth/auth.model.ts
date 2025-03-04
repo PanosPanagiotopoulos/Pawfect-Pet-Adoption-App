@@ -18,6 +18,7 @@ export interface LoggedAccount {
   token: string;
   role: UserRole;
   loggedAt: Date;
+  isEmailVerified?: boolean;
 }
 
 export interface LoginPayload {
