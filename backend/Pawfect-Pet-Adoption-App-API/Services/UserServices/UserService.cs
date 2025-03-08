@@ -3,6 +3,8 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
+using MongoDB.Driver;
+
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
@@ -62,40 +64,41 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 		public async Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
 		{
+			_logger.LogInformation(JsonHelper.SerializeObjectFormatted(registerPersist));
 			// Ελέγξτε αν ο χρήστης υπάρχει ήδη. Αν ναι, επιστρέψτε το υπάρχον ID του χρήστη.
-			User user = await _userRepository.FindAsync(user => user.Email == registerPersist.User.Email);
-			if (user == null)
+			if (await _userRepository.ExistsAsync(user => user.Email == registerPersist.User.Email))
 			{
-				// Χαρτογραφήστε τα δεδομένα του χρήστη και ορίστε τον χρήστη ως μη επιβεβαιωμένο.
-				user = _mapper.Map<User>(registerPersist.User);
-				user.IsVerified = false;
-
-				// *TODO* Make email verified and save shelter data if exist with user id as reference
-
-				// Αποθηκεύστε τα δεδομένα του χρήστη.
-				UserDto newUser = await Persist(user, true, new() { nameof(UserDto.Id) });
-
-				if (newUser == null)
-				{
-					throw new Exception("Αποτυχια perisiting του νεου χρηστη");
-				}
-
-				// Save shelter data if any 
-				if (registerPersist.Shelter != null)
-				{
-					registerPersist.Shelter.UserId = newUser.Id;
-					ShelterDto newShelter = await _shelterService.Value.Persist(registerPersist.Shelter, new() { nameof(ShelterDto.Id) });
-					if (newShelter == null)
-					{
-						throw new Exception("Αποτυχια persisting shelter");
-					}
-
-					user.Id = newUser.Id;
-					user.ShelterId = newShelter.Id;
-				}
+				throw new InvalidDataException("Αυτο το email χρησιμοποιείται");
 			}
 
-			return await Persist(user, true);
+			User user = _mapper.Map<User>(registerPersist.User);
+			user.IsVerified = false;
+
+			// Αποθηκεύστε τα δεδομένα του χρήστη.
+			UserDto newUser = await Persist(user, true, new() { nameof(UserDto.Id) });
+			user.Id = newUser.Id;
+
+			if (newUser == null)
+			{
+				throw new Exception("Αποτυχια perisiting του νεου χρηστη");
+			}
+
+			_logger.LogInformation("New User Created : \n" + JsonHelper.SerializeObjectFormatted(newUser));
+
+			// Save shelter data if any 
+			if (registerPersist.Shelter != null)
+			{
+				registerPersist.Shelter.UserId = newUser.Id;
+				ShelterDto newShelter = await _shelterService.Value.Persist(registerPersist.Shelter, new() { nameof(ShelterDto.Id) });
+				if (newShelter == null)
+				{
+					throw new Exception("Αποτυχια persisting shelter");
+				}
+
+				user.ShelterId = newShelter.Id;
+			}
+
+			return await Persist(user, false);
 		}
 
 		public async Task GenerateNewOtpAsync(String? phonenumber)
@@ -161,45 +164,33 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// Δημιουργήστε ένα νέο token επιβεβαίωσης email.
 			String token = IEmailService.GenerateRefreshToken();
 
-			// Αφαιρέστε το υπάρχον token αν υπάρχει.
-			if (_memoryCache.TryGetValue(email, out _))
-			{
-				_memoryCache.Remove(email);
-			}
-
 			// Αποθηκεύστε το νέο token στην cache.
-			_memoryCache.Set(email, token, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
+			_memoryCache.Set(token, email, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
 
 			// Δημιουργήστε το URL επιβεβαίωσης.
-			String verificationUrl = Path.Join(_requestService.GetBaseURI(), $"auth/verify-email?&token={token}");
+			String verificationUrl = Path.Join(_requestService.GetFrontendBaseURI(), $"auth/verified?token={token}");
 
 			// Στείλτε το email επιβεβαίωσης.
 			await _emailService.SendEmailAsync(email, EmailType.Verification.ToString(), String.Format(IEmailService.EmailTemplates[EmailType.Verification], verificationUrl));
 		}
 
-		public Boolean VerifyEmail(String? email, String? token)
+		public String VerifyEmail(String? token)
 		{
-			if (String.IsNullOrEmpty(email) || String.IsNullOrEmpty(token))
+			if (String.IsNullOrEmpty(token))
 			{
 				throw new InvalidDataException("Δεν βρέθηκε email ή token για την επαλήθευση του email");
 			}
 
 			// Ελέγξτε αν το token επιβεβαίωσης email υπάρχει στην cache.
-			if (!_memoryCache.TryGetValue(email, out String? refreshToken))
-			{
-				throw new InvalidDataException("Δεν έχει αποσταλθεί email επιβεβαίωσης σε αυτό το email.");
-			}
-
-			// Επαληθεύστε το token email.
-			if (!(token == refreshToken))
+			if (!_memoryCache.TryGetValue(token, out String email))
 			{
 				throw new InvalidDataException("Αυτό το link δεν ισχύει πια");
 			}
 
 			// Αφαιρέστε το token από την cache.
-			_memoryCache.Remove(email);
+			_memoryCache.Remove(token);
 
-			return true;
+			return email;
 		}
 
 		public async Task<Boolean> VerifyUserAsync(String? id, String? email)
@@ -280,14 +271,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			await _emailService.SendEmailAsync(email, subject, String.Format(IEmailService.EmailTemplates[EmailType.Reset_Password], resetPasswordUrl));
 		}
 
-		public async Task<Boolean> ResetPasswordAsync(String? email, String? password, String? token)
+		public async Task<Boolean> ResetPasswordAsync(String? password, String? token)
 		{
-			// Επαλήθευση email parameter
-			if (String.IsNullOrEmpty(email))
-			{
-				throw new InvalidDataException("Email είναι απαραίτητο για την επαναφορά του κωδικού.");
-			}
-
 			// Επαλήθευση password parameter
 			if (String.IsNullOrEmpty(password))
 			{
@@ -302,13 +287,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 			try
 			{
+				String identifiedEmail = VerifyEmail(token);
 				// Επαλήθευση του email και του token για να επιλεσει την επαναφορά του κωδικού
-				if (!VerifyEmail(email, token))
+				if (String.IsNullOrEmpty(identifiedEmail))
 				{
 					throw new InvalidDataException("Η επαλήθευση του email για την επαναφορά κωδικού απέτυχε.");
 				}
 
-				User? resetPasswordUser = await RetrieveUserAsync(null, email);
+				User? resetPasswordUser = await RetrieveUserAsync(null, identifiedEmail);
 
 				if (resetPasswordUser == null)
 				{
@@ -316,7 +302,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				}
 
 				resetPasswordUser.Password = password;
-				HashLoginCredentials(ref resetPasswordUser);
+				this.HashLoginCredentials(ref resetPasswordUser);
 				// Κάνουμε update τον χρήστη με τον νέο κωδικό
 				await Persist(resetPasswordUser, false, new() { nameof(UserDto.Id) });
 
@@ -353,10 +339,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 						workingUser = _mapper.Map<User>(userPersist);
 
 						// Hash τα credentials συνθηματικών του χρήστη
-						HashLoginCredentials(ref workingUser);
+						this.HashLoginCredentials(ref workingUser);
 
 						workingUser.CreatedAt = DateTime.UtcNow;
 						workingUser.UpdatedAt = DateTime.UtcNow;
+						_logger.LogInformation("Working User Persisting:\n", JsonHelper.SerializeObjectFormatted(workingUser));
 
 						workingUser.Id = await _userRepository.AddAsync(workingUser);
 						if (String.IsNullOrEmpty(workingUser.Id))
@@ -367,7 +354,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 					else
 					{
+						_mapper.Map(userPersist, workingUser);
+						this.HashLoginCredentials(ref workingUser);
 						workingUser.UpdatedAt = DateTime.UtcNow;
+						_logger.LogInformation("Working User Persisting:\n", JsonHelper.SerializeObjectFormatted(workingUser));
 						await _userRepository.UpdateAsync(workingUser);
 					}
 
@@ -410,10 +400,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					workingUser = _mapper.Map<User>(user);
 
 					// Hash τα credentials συνθηματικών του χρήστη
-					HashLoginCredentials(ref workingUser);
+					this.HashLoginCredentials(ref workingUser);
 
 					workingUser.CreatedAt = DateTime.UtcNow;
 					workingUser.UpdatedAt = DateTime.UtcNow;
+					_logger.LogInformation("Working User Persisting for creation:\n" + JsonHelper.SerializeObjectFormatted(workingUser));
 
 					workingUser.Id = await _userRepository.AddAsync(workingUser);
 					if (String.IsNullOrEmpty(workingUser.Id))
@@ -426,8 +417,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				{
 					// Ενημερώστε τον υπάρχοντα χρήστη.
 					_mapper.Map(user, workingUser);
+					this.HashLoginCredentials(ref workingUser);
+					_logger.LogInformation("Working User Persisting for update:\n" + JsonHelper.SerializeObjectFormatted(workingUser));
+
 					workingUser.UpdatedAt = DateTime.UtcNow;
-					await _userRepository.UpdateAsync(user);
+					await _userRepository.UpdateAsync(workingUser);
 				}
 
 				// Return dto model
@@ -436,6 +430,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
 				lookup.Offset = 0;
 				lookup.PageSize = 1;
+
 
 				return (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
 			}

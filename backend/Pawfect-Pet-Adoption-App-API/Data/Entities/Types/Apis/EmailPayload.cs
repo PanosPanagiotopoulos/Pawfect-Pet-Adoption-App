@@ -3,8 +3,8 @@
 	public class EmailPayload
 	{
 		// Τα δεδομένα Id, Email αποστέλονται ένα απο τα 2 για επιβεαβίωση του χρήστη που έκανε verify
-		public string Id { get; set; }
-		public string Email { get; set; }
-		public string Token { get; set; }
+		public String Id { get; set; }
+		public String Email { get; set; }
+		public String Token { get; set; }
 	}
 }

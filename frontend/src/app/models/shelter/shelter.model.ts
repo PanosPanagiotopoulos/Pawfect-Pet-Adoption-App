@@ -25,7 +25,7 @@ export interface ShelterPersist {
   SocialMedia: SocialMedia;
   OperatingHours: OperatingHours;
   VerificationStatus: VerificationStatus;
-  VerifiedBy: string;
+  VerifiedBy?: string;
 }
 
 export interface OperatingHours {

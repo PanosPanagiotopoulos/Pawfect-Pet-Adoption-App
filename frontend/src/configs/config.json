@@ -1,0 +1,4 @@
+{
+  "appServiceAddress": "https://localhost:7200/",
+  "disableAuth": true
+}

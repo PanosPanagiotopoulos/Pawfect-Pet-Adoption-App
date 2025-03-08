@@ -95,7 +95,7 @@
 					return RequestHandlerTool.HandleInternalServerError(new InvalidOperationException("Αποτυχία παραγωγής JWT Token"), "POST");
 				}
 
-				return Ok(new LoggedAccount() { Token = token, Role = user.Role, LoggedAt = DateTime.UtcNow, IsEmailVerified = user.HasEmailVerified, IsVerified = user.IsVerified });
+				return Ok(new LoggedAccount() { Token = token, Email = user.Email, Phone = user.Phone, Role = user.Role, LoggedAt = DateTime.UtcNow, IsEmailVerified = user.HasEmailVerified, IsPhoneVerified = user.HasPhoneVerified, IsVerified = user.IsVerified });
 			}
 			catch (Exception e)
 			{
@@ -163,7 +163,7 @@
 		[ProducesResponseType(200, Type = typeof(String))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> RegisterUserUnverified([FromBody] RegisterPersist toRegisterUser)
+		public async Task<IActionResult> RegisterUserUnverified([FromForm] RegisterPersist toRegisterUser)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -173,6 +173,12 @@
 			try
 			{
 				return Ok(await _userService.RegisterUserUnverifiedAsync(toRegisterUser));
+			}
+			catch (InvalidDataException ide)
+			{
+				_logger.LogError(ide, "Error while registering unverified user");
+				return RequestHandlerTool.HandleInternalServerError(ide, "POST", "/auth/register/unverified", ide.Message);
+
 			}
 			catch (Exception e)
 			{
@@ -243,13 +249,17 @@
 				}
 
 				verifyPhoneUser.HasPhoneVerified = true;
-				if ((await _userService.Persist(verifyPhoneUser, false) is UserDto user && user == null))
+
+				UserDto persisted = await _userService.Persist(verifyPhoneUser, false, new() { nameof(UserDto.Id) });
+				if (persisted == null)
 				{
 					// LOGS //
 					_logger.LogError("Failed to verify phonenumber. The user with this email or id failed to update");
 
 					return RequestHandlerTool.HandleInternalServerError(new Exception("Failed to verify phonenumber. The user with this email or id failed to update"), "POST");
 				}
+
+				await _userService.VerifyUserAsync(persisted.Id, null);
 
 				return Ok();
 			}
@@ -306,7 +316,8 @@
 
 			try
 			{
-				if (!_userService.VerifyEmail(emailPayload.Email, emailPayload.Token))
+				String identifiedEmail = _userService.VerifyEmail(emailPayload.Token);
+				if (String.IsNullOrEmpty(identifiedEmail))
 				{
 					// LOGS //
 					_logger.LogError("Failed to verify email");
@@ -315,7 +326,7 @@
 				}
 
 				User? verifyEmailUser = null;
-				if ((verifyEmailUser = (await _userService.RetrieveUserAsync(emailPayload.Id, emailPayload.Email))) == null)
+				if ((verifyEmailUser = (await _userService.RetrieveUserAsync(null, identifiedEmail))) == null)
 				{
 					// LOGS //
 					_logger.LogError("Failed to verify email. The user with this email or id was not found");
@@ -324,13 +335,17 @@
 				}
 
 				verifyEmailUser.HasEmailVerified = true;
-				if ((await _userService.Persist(verifyEmailUser, false) is UserDto user && user == null))
+
+				UserDto persisted = await _userService.Persist(verifyEmailUser, false, new() { nameof(UserDto.Id) });
+				if (persisted == null)
 				{
 					// LOGS //
 					_logger.LogError("Failed to verify email. The user with this email or id failed to update");
 
 					return RequestHandlerTool.HandleInternalServerError(new Exception("Failed to verify email. The user with this email or id failed to update"), "POST");
 				}
+
+				await _userService.VerifyUserAsync(verifyEmailUser.Id, null);
 
 				return Ok();
 			}
@@ -339,41 +354,6 @@
 			{
 				// LOGS //
 				_logger.LogError(e, "Error while verifying email");
-				return RequestHandlerTool.HandleInternalServerError(e, "POST");
-			}
-		}
-
-		/// <summary>
-		/// Εγγραφή επιβεβαιωμένου χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
-		[HttpPost("register/verified")]
-		[ProducesResponseType(200)]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> RegisterUserVerified([FromBody] EmailPayload toVerifyUserData)
-		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
-
-			try
-			{
-				if (!(await _userService.VerifyUserAsync(toVerifyUserData.Id, toVerifyUserData.Email)))
-				{
-					// LOGS //
-					_logger.LogError("Error προσπαθόντας να κάνουμε verify τον χρήστη");
-					ModelState.AddModelError("error", "Έλειψη απαραίτητων κριτηρίων για πλήρη επιβεβαίωση χρήστη");
-					return BadRequest(ModelState);
-				}
-
-				return Ok();
-			}
-			catch (Exception e)
-			{
-				// LOGS //
-				_logger.LogError(e, "Error προσπαθόντας να κάνουμε verify τον χρήστη");
 				return RequestHandlerTool.HandleInternalServerError(e, "POST");
 			}
 		}
@@ -425,7 +405,7 @@
 			try
 			{
 				// Reset the password
-				if (!await _userService.ResetPasswordAsync(resetPasswordPayload.Email, resetPasswordPayload.NewPassword, resetPasswordPayload.Token))
+				if (!await _userService.ResetPasswordAsync(resetPasswordPayload.NewPassword, resetPasswordPayload.Token))
 				{
 					// LOGS //
 					_logger.LogError("Αποτυχία επαναφοράς κωδικού");

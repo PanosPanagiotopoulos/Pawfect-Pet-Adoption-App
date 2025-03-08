@@ -9,9 +9,8 @@ import {
 import { Router, ActivatedRoute } from '@angular/router';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AuthService } from 'src/app/services/auth.service';
-import { RegisterPayload } from 'src/app/models/auth/auth.model';
-import { UserRole } from 'src/app/models/user/user.model';
-import { takeUntil } from 'rxjs';
+import { RegisterPayload, OtpPayload } from 'src/app/models/auth/auth.model';
+import { User, UserRole } from 'src/app/models/user/user.model';
 import { CustomValidators } from './validators/custom.validators';
 import {
   trigger,
@@ -21,6 +20,7 @@ import {
   state,
 } from '@angular/animations';
 import { OtpInputComponent } from 'src/app/common/ui/otp-input.component';
+import { LogService } from 'src/app/common/services/log.service';
 
 interface LocationFormGroup extends FormGroup {
   controls: {
@@ -121,10 +121,7 @@ export enum SignupStep {
     ]),
   ],
 })
-export class SignupComponent
-  extends BaseComponent
-  implements OnInit, OnDestroy
-{
+export class SignupComponent extends BaseComponent implements OnInit, OnDestroy {
   @ViewChild(OtpInputComponent) otpInputComponent?: OtpInputComponent;
 
   currentStep = SignupStep.PersonalInfo;
@@ -143,6 +140,7 @@ export class SignupComponent
   constructor(
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
+    private readonly logService: LogService,
     private readonly router: Router,
     private readonly route: ActivatedRoute
   ) {
@@ -152,19 +150,34 @@ export class SignupComponent
 
   ngOnInit(): void {
     // Check if we're coming from login with an unverified email
-    const navigation = this.router.getCurrentNavigation();
-    if (navigation?.extras.state) {
-      const state = navigation.extras.state as {
-        step: SignupStep;
-        fromLogin: boolean;
-      };
+    const state = history.state;
 
-      if (state.step === SignupStep.EmailConfirmation && state.fromLogin) {
-        this.fromLogin = true;
-        this.currentStep = SignupStep.EmailConfirmation;
+    // Add session storage data if any to reproduce the otp or email verifications
+    const existingPhone: string | null =
+      sessionStorage.getItem('unverifiedPhone');
+    if (existingPhone) {
+      this.registrationForm.get('phone')?.setValue(existingPhone);
+      sessionStorage.removeItem('unverifiedPhone');
+    }
+    const existingEmail: string | null =
+      sessionStorage.getItem('unverifiedEmail');
+    if (existingEmail) {
+      this.registrationForm.get('email')?.setValue(existingEmail);
+      sessionStorage.removeItem('unverifiedEmail');
+    }
 
-        this.registrationForm.get('hasEmailVerified')?.setValue(true);
-      }
+    if (state && state.step === SignupStep.OtpVerification && state.fromLogin) {
+      this.currentStep = SignupStep.OtpVerification;
+      this.resendOtp();
+    }
+
+    if (
+      state &&
+      state.step === SignupStep.EmailConfirmation &&
+      state.fromLogin
+    ) {
+      this.currentStep = SignupStep.EmailConfirmation;
+      this.resendEmailVerification();
     }
 
     history.pushState(null, '', location.href);
@@ -440,17 +453,13 @@ export class SignupComponent
   }
 
   onPersonalInfoNext(): void {
-    // Set direction for animation
     this.stepDirection = 'next';
-    // Always proceed to next step, validation will be handled in the personal-info component
     this.currentStep = SignupStep.AccountDetails;
   }
 
   onAccountDetailsNext(): void {
-    // Set direction for animation
     this.stepDirection = 'next';
 
-    // Check if passwords match
     const password = this.registrationForm.get('password')?.value;
     const confirmPassword = this.registrationForm.get('confirmPassword')?.value;
 
@@ -458,21 +467,17 @@ export class SignupComponent
       this.registrationForm
         .get('confirmPassword')
         ?.setErrors({ mismatch: true });
-      // Mark as touched to show validation errors
       this.registrationForm.get('confirmPassword')?.markAsTouched();
       return;
     }
 
-    // If form is valid, proceed to next step
     if (this.getAccountDetailsForm().valid) {
       if (this.showShelterInfo) {
         this.currentStep = SignupStep.ShelterInfo;
       } else {
         this.onSubmitRegistration();
-        this.currentStep = SignupStep.OtpVerification;
       }
     } else {
-      // Mark all fields as touched to show validation errors
       this.markFormGroupTouched(this.getAccountDetailsForm());
     }
   }
@@ -484,48 +489,49 @@ export class SignupComponent
   }
 
   onShelterInfoBack(): void {
-    // Set direction for animation
     this.stepDirection = 'prev';
     this.currentStep = SignupStep.AccountDetails;
   }
 
   onSubmitRegistration(): void {
-    // Mark all fields as touched to trigger validation messages immediately
     this.markFormGroupTouched(this.registrationForm);
     if (this.registrationForm.valid) {
       this.isLoading = true;
       const formValue = this.registrationForm.value;
-      // Log the complete form data
-      console.log('Registration Form Data:', {
-        personalInfo: {
-          email: formValue.email,
-          fullName: formValue.fullName,
-          phone: formValue.phone,
-          location: formValue.location,
-        },
-        accountDetails: {
-          password: formValue.password,
-          role: formValue.role,
-        },
-        profilePhoto: formValue.profilePhoto
-          ? {
-              name: formValue.profilePhoto.name || 'unknown',
-              size: formValue.profilePhoto.size
-                ? this.formatFileSize(formValue.profilePhoto.size)
-                : 'unknown',
-              type: formValue.profilePhoto.type || 'unknown',
-            }
-          : 'No profile photo uploaded',
-        shelterInfo: formValue.isShelter
-          ? {
-              shelterName: formValue.shelter.shelterName,
-              description: formValue.shelter.description,
-              website: formValue.shelter.website,
-              socialMedia: formValue.shelter.socialMedia,
-              operatingHours: formValue.shelter.operatingHours,
-            }
-          : null,
-      });
+
+      this.logService.logFormatted(
+        'Registration Form Data:\n' +
+          {
+            personalInfo: {
+              email: formValue.email,
+              fullName: formValue.fullName,
+              phone: formValue.phone,
+              location: formValue.location,
+            },
+            accountDetails: {
+              password: formValue.password,
+              role: formValue.role,
+            },
+            profilePhoto: formValue.profilePhoto
+              ? {
+                  name: formValue.profilePhoto.name || 'unknown',
+                  size: formValue.profilePhoto.size
+                    ? this.formatFileSize(formValue.profilePhoto.size)
+                    : 'unknown',
+                  type: formValue.profilePhoto.type || 'unknown',
+                }
+              : 'No profile photo uploaded',
+            shelterInfo: formValue.isShelter
+              ? {
+                  shelterName: formValue.shelter.shelterName,
+                  description: formValue.shelter.description,
+                  website: formValue.shelter.website,
+                  socialMedia: formValue.shelter.socialMedia,
+                  operatingHours: formValue.shelter.operatingHours,
+                }
+              : null,
+          }
+      );
 
       const payload: RegisterPayload = {
         user: {
@@ -539,7 +545,7 @@ export class SignupComponent
           AuthProvider: 1,
           AttachedPhoto: formValue.profilePhoto,
           HasPhoneVerified: false,
-          HasEmailVerified: formValue.hasEmailVerified || false,
+          HasEmailVerified: false,
         },
       };
 
@@ -555,30 +561,24 @@ export class SignupComponent
             formValue.shelter.operatingHours
           ),
           VerificationStatus: 1,
-          VerifiedBy: '',
+          VerifiedBy: undefined,
         };
       }
 
-      const separator = (key: string, value: any) => {
-        return value ? value : 'No value found to print';
-      };
-      console.log(JSON.stringify(payload, separator, 2));
+      this.logService.logFormatted(payload);
 
-      this.authService
-        .register(payload)
-        .pipe(takeUntil(this._destroyed))
-        .subscribe({
-          next: (userId) => {
-            this.userId = userId;
-            this.startOtpTimer();
-            this.currentStep = SignupStep.OtpVerification;
-            this.isLoading = false;
-          },
-          error: (error) => {
-            console.error('Registration error:', error);
-            this.isLoading = false;
-          },
-        });
+      this.authService.register(payload).subscribe({
+        next: (user: User) => {
+          this.userId = user.Id!;
+          this.resendOtp();
+          this.currentStep = SignupStep.OtpVerification;
+          this.isLoading = false;
+        },
+        error: (error) => {
+          console.error('Registration error:', error);
+          this.isLoading = false;
+        },
+      });
     }
   }
 
@@ -611,7 +611,6 @@ export class SignupComponent
   }
 
   onSubmitOtp(): void {
-    // Mark all fields as touched to trigger validation messages immediately
     this.markFormGroupTouched(this.otpForm);
 
     if (this.otpForm.valid) {
@@ -620,11 +619,16 @@ export class SignupComponent
       const { phone, email } = this.registrationForm.value;
 
       this.authService
-        .verifyOtp(phone, otp, this.userId, email)
-        .pipe(takeUntil(this._destroyed))
+        .verifyOtp({
+          phone: phone,
+          otp: +otp,
+          id: this.userId,
+          email: email,
+        } as OtpPayload)
         .subscribe({
           next: () => {
             this.currentStep = SignupStep.EmailConfirmation;
+            this.resendEmailVerification();
             this.isLoading = false;
           },
           error: (error) => {
@@ -636,53 +640,46 @@ export class SignupComponent
   }
 
   onOtpCompleted(otp: string): void {
-    // Auto-submit when all digits are filled
     if (otp.length === 6) {
       this.onSubmitOtp();
     }
   }
 
   resendOtp(): void {
-    if (this.resendOtpTimer === 0) {
-      const { phone } = this.registrationForm.value;
+    const { phone, email } = this.registrationForm.value;
 
-      this.authService
-        .sendOtp(phone)
-        .pipe(takeUntil(this._destroyed))
-        .subscribe({
-          next: () => {
-            this.startOtpTimer();
-          },
-          error: (error) => {
-            console.error('Resend OTP error:', error);
-          },
-        });
+    this.authService
+      .sendOtp({
+        phone: phone,
+        id: this.userId,
+        email: email,
+      } as OtpPayload)
+      .subscribe({
+        next: () => {
+          this.startOtpTimer();
+        },
+        error: (error) => {
+          console.error('Resend OTP error:', error);
+        },
+      });
 
-      // For testing without backend
-      this.startOtpTimer();
-    }
+    this.startOtpTimer();
   }
 
-  // Method to resend email verification
   resendEmailVerification(): void {
     const email = this.registrationForm.get('email')?.value;
-    if (email) {
-      this.isLoading = true;
+    this.isLoading = true;
 
-      this.authService
-        .sendVerificationEmail(email)
-        .pipe(takeUntil(this._destroyed))
-        .subscribe({
-          next: () => {
-            this.isLoading = false;
-            // Show success message
-          },
-          error: (error) => {
-            this.isLoading = false;
-            console.error('Resend email verification error:', error);
-          },
-        });
-    }
+    this.authService.sendVerificationEmail(email).subscribe({
+      next: () => {
+        this.isLoading = false;
+        // Show success message
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Resend email verification error:', error);
+      },
+    });
   }
 
   private startOtpTimer(): void {

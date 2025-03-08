@@ -1,21 +1,6 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  ChangeDetectionStrategy,
-  ElementRef,
-  ViewChild,
-  ChangeDetectorRef,
-  OnInit,
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ElementRef, ViewChild, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormGroup,
-  ReactiveFormsModule,
-  FormsModule,
-  AbstractControl,
-} from '@angular/forms';
+import { FormGroup, ReactiveFormsModule, FormsModule, AbstractControl } from '@angular/forms';
 import { NgIconsModule } from '@ng-icons/core';
 import { FormInputComponent } from 'src/app/common/ui/form-input.component';
 import { TextAreaInputComponent } from 'src/app/common/ui/text-area-input.component';
@@ -31,207 +16,12 @@ import { TextAreaInputComponent } from 'src/app/common/ui/text-area-input.compon
     TextAreaInputComponent,
     NgIconsModule,
   ],
+  templateUrl: './shelter-info.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div [formGroup]="form" class="space-y-6" #formContainer>
-      <h2 class="text-2xl font-bold text-white mb-6">Πληροφορίες Καταφυγίου</h2>
-
-      <app-form-input
-        [form]="getShelterForm()"
-        controlName="shelterName"
-        type="text"
-        placeholder="Όνομα Καταφυγίου"
-      >
-      </app-form-input>
-
-      <app-text-area-input
-        [form]="getShelterForm()"
-        controlName="description"
-        label="Περιγραφή"
-        placeholder="Περιγράψτε το καταφύγιό σας"
-        [rows]="4"
-        hint="Παρακαλώ παρέχετε μια σύντομη περιγραφή του καταφυγίου σας (τουλάχιστον 10 χαρακτήρες)"
-        (valueChange)="updateDescription($event)"
-      >
-      </app-text-area-input>
-
-      <app-form-input
-        [form]="getShelterForm()"
-        controlName="website"
-        type="url"
-        placeholder="Ιστοσελίδα (Προαιρετικό)"
-      >
-      </app-form-input>
-
-      <!-- Social Media Section -->
-      <div class="space-y-4">
-        <h3 class="text-lg font-medium text-white">
-          Κοινωνικά Δίκτυα (Προαιρετικό)
-        </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <app-form-input
-            [form]="getSocialMediaForm()"
-            controlName="facebook"
-            type="url"
-            placeholder="Facebook URL"
-          >
-          </app-form-input>
-
-          <app-form-input
-            [form]="getSocialMediaForm()"
-            controlName="instagram"
-            type="url"
-            placeholder="Instagram URL"
-          >
-          </app-form-input>
-        </div>
-      </div>
-
-      <!-- Operating Hours Section -->
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-medium text-white">Ώρες Λειτουργίας</h3>
-          <span class="text-sm text-gray-400">(Προαιρετικό)</span>
-        </div>
-
-        <div class="bg-gray-800/50 rounded-xl p-4 space-y-4">
-          <div
-            *ngFor="let day of days"
-            class="mb-4 border border-gray-700/50 rounded-xl p-4 hover:border-gray-600/70 transition-colors"
-          >
-            <div class="flex justify-between items-center mb-3">
-              <h4 class="text-white font-medium">{{ day }}</h4>
-
-              <!-- Closed toggle -->
-              <div class="flex items-center">
-                <label class="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    [(ngModel)]="closedDays[day]"
-                    [ngModelOptions]="{ standalone: true }"
-                    (change)="onClosedChange(day)"
-                    class="sr-only peer"
-                  />
-                  <div
-                    class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"
-                  ></div>
-                </label>
-                <span class="ml-3 text-sm text-gray-300">{{
-                  closedDays[day] ? 'Κλειστό' : 'Ανοιχτό'
-                }}</span>
-              </div>
-            </div>
-
-            <!-- Time selection (shown only when not closed) -->
-            <div
-              *ngIf="!closedDays[day]"
-              class="flex items-center justify-between"
-            >
-              <div class="flex-1 mr-4">
-                <label class="block text-sm text-gray-400 mb-1"
-                  >Ώρα ανοίγματος</label
-                >
-                <input
-                  type="text"
-                  [value]="openTimes[day]"
-                  (input)="onTimeInput($event, day, 'open')"
-                  (blur)="formatTime(day, 'open')"
-                  class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white 
-                         focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
-                  placeholder="HH:MM"
-                  pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]"
-                />
-              </div>
-
-              <span class="text-gray-400 mx-2 self-end mb-3">έως</span>
-
-              <div class="flex-1 ml-4">
-                <label class="block text-sm text-gray-400 mb-1"
-                  >Ώρα κλεισίματος</label
-                >
-                <input
-                  type="text"
-                  [value]="closeTimes[day]"
-                  (input)="onTimeInput($event, day, 'close')"
-                  (blur)="formatTime(day, 'close')"
-                  class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white 
-                         focus:border-primary-500/50 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
-                  placeholder="HH:MM"
-                  pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]"
-                />
-              </div>
-            </div>
-
-            <!-- Error message -->
-            <div *ngIf="timeErrors[day]" class="text-red-400 text-sm mt-2">
-              {{ timeErrors[day] }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Error summary section -->
-      <div
-        *ngIf="showErrorSummary"
-        class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 my-4 animate-fadeIn"
-      >
-        <h3 class="text-red-400 font-medium mb-2 flex items-center">
-          <span class="mr-2">⚠️</span> Παρακαλώ διορθώστε τα παρακάτω σφάλματα:
-        </h3>
-        <ul class="list-disc list-inside text-sm text-red-400 space-y-1">
-          <li
-            *ngFor="let error of validationErrors"
-            class="cursor-pointer hover:underline"
-            (click)="scrollToErrorField(error)"
-          >
-            {{ error.message }}
-          </li>
-        </ul>
-      </div>
-
-      <div class="flex justify-between pt-6">
-        <button
-          type="button"
-          (click)="back.emit()"
-          class="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg
-                 hover:bg-white/5 transition-all duration-300"
-        >
-          Πίσω
-        </button>
-
-        <button
-          type="button"
-          (click)="submitForm()"
-          class="px-6 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg
-                 hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 
-                 transform hover:-translate-y-1 cursor-pointer"
-        >
-          Ολοκλήρωση Εγγραφής
-        </button>
-      </div>
-    </div>
-  `,
-  styles: [
-    `
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      .animate-fadeIn {
-        animation: fadeIn 0.3s ease-out forwards;
-      }
-    `,
-  ],
 })
 export class ShelterInfoComponent implements OnInit {
   @Input() form!: FormGroup;
+  @Input() isLoading = false;
   @Output() back = new EventEmitter<void>();
   @Output() submit = new EventEmitter<void>();
   @ViewChild('formContainer') formContainer!: ElementRef;
@@ -246,17 +36,10 @@ export class ShelterInfoComponent implements OnInit {
     'Κυριακή',
   ];
 
-  // Track closed status for each day
   closedDays: { [key: string]: boolean } = {};
-
-  // Track open and close times for each day
   openTimes: { [key: string]: string } = {};
   closeTimes: { [key: string]: string } = {};
-
-  // Track validation errors for each day
   timeErrors: { [key: string]: string | null } = {};
-
-  // Track if any operating hours have been modified
   operatingHoursModified: boolean = false;
 
   validationErrors: {
@@ -267,7 +50,6 @@ export class ShelterInfoComponent implements OnInit {
   showErrorSummary = false;
 
   constructor(private cdr: ChangeDetectorRef) {
-    // Initialize default values
     this.days.forEach((day) => {
       this.closedDays[day] = false;
       this.openTimes[day] = '';
@@ -342,23 +124,18 @@ export class ShelterInfoComponent implements OnInit {
     const dayKey = this.getDayKey(day);
     const operatingHours = this.getOperatingHoursForm();
 
-    // Mark as modified
     this.operatingHoursModified = true;
 
     if (this.closedDays[day]) {
-      // Set to closed
       operatingHours.get(dayKey)?.setValue('closed');
       this.timeErrors[day] = null;
     } else {
-      // Set to open with empty times initially
       this.openTimes[day] = '';
       this.closeTimes[day] = '';
       operatingHours.get(dayKey)?.setValue('');
     }
 
-    // Update validators based on whether any day has values
     this.updateOperatingHoursValidators();
-
     this.cdr.markForCheck();
   }
 
@@ -366,25 +143,18 @@ export class ShelterInfoComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     let value = input.value;
 
-    // Mark as modified
     this.operatingHoursModified = true;
-
-    // Allow only digits and colon
     value = value.replace(/[^\d:]/g, '');
 
-    // Enforce strict HH:MM format as the user types
     if (value.length > 0) {
-      // If user enters more than 2 digits without a colon, insert it
       if (!value.includes(':') && value.length > 2) {
         value = value.substring(0, 2) + ':' + value.substring(2);
       }
 
-      // Limit to 5 characters (HH:MM)
       if (value.length > 5) {
         value = value.substring(0, 5);
       }
 
-      // Validate hours (00-23)
       if (value.includes(':')) {
         const hours = value.split(':')[0];
         if (hours.length === 2) {
@@ -395,7 +165,6 @@ export class ShelterInfoComponent implements OnInit {
         }
       }
 
-      // Validate minutes (00-59)
       if (value.includes(':') && value.length > 3) {
         const minutes = value.split(':')[1];
         if (minutes.length === 2) {
@@ -407,82 +176,59 @@ export class ShelterInfoComponent implements OnInit {
       }
     }
 
-    // Store the value
     if (type === 'open') {
       this.openTimes[day] = value;
     } else {
       this.closeTimes[day] = value;
     }
 
-    // Update the input value
     input.value = value;
 
-    // Update form value if both times are set
     if (this.openTimes[day] && this.closeTimes[day]) {
       this.updateFormValue(day);
       this.validateTimeRange(day);
     }
 
-    // Update validators based on whether any day has values
     this.updateOperatingHoursValidators();
   }
 
   formatTime(day: string, type: 'open' | 'close'): void {
     let time = type === 'open' ? this.openTimes[day] : this.closeTimes[day];
 
-    // Format as HH:MM
     if (time) {
-      // Remove any non-digit or non-colon characters
       time = time.replace(/[^\d:]/g, '');
 
-      // If there's no colon but there are digits, insert a colon
       if (!time.includes(':') && time.length > 0) {
-        // If only one digit for hours, pad with 0
         if (time.length === 1) {
           time = '0' + time + ':00';
-        }
-        // If two digits for hours
-        else if (time.length === 2) {
+        } else if (time.length === 2) {
           time = time + ':00';
-        }
-        // If more than 2 digits, format properly
-        else {
+        } else {
           time = time.substring(0, 2) + ':' + time.substring(2);
         }
       }
 
-      // Split into hours and minutes
       let [hours, minutes] = time.split(':');
 
-      // Validate and format hours
       let hoursNum = parseInt(hours || '0', 10);
       if (isNaN(hoursNum) || hoursNum > 23) hoursNum = 0;
       hours = hoursNum.toString().padStart(2, '0');
 
-      // Validate and format minutes
       let minutesNum = parseInt(minutes || '0', 10);
       if (isNaN(minutesNum) || minutesNum > 59) minutesNum = 0;
       minutes = minutesNum.toString().padStart(2, '0');
 
-      // Combine formatted time
       time = `${hours}:${minutes}`;
 
-      // Update the time
       if (type === 'open') {
         this.openTimes[day] = time;
       } else {
         this.closeTimes[day] = time;
       }
 
-      // Update the form value
       this.updateFormValue(day);
-
-      // Validate time range
       this.validateTimeRange(day);
-
-      // Update validators based on whether any day has values
       this.updateOperatingHoursValidators();
-
       this.cdr.markForCheck();
     }
   }
@@ -492,7 +238,6 @@ export class ShelterInfoComponent implements OnInit {
     const operatingHours = this.getOperatingHoursForm();
 
     if (!this.closedDays[day]) {
-      // Only update if both times are valid
       if (
         this.isValidTimeFormat(this.openTimes[day]) &&
         this.isValidTimeFormat(this.closeTimes[day])
@@ -502,14 +247,12 @@ export class ShelterInfoComponent implements OnInit {
         operatingHours.get(dayKey)?.markAsTouched();
         operatingHours.get(dayKey)?.markAsDirty();
       } else {
-        // If either time is invalid, set an empty value
         operatingHours.get(dayKey)?.setValue('');
       }
     }
   }
 
   isValidTimeFormat(time: string): boolean {
-    // Check if time matches HH:MM format (00:00 to 23:59)
     return /^([01]\d|2[0-3]):([0-5]\d)$/.test(time);
   }
 
@@ -517,39 +260,30 @@ export class ShelterInfoComponent implements OnInit {
     const openTime = this.openTimes[day];
     const closeTime = this.closeTimes[day];
 
-    // Clear previous errors
     this.timeErrors[day] = null;
 
-    // Check if both times are provided
     if (openTime && closeTime) {
-      // Check if both times are in valid format
       if (!this.isValidTimeFormat(openTime)) {
-        this.timeErrors[day] =
-          'Η ώρα ανοίγματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 09:00)';
+        this.timeErrors[day] = 'Η ώρα ανοίγματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 09:00)';
         this.setTimeRangeError(day);
         return;
       }
 
       if (!this.isValidTimeFormat(closeTime)) {
-        this.timeErrors[day] =
-          'Η ώρα κλεισίματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 17:00)';
+        this.timeErrors[day] = 'Η ώρα κλεισίματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 17:00)';
         this.setTimeRangeError(day);
         return;
       }
 
-      // Check if close time is after open time
       if (openTime >= closeTime) {
-        this.timeErrors[day] =
-          'Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος';
+        this.timeErrors[day] = 'Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος';
         this.setTimeRangeError(day);
         return;
       }
 
-      // If we get here, the time range is valid
       const dayKey = this.getDayKey(day);
       const control = this.getOperatingHoursForm().get(dayKey);
       if (control?.errors?.['invalidTimeRange']) {
-        // Clear only the invalidTimeRange error
         const errors = { ...control.errors };
         delete errors['invalidTimeRange'];
         if (Object.keys(errors).length === 0) {
@@ -559,7 +293,6 @@ export class ShelterInfoComponent implements OnInit {
         }
       }
     } else if ((openTime && !closeTime) || (!openTime && closeTime)) {
-      // If only one time is provided
       this.timeErrors[day] = 'Πρέπει να συμπληρώσετε και τις δύο ώρες';
       this.setTimeRangeError(day);
     }
@@ -585,14 +318,10 @@ export class ShelterInfoComponent implements OnInit {
     return dayMap[day] || day.toLowerCase();
   }
 
-  // Check if any day has operating hours set
   hasAnyOperatingHoursSet(): boolean {
-    // Check if any day has a non-empty value or is marked as closed
     return this.days.some((day) => {
-      // Check for "closed" days
       if (this.closedDays[day]) return true;
 
-      // Check for days with time values
       const dayKey = this.getDayKey(day);
       const value = this.getOperatingHoursForm().get(dayKey)?.value;
       return value && value !== '' && value !== 'closed';
@@ -608,21 +337,15 @@ export class ShelterInfoComponent implements OnInit {
       const control = operatingHoursForm.get(dayKey);
 
       if (hasAnyHoursSet) {
-        // If any day has hours set, all days need validation
         if (this.closedDays[day]) {
-          // If day is marked as closed, it's valid
           control?.setErrors(null);
         } else if (!this.openTimes[day] || !this.closeTimes[day]) {
-          // If day is not closed but has incomplete time set, it's invalid
-          this.timeErrors[day] =
-            'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
+          this.timeErrors[day] = 'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
           control?.setErrors({ required: true });
         } else {
-          // Validate the time range
           this.validateTimeRange(day);
         }
       } else {
-        // If no days have hours set, clear all validators
         control?.setErrors(null);
         this.timeErrors[day] = null;
       }
@@ -631,88 +354,8 @@ export class ShelterInfoComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  submitForm(): void {
-    // Reset error summary
-    this.validationErrors = [];
-    this.showErrorSummary = false;
-
-    // Mark all fields as touched to show validation errors
-    this.markFormGroupTouched(this.getShelterForm());
-
-    // CRITICAL FIX: Clear errors for closed days before validation
-    const operatingHoursForm = this.getOperatingHoursForm();
-    this.days.forEach((day) => {
-      const dayKey = this.getDayKey(day);
-      const control = operatingHoursForm.get(dayKey);
-
-      // If day is closed, it's always valid
-      if (this.closedDays[day]) {
-        control?.setErrors(null);
-        this.timeErrors[day] = null;
-      }
-    });
-
-    // Check if we need to validate operating hours
-    const needsHoursValidation =
-      this.operatingHoursModified && this.hasAnyNonClosedDay();
-
-    if (!this.hasAnyOperatingHoursSet()) {
-      // All days are empty - valid state
-      this.days.forEach((day) => {
-        const dayKey = this.getDayKey(day);
-        operatingHoursForm.get(dayKey)?.setErrors(null);
-        this.timeErrors[day] = null;
-      });
-      operatingHoursForm.updateValueAndValidity();
-      this.operatingHoursModified = false;
-    } else if (needsHoursValidation) {
-      // Some days have times set (not just closed) - validate
-      this.validateOperatingHours();
-    }
-
-    // Force update validity of the form and all its controls
-    this.getShelterForm().updateValueAndValidity({
-      onlySelf: false,
-      emitEvent: true,
-    });
-
-    // DEBUG: Log form state before checking validity
-    console.log(
-      'Shelter name valid:',
-      this.getShelterForm().get('shelterName')?.valid
-    );
-    console.log(
-      'Description valid:',
-      this.getShelterForm().get('description')?.valid
-    );
-    console.log('Operating hours valid:', operatingHoursForm.valid);
-
-    // Final check before submission - check required fields directly
-    const isNameValid =
-      !!this.getShelterForm().get('shelterName')?.value &&
-      !this.getShelterForm().get('shelterName')?.errors;
-    const isDescriptionValid =
-      !!this.getShelterForm().get('description')?.value &&
-      !this.getShelterForm().get('description')?.errors;
-
-    if (isNameValid && isDescriptionValid) {
-      // Basic required fields are valid, submit the form
-      console.log('Form is valid, submitting...');
-      this.submit.emit();
-      return;
-    }
-
-    // If we get here, the form is invalid
-    this.collectValidationErrors();
-    this.showErrorSummary = this.validationErrors.length > 0;
-    this.scrollToFirstInvalidField();
-    this.cdr.markForCheck();
-  }
-
-  // New helper method to check if any day has times (not just closed)
   hasAnyNonClosedDay(): boolean {
     return this.days.some((day) => {
-      // Only check for days with actual time values (not closed)
       if (!this.closedDays[day]) {
         const dayKey = this.getDayKey(day);
         const value = this.getOperatingHoursForm().get(dayKey)?.value;
@@ -722,7 +365,6 @@ export class ShelterInfoComponent implements OnInit {
     });
   }
 
-  // Validate that if any operating hours are set, all days must have valid values
   validateOperatingHours(): void {
     let hasInvalidDay = false;
 
@@ -731,38 +373,31 @@ export class ShelterInfoComponent implements OnInit {
       const control = this.getOperatingHoursForm().get(dayKey);
       const value = control?.value;
 
-      // Closed days are always valid
       if (this.closedDays[day]) {
         control?.setErrors(null);
         this.timeErrors[day] = null;
-        return; // Skip the rest of this iteration
+        return;
       }
 
-      // Non-closed days must have valid time ranges
       if (!value || value === '') {
-        this.timeErrors[day] =
-          'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
+        this.timeErrors[day] = 'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
         control?.setErrors({ required: true });
         hasInvalidDay = true;
       } else if (value !== 'closed') {
-        // Already has time range validation from other methods
         if (control?.errors?.['invalidTimeRange']) {
           hasInvalidDay = true;
         }
       }
     });
 
-    // Only add general error if there's an invalid day
     if (hasInvalidDay) {
       this.validationErrors.push({
         field: 'operatingHours',
-        message:
-          'Πρέπει να ορίσετε ώρες λειτουργίας για όλες τις ημέρες ή να τις επιλέξετε ως "Κλειστό"',
+        message: 'Πρέπει να ορίσετε ώρες λειτουργίας για όλες τις ημέρες ή να τις επιλέξετε ως "Κλειστό"',
       });
     }
   }
 
-  // Helper method to mark all controls in a form group as touched
   private markFormGroupTouched(formGroup: FormGroup) {
     Object.keys(formGroup.controls).forEach((key) => {
       const control = formGroup.get(key);
@@ -777,9 +412,7 @@ export class ShelterInfoComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  // Collect validation errors for the error summary
   private collectValidationErrors(): void {
-    // Check shelter name
     const shelterNameControl = this.getShelterForm().get('shelterName');
     if (shelterNameControl?.invalid) {
       const element = this.findElementForControl('shelterName');
@@ -792,14 +425,12 @@ export class ShelterInfoComponent implements OnInit {
       } else if (shelterNameControl.errors?.['minlength']) {
         this.validationErrors.push({
           field: 'shelterName',
-          message:
-            'Το όνομα καταφυγίου πρέπει να έχει τουλάχιστον 3 χαρακτήρες',
+          message: 'Το όνομα καταφυγίου πρέπει να έχει τουλάχιστον 3 χαρακτήρες',
           element,
         });
       }
     }
 
-    // Check description
     const descriptionControl = this.getShelterForm().get('description');
     if (descriptionControl?.invalid) {
       const element = this.findElementForControl('description');
@@ -818,7 +449,6 @@ export class ShelterInfoComponent implements OnInit {
       }
     }
 
-    // Check website
     const websiteControl = this.getShelterForm().get('website');
     if (websiteControl?.invalid && websiteControl.value) {
       const element = this.findElementForControl('website');
@@ -829,7 +459,6 @@ export class ShelterInfoComponent implements OnInit {
       });
     }
 
-    // Check social media
     const facebookControl = this.getSocialMediaForm().get('facebook');
     if (facebookControl?.invalid && facebookControl.value) {
       const element = this.findElementForControl('facebook', 'socialMedia');
@@ -850,25 +479,20 @@ export class ShelterInfoComponent implements OnInit {
       });
     }
 
-    // Check operating hours only if any have been set
     if (this.hasAnyOperatingHoursSet()) {
       const operatingHoursForm = this.getOperatingHoursForm();
 
-      // Check each day for time range errors
       this.days.forEach((day) => {
         const dayKey = this.getDayKey(day);
         const control = operatingHoursForm.get(dayKey);
 
         if (control?.invalid && !this.closedDays[day]) {
-          // Find the input element for this day
           const dayElement = this.findDayElement(day);
 
           if (control.errors?.['invalidTimeRange']) {
             this.validationErrors.push({
               field: dayKey,
-              message:
-                this.timeErrors[day] ||
-                `Σφάλμα στις ώρες λειτουργίας για ${day}`,
+              message: this.timeErrors[day] || `Σφάλμα στις ώρες λειτουργίας για ${day}`,
               element: dayElement,
             });
           } else if (control.errors?.['required']) {
@@ -883,57 +507,36 @@ export class ShelterInfoComponent implements OnInit {
     }
   }
 
-  // Find element for a control
   private findElementForControl(
     controlName: string,
     groupName?: string
   ): HTMLElement | undefined {
-    let selector = '';
+    let selector = groupName
+      ? `[formcontrolname="${controlName}"]`
+      : `[formcontrolname="${controlName}"]`;
 
-    if (groupName) {
-      // For nested controls
-      selector = `[formcontrolname="${controlName}"]`;
-    } else {
-      // For direct controls
-      selector = `[formcontrolname="${controlName}"]`;
-    }
+    let element = this.formContainer?.nativeElement.querySelector(selector) as HTMLElement;
 
-    // Try to find the element
-    let element = this.formContainer?.nativeElement.querySelector(
-      selector
-    ) as HTMLElement;
-
-    // If not found, try to find by ID
     if (!element) {
-      element = this.formContainer?.nativeElement.querySelector(
-        `#${controlName}`
-      ) as HTMLElement;
+      element = this.formContainer?.nativeElement.querySelector(`#${controlName}`) as HTMLElement;
     }
 
-    // If still not found and it's a textarea, try to find it differently
     if (!element && controlName === 'description') {
-      element = this.formContainer?.nativeElement.querySelector(
-        'textarea'
-      ) as HTMLElement;
+      element = this.formContainer?.nativeElement.querySelector('textarea') as HTMLElement;
     }
 
     return element;
   }
 
-  // Find element for a specific day
   private findDayElement(day: string): HTMLElement | undefined {
     if (!this.formContainer) return undefined;
 
-    // Try to find the day container
     const dayElements = this.formContainer.nativeElement.querySelectorAll('h4');
     let dayElement: HTMLElement | undefined;
 
     for (let i = 0; i < dayElements.length; i++) {
       if (dayElements[i].textContent?.trim() === day) {
-        // Found the day heading, get the parent container
-        dayElement = dayElements[i].closest(
-          '.border-gray-700\\/50'
-        ) as HTMLElement;
+        dayElement = dayElements[i].closest('.border-gray-700\\/50') as HTMLElement;
         break;
       }
     }
@@ -941,20 +544,14 @@ export class ShelterInfoComponent implements OnInit {
     return dayElement;
   }
 
-  // Scroll to a specific error field
   scrollToErrorField(error: {
     field: string;
     message: string;
     element?: HTMLElement;
   }): void {
     if (error.element) {
-      // Highlight the element
       this.highlightElement(error.element);
-
-      // Scroll to the element
       error.element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      // Focus the element if it's an input
       if (
         error.element instanceof HTMLInputElement ||
         error.element instanceof HTMLTextAreaElement ||
@@ -963,7 +560,6 @@ export class ShelterInfoComponent implements OnInit {
         error.element.focus();
       }
     } else {
-      // If no element is found, try to find it again
       const element = this.findElementForControl(error.field);
       if (element) {
         this.highlightElement(element);
@@ -979,46 +575,32 @@ export class ShelterInfoComponent implements OnInit {
     }
   }
 
-  // Add highlight effect to an element
   private highlightElement(element: HTMLElement): void {
-    // Add a temporary highlight class
     element.classList.add('highlight-error');
-
-    // Remove the class after animation completes
     setTimeout(() => {
       element.classList.remove('highlight-error');
     }, 1500);
   }
 
-  // Scroll to the first invalid field with enhanced error handling
   private scrollToFirstInvalidField(): void {
     setTimeout(() => {
       try {
         if (this.validationErrors.length > 0) {
-          // First scroll to error summary
-          const errorSummary =
-            this.formContainer?.nativeElement.querySelector('.bg-red-500\\/10');
+          const errorSummary = this.formContainer?.nativeElement.querySelector('.bg-red-500\\/10');
           if (errorSummary) {
             errorSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });
           } else {
-            // If no error summary, scroll to the first invalid field
             const firstError = this.validationErrors[0];
             if (firstError.element) {
               this.scrollToErrorField(firstError);
             } else {
-              // Try to find the first invalid control
-              const invalidControls = this.findInvalidControls(
-                this.getShelterForm()
-              );
+              const invalidControls = this.findInvalidControls(this.getShelterForm());
               if (invalidControls.length > 0) {
                 const controlName = this.getControlName(invalidControls[0]);
                 const element = this.findElementForControl(controlName);
                 if (element) {
                   this.highlightElement(element);
-                  element.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                  });
+                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
               }
             }
@@ -1026,7 +608,6 @@ export class ShelterInfoComponent implements OnInit {
         }
       } catch (error) {
         console.error('Error scrolling to invalid field:', error);
-        // Fallback: scroll to the top of the form
         if (this.formContainer) {
           this.formContainer.nativeElement.scrollIntoView({
             behavior: 'smooth',
@@ -1037,16 +618,13 @@ export class ShelterInfoComponent implements OnInit {
     }, 100);
   }
 
-  // Find all invalid controls in a form group
   private findInvalidControls(formGroup: FormGroup): AbstractControl[] {
     const invalidControls: AbstractControl[] = [];
     const controls = formGroup.controls;
 
     Object.keys(controls).forEach((controlName) => {
       const control = controls[controlName];
-
       if (control instanceof FormGroup) {
-        // If it's a nested form group, recursively find invalid controls
         invalidControls.push(...this.findInvalidControls(control));
       } else if (control && control.invalid) {
         invalidControls.push(control);
@@ -1056,11 +634,9 @@ export class ShelterInfoComponent implements OnInit {
     return invalidControls;
   }
 
-  // Get the name of a control
   private getControlName(control: AbstractControl): string {
     let controlName = '';
 
-    // Try to find in the shelter form
     const shelterForm = this.getShelterForm();
     Object.keys(shelterForm.controls).forEach((name) => {
       if (shelterForm.controls[name] === control) {
@@ -1068,9 +644,7 @@ export class ShelterInfoComponent implements OnInit {
       }
     });
 
-    // If not found, try in nested forms
     if (!controlName) {
-      // Check in social media form
       const socialMediaForm = this.getSocialMediaForm();
       Object.keys(socialMediaForm.controls).forEach((name) => {
         if (socialMediaForm.controls[name] === control) {
@@ -1078,7 +652,6 @@ export class ShelterInfoComponent implements OnInit {
         }
       });
 
-      // Check in operating hours form
       if (!controlName) {
         const operatingHoursForm = this.getOperatingHoursForm();
         Object.keys(operatingHoursForm.controls).forEach((name) => {
@@ -1090,5 +663,58 @@ export class ShelterInfoComponent implements OnInit {
     }
 
     return controlName;
+  }
+
+  submitForm(): void {
+    this.validationErrors = [];
+    this.showErrorSummary = false;
+
+    this.markFormGroupTouched(this.getShelterForm());
+
+    const operatingHoursForm = this.getOperatingHoursForm();
+    this.days.forEach((day) => {
+      const dayKey = this.getDayKey(day);
+      const control = operatingHoursForm.get(dayKey);
+
+      if (this.closedDays[day]) {
+        control?.setErrors(null);
+        this.timeErrors[day] = null;
+      }
+    });
+
+    const needsHoursValidation = this.operatingHoursModified && this.hasAnyNonClosedDay();
+
+    if (!this.hasAnyOperatingHoursSet()) {
+      this.days.forEach((day) => {
+        const dayKey = this.getDayKey(day);
+        operatingHoursForm.get(dayKey)?.setErrors(null);
+        this.timeErrors[day] = null;
+      });
+      operatingHoursForm.updateValueAndValidity();
+      this.operatingHoursModified = false;
+    } else if (needsHoursValidation) {
+      this.validateOperatingHours();
+    }
+
+    this.getShelterForm().updateValueAndValidity({
+      onlySelf: false,
+      emitEvent: true,
+    });
+
+    const isNameValid = !!this.getShelterForm().get('shelterName')?.value &&
+      !this.getShelterForm().get('shelterName')?.errors;
+    const isDescriptionValid = !!this.getShelterForm().get('description')?.value &&
+      !this.getShelterForm().get('description')?.errors;
+
+    if (isNameValid && isDescriptionValid) {
+      console.log('Form is valid, submitting...');
+      this.submit.emit();
+      return;
+    }
+
+    this.collectValidationErrors();
+    this.showErrorSummary = this.validationErrors.length > 0;
+    this.scrollToFirstInvalidField();
+    this.cdr.markForCheck();
   }
 }

@@ -2,6 +2,6 @@
 {
 	public class CorsConfig
 	{
-		public List<String> AllowedHosts { get; set; }
+		public List<String> AllowedOrigins { get; set; }
 	}
 }

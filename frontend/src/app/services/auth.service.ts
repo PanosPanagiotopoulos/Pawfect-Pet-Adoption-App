@@ -8,26 +8,22 @@ import {
   LoggedAccount,
   LoginPayload,
   RegisterPayload,
+  OtpPayload,
 } from '../models/auth/auth.model';
 import { jwtDecode } from 'jwt-decode';
 import { JwtPayload } from '../common/models/jwt.model';
-
-export interface LoginResponse extends LoggedAccount {
-  isEmailVerified: boolean;
-  email?: string;
-}
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
   private _loggedAccount: LoggedAccount | null = null;
-  private authStateSubject = new BehaviorSubject<boolean>(false);
+  private readonly authStateSubject = new BehaviorSubject<boolean>(false);
   public authState$ = this.authStateSubject.asObservable();
 
   constructor(
-    private installationConfiguration: InstallationConfigurationService,
-    private http: BaseHttpService
+    private readonly installationConfiguration: InstallationConfigurationService,
+    private readonly http: BaseHttpService
   ) {
     // Initialize auth state on service creation
     this.authStateSubject.next(!!this.getToken());
@@ -38,14 +34,13 @@ export class AuthService {
   }
 
   // Authentication functions
-  login(email: string, password: string): Observable<LoginResponse> {
+  login(email: string, password: string): Observable<LoggedAccount> {
     const url = `${this.apiBase}/login`;
     const payload: LoginPayload = { email, password, loginProvider: 1 };
 
-    return this.http.post<LoginResponse>(url, payload).pipe(
-      tap((response: LoginResponse) => {
-        // Only set logged account if email is verified
-        if (response.isEmailVerified) {
+    return this.http.post<LoggedAccount>(url, payload).pipe(
+      tap((response: LoggedAccount) => {
+        if (response.isVerified) {
           this.setLoggedAccount(response);
         }
       }),
@@ -53,7 +48,7 @@ export class AuthService {
     );
   }
 
-  loginWithGoogle(accessToken: string): Observable<LoginResponse> {
+  loginWithGoogle(accessToken: string): Observable<LoggedAccount> {
     const url = `${this.apiBase}/login`;
     const payload: LoginPayload = {
       email: '',
@@ -62,10 +57,10 @@ export class AuthService {
       providerAccessCode: accessToken,
     };
 
-    return this.http.post<LoginResponse>(url, payload).pipe(
-      tap((response: LoginResponse) => {
+    return this.http.post<LoggedAccount>(url, payload).pipe(
+      tap((response: LoggedAccount) => {
         // Only set logged account if email is verified
-        if (response.isEmailVerified) {
+        if (response.isVerified) {
           this.setLoggedAccount(response);
         }
       }),
@@ -83,17 +78,35 @@ export class AuthService {
     );
   }
 
-  register(registerData: RegisterPayload): Observable<string> {
+  register(registerData: RegisterPayload): Observable<User> {
+    const formData = new FormData();
+
+    // Append the user object as JSON
+    formData.append('user', JSON.stringify(registerData.user));
+
+    // Append the file separately if it exists
+    if (registerData.user.AttachedPhoto) {
+      formData.append(
+        'AttachedPhoto',
+        registerData.user.AttachedPhoto,
+        registerData.user.AttachedPhoto.name
+      );
+    }
+
+    if (registerData.shelter) {
+      formData.append('shelter', JSON.stringify(registerData.shelter));
+    }
+
     const url = `${this.apiBase}/register/unverified`;
     return this.http
-      .post<string>(url, registerData)
+      .post<User>(url, formData)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  verifyEmail(email: string, token: string, userId: string): Observable<void> {
+  verifyEmail(token: string): Observable<void> {
     const url = `${this.apiBase}/verify-email`;
     return this.http
-      .post<void>(url, { email, token, id: userId })
+      .post<void>(url, { token })
       .pipe(catchError((error: any) => throwError(error)));
   }
 
@@ -104,22 +117,17 @@ export class AuthService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  verifyOtp(
-    phone: string,
-    otp: string,
-    userId: string,
-    email: string
-  ): Observable<void> {
-    const url = `${this.apiBase}/verify-otp`;
+  sendOtp(otpPayload: OtpPayload): Observable<void> {
+    const url = `${this.apiBase}/send/otp`;
     return this.http
-      .post<void>(url, { phone, otp, id: userId, email })
+      .post<void>(url, otpPayload)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  sendOtp(phone: string): Observable<void> {
-    const url = `${this.apiBase}/send/otp`;
+  verifyOtp(otpPayload: OtpPayload): Observable<void> {
+    const url = `${this.apiBase}/verify-otp`;
     return this.http
-      .post<void>(url, { phone })
+      .post<void>(url, otpPayload)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

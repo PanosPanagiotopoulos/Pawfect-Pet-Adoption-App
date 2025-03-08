@@ -12,6 +12,7 @@ import { ShelterInfoComponent } from '../shelter-info/shelter-info.component';
     <div class="space-y-6">
       <app-shelter-info
         [form]="form"
+        [isLoading]="isLoading"
         (back)="back.emit()"
         (submit)="submit.emit()"
       ></app-shelter-info>
@@ -20,6 +21,7 @@ import { ShelterInfoComponent } from '../shelter-info/shelter-info.component';
 })
 export class PreferencesComponent {
   @Input() form!: FormGroup;
+  @Input() isLoading = false;
   @Output() back = new EventEmitter<void>();
   @Output() submit = new EventEmitter<void>();
 }

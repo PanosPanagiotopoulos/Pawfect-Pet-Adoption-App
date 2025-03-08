@@ -65,7 +65,7 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
 		/// <summary>
 		/// Checks if a value contains a placeholder pattern like "%{Key}%" or "${Key}$".
 		/// </summary>
-		private static bool HasPlaceholder(String value) =>
+		private static Boolean HasPlaceholder(String value) =>
 			value.Contains("%{") && value.Contains("}%") || value.Contains("${") && value.Contains("}$");
 
 		/// <summary>

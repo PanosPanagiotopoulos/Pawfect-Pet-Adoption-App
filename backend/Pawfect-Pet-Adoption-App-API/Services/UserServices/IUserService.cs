@@ -52,7 +52,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <param name="email">Η διεύθυνση email του χρήστη.</param>
 		/// <param name="token">Το token επαλήθευσης.</param>
 		/// <returns>True αν η επαλήθευση είναι επιτυχής, αλλιώς false.</returns>
-		Boolean VerifyEmail(String? email, String? token);
+		String VerifyEmail(String? token);
 
 		/// <summary>
 		/// Αποθήκευση χρήστη.
@@ -103,6 +103,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <param name="token">Το token επαλήθευσης.</param>
 		/// <returns>True αν η επαναφορά είναι επιτυχής, αλλιώς false.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η επαναφορά του κωδικού.</exception>
-		Task<Boolean> ResetPasswordAsync(String? email, String? password, String? token);
+		Task<Boolean> ResetPasswordAsync(String? password, String? token);
 	}
 }

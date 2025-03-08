@@ -1,4 +1,8 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.Extensions.Options;
+
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
+
+using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.HttpServices
 {
@@ -6,11 +10,16 @@ namespace Pawfect_Pet_Adoption_App_API.Services.HttpServices
 	{
 		private readonly IHttpContextAccessor _httpContextAccessor;
 		private readonly ILogger<RequestService> _logger;
-
-		public RequestService(IHttpContextAccessor httpContextAccessor, ILogger<RequestService> logger)
+		private readonly CorsConfig _corsConfig;
+		public RequestService(
+			IHttpContextAccessor httpContextAccessor,
+			ILogger<RequestService> logger,
+			IOptions<CorsConfig> corsConfig
+			)
 		{
 			_httpContextAccessor = httpContextAccessor;
 			_logger = logger;
+			_corsConfig = corsConfig.Value;
 		}
 
 		// Επιστροφή του Base URI του API
@@ -29,6 +38,26 @@ namespace Pawfect_Pet_Adoption_App_API.Services.HttpServices
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Error προσπαθώντας να βρεθεί το URI του request");
+				return null;
+			}
+		}
+
+		// Επιστροφή του Base URI του API
+		public String? GetFrontendBaseURI()
+		{
+			try
+			{
+				String? baseFrontendUri = _corsConfig.AllowedOrigins[0];
+				if (String.IsNullOrEmpty(baseFrontendUri))
+				{
+					throw new InvalidOperationException("Δεν βρέθηκε το Base URI του Frontend");
+				}
+
+				return $"{baseFrontendUri}/";
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error προσπαθώντας να βρεθεί το URI για το frontend");
 				return null;
 			}
 		}

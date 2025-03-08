@@ -62,12 +62,27 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 
 		public async Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate)
 		{
-			return await _collection.Find(predicate).AnyAsync();
+			try
+			{
+				return await _collection.Find(predicate).AnyAsync();
+			}
+			catch (FormatException)
+			{
+				return false;
+			}
+
 		}
 
 		public async Task<T> FindAsync(Expression<Func<T, Boolean>> predicate)
 		{
-			return await _collection.Find(predicate).FirstOrDefaultAsync();
+			try
+			{
+				return await _collection.Find(predicate).FirstOrDefaultAsync();
+			}
+			catch (FormatException)
+			{
+				return null;
+			}
 		}
 	}
 }

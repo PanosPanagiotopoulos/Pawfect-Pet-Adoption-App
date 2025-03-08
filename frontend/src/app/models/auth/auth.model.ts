@@ -16,9 +16,13 @@ export interface OtpPayload {
 
 export interface LoggedAccount {
   token: string;
+  phone: string;
+  email: string;
   role: UserRole;
   loggedAt: Date;
-  isEmailVerified?: boolean;
+  isPhoneVerified: boolean;
+  isEmailVerified: boolean;
+  isVerified: boolean;
 }
 
 export interface LoginPayload {

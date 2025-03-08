@@ -130,6 +130,8 @@ public class Program
 
 		// Cache Configuration
 		builder.Services.Configure<CacheConfig>(builder.Configuration.GetSection("Cache"));
+		// Cors Configuration
+		builder.Services.Configure<CorsConfig>(builder.Configuration.GetSection("Cors"));
 
 		// Services
 		builder.Services

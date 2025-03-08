@@ -334,15 +334,6 @@ export class FileDropAreaComponent {
           ? this.selectedFiles
           : this.selectedFiles[0];
         control.setValue(valueToSet);
-
-
-        // For debugging
-        console.log(
-          `File control '${this.controlName}' updated with:`,
-          this.multiple
-            ? `${this.selectedFiles.length} files`
-            : this.selectedFiles[0].name
-        );
       } else {
         control.setValue(null);
       }
