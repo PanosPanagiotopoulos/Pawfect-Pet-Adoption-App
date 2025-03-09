@@ -48,9 +48,9 @@ import { User } from 'src/app/models/user/user.model';
           </app-user-avatar>
           <div>
             <p class="text-white font-medium">
-              {{ currentUser?.fullName || 'User' }}
+              {{ currentUser?.fullName || 'Χρήστης' }}
             </p>
-            <p class="text-gray-400 text-sm">View Profile</p>
+            <p class="text-gray-400 text-sm">Προβολή Προφίλ</p>
           </div>
         </a>
       </div>
@@ -89,7 +89,7 @@ import { User } from 'src/app/models/user/user.model';
             class="flex items-center justify-center space-x-2 w-full p-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             <ng-icon name="lucideUser" [size]="'20'"></ng-icon>
-            <span class="font-medium">Login</span>
+            <span class="font-medium">Σύνδεση</span>
           </button>
         </ng-container>
 
@@ -99,7 +99,7 @@ import { User } from 'src/app/models/user/user.model';
             class="flex items-center justify-center space-x-2 w-full p-3 border border-red-500/30 text-red-500 rounded-xl hover:bg-red-500/10 transition-all duration-300"
           >
             <ng-icon name="lucideLogOut" [size]="'20'"></ng-icon>
-            <span class="font-medium">Logout</span>
+            <span class="font-medium">Αποσύνδεση</span>
           </button>
         </ng-template>
       </div>
@@ -115,13 +115,13 @@ export class MobileMenuComponent {
 
   menuItems = [
     {
-      label: 'About',
+      label: 'Σχετικά',
       route: '/about',
       icon: 'lucideInfo',
       gradient: 'from-accent-600/20 to-accent-500/20',
     },
     {
-      label: 'Contact',
+      label: 'Επικοινωνία',
       route: '/contact',
       icon: 'lucideMessageCircle',
       gradient: 'from-primary-600/20 to-accent-500/20',

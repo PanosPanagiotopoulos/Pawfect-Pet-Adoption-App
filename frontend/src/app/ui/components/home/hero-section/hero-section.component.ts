@@ -14,7 +14,7 @@ import { AnimationDirective } from '../shared/directives/animation.directive';
         class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-8"
         style="transform: scale(0.95);"
       >
-        Find Your <span class="gradient-text">Pawfect</span> Match
+        Βρείτε το <span class="gradient-text">Pawfect</span> ζωάκι σας
       </h1>
       <p
         appAnimation
@@ -22,8 +22,8 @@ import { AnimationDirective } from '../shared/directives/animation.directive';
         class="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed px-4"
         style="transform: translateY(20px);"
       >
-        Discover your new best friend through our innovative pet matching
-        system. Every swipe brings you closer to unconditional love.
+        Ανακαλύψτε τον νέο σας καλύτερο φίλο μέσω του καινοτόμου συστήματος αντιστοίχισης κατοικιδίων. 
+        Κάθε αναζήτηση σας φέρνει πιο κοντά στην άνευ όρων αγάπη.
       </p>
     </div>
   `,

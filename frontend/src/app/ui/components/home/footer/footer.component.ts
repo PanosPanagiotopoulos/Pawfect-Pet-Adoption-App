@@ -19,29 +19,29 @@ import {
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div>
             <h3 class="text-xl font-semibold mb-4">Pawfect</h3>
-            <p class="text-gray-400">Finding forever homes for furry friends</p>
+            <p class="text-gray-400">Βρίσκουμε παντοτινά σπίτια για τους τετράποδους φίλους μας</p>
           </div>
           <div>
-            <h4 class="text-lg font-medium mb-4">Quick Links</h4>
+            <h4 class="text-lg font-medium mb-4">Γρήγοροι Σύνδεσμοι</h4>
             <ul class="space-y-2">
               <li>
                 <a
                   routerLink="/about"
                   class="text-gray-400 hover:text-white transition-colors"
-                  >About Us</a
+                  >Σχετικά με εμάς</a
                 >
               </li>
               <li>
                 <a
                   routerLink="/contact"
                   class="text-gray-400 hover:text-white transition-colors"
-                  >Contact</a
+                  >Επικοινωνία</a
                 >
               </li>
             </ul>
           </div>
           <div>
-            <h4 class="text-lg font-medium mb-4">Contact Us</h4>
+            <h4 class="text-lg font-medium mb-4">Επικοινωνήστε μαζί μας</h4>
             <ul class="space-y-2 text-gray-400">
               <li class="flex items-center">
                 <ng-icon
@@ -58,7 +58,7 @@ import {
             </ul>
           </div>
           <div>
-            <h4 class="text-lg font-medium mb-4">Follow Us</h4>
+            <h4 class="text-lg font-medium mb-4">Ακολουθήστε μας</h4>
             <div class="flex space-x-4">
               <a
                 href="#"
@@ -78,7 +78,7 @@ import {
         <div
           class="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400"
         >
-          <p>&copy; {{ currentYear }} Pawfect Match. All rights reserved.</p>
+          <p>&copy; {{ currentYear }} Pawfect Match. Με επιφύλαξη παντός δικαιώματος.</p>
         </div>
       </div>
     </div>

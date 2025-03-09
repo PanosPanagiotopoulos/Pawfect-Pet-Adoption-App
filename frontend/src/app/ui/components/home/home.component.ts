@@ -19,27 +19,27 @@ export class HomeComponent {
   features: Feature[] = [
     {
       icon: 'lucideSearch',
-      title: 'Browse Pets',
+      title: 'Αναζήτηση Κατοικιδίων',
       description:
-        'Find your perfect companion among our carefully curated selection of loving pets',
+        'Βρείτε τον τέλειο σύντροφο ανάμεσα στην προσεκτικά επιλεγμένη συλλογή αγαπημένων κατοικιδίων μας',
       bgColor: 'bg-gradient-to-br from-primary-500/20 to-primary-400/20',
       iconColor: 'text-primary-400',
       gradientClass: 'feature-card-primary',
     },
     {
       icon: 'lucideHeart',
-      title: 'Match & Connect',
+      title: 'Αντιστοίχιση & Σύνδεση',
       description:
-        'Our intelligent matching system helps you find the perfect pet for your lifestyle',
+        'Το έξυπνο σύστημα αντιστοίχισής μας σας βοηθά να βρείτε και να επικοινωνήσετε με το αρμόδιο καταφύγιο για να υιοθετήσετε το κατοικίδιο για τον τρόπο ζωής σας',
       bgColor: 'bg-gradient-to-br from-secondary-500/20 to-secondary-400/20',
       iconColor: 'text-secondary-400',
       gradientClass: 'feature-card-secondary',
     },
     {
       icon: 'lucideMessageCircle',
-      title: 'Adopt & Love',
+      title: 'Υιοθεσία & Αγάπη',
       description:
-        'Begin your journey of love and companionship with your new furry friend',
+        'Ξεκινήστε το ταξίδι της αγάπης και της συντροφικότητας με το νέο σας τετράποδο φίλο',
       bgColor: 'bg-gradient-to-br from-accent-500/20 to-accent-400/20',
       iconColor: 'text-accent-400',
       gradientClass: 'feature-card-accent',
