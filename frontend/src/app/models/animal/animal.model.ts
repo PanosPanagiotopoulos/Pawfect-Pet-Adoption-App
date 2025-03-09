@@ -5,41 +5,36 @@ import { Breed } from '../breed/breed.model';
 
 // Animal Models
 export interface Animal {
-  Id?: string;
-  Name?: string;
-  Age?: number;
-  Gender?: Gender;
-  Description?: string;
-  Weight?: number;
-  HealthStatus?: string;
-  Shelter?: Shelter;
-  Breed?: Breed;
-  AnimalType?: AnimalType;
-  Photos?: string[];
-  AdoptionStatus?: AdoptionStatus;
-  CreatedAt?: Date;
-  UpdatedAt?: Date;
-}
-
-export interface AnimalIndexModel {
-  Id: string;
-  Text: string;
+  id?: string;
+  name?: string;
+  age?: number;
+  gender?: Gender;
+  description?: string;
+  weight?: number;
+  healthStatus?: string;
+  shelter?: Shelter;
+  breed?: Breed;
+  animalType?: AnimalType;
+  photos?: string[];
+  adoptionStatus?: AdoptionStatus;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface AnimalPersist {
-  Id: string;
-  Name: string;
-  Age: number;
-  Gender: Gender;
-  Description: string;
-  Weight: number;
-  HealthStatus: string;
-  ShelterId: string;
-  BreedId: string;
-  AnimalTypeId: string;
+  id: string;
+  name: string;
+  age: number;
+  gender: Gender;
+  description: string;
+  weight: number;
+  healthStatus: string;
+  shelterId: string;
+  breedId: string;
+  animalTypeId: string;
   //*TODO* Is type ok?
-  AttachedPhotos: File[];
-  AdoptionStatus: AdoptionStatus;
+  attachedPhotos: File[];
+  adoptionStatus: AdoptionStatus;
 }
 
 // Enum

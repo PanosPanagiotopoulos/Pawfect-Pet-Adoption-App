@@ -2,20 +2,20 @@ import { User } from '../user/user.model';
 
 // Notification Models
 export interface Notification {
-  Id?: string;
-  User?: User;
-  Type?: NotificationType;
-  Content?: string;
-  IsRead?: boolean;
-  CreatedAt?: Date;
+  id?: string;
+  user?: User;
+  type?: NotificationType;
+  content?: string;
+  isRead?: boolean;
+  createdAt?: Date;
 }
 
 export interface NotificationPersist {
-  Id: string;
-  UserId: string;
-  Type: NotificationType;
-  Content: string;
-  IsRead: boolean;
+  id: string;
+  userId: string;
+  type: NotificationType;
+  content: string;
+  isRead: boolean;
 }
 
 // Enum

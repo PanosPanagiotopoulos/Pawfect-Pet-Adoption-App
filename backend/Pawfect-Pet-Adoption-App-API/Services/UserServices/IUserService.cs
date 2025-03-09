@@ -95,6 +95,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποστολή του email επαναφοράς κωδικού.</exception>
 		Task SendResetPasswordEmailAsync(String? email);
 
+		Task<String> VerifyResetPasswordToken(String? token);
+
 		/// <summary>
 		/// Επαναφορά κωδικού χρήστη.
 		/// </summary>

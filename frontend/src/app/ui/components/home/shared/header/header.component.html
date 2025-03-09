@@ -42,14 +42,14 @@
 
         <!-- Show login button or user menu -->
         <ng-container *ngIf="!isLoggedIn; else userMenu">
-          <button 
-            (click)="navigateToLogin()" 
+          <button
+            (click)="navigateToLogin()"
             [disabled]="isLoginRoute()"
             class="flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-white/10"
           >
-            <ng-icon 
-              name="lucideUser" 
-              class="mr-2 group-hover:rotate-12 transition-transform duration-300" 
+            <ng-icon
+              name="lucideUser"
+              class="mr-2 group-hover:rotate-12 transition-transform duration-300"
               [size]="'20'"
             ></ng-icon>
             Login
@@ -60,8 +60,8 @@
           <app-dropdown [(isOpen)]="isUserMenuOpen">
             <div trigger class="flex items-center space-x-2 cursor-pointer">
               <app-user-avatar
-                [imageUrl]="currentUser?.ProfilePhoto!"
-                [name]="currentUser?.FullName"
+                [imageUrl]="currentUser?.profilePhoto!"
+                [name]="currentUser?.fullName"
               ></app-user-avatar>
             </div>
 
@@ -100,6 +100,7 @@
     [isLoggedIn]="isLoggedIn"
     [currentUser]="currentUser"
     (close)="closeMobileMenu()"
+    (logout)="logout()"
   >
   </app-mobile-menu>
 </nav>

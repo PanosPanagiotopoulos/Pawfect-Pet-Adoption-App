@@ -85,11 +85,11 @@ export class AuthService {
     formData.append('user', JSON.stringify(registerData.user));
 
     // Append the file separately if it exists
-    if (registerData.user.AttachedPhoto) {
+    if (registerData.user.attachedPhoto) {
       formData.append(
         'AttachedPhoto',
-        registerData.user.AttachedPhoto,
-        registerData.user.AttachedPhoto.name
+        registerData.user.attachedPhoto,
+        registerData.user.attachedPhoto.name
       );
     }
 
@@ -103,10 +103,10 @@ export class AuthService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  verifyEmail(token: string): Observable<void> {
+  verifyEmail(token: string): Observable<User> {
     const url = `${this.apiBase}/verify-email`;
     return this.http
-      .post<void>(url, { token })
+      .post<User>(url, { token })
       .pipe(catchError((error: any) => throwError(error)));
   }
 
@@ -138,14 +138,17 @@ export class AuthService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  resetPassword(
-    email: string,
-    newPassword: string,
-    token: string
-  ): Observable<void> {
+  verifyResetPasswordToken(token: string): Observable<User> {
+    const url = `${this.apiBase}/verify-reset-password-token`;
+    return this.http
+      .post<User>(url, { token })
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  resetPassword(email: string, password: string): Observable<void> {
     const url = `${this.apiBase}/reset-password`;
     return this.http
-      .post<void>(url, { email, newPassword, token })
+      .post<void>(url, { email, password })
       .pipe(catchError((error: any) => throwError(error)));
   }
 
@@ -166,6 +169,7 @@ export class AuthService {
 
     try {
       const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
+      console.log(decoded);
       return decoded.nameid;
     } catch (error) {
       console.error('Error decoding JWT token:', error);

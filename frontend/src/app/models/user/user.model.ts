@@ -1,44 +1,44 @@
 import { Shelter } from '../shelter/shelter.model';
 
 export interface User {
-  Id?: string;
-  Email?: string;
-  FullName?: string;
-  Role?: UserRole;
-  Phone?: string;
-  Location?: Location;
-  Shelter?: Shelter;
-  AuthProvider?: AuthProvider;
-  AuthProviderId?: string;
-  ProfilePhoto?: string;
-  IsVerified?: boolean;
-  HasPhoneVerified?: boolean;
-  HasEmailVerified?: boolean;
-  CreatedAt?: Date;
-  UpdatedAt?: Date;
+  id?: string;
+  email?: string;
+  fullName?: string;
+  role?: UserRole;
+  phone?: string;
+  location?: Location;
+  shelter?: Shelter;
+  authProvider?: AuthProvider;
+  authProviderId?: string;
+  profilePhoto?: string;
+  isVerified?: boolean;
+  hasPhoneVerified?: boolean;
+  hasEmailVerified?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface UserPersist {
-  Id: string;
-  Email: string;
-  Password: string;
-  FullName: string;
-  Role: UserRole;
-  Phone: string;
-  Location: Location;
-  AuthProvider: AuthProvider;
-  AuthProviderId?: string;
-  AttachedPhoto?: File;
-  HasPhoneVerified: boolean;
-  HasEmailVerified: boolean;
+  id: string;
+  email: string;
+  password: string;
+  fullName: string;
+  role: UserRole;
+  phone: string;
+  location: Location;
+  authProvider: AuthProvider;
+  authProviderId?: string;
+  attachedPhoto?: File;
+  hasPhoneVerified: boolean;
+  hasEmailVerified: boolean;
 }
 
 // Shared Models
 export interface Location {
-  City?: string;
-  ZipCode?: string;
-  Address?: string;
-  Number?: string;
+  city?: string;
+  zipCode?: string;
+  address?: string;
+  number?: string;
 }
 
 // Enums

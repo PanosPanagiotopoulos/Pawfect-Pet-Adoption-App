@@ -63,11 +63,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 			// Δημιουργεί τις απαιτούμενες δηλώσεις (claims) για το JWT
 			List<Claim> claims = new List<Claim>
 		{
-			new Claim(ClaimTypes.NameIdentifier, userId), // Αναγνωριστικό χρήστη
+			new Claim(JwtRegisteredClaimNames.NameId, userId), // Αναγνωριστικό χρήστη
             new Claim(JwtRegisteredClaimNames.Email, email), // Email χρήστη
 			new Claim("isEmailVerified", isEmailVerified), // Flag επιβεβαιωσης χρηστη
 			new Claim("isVerified", isVerified), // Flag επιβεβαιωσης χρηστη
-			new Claim(ClaimTypes.Role, role), // Ρόλος χρήστη
+			new Claim("Role", role), // Ρόλος χρήστη
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique Id του token 
         };
 
@@ -101,7 +101,16 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 		/// <param name="expiration">Η ημερομηνία λήξης του token.</param>
 		public void RevokeToken(String tokenId, DateTime expiration)
 		{
-			_memoryCache.Set(tokenId, true, expiration - DateTime.UtcNow);
+			TimeSpan relativeExpiration = expiration - DateTime.UtcNow;
+
+			if (relativeExpiration <= TimeSpan.Zero)
+			{
+				// LOGS //
+				_logger.LogError("Attempted to revoke a token that has already expired. TokenId: {TokenId}", tokenId);
+				return;
+			}
+
+			_memoryCache.Set(tokenId, true, relativeExpiration);
 		}
 
 		/// <summary>

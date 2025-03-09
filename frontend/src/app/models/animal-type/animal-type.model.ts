@@ -1,14 +1,14 @@
 // AnimalType Models
 export interface AnimalType {
-  Id?: string;
-  Name?: string;
-  Description?: string;
-  CreatedAt?: Date;
-  UpdatedAt?: Date;
+  id?: string;
+  name?: string;
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface AnimalTypePersist {
-  Id: string;
-  Name: string;
-  Description: string;
+  id: string;
+  name: string;
+  description: string;
 }

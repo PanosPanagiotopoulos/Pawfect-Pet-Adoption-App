@@ -2,28 +2,28 @@ import { User } from '../user/user.model';
 
 // Report Models
 export interface Report {
-  Id?: string;
-  Reporter?: User;
-  Reported?: User;
-  Type?: ReportType;
-  Reason?: string;
-  Status?: ReportStatus;
-  CreatedAt?: Date;
-  UpdatedAt?: Date;
+  id?: string;
+  reporter?: User;
+  reported?: User;
+  type?: ReportType;
+  reason?: string;
+  status?: ReportStatus;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ReportPersist {
-  Id: string;
-  ReporterId: string;
-  ReportedId: string;
-  Type: ReportType;
-  Reason: string;
-  Status: ReportStatus;
+  id: string;
+  reporterId: string;
+  reportedId: string;
+  type: ReportType;
+  reason: string;
+  status: ReportStatus;
 }
 
 // Enums
 export enum ReportType {
-  InAppropriateMessage = 1,
+  InappropriateMessage = 1,
   Other = 2,
 }
 

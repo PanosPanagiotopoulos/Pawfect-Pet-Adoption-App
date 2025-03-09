@@ -1,16 +1,24 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-900 pt-6">
   <!-- Background elements -->
   <div class="fixed inset-0 z-0">
-    <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"></div>
-    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"></div>
-    <div class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"
+    ></div>
   </div>
 
   <div class="max-w-md w-full mx-4 z-10">
     <!-- Logo -->
     <div class="text-center mb-12">
       <h2 class="text-3xl font-bold">
-        <span class="bg-gradient-to-r from-primary-400 via-secondary-400 to-accent-400 bg-clip-text text-transparent animate-gradient">
+        <span
+          class="bg-gradient-to-r from-primary-400 via-secondary-400 to-accent-400 bg-clip-text text-transparent animate-gradient"
+        >
           Καλώς ήρθατε
         </span>
       </h2>
@@ -18,13 +26,28 @@
     </div>
 
     <!-- Login Form -->
-    <div class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-12 border border-white/10">
+    <div
+      class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-12 border border-white/10"
+    >
       <!-- Error message alert -->
-      <div *ngIf="errorMessage" class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400 text-sm animate-fadeIn">
+      <div
+        *ngIf="errorMessage"
+        class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400 text-sm animate-fadeIn"
+      >
         <div class="flex items-start">
           <div class="flex-shrink-0 mt-0.5">
-            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            <svg
+              class="h-5 w-5 text-red-400"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                clip-rule="evenodd"
+              />
             </svg>
           </div>
           <div class="ml-3">
@@ -57,7 +80,10 @@
 
         <div class="flex items-center justify-between">
           <div class="text-sm">
-            <a routerLink="/auth/forgot-password" class="text-primary-400 hover:text-primary-300 transition-colors">
+            <a
+              routerLink="/auth/reset-password-request"
+              class="text-primary-400 hover:text-primary-300 transition-colors"
+            >
               Ξεχάσατε τον κωδικό σας;
             </a>
           </div>
@@ -83,19 +109,27 @@
               <div class="w-full border-t border-gray-600"></div>
             </div>
             <div class="relative flex justify-center text-sm">
-              <span class="px-2 text-gray-400 bg-gray-900/95">ή συνεχίστε με</span>
+              <span class="px-2 text-gray-400 bg-gray-900/95"
+                >ή συνεχίστε με</span
+              >
             </div>
           </div>
 
           <div>
-            <app-google-login-button [isLoading]="isLoading" (login)="loginWithGoogle()"></app-google-login-button>
+            <app-google-login-button
+              [isLoading]="isLoading"
+              (login)="loginWithGoogle()"
+            ></app-google-login-button>
           </div>
         </div>
       </form>
 
       <div class="text-center text-sm">
         <span class="text-gray-400">Δεν έχετε λογαριασμό;</span>
-        <a routerLink="/auth/sign-up" class="ml-1 text-primary-400 hover:text-primary-300 transition-colors">
+        <a
+          routerLink="/auth/sign-up"
+          class="ml-1 text-primary-400 hover:text-primary-300 transition-colors"
+        >
           Εγγραφή
         </a>
       </div>

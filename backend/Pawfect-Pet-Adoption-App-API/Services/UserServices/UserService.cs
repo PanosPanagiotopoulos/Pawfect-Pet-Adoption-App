@@ -253,17 +253,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// Κατασκευή καινούριο token
 			String token = IEmailService.GenerateRefreshToken();
 
-			// Αφαιρούμε προηγούμενη ενέργεια του χρήστη για επαναφορά
-			if (_memoryCache.TryGetValue(email, out _))
-			{
-				_memoryCache.Remove(email);
-			}
-
 			// Store the new token in cache
-			_memoryCache.Set(email, token, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
+			_memoryCache.Set(token, email, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
 
 			// Δημιουργία reset password URL
-			String resetPasswordUrl = Path.Join(_requestService.GetBaseURI(), $"auth/reset-password?&token={token}");
+			String resetPasswordUrl = Path.Join(_requestService.GetFrontendBaseURI(), $"auth/reset-password?token={token}");
 
 			// Κατασκευή θέματος URL. Το σπάμε με κενό για καλύτερο projection στον χρήστη
 			String subject = String.Join(' ', EmailType.Reset_Password.ToString().Split('_'));
@@ -271,7 +265,24 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			await _emailService.SendEmailAsync(email, subject, String.Format(IEmailService.EmailTemplates[EmailType.Reset_Password], resetPasswordUrl));
 		}
 
-		public async Task<Boolean> ResetPasswordAsync(String? password, String? token)
+		public async Task<String> VerifyResetPasswordToken(String? token)
+		{
+			if (String.IsNullOrEmpty(token))
+			{
+				throw new InvalidDataException("Δεν βρέθηκε token για την επαλήθευση του reset password");
+			}
+			// Ελέγξτε αν το token επαλήθευσης reset password υπάρχει στην cache.
+			if (!_memoryCache.TryGetValue(token, out String email))
+			{
+				throw new InvalidDataException("Αυτό το link δεν ισχύει πια");
+			}
+			// Αφαιρέστε το token από την cache.
+			_memoryCache.Remove(token);
+
+			return await Task.FromResult(email);
+		}
+
+		public async Task<Boolean> ResetPasswordAsync(String? email, String? password)
 		{
 			// Επαλήθευση password parameter
 			if (String.IsNullOrEmpty(password))
@@ -280,21 +291,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 
 			// Επαλήθευση token parameter
-			if (String.IsNullOrEmpty(token))
+			if (String.IsNullOrEmpty(email))
 			{
-				throw new InvalidDataException("Το token επαλήθευσης είναι απαραίτητο.");
+				throw new InvalidDataException("Το email επαλήθευσης είναι απαραίτητο.");
 			}
 
 			try
 			{
-				String identifiedEmail = VerifyEmail(token);
-				// Επαλήθευση του email και του token για να επιλεσει την επαναφορά του κωδικού
-				if (String.IsNullOrEmpty(identifiedEmail))
-				{
-					throw new InvalidDataException("Η επαλήθευση του email για την επαναφορά κωδικού απέτυχε.");
-				}
-
-				User? resetPasswordUser = await RetrieveUserAsync(null, identifiedEmail);
+				User? resetPasswordUser = await RetrieveUserAsync(null, email);
 
 				if (resetPasswordUser == null)
 				{

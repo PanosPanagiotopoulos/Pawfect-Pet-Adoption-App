@@ -20,10 +20,15 @@ import {
   lucideUpload,
   lucideFile,
   lucideCheck,
+  lucideTriangle,
 } from '@ng-icons/lucide';
+
 // Auth components
 import { LoginComponent } from './login.component';
 import { SignupComponent } from './signup.component';
+import { ResetPasswordRequestComponent } from './reset-password/reset-password-request.component';
+import { ResetPasswordComponent } from './reset-password/reset-password.component';
+import { NotFoundComponent } from '../not-found/not-found.component';
 
 // Shared components (standalone)
 import { FormInputComponent } from 'src/app/common/ui/form-input.component';
@@ -49,10 +54,13 @@ import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.
     RouterModule.forChild([
       { path: 'login', component: LoginComponent },
       { path: 'sign-up', component: SignupComponent },
+      { path: 'verified', component: VerifiedComponent },
       {
-        path: 'verified',
-        component: VerifiedComponent,
+        path: 'reset-password-request',
+        component: ResetPasswordRequestComponent,
       },
+      { path: 'reset-password', component: ResetPasswordComponent },
+      { path: '**', component: NotFoundComponent },
     ]),
     FormInputComponent,
     TextAreaInputComponent,
@@ -80,6 +88,7 @@ import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.
       lucideUpload,
       lucideFile,
       lucideCheck,
+      lucideTriangle,
     }),
   ],
   exports: [LoginComponent, SignupComponent, VerifiedComponent],

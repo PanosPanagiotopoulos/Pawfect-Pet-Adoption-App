@@ -3,20 +3,20 @@ import { User } from '../user/user.model';
 
 // Message Models
 export interface Message {
-  Id?: string;
-  Conversation?: Conversation;
-  Sender?: User;
-  Recipient?: User;
-  Content?: string;
-  IsRead?: boolean;
-  CreatedAt?: Date;
+  id?: string;
+  conversation?: Conversation;
+  sender?: User;
+  recipient?: User;
+  content?: string;
+  isRead?: boolean;
+  createdAt?: Date;
 }
 
 export interface MessagePersist {
-  Id: string;
-  ConversationId: string;
-  SenderId: string;
-  RecipientId: string;
-  Content: string;
-  IsRead: boolean;
+  id: string;
+  conversationId: string;
+  senderId: string;
+  recipientId: string;
+  content: string;
+  isRead: boolean;
 }

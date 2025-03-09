@@ -1,3 +1,4 @@
+// src/app/ui/components/home/shared/dropdown/dropdown-item.component.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIconsModule } from '@ng-icons/core';
@@ -11,7 +12,7 @@ import { CommonModule } from '@angular/common';
     <a
       [routerLink]="routerLink"
       (click)="handleClick()"
-      class="relative flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white transition-all duration-200 group"
+      class="relative flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white transition-all duration-200 group cursor-pointer"
       role="menuitem"
       tabindex="-1">
       <!-- Hover background effect -->

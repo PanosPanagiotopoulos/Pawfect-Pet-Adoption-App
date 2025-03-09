@@ -336,7 +336,7 @@
 
 				verifyEmailUser.HasEmailVerified = true;
 
-				UserDto persisted = await _userService.Persist(verifyEmailUser, false, new() { nameof(UserDto.Id) });
+				UserDto persisted = await _userService.Persist(verifyEmailUser, false, new() { nameof(UserDto.Id), nameof(UserDto.Role) });
 				if (persisted == null)
 				{
 					// LOGS //
@@ -347,7 +347,7 @@
 
 				await _userService.VerifyUserAsync(verifyEmailUser.Id, null);
 
-				return Ok();
+				return Ok(persisted);
 			}
 
 			catch (Exception e)
@@ -388,6 +388,47 @@
 		}
 
 		/// <summary>
+		/// Επιβεβαίωση email χρήστη.
+		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
+		/// </summary>
+		[HttpPost("verify-reset-password-token")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> VerifyResetPasswordToken([FromBody] ResetPasswordPayload payload)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				String identifiedEmail = await _userService.VerifyResetPasswordToken(payload.Token);
+				if (String.IsNullOrEmpty(identifiedEmail))
+				{
+					// LOGS //
+					_logger.LogError("Failed to verify token");
+					ModelState.AddModelError("error", "Failed to verify token");
+					return BadRequest(ModelState);
+				}
+
+
+				return Ok(new UserDto()
+				{
+					Email = identifiedEmail,
+				});
+			}
+
+			catch (Exception e)
+			{
+				// LOGS //
+				_logger.LogError(e, "Error while verifying email");
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
+			}
+		}
+
+		/// <summary>
 		/// Επαναφορά κωδικού πρόσβασης χρήστη.
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
@@ -404,8 +445,9 @@
 
 			try
 			{
+				_logger.LogInformation(JsonHelper.SerializeObjectFormatted(resetPasswordPayload));
 				// Reset the password
-				if (!await _userService.ResetPasswordAsync(resetPasswordPayload.NewPassword, resetPasswordPayload.Token))
+				if (!await _userService.ResetPasswordAsync(resetPasswordPayload.Email, resetPasswordPayload.Password))
 				{
 					// LOGS //
 					_logger.LogError("Αποτυχία επαναφοράς κωδικού");
@@ -414,7 +456,7 @@
 				}
 
 				// Redirect στο login page που βρίσκεται στο : /auth/login αν είναι επιτυχής η επαναφορά
-				return Redirect("/auth/login");
+				return Ok();
 			}
 			catch (Exception e)
 			{

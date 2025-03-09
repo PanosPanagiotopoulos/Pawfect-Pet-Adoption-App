@@ -4,41 +4,41 @@ import { User } from '../user/user.model';
 
 // Shelter Models
 export interface Shelter {
-  Id?: string;
-  User?: User;
-  ShelterName?: string;
-  Description?: string;
-  Website?: string;
-  SocialMedia?: SocialMedia;
-  OperatingHours?: OperatingHours;
-  VerificationStatus?: VerificationStatus;
-  VerifiedBy?: string;
-  Animals?: Animal[];
+  id?: string;
+  user?: User;
+  shelterName?: string;
+  description?: string;
+  website?: string;
+  socialMedia?: SocialMedia;
+  operatingHoours?: OperatingHours;
+  verificationStatus?: VerificationStatus;
+  verifiedBy?: string;
+  animals?: Animal[];
 }
 
 export interface ShelterPersist {
-  Id: string;
-  UserId: string;
-  ShelterName: string;
-  Description: string;
-  Website: string;
-  SocialMedia: SocialMedia;
-  OperatingHours: OperatingHours;
-  VerificationStatus: VerificationStatus;
-  VerifiedBy?: string;
+  id: string;
+  userId: string;
+  shelterName: string;
+  description: string;
+  website: string;
+  socialMedia: SocialMedia;
+  operatingHours: OperatingHours;
+  verificationStatus: VerificationStatus;
+  verifiedBy?: string;
 }
 
 export interface OperatingHours {
-  Monday: string;
-  Tuesday: string;
-  Wednesday: string;
-  Thursday: string;
-  Friday: string;
-  Saturday: string;
-  Sunday: string;
+  monday: string;
+  tuesday: string;
+  wednesday: string;
+  thursday: string;
+  friday: string;
+  saturday: string;
+  sunday: string;
 }
 
 export interface SocialMedia {
-  Facebook?: string;
-  Instagram?: string;
+  facebook?: string;
+  instagram?: string;
 }

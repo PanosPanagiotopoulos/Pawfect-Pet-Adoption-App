@@ -2,17 +2,17 @@ import { AnimalType } from '../animal-type/animal-type.model';
 
 // Breed Models
 export interface Breed {
-  Id?: string;
-  Name?: string;
-  AnimalType?: AnimalType;
-  Description?: string;
-  CreatedAt?: Date;
-  UpdatedAt?: Date;
+  id?: string;
+  name?: string;
+  animalType?: AnimalType;
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface BreedPersist {
-  Id: string;
-  Name: string;
-  TypeId: string;
-  Description: string;
+  id: string;
+  name: string;
+  typeId: string;
+  description: string;
 }

@@ -3,15 +3,15 @@ import { User } from '../user/user.model';
 
 // Conversation Models
 export interface Conversation {
-  Id?: string;
-  Users?: User[];
-  Animal?: Animal;
-  CreatedAt?: Date;
-  UpdatedAt?: Date;
+  id?: string;
+  users?: User[];
+  animal?: Animal;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface ConversationPersist {
-  Id: string;
-  UserIds: string[];
-  AnimalId: string;
+  id: string;
+  userIds: string[];
+  animalId: string;
 }

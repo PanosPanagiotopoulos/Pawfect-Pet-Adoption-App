@@ -4,26 +4,26 @@ import { User } from '../user/user.model';
 
 // AdoptionApplication Models
 export interface AdoptionApplication {
-  Id?: string;
-  User?: User;
-  Animal?: Animal;
-  Shelter?: Shelter;
-  Status?: ApplicationStatus;
-  ApplicationDetails?: string;
-  AttachedFilesUrls?: string[];
-  CreatedAt?: Date;
-  UpdatedAt?: Date;
+  id?: string;
+  user?: User;
+  animal?: Animal;
+  shelter?: Shelter;
+  status?: ApplicationStatus;
+  applicationDetails?: string;
+  attachedFilesUrls?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface AdoptionApplicationPersist {
-  Id: string;
-  UserId: string;
-  AnimalId: string;
-  ShelterId: string;
-  Status: ApplicationStatus;
-  ApplicationDetails: string;
+  id: string;
+  userId: string;
+  animalId: string;
+  shelterId: string;
+  status: ApplicationStatus;
+  applicationDetails: string;
   //*TODO* Is type ok?
-  AttachedFiles: File[];
+  attachedFiles: File[];
 }
 
 // Enums

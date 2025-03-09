@@ -121,7 +121,10 @@ export enum SignupStep {
     ]),
   ],
 })
-export class SignupComponent extends BaseComponent implements OnInit, OnDestroy {
+export class SignupComponent
+  extends BaseComponent
+  implements OnInit, OnDestroy
+{
   @ViewChild(OtpInputComponent) otpInputComponent?: OtpInputComponent;
 
   currentStep = SignupStep.PersonalInfo;
@@ -535,33 +538,33 @@ export class SignupComponent extends BaseComponent implements OnInit, OnDestroy 
 
       const payload: RegisterPayload = {
         user: {
-          Id: '',
-          Email: formValue.email,
-          Password: formValue.password,
-          FullName: formValue.fullName,
-          Role: formValue.role,
-          Phone: formValue.phone,
-          Location: formValue.location,
-          AuthProvider: 1,
-          AttachedPhoto: formValue.profilePhoto,
-          HasPhoneVerified: false,
-          HasEmailVerified: false,
+          id: '',
+          email: formValue.email,
+          password: formValue.password,
+          fullName: formValue.fullName,
+          role: formValue.role,
+          phone: formValue.phone,
+          location: formValue.location,
+          authProvider: 1,
+          attachedPhoto: formValue.profilePhoto,
+          hasPhoneVerified: false,
+          hasEmailVerified: false,
         },
       };
 
       if (formValue.isShelter) {
         payload.shelter = {
-          Id: '',
-          UserId: '',
-          ShelterName: formValue.shelter.shelterName,
-          Description: formValue.shelter.description,
-          Website: formValue.shelter.website,
-          SocialMedia: formValue.shelter.socialMedia,
-          OperatingHours: this.getOperatingHoursPayload(
+          id: '',
+          userId: '',
+          shelterName: formValue.shelter.shelterName,
+          description: formValue.shelter.description,
+          website: formValue.shelter.website,
+          socialMedia: formValue.shelter.socialMedia,
+          operatingHours: this.getOperatingHoursPayload(
             formValue.shelter.operatingHours
           ),
-          VerificationStatus: 1,
-          VerifiedBy: undefined,
+          verificationStatus: 1,
+          verifiedBy: undefined,
         };
       }
 
@@ -569,7 +572,7 @@ export class SignupComponent extends BaseComponent implements OnInit, OnDestroy 
 
       this.authService.register(payload).subscribe({
         next: (user: User) => {
-          this.userId = user.Id!;
+          this.userId = user.id!;
           this.resendOtp();
           this.currentStep = SignupStep.OtpVerification;
           this.isLoading = false;

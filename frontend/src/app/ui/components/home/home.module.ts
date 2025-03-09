@@ -9,12 +9,16 @@ import { AiMatchingSectionComponent } from './ai-matching-section/ai-matching-se
 import { FeatureCardComponent } from './feature-card/feature-card.component';
 import { HeaderComponent } from './shared/header/header.component';
 import { AnimationDirective } from './shared/directives/animation.directive';
+import { NotFoundComponent } from '../not-found/not-found.component';
 
 @NgModule({
   declarations: [HomeComponent],
   imports: [
     CommonModule,
-    RouterModule.forChild([{ path: '', component: HomeComponent }]),
+    RouterModule.forChild([
+      { path: '', component: HomeComponent },
+      { path: '**', component: NotFoundComponent },
+    ]),
     NgIconsModule,
     HeaderComponent,
     FooterComponent,

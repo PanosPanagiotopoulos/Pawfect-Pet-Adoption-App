@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
-import { catchError, finalize, of } from 'rxjs';
 import { User, UserRole } from 'src/app/models/user/user.model';
 
 @Component({
@@ -56,7 +55,7 @@ import { User, UserRole } from 'src/app/models/user/user.model';
               class="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center"
             >
               <ng-icon
-                name="lucideTriangle"
+                name="lucideX"
                 [size]="'32'"
                 class="text-red-500"
               ></ng-icon>
@@ -93,7 +92,6 @@ export class VerifiedComponent implements OnInit {
 
   ngOnInit(): void {
     const token = this.route.snapshot.queryParamMap.get('token');
-    const role = this.route.snapshot.queryParamMap.get('role');
 
     if (!token) {
       this.error = 'Δεν έχετε επαληθέυση τον λογαριασμό σας.';
@@ -101,27 +99,20 @@ export class VerifiedComponent implements OnInit {
       return;
     }
 
-    // Store user role if provided
-    if (role) {
-      this.userRole = parseInt(role) as UserRole;
-    }
-
-    this.authService
-      .verifyEmail(token)
-      .pipe(
-        catchError((error) => {
-          console.error('Email verification error:', error);
-          this.error =
-            'Παρουσιάστηκε σφάλμα κατά την επαλήθευση του email σας. Παρακαλώ δοκιμάστε ξανά.';
-          return of(null);
-        }),
-        finalize(() => {
-          this.isLoading = false;
-        })
-      )
-      .subscribe(() => {
+    this.authService.verifyEmail(token).subscribe(
+      (model: User) => {
         this.isVerified = true;
-      });
+        this.isLoading = false;
+        this.error = null;
+        this.userRole = model.role!;
+      },
+      (error) => {
+        this.isVerified = false;
+        this.isLoading = false;
+        console.error('Email verification error:', error);
+        this.error = 'Το email επιβεβαίωσης δεν ισχύει πια.';
+      }
+    );
   }
 
   getVerificationMessage(): string {

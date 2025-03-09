@@ -23,7 +23,6 @@ import { nameof } from 'ts-simple-nameof';
     RouterLink,
     NgIconsModule,
     NavLinkComponent,
-    AuthButtonComponent,
     MobileMenuComponent,
     UserAvatarComponent,
     DropdownComponent,
@@ -50,17 +49,18 @@ export class HeaderComponent extends BaseComponent {
       if (isLoggedInFlag) {
         this.userService
           .getSingle(authService.getUserId()!, [
-            nameof<User>((x) => x.Id),
-            nameof<User>((x) => x.ProfilePhoto),
-            nameof<User>((x) => x.FullName),
+            nameof<User>((x) => x.id),
+            nameof<User>((x) => x.profilePhoto),
+            nameof<User>((x) => x.fullName),
           ])
           .pipe(takeUntil(this._destroyed))
           .subscribe(
             (user: User) => {
+              console.log(user);
               this.currentUser = user;
             },
             (error) => {
-              console.error(error);
+              console.error('Error fetching user:', error);
             }
           );
       }
@@ -84,14 +84,20 @@ export class HeaderComponent extends BaseComponent {
     this.authService
       .logout()
       .pipe(takeUntil(this._destroyed))
-      .subscribe(
-        () => {
+      .subscribe({
+        next: () => {
           this.isUserMenuOpen = false;
+          this.router.navigate(['/']);
         },
-        (error) => {
-          console.error(error);
-        }
-      );
+        error: (error) => {
+          console.error('Logout error:', error);
+          // Still navigate to home on error, as the session is likely invalid anyway
+          this.router.navigate(['/']);
+        },
+        complete: () => {
+          this.closeMobileMenu();
+        },
+      });
   }
 
   navigateToLogin(): void {

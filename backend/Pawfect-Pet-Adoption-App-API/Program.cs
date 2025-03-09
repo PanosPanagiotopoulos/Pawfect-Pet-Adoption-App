@@ -7,6 +7,7 @@ using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Middleware;
 using Pawfect_Pet_Adoption_App_API.Models;
 using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalServices.Extention;
@@ -234,6 +235,8 @@ public class Program
 		app.UseCors("Cors");
 
 		app.UseAuthentication();
+
+		app.UseJwtRevocation();
 
 		app.UseAuthorization();
 

@@ -42,13 +42,13 @@ import { User } from 'src/app/models/user/user.model';
           class="flex items-center space-x-3 p-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300 group"
         >
           <app-user-avatar
-            [imageUrl]="currentUser?.ProfilePhoto!"
-            [name]="currentUser?.FullName"
+            [imageUrl]="currentUser?.profilePhoto!"
+            [name]="currentUser?.fullName"
           >
           </app-user-avatar>
           <div>
             <p class="text-white font-medium">
-              {{ currentUser?.FullName || 'User' }}
+              {{ currentUser?.fullName || 'User' }}
             </p>
             <p class="text-gray-400 text-sm">View Profile</p>
           </div>
@@ -95,7 +95,7 @@ import { User } from 'src/app/models/user/user.model';
 
         <ng-template #logoutButton>
           <button
-            (click)="logout()"
+            (click)="onLogout()"
             class="flex items-center justify-center space-x-2 w-full p-3 border border-red-500/30 text-red-500 rounded-xl hover:bg-red-500/10 transition-all duration-300"
           >
             <ng-icon name="lucideLogOut" [size]="'20'"></ng-icon>
@@ -111,6 +111,7 @@ export class MobileMenuComponent {
   @Input() isLoggedIn = false;
   @Input() currentUser?: User;
   @Output() close = new EventEmitter<void>();
+  @Output() logout = new EventEmitter<void>();
 
   menuItems = [
     {
@@ -129,8 +130,8 @@ export class MobileMenuComponent {
 
   constructor(private router: Router) {}
 
-  logout(): void {
-    console.log('Logging out...');
+  onLogout(): void {
+    this.logout.emit();
     this.close.emit();
   }
 
