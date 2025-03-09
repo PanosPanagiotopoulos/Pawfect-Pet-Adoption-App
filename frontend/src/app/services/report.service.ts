@@ -28,7 +28,7 @@ export class ReportService {
 
   getSingle(id: string, reqFields: string[] = []): Observable<Report> {
     const url = `${this.apiBase}/${id}`;
-    const options = { params: { f: reqFields } };
+    const options = { params: { fields: reqFields } };
     return this.http
       .get<Report>(url, options)
       .pipe(catchError((error: any) => throwError(error)));

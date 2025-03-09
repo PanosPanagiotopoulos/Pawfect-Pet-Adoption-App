@@ -33,7 +33,7 @@ export class AdoptionApplicationService {
     reqFields: string[] = []
   ): Observable<AdoptionApplication> {
     const url = `${this.apiBase}/${id}`;
-    const options = { params: { f: reqFields } };
+    const options = { params: { fields: reqFields } };
 
     return this.http
       .get<AdoptionApplication>(url, options)

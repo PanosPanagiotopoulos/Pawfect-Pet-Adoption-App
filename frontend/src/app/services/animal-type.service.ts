@@ -31,7 +31,7 @@ export class AnimalTypeService {
 
   getSingle(id: string, reqFields: string[] = []): Observable<AnimalType> {
     const url = `${this.apiBase}/${id}`;
-    const options = { params: { f: reqFields } };
+    const options = { params: { fields: reqFields } };
     return this.http
       .get<AnimalType>(url, options)
       .pipe(catchError((error: any) => throwError(error)));

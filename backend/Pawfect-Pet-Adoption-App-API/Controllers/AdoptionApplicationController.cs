@@ -63,7 +63,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(404)]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> GetAdoptionApplication([FromRoute] String id, [FromQuery] List<String> fields)
+		public async Task<IActionResult> GetAdoptionApplication(String id, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid)
 			{

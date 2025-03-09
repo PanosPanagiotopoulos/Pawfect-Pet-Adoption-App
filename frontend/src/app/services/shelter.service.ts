@@ -28,7 +28,7 @@ export class ShelterService {
 
   getSingle(id: string, reqFields: string[] = []): Observable<Shelter> {
     const url = `${this.apiBase}/${id}`;
-    const options = { params: { f: reqFields } };
+    const options = { params: { fields: reqFields } };
     return this.http
       .get<Shelter>(url, options)
       .pipe(catchError((error: any) => throwError(error)));
