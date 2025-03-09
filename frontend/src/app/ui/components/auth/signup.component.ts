@@ -502,40 +502,6 @@ export class SignupComponent
       this.isLoading = true;
       const formValue = this.registrationForm.value;
 
-      this.logService.logFormatted(
-        'Registration Form Data:\n' +
-          {
-            personalInfo: {
-              email: formValue.email,
-              fullName: formValue.fullName,
-              phone: formValue.phone,
-              location: formValue.location,
-            },
-            accountDetails: {
-              password: formValue.password,
-              role: formValue.role,
-            },
-            profilePhoto: formValue.profilePhoto
-              ? {
-                  name: formValue.profilePhoto.name || 'unknown',
-                  size: formValue.profilePhoto.size
-                    ? this.formatFileSize(formValue.profilePhoto.size)
-                    : 'unknown',
-                  type: formValue.profilePhoto.type || 'unknown',
-                }
-              : 'No profile photo uploaded',
-            shelterInfo: formValue.isShelter
-              ? {
-                  shelterName: formValue.shelter.shelterName,
-                  description: formValue.shelter.description,
-                  website: formValue.shelter.website,
-                  socialMedia: formValue.shelter.socialMedia,
-                  operatingHours: formValue.shelter.operatingHours,
-                }
-              : null,
-          }
-      );
-
       const payload: RegisterPayload = {
         user: {
           id: '',
@@ -558,8 +524,10 @@ export class SignupComponent
           userId: '',
           shelterName: formValue.shelter.shelterName,
           description: formValue.shelter.description,
-          website: formValue.shelter.website,
-          socialMedia: formValue.shelter.socialMedia,
+          website: formValue.shelter.website ? formValue.shelter.website : null,
+          socialMedia: this.getSocialMediaPayload(
+            formValue.shelter.socialMedia
+          ),
           operatingHours: this.getOperatingHoursPayload(
             formValue.shelter.operatingHours
           ),
@@ -567,8 +535,6 @@ export class SignupComponent
           verifiedBy: undefined,
         };
       }
-
-      this.logService.logFormatted(payload);
 
       this.authService.register(payload).subscribe({
         next: (user: User) => {
@@ -583,6 +549,17 @@ export class SignupComponent
         },
       });
     }
+  }
+
+  private getSocialMediaPayload(socialMedia: any) {
+    if (!socialMedia) {
+      return null;
+    }
+
+    const facebook = socialMedia.facebook;
+    const instagram = socialMedia.instagram;
+
+    return facebook || instagram ? socialMedia : null;
   }
 
   private getOperatingHoursPayload(operatingHours: any): any {

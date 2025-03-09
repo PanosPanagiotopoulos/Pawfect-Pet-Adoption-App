@@ -191,10 +191,7 @@ export class ResetPasswordComponent implements OnInit {
 
     this.authService.verifyResetPasswordToken(this.token!).subscribe(
       (model: User) => {
-        const modelEmail = (model as any).email;
-        console.log(model);
-        this.email = modelEmail;
-        console.log('This email : ', this.email);
+        this.email = (model as any).email;
         this.isLoading = false;
         this.errorMessage = null;
       },

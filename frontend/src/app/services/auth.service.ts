@@ -169,7 +169,6 @@ export class AuthService {
 
     try {
       const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
-      console.log(decoded);
       return decoded.nameid;
     } catch (error) {
       console.error('Error decoding JWT token:', error);

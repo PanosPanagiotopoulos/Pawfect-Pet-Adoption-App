@@ -56,7 +56,6 @@ export class HeaderComponent extends BaseComponent {
           .pipe(takeUntil(this._destroyed))
           .subscribe(
             (user: User) => {
-              console.log(user);
               this.currentUser = user;
             },
             (error) => {
@@ -91,7 +90,6 @@ export class HeaderComponent extends BaseComponent {
         },
         error: (error) => {
           console.error('Logout error:', error);
-          // Still navigate to home on error, as the session is likely invalid anyway
           this.router.navigate(['/']);
         },
         complete: () => {
