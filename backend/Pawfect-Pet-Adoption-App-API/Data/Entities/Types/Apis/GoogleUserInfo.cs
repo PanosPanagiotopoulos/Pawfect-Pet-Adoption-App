@@ -6,9 +6,18 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis
 	public class GoogleUserInfo
 	{
 		[JsonProperty("sub")]
-		public String Sub { get; set; }  // Μοναδικό Google ID
+		public String Sub { get; set; }
 
 		[JsonProperty("email")]
 		public String Email { get; set; }
+
+		[JsonProperty("name")]
+		public String Name { get; set; }
+
+		[JsonProperty("phone_number")]
+		public String PhoneNumber { get; set; }
+
+		[JsonProperty("address")]
+		public String Address { get; set; }
 	}
 }

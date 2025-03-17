@@ -19,6 +19,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 			// Mapping για το Entity : User σε User για χρήση του σε αντιγραφή αντικειμένων
 			CreateMap<User, User>();
+			CreateMap<User, UserDto>().ReverseMap();
+
 
 			// POST Request Dto Μοντέλα
 			CreateMap<User, UserPersist>();
@@ -62,6 +64,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (nativeFields.Contains(nameof(User.Phone))) dto.Phone = e.Phone;
 				if (nativeFields.Contains(nameof(User.Location))) dto.Location = e.Location;
 				if (nativeFields.Contains(nameof(User.AuthProvider))) dto.AuthProvider = e.AuthProvider;
+				if (nativeFields.Contains(nameof(User.AuthProviderId))) dto.AuthProviderId = e.AuthProviderId;
 				if (nativeFields.Contains(nameof(User.ProfilePhoto))) dto.ProfilePhoto = e.ProfilePhoto;
 				if (nativeFields.Contains(nameof(User.IsVerified))) dto.IsVerified = e.IsVerified;
 				if (nativeFields.Contains(nameof(User.HasPhoneVerified))) dto.HasPhoneVerified = e.HasPhoneVerified;

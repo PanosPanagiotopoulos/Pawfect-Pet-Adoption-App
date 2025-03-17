@@ -60,6 +60,8 @@
     >
       <app-personal-info
         [form]="getPersonalInfoForm()"
+        [isLoading]="isLoading"
+        [isExternalProviderLoading]="isExternalProviderLoading"
         (next)="onPersonalInfoNext()"
       ></app-personal-info>
 
@@ -94,8 +96,8 @@
       </div>
 
       <app-google-login-button
-        [isLoading]="isLoading"
-        (login)="loginWithGoogle()"
+        [isLoading]="isExternalProviderLoading"
+        [isSignup]="true"
       ></app-google-login-button>
 
       <div class="text-center text-sm">
@@ -129,12 +131,11 @@
       class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8 border border-white/10"
     >
       <app-preferences
-  [form]="registrationForm"
-  [isLoading]="isLoading"
-  (back)="onShelterInfoBack()"
-  (submit)="onSubmitRegistration()"
-></app-preferences>
-
+        [form]="registrationForm"
+        [isLoading]="isLoading"
+        (back)="onShelterInfoBack()"
+        (submit)="onSubmitRegistration()"
+      ></app-preferences>
     </div>
 
     <!-- OTP Verification Step -->
@@ -143,6 +144,9 @@
       [@stepTransition]="stepDirection"
       class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-6 border border-white/10"
     >
+      <!-- Error Banner -->
+      <app-error-message-banner [error]="error"></app-error-message-banner>
+
       <div class="text-center">
         <h2 class="text-2xl font-bold text-white mb-2">Επαλήθευση Τηλεφώνου</h2>
         <p class="text-gray-400 mb-8">
@@ -193,6 +197,9 @@
       [@stepTransition]="stepDirection"
       class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-6 border border-white/10 text-center"
     >
+      <!-- Error Banner -->
+      <app-error-message-banner [error]="error"></app-error-message-banner>
+
       <div
         class="w-16 h-16 mx-auto bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center"
       >
@@ -207,13 +214,11 @@
               : "Η Εγγραφή Ολοκληρώθηκε!"
           }}
         </h2>
-        <p class="text-gray-400">
+        <p class="text-gray-400" *ngIf="fromLogin">
           {{
-            fromLogin
-              ? "Ο λογαριασμός σας υπάρχει, αλλά το email σας δεν έχει επαληθευτεί. Έχουμε στείλει ένα email επιβεβαίωσης στο " +
-                (registrationForm.get("email")?.value || "email σας") +
-                ". Παρακαλούμε επαληθεύστε το email σας για να συνδεθείτε."
-              : "Έχουμε στείλει ένα email επιβεβαίωσης στο email σας. Παρακαλούμε επαληθεύστε το email σας για να ολοκληρώσετε τη διαδικασία εγγραφής."
+            "Ο λογαριασμός σας υπάρχει, αλλά το email σας δεν έχει επαληθευτεί. Έχουμε στείλει ένα email επιβεβαίωσης στο " +
+              (registrationForm.get("email")?.value || "email σας") +
+              ". Παρακαλούμε επαληθεύστε το email σας για να συνδεθείτε."
           }}
         </p>
       </div>

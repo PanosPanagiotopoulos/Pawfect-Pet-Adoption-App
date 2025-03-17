@@ -10,7 +10,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AuthService } from 'src/app/services/auth.service';
 import { RegisterPayload, OtpPayload } from 'src/app/models/auth/auth.model';
-import { User, UserRole } from 'src/app/models/user/user.model';
+import { AuthProvider, User, UserRole } from 'src/app/models/user/user.model';
 import { CustomValidators } from './validators/custom.validators';
 import {
   trigger,
@@ -21,7 +21,9 @@ import {
 } from '@angular/animations';
 import { OtpInputComponent } from 'src/app/common/ui/otp-input.component';
 import { LogService } from 'src/app/common/services/log.service';
-
+import { HttpErrorResponse } from '@angular/common/http';
+import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
+import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
 interface LocationFormGroup extends FormGroup {
   controls: {
     city: AbstractControl;
@@ -126,16 +128,23 @@ export class SignupComponent
   implements OnInit, OnDestroy
 {
   @ViewChild(OtpInputComponent) otpInputComponent?: OtpInputComponent;
-
   currentStep = SignupStep.PersonalInfo;
   SignupStep = SignupStep;
+  stepDirection: 'next' | 'prev' = 'next';
+  fromLogin = false;
+
   isLoading = false;
+  isExternalProviderLoading = false;
+
   userId: string = '';
   resendOtpTimer = 0;
   resendOtpInterval: any;
+
+  error?: ErrorDetails;
+
   showShelterInfo = false;
-  stepDirection: 'next' | 'prev' = 'next';
-  fromLogin = false;
+
+  googlePopulatedFields: string[] = [];
 
   registrationForm!: RegistrationFormGroup;
   otpForm!: OtpFormGroup;
@@ -144,6 +153,7 @@ export class SignupComponent
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly logService: LogService,
+    private readonly errorHandler: ErrorHandlerService,
     private readonly router: Router,
     private readonly route: ActivatedRoute
   ) {
@@ -152,10 +162,26 @@ export class SignupComponent
   }
 
   ngOnInit(): void {
-    // Check if we're coming from login with an unverified email
+    this.route.queryParams.subscribe((params: any) => {
+      if (params['mode'] === 'google') {
+        // Get the Google auth code from session storage
+        const googleAuthCode: string | null =
+          sessionStorage.getItem('googleAuthCode');
+
+        if (googleAuthCode) {
+          // Clear the code from session storage to prevent reuse
+          sessionStorage.removeItem('googleAuthCode');
+          sessionStorage.removeItem('googleAuthOrigin');
+
+          // Call the login with Google method
+          this.isExternalProviderLoading = true;
+          this.processGoogleSignUp(googleAuthCode);
+        }
+      }
+    });
+
     const state = history.state;
 
-    // Add session storage data if any to reproduce the otp or email verifications
     const existingPhone: string | null =
       sessionStorage.getItem('unverifiedPhone');
     if (existingPhone) {
@@ -194,7 +220,6 @@ export class SignupComponent
     clearInterval(this.resendOtpInterval);
     window.onpopstate = null;
   }
-
   private initializeForms(): void {
     // Change this in the initializeForms() method:
     const operatingHoursGroup = this.fb.group({
@@ -221,9 +246,12 @@ export class SignupComponent
         '',
         [Validators.required, Validators.pattern(/^\d{1,14}$/)],
       ],
+      authProvider: [AuthProvider.Local],
+      authProviderId: [null],
       role: [UserRole.User, [Validators.required]],
       isShelter: [false],
       profilePhoto: [null],
+      hasPhoneVerified: [false],
       hasEmailVerified: [false],
       location: this.fb.group({
         city: [
@@ -345,29 +373,6 @@ export class SignupComponent
     }) as OtpFormGroup;
   }
 
-  loginWithGoogle(): void {
-    this.isLoading = true;
-
-    // For testing without backend
-    setTimeout(() => {
-      this.isLoading = false;
-      this.router.navigate(['/']);
-    }, 1500);
-
-    // Uncomment this when ready to connect to backend
-    // this.authService
-    //   .loginWithGoogle('')
-    //   .pipe(takeUntil(this._destroyed))
-    //   .subscribe({
-    //     next: () => {
-    //       this.router.navigate(['/']);
-    //     },
-    //     error: (error) => {
-    //       console.error('Google login error:', error);
-    //     },
-    //   });
-  }
-
   getStepsToShow() {
     // Base steps that are always shown
     const steps = [
@@ -455,13 +460,123 @@ export class SignupComponent
     return fileUploadForm;
   }
 
+  private processGoogleSignUp(authCode: string): void {
+    this.authService.registerWithGoogle(authCode).subscribe({
+      next: (response: User) => {
+        const googlePopulatedFields: string[] = [];
+
+        if (response.email) {
+          this.registrationForm.get('email')?.setValue(response.email);
+          this.registrationForm.get('email')?.disable();
+          this.registrationForm.get('hasEmailVerified')?.setValue(true);
+          googlePopulatedFields.push('email');
+        }
+
+        if (response.fullName) {
+          this.registrationForm.get('fullName')?.setValue(response.fullName);
+          this.registrationForm.get('fullName')?.disable();
+          googlePopulatedFields.push('fullName');
+        }
+
+        if (response.location) {
+          const locationForm = this.getLocationForm();
+
+          // Handle each location field individually
+          if (response.location.city) {
+            locationForm.get('city')?.setValue(response.location.city);
+            locationForm.get('city')?.disable();
+            googlePopulatedFields.push('location.city');
+          }
+
+          if (response.location.zipCode) {
+            locationForm.get('zipCode')?.setValue(response.location.zipCode);
+            locationForm.get('zipCode')?.disable();
+            googlePopulatedFields.push('location.zipCode');
+          }
+
+          if (response.location.address) {
+            locationForm.get('address')?.setValue(response.location.address);
+            locationForm.get('address')?.disable();
+            googlePopulatedFields.push('location.address');
+          }
+
+          if (response.location.number) {
+            locationForm.get('number')?.setValue(response.location.number);
+            locationForm.get('number')?.disable();
+            googlePopulatedFields.push('location.number');
+          }
+        }
+
+        if (response.phone) {
+          const phoneNumbers = response.phone.split(' ');
+          if (phoneNumbers.length > 1) {
+            this.registrationForm.get('countryCode')?.setValue(phoneNumbers[0]);
+            this.registrationForm.get('phoneNumber')?.setValue(phoneNumbers[1]);
+            this.registrationForm.get('countryCode')?.disable();
+            this.registrationForm.get('phoneNumber')?.disable();
+          } else {
+            this.registrationForm.get('phoneNumber')?.setValue(response.phone);
+            this.registrationForm.get('phoneNumber')?.disable();
+          }
+
+          this.registrationForm.get('phone')?.setValue(response.phone);
+          this.registrationForm.get('phone')?.disable();
+          this.registrationForm.get('hasPhoneVerified')?.setValue(true);
+          googlePopulatedFields.push('phone');
+        }
+
+        if (response.authProvider) {
+          this.registrationForm
+            .get('authProvider')
+            ?.setValue(response.authProvider);
+        }
+
+        if (response.authProviderId) {
+          this.registrationForm
+            .get('authProviderId')
+            ?.setValue(response.authProviderId);
+        }
+
+        this.googlePopulatedFields = googlePopulatedFields;
+
+        this.isExternalProviderLoading = false;
+        this.error = undefined;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.isExternalProviderLoading = false;
+        this.error = this.errorHandler.handleAuthError(error);
+        console.error(error);
+      },
+    });
+  }
+
+  isGooglePopulated(fieldName: string): boolean {
+    return this.googlePopulatedFields.includes(fieldName);
+  }
+
   onPersonalInfoNext(): void {
     this.stepDirection = 'next';
+    if (
+      (this.registrationForm.get('authProvider')?.value as AuthProvider) !=
+      AuthProvider.Local
+    ) {
+      this.onAccountDetailsNext(true);
+      return;
+    }
+
     this.currentStep = SignupStep.AccountDetails;
   }
 
-  onAccountDetailsNext(): void {
+  onAccountDetailsNext(isExternalProvided: boolean = false): void {
     this.stepDirection = 'next';
+    if (isExternalProvided) {
+      this.registrationForm
+        .get('password')
+        ?.setValue('AuthenticatedExternally2025!');
+      this.registrationForm
+        .get('confirmPassword')
+        ?.setValue('AuthenticatedExternally2025!');
+    }
 
     const password = this.registrationForm.get('password')?.value;
     const confirmPassword = this.registrationForm.get('confirmPassword')?.value;
@@ -493,28 +608,41 @@ export class SignupComponent
 
   onShelterInfoBack(): void {
     this.stepDirection = 'prev';
+    if (
+      (this.registrationForm.value.authProvider as AuthProvider) !==
+      AuthProvider.Local
+    ) {
+      this.onAccountDetailsBack();
+      return;
+    }
+
     this.currentStep = SignupStep.AccountDetails;
   }
 
   onSubmitRegistration(): void {
     this.markFormGroupTouched(this.registrationForm);
+    this.logService.logFormatted(this.registrationForm.getRawValue());
     if (this.registrationForm.valid) {
       this.isLoading = true;
-      const formValue = this.registrationForm.value;
+      const formValue = this.registrationForm.getRawValue();
 
       const payload: RegisterPayload = {
         user: {
           id: '',
           email: formValue.email,
-          password: formValue.password,
+          password:
+            formValue.authProvider == AuthProvider.Local
+              ? formValue.password
+              : '',
           fullName: formValue.fullName,
           role: formValue.role,
           phone: formValue.phone,
           location: formValue.location,
-          authProvider: 1,
+          authProvider: formValue.authProvider,
+          authProviderId: formValue.authProviderId,
           attachedPhoto: formValue.profilePhoto,
-          hasPhoneVerified: false,
-          hasEmailVerified: false,
+          hasPhoneVerified: formValue.hasPhoneVerified,
+          hasEmailVerified: formValue.hasEmailVerified,
         },
       };
 
@@ -539,13 +667,28 @@ export class SignupComponent
       this.authService.register(payload).subscribe({
         next: (user: User) => {
           this.userId = user.id!;
-          this.resendOtp();
-          this.currentStep = SignupStep.OtpVerification;
+          if (!user.hasPhoneVerified) {
+            this.resendOtp();
+            this.currentStep = SignupStep.OtpVerification;
+          } else if (!user.hasEmailVerified) {
+            this.resendEmailVerification();
+            this.currentStep = SignupStep.EmailConfirmation;
+          } else {
+            this.router.navigate(['/auth/verified'], {
+              queryParams: {
+                complete: formValue.role,
+                identification: this.userId,
+              },
+            });
+          }
+
           this.isLoading = false;
+          this.error = undefined;
         },
         error: (error) => {
           console.error('Registration error:', error);
           this.isLoading = false;
+          this.error = this.errorHandler.handleAuthError(error);
         },
       });
     }
@@ -592,11 +735,12 @@ export class SignupComponent
 
   onSubmitOtp(): void {
     this.markFormGroupTouched(this.otpForm);
+    this.error = undefined;
 
     if (this.otpForm.valid) {
       this.isLoading = true;
       const { otp } = this.otpForm.value;
-      const { phone, email } = this.registrationForm.value;
+      const { phone, email, role } = this.registrationForm.getRawValue();
 
       this.authService
         .verifyOtp({
@@ -607,26 +751,40 @@ export class SignupComponent
         } as OtpPayload)
         .subscribe({
           next: () => {
-            this.currentStep = SignupStep.EmailConfirmation;
-            this.resendEmailVerification();
+            if (!this.registrationForm.get('hasEmailVerified')?.value) {
+              this.currentStep = SignupStep.EmailConfirmation;
+              this.resendEmailVerification();
+            } else {
+              this.router.navigate(['/auth/verified'], {
+                queryParams: { complete: role, identification: this.userId },
+              });
+            }
+
+            this.error = undefined;
             this.isLoading = false;
           },
-          error: (error) => {
-            console.error('OTP verification error:', error);
+          error: (error: HttpErrorResponse) => {
             this.isLoading = false;
+            this.error = {
+              title: 'Λάθος κωδικός',
+              message:
+                'Ο κωδικός OTP δεν είναι έγκυρος. Παρακαλώ δοκιμάστε ξανά.',
+              type: 'error',
+            };
+            console.error('OTP verification error:', error);
           },
         });
     }
   }
 
   onOtpCompleted(otp: string): void {
-    if (otp.length === 6) {
+    if (otp.length === 6 && !this.isLoading) {
       this.onSubmitOtp();
     }
   }
 
   resendOtp(): void {
-    const { phone, email } = this.registrationForm.value;
+    const { phone, email } = this.registrationForm.getRawValue();
 
     this.authService
       .sendOtp({
@@ -637,26 +795,42 @@ export class SignupComponent
       .subscribe({
         next: () => {
           this.startOtpTimer();
+          this.error = undefined;
         },
-        error: (error) => {
+        error: (error: HttpErrorResponse) => {
+          this.error = {
+            title: 'Αποτυχία αποστολής OTP',
+            message:
+              'Παρουσιάστηκε σφάλμα κατά την αποστολή του κωδικού. Παρακαλώ δοκιμάστε ξανά.',
+            type: 'error',
+          };
           console.error('Resend OTP error:', error);
         },
       });
-
-    this.startOtpTimer();
   }
 
   resendEmailVerification(): void {
-    const email = this.registrationForm.get('email')?.value;
+    const { email } = this.registrationForm.getRawValue();
     this.isLoading = true;
+    this.error = undefined;
 
     this.authService.sendVerificationEmail(email).subscribe({
       next: () => {
         this.isLoading = false;
-        // Show success message
+        this.error = {
+          title: 'Επιτυχής αποστολή',
+          message: 'Το email επαλήθευσης στάλθηκε επιτυχώς.',
+          type: 'info',
+        };
       },
-      error: (error) => {
+      error: (error: HttpErrorResponse) => {
         this.isLoading = false;
+        this.error = {
+          title: 'Αποτυχία αποστολής email',
+          message:
+            'Παρουσιάστηκε σφάλμα κατά την αποστολή του email. Παρακαλώ δοκιμάστε ξανά.',
+          type: 'error',
+        };
         console.error('Resend email verification error:', error);
       },
     });

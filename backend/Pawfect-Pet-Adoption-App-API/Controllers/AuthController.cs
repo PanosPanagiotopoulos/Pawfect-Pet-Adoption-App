@@ -1,11 +1,12 @@
 ﻿namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
+	using AutoMapper;
+
 	using Microsoft.AspNetCore.Authorization;
 	using Microsoft.AspNetCore.Mvc;
 
 	using Pawfect_Pet_Adoption_App_API.Data.Entities;
 	using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-	using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 	using Pawfect_Pet_Adoption_App_API.DevTools;
 	using Pawfect_Pet_Adoption_App_API.Models;
 	using Pawfect_Pet_Adoption_App_API.Models.Authorization;
@@ -23,14 +24,19 @@
 		private readonly ILogger<AuthController> _logger;
 		private readonly JwtService _jwtService;
 		private readonly IAuthService _authService;
+		private readonly IMapper _mapper;
 
-		public AuthController(IUserService userService, ILogger<AuthController> logger
-			, JwtService jwtService, IAuthService authService)
+		public AuthController(
+			IUserService userService, ILogger<AuthController> logger
+			, JwtService jwtService, IAuthService authService
+			, IMapper mapper
+			)
 		{
 			_userService = userService;
 			_logger = logger;
 			_jwtService = jwtService;
 			_authService = authService;
+			_mapper = mapper;
 		}
 
 		/// <summary>
@@ -41,7 +47,7 @@
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(401, Type = typeof(String))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> Login([FromBody] LoginPayload loginPayload)
+		public async Task<IActionResult> Login([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -50,22 +56,12 @@
 
 			try
 			{
-				String? loginEmail = loginPayload.Email;
-				String? loginCredential = loginPayload.Password;
+				String? loginEmail = payload.Email;
+				String? loginCredential = payload.Password;
 
-				if (!String.IsNullOrEmpty(loginPayload.ProviderAccessCode) && String.IsNullOrEmpty(loginPayload.Password))
+				if (payload.LoginProvider == AuthProvider.Google)
 				{
-					switch (loginPayload.LoginProvider)
-					{
-						case AuthProvider.Local:
-							// LOGS //
-							_logger.LogError("Λάθος provider \"Local\" με χρήση Auth Provider κωδικού");
-							ModelState.AddModelError("error", "Λάθος provider \"Local\" με χρήση Auth Provider κωδικού");
-							return BadRequest(ModelState);
-						case AuthProvider.Google:
-							(loginEmail, loginCredential) = await _authService.RetrieveGoogleCredentials(loginPayload.ProviderAccessCode);
-							break;
-					}
+					(loginEmail, loginCredential) = await _userService.RetrieveGoogleCredentials(payload.ProviderAccessCode);
 				}
 
 				User? user = await _userService.RetrieveUserAsync(null, loginEmail);
@@ -75,7 +71,7 @@
 					return Unauthorized("Λάθος email χρήστη");
 				}
 
-				String? toCheckCredential = (user.AuthProvider == AuthProvider.Local) ? user.Password : user.AuthProviderId;
+				String? toCheckCredential = _userService.ExtractUserCredential(user);
 
 				if (!Security.ValidatedHashedValues(loginCredential, toCheckCredential))
 				{
@@ -84,7 +80,7 @@
 
 				if (!user.HasPhoneVerified)
 				{
-					return Unauthorized("Ο χρήστης δεν έχει επιβεβαιώσει τα στοιχεία του.");
+					return Unauthorized("Ο χρήστης δεν έχει επιβεβαιώσει τα στοιχεία του αριθμού τηλεφώνου του.");
 				}
 
 				String? token = _jwtService.GenerateJwtToken(user.Id, user.Email, user.Role.ToString(), user.HasEmailVerified.ToString(), user.IsVerified.ToString());
@@ -155,6 +151,9 @@
 			return Ok();
 		}
 
+		[HttpGet("google/callback")]
+		public IActionResult GoogleCallback() { return Ok(); }
+
 		/// <summary>
 		/// Εγγραφή μη επιβεβαιωμένου χρήστη.
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
@@ -187,15 +186,11 @@
 			}
 		}
 
-		/// <summary>
-		/// Αποστολή OTP στον αριθμό τηλεφώνου του χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
-		[HttpPost("send/otp")]
-		[ProducesResponseType(200)]
+		[HttpPost("register/unverified/google")]
+		[ProducesResponseType(200, Type = typeof(String))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> SendOtp([FromBody] OtpPayload otpPayload)
+		public async Task<IActionResult> RegisterUserWithGoogleUnverified([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -204,7 +199,41 @@
 
 			try
 			{
-				await _userService.GenerateNewOtpAsync(otpPayload.Phone);
+				User user = await _userService.GetGoogleUser(payload.ProviderAccessCode);
+				UserDto model = _mapper.Map<UserDto>(user);
+				return Ok(model);
+			}
+			catch (InvalidDataException ide)
+			{
+				_logger.LogError(ide, "Error while registering unverified user with google");
+				return RequestHandlerTool.HandleInternalServerError(ide, "POST", "/auth/register/unverified/google", ide.Message);
+
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e, "Error while registering unverified user with google");
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
+			}
+		}
+
+		/// <summary>
+		/// Αποστολή OTP στον αριθμό τηλεφώνου του χρήστη.
+		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
+		/// </summary>
+		[HttpPost("send/otp")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> SendOtp([FromBody] AuthPayload payload)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				await _userService.GenerateNewOtpAsync(payload.Phone);
 				return Ok();
 			}
 			catch (Exception e)
@@ -222,7 +251,7 @@
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> VerifyUserOtp([FromBody] OtpPayload otpPayload)
+		public async Task<IActionResult> VerifyUserOtp([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -231,16 +260,16 @@
 
 			try
 			{
-				if (!_userService.VerifyOtp(otpPayload.Phone, otpPayload.Otp))
+				if (!_userService.VerifyOtp(payload.Phone, payload.Otp))
 				{
 					// LOGS //
 					_logger.LogError("Αποτυχία επιβεβαίωσης OTP");
-					ModelState.AddModelError("error", $"Αποτυχία επιβεβαίωσης OTP: {otpPayload.Otp}");
-					return BadRequest(ModelState);
+					ModelState.AddModelError("error", $"Αποτυχία επιβεβαίωσης OTP: {payload.Otp}");
+					return Unauthorized(ModelState);
 				}
 
 				User? verifyPhoneUser = null;
-				if ((verifyPhoneUser = (await _userService.RetrieveUserAsync(otpPayload.Id, otpPayload.Email))) == null)
+				if ((verifyPhoneUser = (await _userService.RetrieveUserAsync(payload.Id, payload.Email))) == null)
 				{
 					// LOGS //
 					_logger.LogError("Failed to verify phonenumber. The user with this email or id was not found");
@@ -279,7 +308,7 @@
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> SendEmailVerification([FromBody] EmailPayload emailPayload)
+		public async Task<IActionResult> SendEmailVerification([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -288,7 +317,7 @@
 
 			try
 			{
-				await _userService.SendVerficationEmailAsync(emailPayload.Email);
+				await _userService.SendVerficationEmailAsync(payload.Email);
 				return Ok();
 			}
 			catch (Exception e)
@@ -307,7 +336,7 @@
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> VerifyEmail([FromBody] EmailPayload emailPayload)
+		public async Task<IActionResult> VerifyEmail([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -316,7 +345,7 @@
 
 			try
 			{
-				String identifiedEmail = _userService.VerifyEmail(emailPayload.Token);
+				String identifiedEmail = _userService.VerifyEmail(payload.Token);
 				if (String.IsNullOrEmpty(identifiedEmail))
 				{
 					// LOGS //
@@ -359,6 +388,42 @@
 		}
 
 		/// <summary>
+		/// Επιβεβαίωση email χρήστη.
+		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
+		/// </summary>
+		[HttpPost("verify-user")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> VerifyUser([FromBody] AuthPayload payload)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				if (!(await _userService.VerifyUserAsync(payload.Id, payload.Email)))
+				{
+					// LOGS //
+					_logger.LogError("Failed to verify user");
+					ModelState.AddModelError("error", "Failed to verify email");
+					return BadRequest(ModelState);
+				}
+
+				return Ok();
+			}
+
+			catch (Exception e)
+			{
+				// LOGS //
+				_logger.LogError(e, "Error while verifying email");
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
+			}
+		}
+
+		/// <summary>
 		/// Αποστολή email επαναφοράς κωδικού πρόσβασης.
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
@@ -366,7 +431,7 @@
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> SendResetPasswordEmail([FromBody] ResetPasswordPayload emailPayload)
+		public async Task<IActionResult> SendResetPasswordEmail([FromBody] AuthPayload AuthPayload)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -376,7 +441,7 @@
 			try
 			{
 				// Αποστολή reset-password email για έναρξη επαναφοράς κωδικού
-				await _userService.SendResetPasswordEmailAsync(emailPayload.Email);
+				await _userService.SendResetPasswordEmailAsync(AuthPayload.Email);
 				return Ok();
 			}
 			catch (Exception e)
@@ -395,7 +460,7 @@
 		[ProducesResponseType(200)]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> VerifyResetPasswordToken([FromBody] ResetPasswordPayload payload)
+		public async Task<IActionResult> VerifyResetPasswordToken([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -436,7 +501,7 @@
 		[ProducesResponseType(302)]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordPayload resetPasswordPayload)
+		public async Task<IActionResult> ResetPassword([FromBody] AuthPayload AuthPayload)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -445,9 +510,8 @@
 
 			try
 			{
-				_logger.LogInformation(JsonHelper.SerializeObjectFormatted(resetPasswordPayload));
 				// Reset the password
-				if (!await _userService.ResetPasswordAsync(resetPasswordPayload.Email, resetPasswordPayload.Password))
+				if (!await _userService.ResetPasswordAsync(AuthPayload.Email, AuthPayload.Password))
 				{
 					// LOGS //
 					_logger.LogError("Αποτυχία επαναφοράς κωδικού");

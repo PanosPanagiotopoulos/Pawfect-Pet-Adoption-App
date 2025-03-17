@@ -10,18 +10,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 {
 	public class SmsService : ISmsService
 	{
-		private readonly HttpClient _httpClient;
 		private readonly SmsApiConfig _configuration;
 		private readonly ILogger<SmsService> _logger;
 
 		public SmsService
 		(
-			HttpClient httpClient,
 			IOptions<SmsApiConfig> configuration,
 			ILogger<SmsService> logger
 		)
 		{
-			_httpClient = httpClient;
 			_configuration = configuration.Value;
 			_logger = logger;
 		}
@@ -70,18 +67,20 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 			StringContent content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
 
 			// Set up the HTTP client request
-			_httpClient.DefaultRequestHeaders.Clear();
-			_httpClient.DefaultRequestHeaders.Add("Authorization", $"App {apiKey}");
-			_httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-
-			HttpResponseMessage response = await _httpClient.PostAsync(smsServiceUrl, content);
-
-			if (!response.IsSuccessStatusCode)
+			using (HttpClient client = new HttpClient())
 			{
-				String errorContent = await response.Content.ReadAsStringAsync();
-				throw new Exception($"Αποτυχία αποστολής SMS. Status Code: {response.StatusCode}, Response: {errorContent}");
-			}
+				client.DefaultRequestHeaders.Clear();
+				client.DefaultRequestHeaders.Add("Authorization", $"App {apiKey}");
+				client.DefaultRequestHeaders.Add("Accept", "application/json");
 
+				HttpResponseMessage response = await client.PostAsync(smsServiceUrl, content);
+
+				if (!response.IsSuccessStatusCode)
+				{
+					String errorContent = await response.Content.ReadAsStringAsync();
+					throw new Exception($"Αποτυχία αποστολής SMS. Status Code: {response.StatusCode}, Response: {errorContent}");
+				}
+			}
 		}
 	}
 }

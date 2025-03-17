@@ -24,6 +24,9 @@ import { ValidationMessageComponent } from 'src/app/common/ui/validation-message
         [attr.aria-invalid]="isInvalid"
         [attr.aria-describedby]="controlName + '-error'"
         [class]="inputClass"
+        [readOnly]="readonly"
+        [class.cursor-not-allowed]="readonly"
+        [class.opacity-75]="readonly"
         class="peer w-full px-4 py-3 bg-white/5 border rounded-xl text-white 
                placeholder-transparent
                focus:ring-2 focus:outline-none 
@@ -73,6 +76,7 @@ export class FormInputComponent {
   @Input() type: string = 'text';
   @Input() placeholder: string = '';
   @Input() maxLength?: string = '200';
+  @Input() readonly?: boolean = false;
   @Output() valueChange = new EventEmitter<any>();
 
   get isInvalid(): boolean {

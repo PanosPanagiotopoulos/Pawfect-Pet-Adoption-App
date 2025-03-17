@@ -23,6 +23,7 @@ import {
   lucideUpload,
   lucideFile,
   lucideCheck,
+  lucideTriangle,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -35,6 +36,7 @@ import { BaseHttpService } from './common/services/base-http.service';
 import { HeaderComponent } from './ui/components/home/shared/header/header.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { ErrorHandlerService } from './common/services/error-handler.service';
 
 export function initializeApp(
   installationConfigService: InstallationConfigurationService
@@ -73,8 +75,8 @@ export function initializeApp(
       lucideUpload,
       lucideFile,
       lucideCheck,
+      lucideTriangle,
     }),
-    HomeModule,
     HeaderComponent,
   ],
   providers: [

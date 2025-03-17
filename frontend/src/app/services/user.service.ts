@@ -4,7 +4,7 @@ import { InstallationConfigurationService } from '../common/services/installatio
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { UserLookup } from '../lookup/user-lookup';
-import { User, UserPersist } from '../models/user/user.model';
+import { AuthProvider, User, UserPersist } from '../models/user/user.model';
 
 @Injectable({
   providedIn: 'root',
@@ -46,5 +46,9 @@ export class UserService {
     return this.http
       .get<User>(url)
       .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  isExternalProvider(user: User): boolean {
+    return user.authProvider !== AuthProvider.Local;
   }
 }

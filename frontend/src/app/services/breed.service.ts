@@ -28,7 +28,7 @@ export class BreedService {
 
   getSingle(id: string, reqFields: string[] = []): Observable<Breed> {
     const url = `${this.apiBase}/${id}`;
-    const options = { params: { fields: reqFields } };
+    const options = { params: { f: reqFields } };
     return this.http
       .get<Breed>(url, options)
       .pipe(catchError((error: any) => throwError(error)));

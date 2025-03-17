@@ -61,7 +61,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <param name="allowCreation">Επιτρέπει τη δημιουργία νέου χρήστη αν δεν υπάρχει.</param>
 		/// <returns>Το ID του αποθηκευμένου χρήστη.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποθήκευση του χρήστη.</exception>
-		Task<UserDto?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null);
+		Task<UserDto?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true);
 
 		/// <summary>
 		/// Αποθήκευση χρήστη.
@@ -70,7 +70,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <param name="allowCreation">Επιτρέπει τη δημιουργία νέου χρήστη αν δεν υπάρχει.</param>
 		/// <returns>Το ID του αποθηκευμένου χρήστη.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποθήκευση του χρήστη.</exception>
-		Task<UserDto?> Persist(User user, Boolean allowCreation = true, List<String> buildFields = null);
+		Task<UserDto?> Persist(User user, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true);
 
 		/// <summary>
 		/// Επαλήθευση χρήστη.
@@ -106,5 +106,17 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <returns>True αν η επαναφορά είναι επιτυχής, αλλιώς false.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η επαναφορά του κωδικού.</exception>
 		Task<Boolean> ResetPasswordAsync(String? password, String? token);
+
+		String ExtractUserCredential(User user);
+
+		/// <summary>
+		/// Ανακτά τις πληροφορίες του χρήστη από το Google χρησιμοποιώντας το access token.
+		/// </summary>
+		/// <param name="accessToken">Το access token για την ανάκτηση των πληροφοριών του χρήστη.</param>
+		/// <returns>Το αντικείμενο GoogleUserInfo που περιέχει τις πληροφορίες του χρήστη.</returns>
+		/// <exception cref="InvalidOperationException">Εάν λείπει το access token.</exception>
+		Task<User?> GetGoogleUser(String? authorisationCode);
+
+		Task<(String, String)> RetrieveGoogleCredentials(String? authorisationCode);
 	}
 }

@@ -49,11 +49,27 @@ export default {
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         float: "float 6s ease-in-out infinite",
+        slideIn: "slideIn 0.3s ease-out forwards",
+        fadeIn: "fadeIn 0.3s ease-out",
       },
       keyframes: {
         float: {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
+        },
+        slideIn: {
+          from: {
+            opacity: "0",
+            transform: "translateY(-0.25rem)",
+          },
+          to: {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
+        fadeIn: {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
         },
       },
     },

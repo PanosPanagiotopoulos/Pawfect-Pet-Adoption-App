@@ -45,9 +45,9 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
   template: `
     <div [formGroup]="form" class="relative group mb-10">
-      <div class="flex gap-2">
+      <div class="flex flex-col sm:flex-row gap-2">
         <!-- Country Code Dropdown -->
-        <div class="relative w-44 country-dropdown">
+        <div class="relative w-full sm:w-44 country-dropdown">
           <button
             type="button"
             (click)="toggleDropdown()"
@@ -84,7 +84,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
           <div
             *ngIf="isOpen"
             [id]="'country-dropdown-' + countryCodeControl"
-            class="absolute z-50 w-72 mt-2 py-2 bg-gray-800 rounded-xl shadow-lg border border-white/10
+            class="absolute z-50 w-full sm:w-72 mt-2 py-2 bg-gray-800 rounded-xl shadow-lg border border-white/10
                    max-h-[300px] overflow-y-auto custom-scrollbar"
             [@dropdownAnimation]
             role="listbox"
@@ -142,6 +142,9 @@ import { trigger, transition, style, animate } from '@angular/animations';
             placeholder="Αριθμός τηλεφώνου"
             (input)="onPhoneNumberInput($event)"
             (blur)="onPhoneBlur()"
+            [readOnly]="readonly"
+            [class.cursor-not-allowed]="readonly"
+            [class.opacity-75]="readonly"
             [attr.aria-invalid]="isPhoneNumberInvalid"
             [attr.aria-describedby]="phoneNumberControl + '-error'"
           />
@@ -204,16 +207,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
         max-height: calc(300px - 50px);
         overflow-y: auto;
       }
-
-      @media (max-width: 640px) {
-        .flex {
-          flex-direction: column;
-        }
-
-        .w-44 {
-          width: 100%;
-        }
-      }
     `,
   ],
 })
@@ -221,6 +214,7 @@ export class PhoneInputComponent implements OnInit, OnDestroy {
   @Input() form!: FormGroup;
   @Input() countryCodeControl: string = 'countryCode';
   @Input() phoneNumberControl: string = 'phoneNumber';
+  @Input() readonly?: boolean = false;
   @Output() phoneChange = new EventEmitter<string>();
 
   isOpen = false;

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { User, UserRole } from 'src/app/models/user/user.model';
+import { UserRoundCogIcon } from 'lucide-angular';
 
 @Component({
   selector: 'app-verified',
@@ -50,7 +51,7 @@ import { User, UserRole } from 'src/app/models/user/user.model';
           </div>
 
           <!-- Error State -->
-          <div *ngIf="error" class="space-y-4">
+          <div *ngIf="!isVerified && !isLoading" class="space-y-4">
             <div
               class="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center"
             >
@@ -67,10 +68,10 @@ import { User, UserRole } from 'src/app/models/user/user.model';
           <!-- Action Button -->
           <div class="pt-4">
             <button
-              (click)="navigateHome()"
+              (click)="navigateToLogin()"
               class="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
             >
-              Επιστροφή στην Αρχική
+              Επιστροφή στην Σύνδεση
             </button>
           </div>
         </div>
@@ -91,7 +92,22 @@ export class VerifiedComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const token = this.route.snapshot.queryParamMap.get('token');
+    const token: string | null = this.route.snapshot.queryParamMap.get(
+      'token'
+    ) as string;
+
+    const complete: string | null = this.route.snapshot.queryParamMap.get(
+      'complete'
+    ) as string;
+
+    const userId: string | null = this.route.snapshot.queryParamMap.get(
+      'identification'
+    ) as string;
+
+    if (complete && userId) {
+      this.handleAlreadyVerified(complete, userId);
+      return;
+    }
 
     if (!token) {
       this.error = 'Δεν έχετε επαληθέυση τον λογαριασμό σας.';
@@ -122,7 +138,61 @@ export class VerifiedComponent implements OnInit {
     return 'Το email σας έχει επαληθευτεί επιτυχώς.';
   }
 
-  navigateHome(): void {
-    this.router.navigate(['/']);
+  navigateToLogin(): void {
+    this.router.navigate(['/auth/login']);
+  }
+
+  handleAlreadyVerified(completeRole: string, userId: string): void {
+    let role: UserRole | null = null;
+    try {
+      role = this.isRole(completeRole);
+    } catch (error: any) {
+      this.error = error.message;
+      return;
+    }
+
+    if (role) {
+      this.error = null;
+      this.userRole = role;
+    }
+
+    this.authService.verifyUser(userId).subscribe(
+      () => {
+        this.isVerified = true;
+        this.isLoading = false;
+        this.error = null;
+      },
+      (error) => {
+        this.isVerified = false;
+        this.isLoading = false;
+        console.error('Email verification error:', error);
+        this.error = 'Αποτυχία επιβεβαίωσης χρήστη';
+      }
+    );
+  }
+
+  isRole(complete: string): UserRole | null {
+    let role: UserRole | null = null;
+    const numericRole = Number(complete);
+    if (!isNaN(numericRole)) {
+      role = numericRole as UserRole;
+    } else {
+      // Fallback: Map string values
+      switch (complete.toLowerCase()) {
+        case 'user':
+          role = UserRole.User;
+          break;
+        case 'shelter':
+          role = UserRole.Shelter;
+          break;
+        case 'admin':
+          role = UserRole.Admin;
+          break;
+        default:
+          throw new Error('Invalid role');
+      }
+    }
+
+    return role;
   }
 }

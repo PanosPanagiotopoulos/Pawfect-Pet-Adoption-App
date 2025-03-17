@@ -7,11 +7,15 @@ interface InstallationConfig {
   disableAuth?: boolean;
   googleClientId?: string;
   googleClientSecret?: string;
+  baseGoogleEndpoint?: string;
+  redirectUri?: string;
 }
 
 interface EnvironmentConfig {
   googleClientId: string;
   googleClientSecret: string;
+  baseGoogleEndpoint: string;
+  redirectPath: string;
 }
 
 @Injectable({
@@ -40,32 +44,53 @@ export class InstallationConfigurationService {
     return this._googleClientSecret;
   }
 
+  private _baseGoogleEndpoint: string = '';
+  get baseGoogleEndpoint(): string {
+    return this._baseGoogleEndpoint;
+  }
+
+  private _redirectUri: string = '';
+  get redirectUri(): string {
+    return this._redirectUri;
+  }
+
   loadConfig(): Observable<InstallationConfig> {
     // Load both configuration files in parallel
-    const configFile$ = this.http.get<InstallationConfig>('configs/config.json').pipe(
-      catchError(error => {
-        console.warn('Failed to load config.json:', error);
-        return of({} as InstallationConfig);
-      })
-    );
-    
-    const environmentFile$ = this.http.get<EnvironmentConfig>('configs/environment.json').pipe(
-      catchError(error => {
-        console.warn('Failed to load environment.json:', error);
-        return of({} as EnvironmentConfig);
-      })
-    );
+    const configFile$ = this.http
+      .get<InstallationConfig>('configs/config.json')
+      .pipe(
+        catchError((error) => {
+          console.warn('Failed to load config.json:', error);
+          return of({} as InstallationConfig);
+        })
+      );
+
+    const environmentFile$ = this.http
+      .get<EnvironmentConfig>('configs/environment.json')
+      .pipe(
+        catchError((error) => {
+          console.warn('Failed to load environment.json:', error);
+          return of({} as EnvironmentConfig);
+        })
+      );
 
     return forkJoin({
       config: configFile$,
       environment: environmentFile$,
     }).pipe(
       map((result) => {
+        // Construct the full redirectUri using the redirectPath from environment
+        const redirectUri = result.environment.redirectPath
+          ? `${window.location.origin}${result.environment.redirectPath}`
+          : '';
+
         // Combine the configurations
         const combinedConfig: InstallationConfig = {
           ...result.config,
           googleClientId: result.environment.googleClientId,
           googleClientSecret: result.environment.googleClientSecret,
+          baseGoogleEndpoint: result.environment.baseGoogleEndpoint,
+          redirectUri: redirectUri,
         };
         return combinedConfig;
       }),
@@ -75,9 +100,10 @@ export class InstallationConfigurationService {
         this._disableAuth = config.disableAuth ?? false;
         this._googleClientId = config.googleClientId ?? '';
         this._googleClientSecret = config.googleClientSecret ?? '';
-        
+        this._baseGoogleEndpoint = config.baseGoogleEndpoint ?? '';
+        this._redirectUri = config.redirectUri ?? '';
       }),
-      catchError(error => {
+      catchError((error) => {
         console.error('Error loading configuration:', error);
         return of({} as InstallationConfig);
       })

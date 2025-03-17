@@ -29,6 +29,7 @@ import { SignupComponent } from './signup.component';
 import { ResetPasswordRequestComponent } from './reset-password/reset-password-request.component';
 import { ResetPasswordComponent } from './reset-password/reset-password.component';
 import { NotFoundComponent } from '../not-found/not-found.component';
+import { GoogleCallbackComponent } from './google-callback.component';
 
 // Shared components (standalone)
 import { FormInputComponent } from 'src/app/common/ui/form-input.component';
@@ -44,6 +45,7 @@ import { AccountDetailsComponent } from './sign-up-steps/account-details/account
 import { PreferencesComponent } from './sign-up-steps/preferences/preferences.component';
 import { VerifiedComponent } from './sign-up-steps/verified.component';
 import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
+import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-banner.component';
 
 @NgModule({
   declarations: [LoginComponent, SignupComponent, VerifiedComponent],
@@ -55,6 +57,7 @@ import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.
       { path: 'login', component: LoginComponent },
       { path: 'sign-up', component: SignupComponent },
       { path: 'verified', component: VerifiedComponent },
+      { path: 'google/callback', component: GoogleCallbackComponent },
       {
         path: 'reset-password-request',
         component: ResetPasswordRequestComponent,
@@ -72,6 +75,7 @@ import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.
     AccountDetailsComponent,
     PreferencesComponent,
     ShelterInfoComponent,
+    ErrorMessageBannerComponent,
     NgIconsModule.withIcons({
       lucideHeart,
       lucideSearch,

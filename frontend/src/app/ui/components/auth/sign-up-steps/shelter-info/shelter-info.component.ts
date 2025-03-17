@@ -1,9 +1,28 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ElementRef, ViewChild, ChangeDetectorRef, OnInit } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+  ElementRef,
+  ViewChild,
+  ChangeDetectorRef,
+  OnInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormGroup, ReactiveFormsModule, FormsModule, AbstractControl } from '@angular/forms';
+import {
+  FormGroup,
+  ReactiveFormsModule,
+  FormsModule,
+  AbstractControl,
+} from '@angular/forms';
 import { NgIconsModule } from '@ng-icons/core';
 import { FormInputComponent } from 'src/app/common/ui/form-input.component';
 import { TextAreaInputComponent } from 'src/app/common/ui/text-area-input.component';
+import {
+  ErrorMessageBannerComponent,
+  ErrorDetails,
+} from 'src/app/common/ui/error-message-banner.component';
 
 @Component({
   selector: 'app-shelter-info',
@@ -15,6 +34,7 @@ import { TextAreaInputComponent } from 'src/app/common/ui/text-area-input.compon
     FormInputComponent,
     TextAreaInputComponent,
     NgIconsModule,
+    ErrorMessageBannerComponent,
   ],
   templateUrl: './shelter-info.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +45,8 @@ export class ShelterInfoComponent implements OnInit {
   @Output() back = new EventEmitter<void>();
   @Output() submit = new EventEmitter<void>();
   @ViewChild('formContainer') formContainer!: ElementRef;
+
+  error?: ErrorDetails;
 
   days = [
     'Δευτέρα',
@@ -264,19 +286,22 @@ export class ShelterInfoComponent implements OnInit {
 
     if (openTime && closeTime) {
       if (!this.isValidTimeFormat(openTime)) {
-        this.timeErrors[day] = 'Η ώρα ανοίγματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 09:00)';
+        this.timeErrors[day] =
+          'Η ώρα ανοίγματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 09:00)';
         this.setTimeRangeError(day);
         return;
       }
 
       if (!this.isValidTimeFormat(closeTime)) {
-        this.timeErrors[day] = 'Η ώρα κλεισίματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 17:00)';
+        this.timeErrors[day] =
+          'Η ώρα κλεισίματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 17:00)';
         this.setTimeRangeError(day);
         return;
       }
 
       if (openTime >= closeTime) {
-        this.timeErrors[day] = 'Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος';
+        this.timeErrors[day] =
+          'Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος';
         this.setTimeRangeError(day);
         return;
       }
@@ -340,7 +365,8 @@ export class ShelterInfoComponent implements OnInit {
         if (this.closedDays[day]) {
           control?.setErrors(null);
         } else if (!this.openTimes[day] || !this.closeTimes[day]) {
-          this.timeErrors[day] = 'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
+          this.timeErrors[day] =
+            'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
           control?.setErrors({ required: true });
         } else {
           this.validateTimeRange(day);
@@ -380,7 +406,8 @@ export class ShelterInfoComponent implements OnInit {
       }
 
       if (!value || value === '') {
-        this.timeErrors[day] = 'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
+        this.timeErrors[day] =
+          'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
         control?.setErrors({ required: true });
         hasInvalidDay = true;
       } else if (value !== 'closed') {
@@ -393,7 +420,8 @@ export class ShelterInfoComponent implements OnInit {
     if (hasInvalidDay) {
       this.validationErrors.push({
         field: 'operatingHours',
-        message: 'Πρέπει να ορίσετε ώρες λειτουργίας για όλες τις ημέρες ή να τις επιλέξετε ως "Κλειστό"',
+        message:
+          'Πρέπει να ορίσετε ώρες λειτουργίας για όλες τις ημέρες ή να τις επιλέξετε ως "Κλειστό"',
       });
     }
   }
@@ -425,7 +453,8 @@ export class ShelterInfoComponent implements OnInit {
       } else if (shelterNameControl.errors?.['minlength']) {
         this.validationErrors.push({
           field: 'shelterName',
-          message: 'Το όνομα καταφυγίου πρέπει να έχει τουλάχιστον 3 χαρακτήρες',
+          message:
+            'Το όνομα καταφυγίου πρέπει να έχει τουλάχιστον 3 χαρακτήρες',
           element,
         });
       }
@@ -492,7 +521,9 @@ export class ShelterInfoComponent implements OnInit {
           if (control.errors?.['invalidTimeRange']) {
             this.validationErrors.push({
               field: dayKey,
-              message: this.timeErrors[day] || `Σφάλμα στις ώρες λειτουργίας για ${day}`,
+              message:
+                this.timeErrors[day] ||
+                `Σφάλμα στις ώρες λειτουργίας για ${day}`,
               element: dayElement,
             });
           } else if (control.errors?.['required']) {
@@ -515,14 +546,20 @@ export class ShelterInfoComponent implements OnInit {
       ? `[formcontrolname="${controlName}"]`
       : `[formcontrolname="${controlName}"]`;
 
-    let element = this.formContainer?.nativeElement.querySelector(selector) as HTMLElement;
+    let element = this.formContainer?.nativeElement.querySelector(
+      selector
+    ) as HTMLElement;
 
     if (!element) {
-      element = this.formContainer?.nativeElement.querySelector(`#${controlName}`) as HTMLElement;
+      element = this.formContainer?.nativeElement.querySelector(
+        `#${controlName}`
+      ) as HTMLElement;
     }
 
     if (!element && controlName === 'description') {
-      element = this.formContainer?.nativeElement.querySelector('textarea') as HTMLElement;
+      element = this.formContainer?.nativeElement.querySelector(
+        'textarea'
+      ) as HTMLElement;
     }
 
     return element;
@@ -536,7 +573,9 @@ export class ShelterInfoComponent implements OnInit {
 
     for (let i = 0; i < dayElements.length; i++) {
       if (dayElements[i].textContent?.trim() === day) {
-        dayElement = dayElements[i].closest('.border-gray-700\\/50') as HTMLElement;
+        dayElement = dayElements[i].closest(
+          '.border-gray-700\\/50'
+        ) as HTMLElement;
         break;
       }
     }
@@ -586,7 +625,8 @@ export class ShelterInfoComponent implements OnInit {
     setTimeout(() => {
       try {
         if (this.validationErrors.length > 0) {
-          const errorSummary = this.formContainer?.nativeElement.querySelector('.bg-red-500\\/10');
+          const errorSummary =
+            this.formContainer?.nativeElement.querySelector('.bg-red-500\\/10');
           if (errorSummary) {
             errorSummary.scrollIntoView({ behavior: 'smooth', block: 'start' });
           } else {
@@ -594,13 +634,18 @@ export class ShelterInfoComponent implements OnInit {
             if (firstError.element) {
               this.scrollToErrorField(firstError);
             } else {
-              const invalidControls = this.findInvalidControls(this.getShelterForm());
+              const invalidControls = this.findInvalidControls(
+                this.getShelterForm()
+              );
               if (invalidControls.length > 0) {
                 const controlName = this.getControlName(invalidControls[0]);
                 const element = this.findElementForControl(controlName);
                 if (element) {
                   this.highlightElement(element);
-                  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                  });
                 }
               }
             }
@@ -682,7 +727,8 @@ export class ShelterInfoComponent implements OnInit {
       }
     });
 
-    const needsHoursValidation = this.operatingHoursModified && this.hasAnyNonClosedDay();
+    const needsHoursValidation =
+      this.operatingHoursModified && this.hasAnyNonClosedDay();
 
     if (!this.hasAnyOperatingHoursSet()) {
       this.days.forEach((day) => {
@@ -701,13 +747,14 @@ export class ShelterInfoComponent implements OnInit {
       emitEvent: true,
     });
 
-    const isNameValid = !!this.getShelterForm().get('shelterName')?.value &&
+    const isNameValid =
+      !!this.getShelterForm().get('shelterName')?.value &&
       !this.getShelterForm().get('shelterName')?.errors;
-    const isDescriptionValid = !!this.getShelterForm().get('description')?.value &&
+    const isDescriptionValid =
+      !!this.getShelterForm().get('description')?.value &&
       !this.getShelterForm().get('description')?.errors;
 
     if (isNameValid && isDescriptionValid) {
-      console.log('Form is valid, submitting...');
       this.submit.emit();
       return;
     }

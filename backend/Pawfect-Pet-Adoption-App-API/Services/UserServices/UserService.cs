@@ -5,9 +5,12 @@ using Microsoft.Extensions.Options;
 
 using MongoDB.Driver;
 
+using Newtonsoft.Json;
+
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models;
@@ -16,6 +19,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.EmailServices;
 using Pawfect_Pet_Adoption_App_API.Services.HttpServices;
 using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
@@ -36,6 +40,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		private readonly UserQuery _userQuery;
 		private readonly UserBuilder _userBuilder;
 		private readonly Lazy<IShelterService> _shelterService;
+		private readonly IAuthService _authService;
 
 		public UserService
 		(
@@ -46,7 +51,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			IOptions<CacheConfig> configuration,
 			UserQuery userQuery,
 			UserBuilder userBuilder,
-			Lazy<IShelterService> shelterService
+			Lazy<IShelterService> shelterService,
+			IAuthService authService
 		)
 		{
 			_userRepository = userRepository;
@@ -60,23 +66,19 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			_userQuery = userQuery;
 			_userBuilder = userBuilder;
 			_shelterService = shelterService;
+			_authService = authService;
 		}
 
 		public async Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
 		{
-			_logger.LogInformation(JsonHelper.SerializeObjectFormatted(registerPersist));
 			// Ελέγξτε αν ο χρήστης υπάρχει ήδη. Αν ναι, επιστρέψτε το υπάρχον ID του χρήστη.
 			if (await _userRepository.ExistsAsync(user => user.Email == registerPersist.User.Email))
 			{
 				throw new InvalidDataException("Αυτο το email χρησιμοποιείται");
 			}
 
-			User user = _mapper.Map<User>(registerPersist.User);
-			user.IsVerified = false;
-
 			// Αποθηκεύστε τα δεδομένα του χρήστη.
-			UserDto newUser = await Persist(user, true, new() { nameof(UserDto.Id) });
-			user.Id = newUser.Id;
+			UserDto newUser = await Persist(registerPersist.User, true);
 
 			if (newUser == null)
 			{
@@ -95,10 +97,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					throw new Exception("Αποτυχια persisting shelter");
 				}
 
-				user.ShelterId = newShelter.Id;
+				User updatedUser = _mapper.Map<User>(newUser);
+
+				updatedUser.ShelterId = newShelter.Id;
+
+				return await Persist(updatedUser, false);
 			}
 
-			return await Persist(user, false);
+			return newUser;
 		}
 
 		public async Task GenerateNewOtpAsync(String? phonenumber)
@@ -144,7 +150,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// Επαληθεύστε το OTP.
 			if (!(cachedOtp == OTP.Value))
 			{
-				throw new InvalidDataException("Λάθος κωδικός OTP");
+				return false;
 			}
 
 
@@ -203,7 +209,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				// Αν ο χρήστης δεν υπάρχει, ρίξτε εξαίρεση.
 				if (user == null)
 				{
-					throw new Exception("Δεν υπάρχει χρήστης για να εποβεβαιωθεί");
+					throw new Exception("Δεν υπάρχει χρήστης για να επιβεβαιωθεί");
 				}
 
 				// Αν ο χρήστης είναι ήδη επιβεβαιωμένος, επιστρέψτε true.
@@ -231,7 +237,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					// TODO: Στείλτε ειδοποίηση στον admin για να επιβεβαιώσει τον χρήστη
 				}
 
-				await Persist(user, false, new() { nameof(UserDto.Id) });
+				await Persist(user, false, buildDto: false);
 
 				return true;
 			}
@@ -308,7 +314,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				resetPasswordUser.Password = password;
 				this.HashLoginCredentials(ref resetPasswordUser);
 				// Κάνουμε update τον χρήστη με τον νέο κωδικό
-				await Persist(resetPasswordUser, false, new() { nameof(UserDto.Id) });
+				await Persist(resetPasswordUser, false, buildDto: false);
 
 				return true;
 			}
@@ -320,8 +326,94 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 
 		}
+		public async Task<(String, String)> RetrieveGoogleCredentials(String? authorisationCode)
+		{
+			GoogleTokenResponse? tokenResponse = await _authService.ExchangeCodeForAccessToken(authorisationCode);
+			if (tokenResponse == null)
+			{
+				// LOGS //
+				_logger.LogError("Αποτυχία ανταλλαγής Google Code για Access Token");
+				throw new InvalidOperationException("Αποτυχία ανταλλαγής Google Code για Access Token");
+			}
 
-		public async Task<UserDto?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null)
+			User? userInfo = GetGoogleUser(tokenResponse?.AccessToken).Result;
+			if (userInfo == null)
+			{
+				// LOGS //
+				_logger.LogError("Αποτυχία ανάκτησης δεδομένων χρήστη απο τη Google");
+				throw new InvalidOperationException("Αποτυχία ανάκτησης δεδομένων χρήστη απο τη Google");
+			}
+
+			return (userInfo.Email, userInfo.AuthProviderId);
+		}
+
+		public async Task<User?> GetGoogleUser(String? authorisationCode)
+		{
+			if (String.IsNullOrEmpty(authorisationCode))
+			{
+				throw new InvalidOperationException("Έλειψη access code για ανάκτηση δεδομένων χρήστη απο τη Google.");
+			}
+
+			GoogleTokenResponse? tokenResponse = await _authService.ExchangeCodeForAccessToken(authorisationCode);
+			if (tokenResponse == null)
+			{
+				_logger.LogError("Failed to exchange Google authorization code for access token.");
+				throw new InvalidOperationException("Failed to exchange Google authorization code for access token.");
+			}
+
+			User? userInfo = await FetchUserInfoFromGoogle(tokenResponse.AccessToken);
+			this.HashLoginCredentials(ref userInfo);
+			if (userInfo == null)
+			{
+				_logger.LogError("Failed to retrieve user info from Google.");
+				throw new InvalidOperationException("Failed to retrieve user info from Google.");
+			}
+
+			return userInfo;
+		}
+
+		private async Task<User> FetchUserInfoFromGoogle(String accessToken)
+		{
+			using (HttpClient client = new HttpClient())
+			{
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+				// People API endpoint with requested fields
+				String endpoint = "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,phoneNumbers,addresses,metadata";
+				HttpResponseMessage response = await client.GetAsync(endpoint);
+
+				if (!response.IsSuccessStatusCode)
+				{
+					String errorContent = await response.Content.ReadAsStringAsync();
+					_logger.LogError($"Failed to fetch user info from Google: {errorContent}");
+					return null;
+				}
+
+				String responseContent = await response.Content.ReadAsStringAsync();
+				dynamic person = JsonConvert.DeserializeObject(responseContent);
+
+				String sub = person.metadata?.sources?[0]?.id?.ToString();
+				String name = person.names?.Count > 0 ? person.names[0].displayName?.ToString() : null;
+				String email = person.emailAddresses?.Count > 0 ? person.emailAddresses[0].value?.ToString() : null;
+				String phoneNumber = person.phoneNumbers?.Count > 0 ? person.phoneNumbers[0].value?.ToString() : null;
+				String address = person.addresses?.Count > 0 ? person.addresses[0].formattedValue?.ToString() : null;
+
+				return new User
+				{
+					Id = null,
+					ShelterId = null,
+					FullName = name,
+					Email = email,
+					Password = "",
+					Phone = phoneNumber,
+					Location = Location.FromGoogle(responseContent),
+					AuthProvider = AuthProvider.Google,
+					AuthProviderId = sub,
+				};
+			}
+		}
+
+		public async Task<UserDto?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
 			{
 				User? workingUser = null;
@@ -365,14 +457,21 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 						await _userRepository.UpdateAsync(workingUser);
 					}
 
-					// Return dto model
-					UserLookup lookup = new UserLookup(_userQuery);
-					lookup.Ids = new List<String> { workingUser.Id };
-					lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
-					lookup.Offset = 0;
-					lookup.PageSize = 1;
+					UserDto persisted = new UserDto();
 
-					return (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
+					if (buildDto)
+					{
+						// Return dto model
+						UserLookup lookup = new UserLookup(_userQuery);
+						lookup.Ids = new List<String> { workingUser.Id };
+						lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
+						lookup.Offset = 0;
+						lookup.PageSize = 1;
+
+						persisted = (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
+					}
+
+					return persisted;
 				}
 				catch (Exception e)
 				{
@@ -383,7 +482,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 		}
 
-		public async Task<UserDto?> Persist(User user, Boolean allowCreation = true, List<String> buildFields = null)
+		public async Task<UserDto?> Persist(User user, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
 			User? workingUser = null;
 			try
@@ -428,15 +527,21 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					await _userRepository.UpdateAsync(workingUser);
 				}
 
-				// Return dto model
-				UserLookup lookup = new UserLookup(_userQuery);
-				lookup.Ids = new List<String> { workingUser.Id };
-				lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
-				lookup.Offset = 0;
-				lookup.PageSize = 1;
+				UserDto persisted = new UserDto();
+				if (buildDto)
+				{
+					// Return dto model
+					UserLookup lookup = new UserLookup(_userQuery);
+					lookup.Ids = new List<String> { workingUser.Id };
+					lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
+					lookup.Offset = 0;
+					lookup.PageSize = 1;
 
 
-				return (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
+					persisted = (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
+				}
+
+				return persisted;
 			}
 			catch (Exception e)
 			{
@@ -459,6 +564,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 
 			return null;
+		}
+
+		public String ExtractUserCredential(User user)
+		{
+			switch (user.AuthProvider)
+			{
+				case AuthProvider.Local: return user.Password;
+				default: return user.AuthProviderId;
+			}
 		}
 
 		// Συνάρτηση για hasing των credentials συνθηματικού του χρήστη

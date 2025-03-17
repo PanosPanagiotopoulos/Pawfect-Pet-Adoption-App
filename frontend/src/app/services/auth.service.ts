@@ -48,13 +48,13 @@ export class AuthService {
     );
   }
 
-  loginWithGoogle(accessToken: string): Observable<LoggedAccount> {
+  loginWithGoogle(code: string): Observable<LoggedAccount> {
     const url = `${this.apiBase}/login`;
     const payload: LoginPayload = {
       email: '',
       password: '',
       loginProvider: 2,
-      providerAccessCode: accessToken,
+      providerAccessCode: code,
     };
 
     return this.http.post<LoggedAccount>(url, payload).pipe(
@@ -103,17 +103,10 @@ export class AuthService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  verifyEmail(token: string): Observable<User> {
-    const url = `${this.apiBase}/verify-email`;
+  registerWithGoogle(authCode: string): Observable<User> {
+    const url = `${this.apiBase}/register/unverified/google`;
     return this.http
-      .post<User>(url, { token })
-      .pipe(catchError((error: any) => throwError(error)));
-  }
-
-  sendVerificationEmail(email: string): Observable<void> {
-    const url = `${this.apiBase}/send/email-verification`;
-    return this.http
-      .post<void>(url, { email })
+      .post<User>(url, { providerAccessCode: authCode })
       .pipe(catchError((error: any) => throwError(error)));
   }
 
@@ -128,6 +121,20 @@ export class AuthService {
     const url = `${this.apiBase}/verify-otp`;
     return this.http
       .post<void>(url, otpPayload)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  sendVerificationEmail(email: string): Observable<void> {
+    const url = `${this.apiBase}/send/email-verification`;
+    return this.http
+      .post<void>(url, { email })
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  verifyEmail(token: string): Observable<User> {
+    const url = `${this.apiBase}/verify-email`;
+    return this.http
+      .post<User>(url, { token })
       .pipe(catchError((error: any) => throwError(error)));
   }
 
@@ -149,6 +156,13 @@ export class AuthService {
     const url = `${this.apiBase}/reset-password`;
     return this.http
       .post<void>(url, { email, password })
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  verifyUser(userId: string): Observable<void> {
+    const url = `${this.apiBase}/verify-user`;
+    return this.http
+      .post<void>(url, { id: userId })
       .pipe(catchError((error: any) => throwError(error)));
   }
 
