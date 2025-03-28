@@ -9,7 +9,7 @@ frontend/out-tsc/
 
 # Environment and Configuration Files
 frontend/.env
-frontend/src/configs
+frontend/src/configs/
 
 frontend/package-lock.json
 
