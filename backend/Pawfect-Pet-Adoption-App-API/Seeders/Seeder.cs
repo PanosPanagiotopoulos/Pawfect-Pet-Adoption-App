@@ -16,13 +16,9 @@ public class Seeder
 
 	public void Seed()
 	{
-		// Κάνε "Seed" τη βάση μόνο άν δεν΄έχει ήδη γίνει
-		if (this.dbService.GetCollection<User>().CountDocuments(FilterDefinition<User>.Empty) != 0)
-		{
-			// Διέγραψε τη βάση μόνο άν έχει ήδη γίνει "Seed" ( Μόνο για Testing )
-			this.dbService.DropAllCollections();
+		
+		this.dbService.DropAllCollections();
 
-		}
 		SeedAnimalTypes();
 		SeedBreeds();
 		SeedUsersAndShelters();
@@ -109,42 +105,199 @@ public class Seeder
 		}
 	}
 
-	private void SeedAnimals()
-	{
-		var animalsCollection = this.dbService.GetCollection<Animal>();
-		var breedsCollection = this.dbService.GetCollection<Breed>();
-		var sheltersCollection = this.dbService.GetCollection<Shelter>();
-		var animalTypesCollection = this.dbService.GetCollection<AnimalType>();
+    private void SeedAnimals()
+    {
+        var animalsCollection = this.dbService.GetCollection<Animal>();
+        var breedsCollection = this.dbService.GetCollection<Breed>();
+        var sheltersCollection = this.dbService.GetCollection<Shelter>();
+        var animalTypesCollection = this.dbService.GetCollection<AnimalType>();
 
-		var breeds = breedsCollection.Find(FilterDefinition<Breed>.Empty).ToList();
-		var shelters = sheltersCollection.Find(FilterDefinition<Shelter>.Empty).ToList();
-		var animalTypes = animalTypesCollection.Find(FilterDefinition<AnimalType>.Empty).ToList();
+        var breeds = breedsCollection.Find(FilterDefinition<Breed>.Empty).ToList();
+        var shelters = sheltersCollection.Find(FilterDefinition<Shelter>.Empty).ToList();
+        var animalTypes = animalTypesCollection.Find(FilterDefinition<AnimalType>.Empty).ToList();
 
-		if (animalsCollection.CountDocuments(FilterDefinition<Animal>.Empty) == 0)
-		{
-			var animals = new List<Animal>
-			{
-				new Animal { Name = "Buddy", Age = 3, Gender = Gender.Male, Description = "Friendly and playful", Weight = 25, HealthStatus = "Good"
-				, ShelterId = shelters[0].Id, BreedId = breeds[0].Id, AnimalTypeId = animalTypes[0].Id, AdoptionStatus = AdoptionStatus.Available
-				, Photos = new[] { "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
-									"https://images.unsplash.com/photo-1574158622681-2d41c4939f82",
-									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" }.ToList() },
-				new Animal { Name = "Mittens", Age = 2, Gender = Gender.Female, Description = "Calm and affectionate", Weight = 10, HealthStatus = "Good",
-					ShelterId = shelters[0].Id, BreedId = breeds[1].Id, AnimalTypeId = animalTypes[1].Id, AdoptionStatus = AdoptionStatus.Available
-					, Photos = new[] { "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
-									"https://images.unsplash.com/photo-1574158622681-2d41c4939f82",
-									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" }.ToList() },
-				new Animal { Name = "Thumper", Age = 1, Gender = Gender.Male, Description = "Energetic and curious", Weight = 3, HealthStatus = "Excellent",
-					ShelterId = shelters[0].Id, BreedId = breeds[2].Id, AnimalTypeId = animalTypes[2].Id, AdoptionStatus = AdoptionStatus.Available,
-					Photos = new[] { "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
-									"https://images.unsplash.com/photo-1574158622681-2d41c4939f82",
-									"https://cdn.pixabay.com/photo/2020/06/10/16/28/dog-5360330_1280.jpg" }.ToList() }
-			};
-			animalsCollection.InsertMany(animals);
-		}
-	}
+        if (animalsCollection.CountDocuments(FilterDefinition<Animal>.Empty) == 0)
+        {
+            var animals = new List<Animal>
+        {
+            new Animal {
+                Name = "Max",
+                Age = 4,
+                Gender = Gender.Male,
+                Description = "Loyal and energetic companion",
+                Weight = 30,
+                HealthStatus = "Good",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[0].Id,
+                AnimalTypeId = animalTypes[0].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://images.unsplash.com/photo-1558788353-f76d92427f16?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://cdn.pixabay.com/photo/2017/09/25/13/12/dog-2785074_1280.jpg",
+                    "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
+                }
+            },
+            new Animal {
+                Name = "Bella",
+                Age = 3,
+                Gender = Gender.Female,
+                Description = "Affectionate and playful, loves cuddles",
+                Weight = 20,
+                HealthStatus = "Good",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[1].Id,
+                AnimalTypeId = animalTypes[1].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://images.unsplash.com/photo-1601758123927-39d86b14d886?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://cdn.pixabay.com/photo/2018/01/15/07/51/dog-3081774_1280.jpg",
+                    "https://images.unsplash.com/photo-1568572933382-74d440642117?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
+                }
+            },
+            new Animal {
+                Name = "Charlie",
+                Age = 5,
+                Gender = Gender.Male,
+                Description = "Friendly and intelligent, loves outdoor adventures",
+                Weight = 28,
+                HealthStatus = "Good",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[2].Id,
+                AnimalTypeId = animalTypes[2].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://images.unsplash.com/photo-1574158622681-2d41c4939f82?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://cdn.pixabay.com/photo/2019/06/18/16/05/dog-4284419_1280.jpg",
+                    "https://images.unsplash.com/photo-1558788353-f76d92427f16?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
+                }
+            },
+            new Animal {
+                Name = "Luna",
+                Age = 2,
+                Gender = Gender.Female,
+                Description = "Gentle and graceful with a mysterious charm",
+                Weight = 15,
+                HealthStatus = "Excellent",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[0].Id,
+                AnimalTypeId = animalTypes[1].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://cdn.pixabay.com/photo/2016/02/19/10/00/animal-1209728_1280.jpg",
+                    "https://images.unsplash.com/photo-1570018145413-1f6206eeabdb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://cdn.pixabay.com/photo/2017/11/09/21/41/cat-2934720_1280.jpg"
+                }
+            },
+            new Animal {
+                Name = "Rocky",
+                Age = 6,
+                Gender = Gender.Male,
+                Description = "Tough and resilient, yet full of heart",
+                Weight = 35,
+                HealthStatus = "Fair",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[2].Id,
+                AnimalTypeId = animalTypes[1].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://cdn.pixabay.com/photo/2018/05/07/22/09/dog-3383863_1280.jpg",
+                    "https://images.unsplash.com/photo-1583511655623-caa2e58d0d69?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://cdn.pixabay.com/photo/2018/05/07/22/09/dog-3383863_1280.jpg"
+                }
+            },
+            new Animal {
+                Name = "Milo",
+                Age = 3,
+                Gender = Gender.Male,
+                Description = "Curious and playful, always up for an adventure",
+                Weight = 22,
+                HealthStatus = "Good",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[2].Id,
+                AnimalTypeId = animalTypes[0].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://cdn.pixabay.com/photo/2017/11/11/21/46/dog-2944273_1280.jpg",
+                    "https://images.unsplash.com/photo-1560807707-8cc77767d783?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://cdn.pixabay.com/photo/2017/11/11/21/46/dog-2944273_1280.jpg"
+                }
+            },
+            new Animal {
+                Name = "Lucy",
+                Age = 4,
+                Gender = Gender.Female,
+                Description = "Sweet and loving with a playful spirit",
+                Weight = 18,
+                HealthStatus = "Excellent",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[1].Id,
+                AnimalTypeId = animalTypes[2].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://cdn.pixabay.com/photo/2015/03/26/09/54/dog-690159_1280.jpg",
+                    "https://cdn.pixabay.com/photo/2016/07/27/07/26/dog-1543162_1280.jpg",
+                    "https://cdn.pixabay.com/photo/2015/03/26/09/54/dog-690159_1280.jpg"
+                }
+            },
+            new Animal {
+                Name = "Buddy",
+                Age = 5,
+                Gender = Gender.Male,
+                Description = "Friendly and dependable, always ready for fun",
+                Weight = 32,
+                HealthStatus = "Good",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[1].Id,
+                AnimalTypeId = animalTypes[1].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg",
+                    "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg",
+                    "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg"
+                }
+            },
+            new Animal {
+                Name = "Daisy",
+                Age = 2,
+                Gender = Gender.Female,
+                Description = "Cheerful and gentle – a burst of sunshine",
+                Weight = 12,
+                HealthStatus = "Good",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[0].Id,
+                AnimalTypeId = animalTypes[0].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
+                    "https://images.unsplash.com/photo-1543466835-00a7907e3c8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
+                }
+            },
+            new Animal {
+                Name = "Cooper",
+                Age = 3,
+                Gender = Gender.Male,
+                Description = "Smart and curious, loves to explore",
+                Weight = 25,
+                HealthStatus = "Excellent",
+                ShelterId = shelters[0].Id,
+                BreedId = breeds[0].Id,
+                AnimalTypeId = animalTypes[1].Id,
+                AdoptionStatus = AdoptionStatus.Available,
+                Photos = new List<string> {
+                    "https://images.unsplash.com/photo-1575691554672-168dd42b0a60?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://images.unsplash.com/photo-1559599189-396b4a8c81d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
+                    "https://images.unsplash.com/photo-1575691554672-168dd42b0a60?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
+                }
+            }
+        };
 
-	private void SeedAdoptionApplications()
+            animalsCollection.InsertMany(animals);
+        }
+    }
+
+
+    private void SeedAdoptionApplications()
 	{
 		var applicationsCollection = this.dbService.GetCollection<AdoptionApplication>();
 		var usersCollection = this.dbService.GetCollection<User>();

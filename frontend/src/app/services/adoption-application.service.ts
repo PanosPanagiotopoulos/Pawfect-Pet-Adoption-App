@@ -24,7 +24,7 @@ export class AdoptionApplicationService {
   query(q: AdoptionApplicationLookup): Observable<AdoptionApplication[]> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .get<AdoptionApplication[]>(url, q)
+      .post<AdoptionApplication[]>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

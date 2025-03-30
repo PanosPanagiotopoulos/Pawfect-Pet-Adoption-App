@@ -19,6 +19,9 @@
         // Λίστα με τα IDs των συνομιλιών
         public List<String>? Ids { get; set; }
 
+        public List<String>? ExcludedIds { get; set; }
+
+
         // Λίστα με τα IDs των χρηστών
         public List<String>? UserIds { get; set; }
 
@@ -54,6 +57,7 @@
             _conversationQuery.SortDescending = this.SortDescending;
             _conversationQuery.Fields = _conversationQuery.FieldNamesOf(this.Fields.ToList());
             _conversationQuery.SortBy = this.SortBy;
+            _conversationQuery.ExcludedIds = this.ExcludedIds;
 
             return _conversationQuery;
         }

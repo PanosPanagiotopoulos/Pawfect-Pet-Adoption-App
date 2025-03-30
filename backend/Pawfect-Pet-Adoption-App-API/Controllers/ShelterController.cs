@@ -24,12 +24,12 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// Query ζώων.
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
-		[HttpGet("query")]
+		[HttpPost("query")]
 		[ProducesResponseType(200, Type = typeof(IEnumerable<ShelterDto>))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(404)]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> QueryShelters([FromQuery] ShelterLookup shelterLookup)
+		public async Task<IActionResult> QueryShelters([FromBody] ShelterLookup shelterLookup)
 		{
 			if (!ModelState.IsValid)
 			{

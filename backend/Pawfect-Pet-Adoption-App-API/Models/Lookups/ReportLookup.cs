@@ -18,8 +18,11 @@
 		// Λίστα με τα αναγνωριστικά των αναφορών
 		public List<String>? Ids { get; set; }
 
-		// Λίστα με τα αναγνωριστικά των αναφέροντων χρηστών
-		public List<String>? ReporteredIds { get; set; }
+        public List<String>? ExcludedIds { get; set; }
+
+
+        // Λίστα με τα αναγνωριστικά των αναφέροντων χρηστών
+        public List<String>? ReporteredIds { get; set; }
 
 		// Λίστα με τα αναγνωριστικά των αναφερόμενων χρηστών
 		public List<String>? ReportedIds { get; set; }
@@ -62,8 +65,9 @@
 			_reportQuery.SortDescending = this.SortDescending;
 			_reportQuery.Fields = _reportQuery.FieldNamesOf(this.Fields.ToList());
 			_reportQuery.SortBy = this.SortBy;
+			_reportQuery.ExcludedIds = this.ExcludedIds;
 
-			return _reportQuery;
+            return _reportQuery;
 		}
 
 		/// <summary>

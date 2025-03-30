@@ -22,7 +22,7 @@ export class ShelterService {
   query(q: ShelterLookup): Observable<Shelter[]> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .get<Shelter[]>(url, q)
+      .post<Shelter[]>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

@@ -20,8 +20,11 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		// Λίστα με τα IDs των συνομιλιών για φιλτράρισμα
 		public List<String>? Ids { get; set; }
 
-		// Λίστα με τα IDs των χρηστών για φιλτράρισμα
-		public List<String>? UserIds { get; set; }
+        public List<String>? ExcludedIds { get; set; }
+
+
+        // Λίστα με τα IDs των χρηστών για φιλτράρισμα
+        public List<String>? UserIds { get; set; }
 
 		// Λίστα με τα IDs των ζώων για φιλτράρισμα
 		public List<String>? AnimalIds { get; set; }
@@ -49,8 +52,17 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				filter &= builder.In("Id", referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
-			// Εφαρμόζει φίλτρο για τα IDs των χρηστών
-			if (UserIds != null && UserIds.Any())
+            if (ExcludedIds != null && ExcludedIds.Any())
+            {
+                // Convert String IDs to ObjectId for comparison
+                IEnumerable<ObjectId> referenceIds = ExcludedIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.Nin("Id", referenceIds.Where(id => id != ObjectId.Empty));
+            }
+
+            // Εφαρμόζει φίλτρο για τα IDs των χρηστών
+            if (UserIds != null && UserIds.Any())
 			{
 				// Convert String IDs to ObjectId for comparison
 				IEnumerable<ObjectId> referenceIds = UserIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);

@@ -18,6 +18,9 @@
         // Λίστα με τα αναγνωριστικά των καταφυγίων
         public List<String>? Ids { get; set; }
 
+        public List<String>? ExcludedIds { get; set; }
+
+
         // Λίστα με τα αναγνωριστικά των χρηστών
         public List<String>? UserIds { get; set; }
 
@@ -50,6 +53,7 @@
             _shelterQuery.SortDescending = this.SortDescending;
             _shelterQuery.Fields = _shelterQuery.FieldNamesOf(this.Fields.ToList());
             _shelterQuery.SortBy = this.SortBy;
+            _shelterQuery.ExcludedIds = this.ExcludedIds;
 
             return _shelterQuery;
         }

@@ -25,7 +25,7 @@ export class NotificationService {
   query(q: NotificationLookup): Observable<Notification[]> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .get<Notification[]>(url, q)
+      .post<Notification[]>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

@@ -126,6 +126,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Κατασκευή των dtos
 			List<BreedDto> breedDtos = (await _breedService.Value.QueryBreedsAsync(_breedLookup)).ToList();
 
+			if (breedDtos == null || !breedDtos.Any()) { return null; }
+
 			// Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ BreedId -> BreedDto ]
 			Dictionary<String, BreedDto> breedDtoMap = breedDtos.ToDictionary(x => x.Id);
 
@@ -149,8 +151,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Κατασκευή των dtos
 			List<AnimalTypeDto> animalTypeDtos = (await _animalTypeService.Value.QueryAnimalTypesAsync(_animalTypeLookup)).ToList();
 
-			// Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ AnimalTypeId -> AnimalTypeDto ]
-			Dictionary<String, AnimalTypeDto> animalTypeDtoMap = animalTypeDtos.ToDictionary(x => x.Id);
+            if (animalTypeDtos == null || !animalTypeDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ AnimalTypeId -> AnimalTypeDto ]
+            Dictionary<String, AnimalTypeDto> animalTypeDtoMap = animalTypeDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα animals δημιουργώντας ένα Dictionary : [ AnimalId -> AnimalTypeId ] 
 			return animals.ToDictionary(x => x.Id, x => animalTypeDtoMap[x.AnimalTypeId]);

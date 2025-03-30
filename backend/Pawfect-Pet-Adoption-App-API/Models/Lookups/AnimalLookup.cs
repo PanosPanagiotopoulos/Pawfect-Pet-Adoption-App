@@ -19,6 +19,9 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
         // Λίστα από IDs ζώων για φιλτράρισμα
         public List<String>? Ids { get; set; }
 
+        public List<String>? ExcludedIds { get; set; }
+
+
         // Λίστα από IDs καταφυγίων για φιλτράρισμα
         public List<String>? ShelterIds { get; set; }
 
@@ -64,6 +67,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
             _animalQuery.SortDescending = this.SortDescending;
             _animalQuery.Fields = _animalQuery.FieldNamesOf(this.Fields.ToList());
             _animalQuery.SortBy = this.SortBy;
+            _animalQuery.ExcludedIds = this.ExcludedIds;
 
             return _animalQuery;
         }

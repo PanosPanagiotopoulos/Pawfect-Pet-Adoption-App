@@ -22,7 +22,7 @@ export class AnimalService {
   query(q: AnimalLookup): Observable<Animal[]> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .get<Animal[]>(url, q)
+      .post<Animal[]>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

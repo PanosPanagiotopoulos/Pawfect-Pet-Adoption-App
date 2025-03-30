@@ -8,6 +8,7 @@ using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 using Pawfect_Pet_Adoption_App_API.Services.SearchServices;
+using Serilog;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
@@ -26,8 +27,11 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		// Λίστα από IDs ζώων για φιλτράρισμα
 		public List<String>? Ids { get; set; }
 
-		// Λίστα από IDs καταφυγίων για φιλτράρισμα
-		public List<String>? ShelterIds { get; set; }
+        public List<String>? ExcludedIds { get; set; }
+
+
+        // Λίστα από IDs καταφυγίων για φιλτράρισμα
+        public List<String>? ShelterIds { get; set; }
 
 		// Λίστα από IDs φυλών για φιλτράρισμα
 		public List<String>? BreedIds { get; set; }
@@ -61,8 +65,17 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				filter &= builder.In("Id", referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
-			// Εφαρμόζει φίλτρο για τα IDs των καταφυγίων
-			if (ShelterIds != null && ShelterIds.Any())
+            if (ExcludedIds != null && ExcludedIds.Any())
+            {
+                // Convert String IDs to ObjectId for comparison
+                IEnumerable<ObjectId> referenceIds = ExcludedIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.Nin("Id", referenceIds.Where(id => id != ObjectId.Empty));
+            }
+
+            // Εφαρμόζει φίλτρο για τα IDs των καταφυγίων
+            if (ShelterIds != null && ShelterIds.Any())
 			{
 				// Convert String IDs to ObjectId for comparison
 				IEnumerable<ObjectId> referenceIds = ShelterIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);

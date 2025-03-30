@@ -21,8 +21,11 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		// Λίστα από IDs τύπων ζώων για φιλτράρισμα
 		public List<String>? Ids { get; set; }
 
-		// Ονομασία τύπων ζώων για φιλτράρισμα
-		public String? Name { get; set; }
+        public List<String>? ExcludedIds { get; set; }
+
+
+        // Ονομασία τύπων ζώων για φιλτράρισμα
+        public String? Name { get; set; }
 
 		// Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
 		// Έξοδος: FilterDefinition<AnimalType> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
@@ -41,8 +44,17 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				filter &= builder.In("Id", referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
-			// Εφαρμόζει φίλτρο για την ονομασία των τύπων ζώων
-			if (!String.IsNullOrEmpty(Name))
+            if (ExcludedIds != null && ExcludedIds.Any())
+            {
+                // Convert String IDs to ObjectId for comparison
+                IEnumerable<ObjectId> referenceIds = ExcludedIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.Nin("Id", referenceIds.Where(id => id != ObjectId.Empty));
+            }
+
+            // Εφαρμόζει φίλτρο για την ονομασία των τύπων ζώων
+            if (!String.IsNullOrEmpty(Name))
 			{
 				filter &= builder.Eq(animalType => animalType.Name, Name);
 			}

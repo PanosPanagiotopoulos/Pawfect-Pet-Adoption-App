@@ -20,8 +20,11 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		// Λίστα με τα αναγνωριστικά των φυλών για φιλτράρισμα
 		public List<String>? Ids { get; set; }
 
-		// Λίστα με τα αναγνωριστικά των τύπων για φιλτράρισμα
-		public List<String>? TypeIds { get; set; }
+        public List<String>? ExcludedIds { get; set; }
+
+
+        // Λίστα με τα αναγνωριστικά των τύπων για φιλτράρισμα
+        public List<String>? TypeIds { get; set; }
 
 		// Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
 		public DateTime? CreatedFrom { get; set; }
@@ -46,8 +49,17 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				filter &= builder.In("Id", referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
-			// Εφαρμόζει φίλτρο για τα αναγνωριστικά των τύπων
-			if (TypeIds != null && TypeIds.Any())
+            if (ExcludedIds != null && ExcludedIds.Any())
+            {
+                // Convert String IDs to ObjectId for comparison
+                IEnumerable<ObjectId> referenceIds = ExcludedIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.Nin("Id", referenceIds.Where(id => id != ObjectId.Empty));
+            }
+
+            // Εφαρμόζει φίλτρο για τα αναγνωριστικά των τύπων
+            if (TypeIds != null && TypeIds.Any())
 			{
 				// Convert String IDs to ObjectId for comparison
 				IEnumerable<ObjectId> referenceIds = TypeIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);

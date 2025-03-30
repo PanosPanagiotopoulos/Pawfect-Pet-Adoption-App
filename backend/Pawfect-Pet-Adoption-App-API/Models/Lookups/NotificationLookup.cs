@@ -18,6 +18,9 @@
         // Λίστα με τα IDs των ειδοποιήσεων για φιλτράρισμα
         public List<String>? Ids { get; set; }
 
+        public List<String>? ExcludedIds { get; set; }
+
+
         // Λίστα με τα IDs των χρηστών για φιλτράρισμα
         public List<String>? UserIds { get; set; }
 
@@ -55,6 +58,7 @@
             _notificationQuery.SortDescending = this.SortDescending;
             _notificationQuery.Fields = _notificationQuery.FieldNamesOf(this.Fields.ToList());
             _notificationQuery.SortBy = this.SortBy;
+            _notificationQuery.ExcludedIds = this.ExcludedIds;
 
             return _notificationQuery;
         }

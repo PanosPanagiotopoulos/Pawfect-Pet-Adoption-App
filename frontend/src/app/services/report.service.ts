@@ -22,7 +22,7 @@ export class ReportService {
   query(q: ReportLookup): Observable<Report[]> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .get<Report[]>(url, q)
+      .post<Report[]>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

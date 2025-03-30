@@ -1,13 +1,54 @@
-<div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-  <div class="max-w-7xl mx-auto">
-    <h1 class="text-3xl font-bold text-center mb-8">Find Your Perfect Pet</h1>
-    <div class="flex justify-center mb-8">
-      <input [formControl]="searchControl" type="text"
-             class="w-full max-w-xl px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-             placeholder="Search pets...">
+<div class="min-h-screen bg-gray-900">
+  <!-- Background elements -->
+  <div class="fixed inset-0 z-0">
+    <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"></div>
+    <div class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"></div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28">
+    <!-- Search Input -->
+    <div class="max-w-2xl mx-auto mb-12">
+      <app-form-input
+        [form]="searchForm"
+        controlName="searchQuery"
+        type="text"
+        placeholder="Περιγράψτε το ιδανικό σας κατοικίδιο..."
+      ></app-form-input>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <!-- Pet cards will go here -->
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <div class="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
     </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="text-center py-8">
+      <p class="text-red-400">{{ error }}</p>
+      <button 
+        (click)="resetSearch()"
+        class="mt-4 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+      >
+        Δοκιμάστε ξανά
+      </button>
+    </div>
+
+    <!-- Swipe Cards Area -->
+    <ng-container *ngIf="getCurrentAnimal() as animal">
+      <app-swipe-card
+        *ngIf="currentAnimalKey"
+        [key]="currentAnimalKey"
+        [animal]="animal"
+        [hasMore]="hasMoreAnimals()"
+        (swipeLeft)="onSwipeLeft()"
+        (swipeRight)="onSwipeRight($event)">
+      </app-swipe-card>
+    </ng-container>
+
+    <!-- Saved Animals Grid -->
+    <app-saved-animals-grid
+      [animals]="savedAnimals"
+    ></app-saved-animals-grid>
   </div>
 </div>

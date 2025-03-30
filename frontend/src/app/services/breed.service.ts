@@ -22,7 +22,7 @@ export class BreedService {
   query(q: BreedLookup): Observable<Breed[]> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .get<Breed[]>(url, q)
+      .post<Breed[]>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

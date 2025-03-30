@@ -24,6 +24,7 @@ import {
   lucideFile,
   lucideCheck,
   lucideTriangle,
+  lucidePawPrint
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -76,6 +77,7 @@ export function initializeApp(
       lucideFile,
       lucideCheck,
       lucideTriangle,
+      lucidePawPrint
     }),
     HeaderComponent,
   ],

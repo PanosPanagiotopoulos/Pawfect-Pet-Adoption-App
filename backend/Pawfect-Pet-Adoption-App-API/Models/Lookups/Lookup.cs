@@ -9,15 +9,21 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 		public int Offset { get; set; }
 		public int PageSize { get; set; }
 		public String? Query { get; set; }
+        public List<String> ExcludeIds { get; set; }
 
-		private ICollection<String> _fields = new List<String>();
+        private ICollection<String> _fields = new List<String>();
 		private ICollection<String> _sortBy = new List<String>();
 
 		public ICollection<String> Fields
 		{
 			get => _fields;
-			set => _fields = value ?? new List<String>();
-		}
+            set => _fields = (value ?? new List<string>())
+                     .Select(s =>
+                         String.IsNullOrWhiteSpace(s)
+                             ? s
+                             : char.ToUpper(s[0]) + s.Substring(1))
+                     .ToList();
+        }
 
 		// Ταξινόμηση
 		public ICollection<String> SortBy

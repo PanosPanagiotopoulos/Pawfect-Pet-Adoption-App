@@ -18,6 +18,9 @@
         // Λίστα με τα αναγνωριστικά των χρηστών
         public List<String>? Ids { get; set; }
 
+        public List<String>? ExcludedIds { get; set; }
+
+
         // Λίστα με τα ονόματα των χρηστών
         public List<String>? FullNames { get; set; }
 
@@ -63,6 +66,7 @@
             _userQuery.SortDescending = this.SortDescending;
             _userQuery.Fields = _userQuery.FieldNamesOf(this.Fields.ToList());
             _userQuery.SortBy = this.SortBy;
+            _userQuery.ExcludedIds = this.ExcludedIds;
 
             return _userQuery;
         }

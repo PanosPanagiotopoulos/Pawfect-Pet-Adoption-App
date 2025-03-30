@@ -20,6 +20,8 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
         // Λίστα με τα αναγνωριστικά των φυλών
         public List<String>? Ids { get; set; }
 
+        public List<String>? ExcludedIds { get; set; }
+
         // Λίστα με τα αναγνωριστικά των τύπων
         public List<String>? TypeIds { get; set; }
 
@@ -51,6 +53,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
             _breedQuery.SortDescending = this.SortDescending;
             _breedQuery.Fields = _breedQuery.FieldNamesOf(this.Fields.ToList());
             _breedQuery.SortBy = this.SortBy;
+            _breedQuery.ExcludedIds = this.ExcludedIds;
 
             return _breedQuery;
         }
