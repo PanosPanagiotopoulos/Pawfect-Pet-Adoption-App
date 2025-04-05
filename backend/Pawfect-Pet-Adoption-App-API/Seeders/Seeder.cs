@@ -21,7 +21,7 @@ public class Seeder
 
 		SeedAnimalTypes();
 		SeedBreeds();
-		SeedUsersAndShelters();
+        SeedUsersAndShelters();
 		SeedAnimals();
 		SeedAdoptionApplications();
 		SeedConversations();
@@ -40,9 +40,9 @@ public class Seeder
 		{
 			var animalTypes = new List<AnimalType>
 			{
-				new AnimalType { Name = "Dog", Description = "Canine species" },
-				new AnimalType { Name = "Cat", Description = "Feline species" },
-				new AnimalType { Name = "Rabbit", Description = "Lagomorph species" }
+				new AnimalType { Name = "Dog", Description = "Canine species", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new AnimalType { Name = "Cat", Description = "Feline species", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new AnimalType { Name = "Rabbit", Description = "Lagomorph species", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
 			};
 			animalTypesCollection.InsertMany(animalTypes);
 		}
@@ -58,9 +58,9 @@ public class Seeder
 		{
 			var breeds = new List<Breed>
 			{
-				new Breed { Name = "Labrador", TypeId = animalTypes[0].Id, Description = "Friendly and outgoing" },
-				new Breed { Name = "Persian", TypeId = animalTypes[1].Id, Description = "Long-haired breed" },
-				new Breed { Name = "Holland Lop", TypeId = animalTypes[2].Id, Description = "Popular rabbit breed" }
+				new Breed { Name = "Labrador", TypeId = animalTypes[0].Id, Description = "Friendly and outgoing", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new Breed { Name = "Persian", TypeId = animalTypes[1].Id, Description = "Long-haired breed", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new Breed { Name = "Holland Lop", TypeId = animalTypes[2].Id, Description = "Popular rabbit breed", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
 			};
 			breedsCollection.InsertMany(breeds);
 		}
@@ -135,8 +135,8 @@ public class Seeder
                     "https://images.unsplash.com/photo-1558788353-f76d92427f16?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2017/09/25/13/12/dog-2785074_1280.jpg",
                     "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Bella",
                 Age = 3,
@@ -152,8 +152,8 @@ public class Seeder
                     "https://images.unsplash.com/photo-1601758123927-39d86b14d886?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2018/01/15/07/51/dog-3081774_1280.jpg",
                     "https://images.unsplash.com/photo-1568572933382-74d440642117?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Charlie",
                 Age = 5,
@@ -169,8 +169,8 @@ public class Seeder
                     "https://images.unsplash.com/photo-1574158622681-2d41c4939f82?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2019/06/18/16/05/dog-4284419_1280.jpg",
                     "https://images.unsplash.com/photo-1558788353-f76d92427f16?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Luna",
                 Age = 2,
@@ -186,8 +186,8 @@ public class Seeder
                     "https://cdn.pixabay.com/photo/2016/02/19/10/00/animal-1209728_1280.jpg",
                     "https://images.unsplash.com/photo-1570018145413-1f6206eeabdb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2017/11/09/21/41/cat-2934720_1280.jpg"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Rocky",
                 Age = 6,
@@ -203,8 +203,8 @@ public class Seeder
                     "https://cdn.pixabay.com/photo/2018/05/07/22/09/dog-3383863_1280.jpg",
                     "https://images.unsplash.com/photo-1583511655623-caa2e58d0d69?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2018/05/07/22/09/dog-3383863_1280.jpg"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Milo",
                 Age = 3,
@@ -220,8 +220,8 @@ public class Seeder
                     "https://cdn.pixabay.com/photo/2017/11/11/21/46/dog-2944273_1280.jpg",
                     "https://images.unsplash.com/photo-1560807707-8cc77767d783?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2017/11/11/21/46/dog-2944273_1280.jpg"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Lucy",
                 Age = 4,
@@ -237,8 +237,8 @@ public class Seeder
                     "https://cdn.pixabay.com/photo/2015/03/26/09/54/dog-690159_1280.jpg",
                     "https://cdn.pixabay.com/photo/2016/07/27/07/26/dog-1543162_1280.jpg",
                     "https://cdn.pixabay.com/photo/2015/03/26/09/54/dog-690159_1280.jpg"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Buddy",
                 Age = 5,
@@ -254,8 +254,8 @@ public class Seeder
                     "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg",
                     "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg",
                     "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Daisy",
                 Age = 2,
@@ -271,8 +271,8 @@ public class Seeder
                     "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
                     "https://images.unsplash.com/photo-1543466835-00a7907e3c8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
-                }
-            },
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			},
             new Animal {
                 Name = "Cooper",
                 Age = 3,
@@ -288,8 +288,8 @@ public class Seeder
                     "https://images.unsplash.com/photo-1575691554672-168dd42b0a60?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://images.unsplash.com/photo-1559599189-396b4a8c81d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://images.unsplash.com/photo-1575691554672-168dd42b0a60?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
-                }
-            }
+                }, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow
+			}
         };
 
             animalsCollection.InsertMany(animals);
@@ -310,9 +310,9 @@ public class Seeder
 		{
 			var applications = new List<AdoptionApplication>
 			{
-				new AdoptionApplication { UserId = users[0].Id, AnimalId = animals[0].Id, ShelterId = animals[0].ShelterId, ApplicationDetails = "Loves pets and has a spacious home." },
-				new AdoptionApplication { UserId = users[0].Id, AnimalId = animals[0].Id, ShelterId = animals[1].ShelterId, ApplicationDetails = "Experienced with pets, lives in a quiet neighborhood." },
-				new AdoptionApplication { UserId = users[0].Id, AnimalId = animals[0].Id, ShelterId = animals[2].ShelterId, ApplicationDetails = "Works from home, has time to care for pets." }
+				new AdoptionApplication { UserId = users[0].Id, AnimalId = animals[0].Id, ShelterId = animals[0].ShelterId, ApplicationDetails = "Loves pets and has a spacious home.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new AdoptionApplication { UserId = users[0].Id, AnimalId = animals[0].Id, ShelterId = animals[1].ShelterId, ApplicationDetails = "Experienced with pets, lives in a quiet neighborhood.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new AdoptionApplication { UserId = users[0].Id, AnimalId = animals[0].Id, ShelterId = animals[2].ShelterId, ApplicationDetails = "Works from home, has time to care for pets.", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
 			};
 			applicationsCollection.InsertMany(applications);
 		}
@@ -331,9 +331,9 @@ public class Seeder
 		{
 			var conversations = new List<Conversation>
 			{
-				new Conversation { UserIds = new List<String> { users[0].Id, users[1].Id }, AnimalId = animals[0].Id },
-				new Conversation { UserIds = new List<String> { users[1].Id, users[2].Id }, AnimalId = animals[1].Id },
-				new Conversation { UserIds = new List<String> { users[2].Id, users[0].Id }, AnimalId = animals[2].Id }
+				new Conversation { UserIds = new List<String> { users[0].Id, users[1].Id }, AnimalId = animals[0].Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new Conversation { UserIds = new List<String> { users[1].Id, users[2].Id }, AnimalId = animals[1].Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new Conversation { UserIds = new List<String> { users[2].Id, users[0].Id }, AnimalId = animals[2].Id, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
 			};
 			conversationsCollection.InsertMany(conversations);
 		}
@@ -367,9 +367,9 @@ public class Seeder
 		{
 			var reports = new List<Report>
 			{
-				new Report { ReporterId = users[0].Id, ReportedId = users[1].Id, Type = ReportType.InAppropriateMessage, Reason = "Inappropriate content in message" },
-				new Report { ReporterId = users[1].Id, ReportedId = users[2].Id, Type = ReportType.Other, Reason = "Suspicious activity" },
-				new Report { ReporterId = users[2].Id, ReportedId = users[0].Id, Type = ReportType.InAppropriateMessage, Reason = "Offensive language" }
+				new Report { ReporterId = users[0].Id, ReportedId = users[1].Id, Type = ReportType.InAppropriateMessage, Reason = "Inappropriate content in message", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new Report { ReporterId = users[1].Id, ReportedId = users[2].Id, Type = ReportType.Other, Reason = "Suspicious activity", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new Report { ReporterId = users[2].Id, ReportedId = users[0].Id, Type = ReportType.InAppropriateMessage, Reason = "Offensive language", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
 			};
 			reportsCollection.InsertMany(reports);
 		}
@@ -383,12 +383,12 @@ public class Seeder
 
 		if (notificationsCollection.CountDocuments(FilterDefinition<Notification>.Empty) == 0)
 		{
-			var notifications = new List<Notification>
-			{
-				new Notification { UserId = users[0].Id, Type = NotificationType.IncomingMessage, Content = "You have a new message about Buddy." },
-				new Notification { UserId = users[1].Id, Type = NotificationType.AdoptionApplication, Content = "Your application for Mittens is under review." },
-				new Notification { UserId = users[2].Id, Type = NotificationType.Report, Content = "You have been reported for inappropriate content." }
-			};
+            var notifications = new List<Notification>
+            {
+                new Notification { UserId = users[0].Id, Type = NotificationType.IncomingMessage, Content = "You have a new message about Buddy.", CreatedAt = DateTime.UtcNow },
+                new Notification { UserId = users[1].Id, Type = NotificationType.AdoptionApplication, Content = "Your application for Mittens is under review.", CreatedAt = DateTime.UtcNow },
+                new Notification { UserId = users[2].Id, Type = NotificationType.Report, Content = "You have been reported for inappropriate content.", CreatedAt = DateTime.UtcNow }
+            };
 			notificationsCollection.InsertMany(notifications);
 		}
 	}

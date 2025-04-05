@@ -10,14 +10,14 @@ import { SwipeCardComponent } from './components/swipe-card/swipe-card.component
 import { AnimalCardComponent } from './components/animal-card/animal-card.component';
 import { SavedAnimalsGridComponent } from './components/saved-animals-grid/saved-animals-grid.component';
 import { LucideAngularModule } from 'lucide-angular';
-
+import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
 
 @NgModule({
   declarations: [
     SearchComponent,
     SwipeCardComponent,
-    AnimalCardComponent,
     SavedAnimalsGridComponent,
+    AnimalCardComponent,
   ],
   imports: [
     CommonModule,
@@ -25,6 +25,7 @@ import { LucideAngularModule } from 'lucide-angular';
     ReactiveFormsModule,
     FormInputComponent,
     LucideAngularModule,
+    PetDetailsDialogComponent,
     NgIconsModule,
     RouterModule,
     RouterModule.forChild([
@@ -32,5 +33,11 @@ import { LucideAngularModule } from 'lucide-angular';
       { path: '**', component: NotFoundComponent },
     ]),
   ],
+  exports: [
+    SearchComponent,
+    SwipeCardComponent,
+    SavedAnimalsGridComponent,
+    AnimalCardComponent,
+  ]
 })
 export class SearchModule {}

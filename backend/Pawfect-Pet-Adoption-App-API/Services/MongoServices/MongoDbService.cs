@@ -2,8 +2,9 @@
 
 using MongoDB.Bson;
 using MongoDB.Driver;
-
+using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models;
+using Serilog;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.MongoServices
 {

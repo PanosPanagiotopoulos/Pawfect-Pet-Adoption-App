@@ -4,11 +4,26 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class LogService {
+  separator = (key: string, value: any) => {
+    if (value instanceof Error) {
+      return {
+        message: value.message,
+        stack: value.stack,
+        name: value.name
+      };
+    }
+    return value ?? 'No value found to print';
+  };
+
   logFormatted(log: any) {
-    const separator = (key: string, value: any) => {
-      return value ?? 'No value found to print';
+    const timestamp = new Date().toISOString();
+    const logWithTimestamp = {
+      timestamp,
+      ...log
     };
 
-    console.log(JSON.stringify(log, separator, 2));
+    const formatted: string = (typeof log).toLowerCase() === 'string' ? log : JSON.stringify(logWithTimestamp, this.separator, 2); 
+
+    console.log(formatted);
   }
 }

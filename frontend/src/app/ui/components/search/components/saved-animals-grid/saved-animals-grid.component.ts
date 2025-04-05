@@ -1,25 +1,49 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Animal } from 'src/app/models/animal/animal.model';
+import { AnimalCardComponent } from '../animal-card/animal-card.component';
+import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
 
 @Component({
   selector: 'app-saved-animals-grid',
   template: `
-    <div *ngIf="animals && animals.length > 0" class="space-y-6">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-white">Αποθηκευμένα κατοικίδια</h2>
-        <span class="px-2 py-1 bg-primary-500/20 rounded-full text-sm text-primary-400">{{ animals.length }}</span>
-      </div>
+    <div class="space-y-6">
+      <h2 *ngIf="animals?.length" class="text-2xl font-bold text-white">Αποθηκευμένα Κατοικίδια</h2>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <app-animal-card 
-          *ngFor="let animal of animals" 
-          [animal]="animal"
+        <app-animal-card
+          *ngFor="let animal of animals"
+          [animal]="animal!"
+          (showDetails)="openDialog($event)"
         ></app-animal-card>
       </div>
+
+      <app-pet-details-dialog
+        [animal]="selectedAnimal!"
+        [isOpen]="isDialogOpen"
+        (closeDialog)="closeDialog()"
+      ></app-pet-details-dialog>
     </div>
   `,
-  styles: []
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SavedAnimalsGridComponent {
   @Input() animals: Animal[] = [];
+  
+  isDialogOpen = false;
+  selectedAnimal?: Animal;
+
+  constructor(private cdr: ChangeDetectorRef) {}
+
+  openDialog(animal: Animal) {
+    this.selectedAnimal = animal;
+    this.isDialogOpen = true;
+    this.cdr.markForCheck();
+  }
+
+  closeDialog() {
+    this.isDialogOpen = false;
+    this.cdr.markForCheck();
+  }
 }

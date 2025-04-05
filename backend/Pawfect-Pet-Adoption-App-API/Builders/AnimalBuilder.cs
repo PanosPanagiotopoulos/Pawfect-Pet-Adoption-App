@@ -177,8 +177,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Κατασκευή των dtos
 			List<ShelterDto> shelterDtos = (await _shelterService.Value.QuerySheltersAsync(_shelterLookup)).ToList();
 
-			// Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ ShelterId -> ShelterDto ]
-			Dictionary<String, ShelterDto> shelterDtoMap = shelterDtos.ToDictionary(x => x.Id);
+            if (shelterDtos == null || !shelterDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ ShelterId -> ShelterDto ]
+            Dictionary<String, ShelterDto> shelterDtoMap = shelterDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα animals δημιουργώντας ένα Dictionary : [ AnimalId -> ShelterId ] 
 			return animals.ToDictionary(x => x.Id, x => shelterDtoMap[x.ShelterId]);

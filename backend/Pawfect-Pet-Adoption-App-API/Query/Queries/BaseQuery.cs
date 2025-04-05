@@ -29,7 +29,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			}
 
 			ProjectionDefinition<T> projection = Builders<T>.Projection.Include(Fields.First());
-			foreach (var field in Fields.Skip(1))
+			foreach (String field in Fields.Skip(1))
 			{
 				projection = projection.Include(field);
 			}
@@ -44,9 +44,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
 			if (SortBy == null || !SortBy.Any())
 			{
-				return finder.Sort(SortDescending.GetValueOrDefault()
-					? builder.Descending("CreatedAt")
-					: builder.Ascending("CreatedAt"));
+				return finder.Sort(builder.Ascending("CreatedAt").Ascending("_id"));
 			}
 
 			SortDefinition<T> sortDefinition = SortDescending.GetValueOrDefault()
@@ -60,6 +58,8 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 					: builder.Ascending(sortBy);
 			}
 
+			sortDefinition = sortDefinition.Ascending("_id");
+
 			return finder.Sort(sortDefinition);
 		}
 
@@ -68,7 +68,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		{
 			if (Offset > 0)
 			{
-				finder = finder.Skip((Offset - 1) * PageSize);
+				finder = finder.Skip(( Math.Max(Offset - 1, 0) ) * PageSize);
 			}
 
 			if (PageSize > 0)
@@ -95,15 +95,15 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			// Αρχικοποίηση της λειτουργίας αναζήτησης
 			IFindFluent<T, T> finder = _collection.Find(filter);
 
-			// Βήμα 2: Εφαρμογή προβολής για δυναμικά πεδία
-			finder = ApplyProjection(finder);
-
-			// Βήμα 3: Εφαρμογή ταξινόμησης αν απαιτείται
+			// Βήμα 2: Εφαρμογή ταξινόμησης αν απαιτείται
 			finder = ApplySorting(finder);
 
-			// Βήμα 4: Εφαρμογή σελιδοποίησης
+			// Βήμα 3: Εφαρμογή σελιδοποίησης
 			finder = ApplyPagination(finder);
 
+			// Βήμα 4: Εφαρμογή προβολής για δυναμικά πεδία
+			finder = ApplyProjection(finder);
+			
 			// Βήμα 5: Εφαρμογή authorisation στα δεδομένα που ζητούντε
 			finder = ApplyAuthorisation(finder);
 

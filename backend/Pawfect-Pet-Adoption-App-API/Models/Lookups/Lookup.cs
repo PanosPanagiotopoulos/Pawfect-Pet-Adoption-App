@@ -17,7 +17,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 		public ICollection<String> Fields
 		{
 			get => _fields;
-            set => _fields = (value ?? new List<string>())
+            set => _fields = (value ?? new List<String>())
                      .Select(s =>
                          String.IsNullOrWhiteSpace(s)
                              ? s
@@ -29,7 +29,12 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 		public ICollection<String> SortBy
 		{
 			get => _sortBy;
-			set => _sortBy = value ?? new List<String>();
+			set => _sortBy = (value ?? new List<String>())
+					 .Select(s =>
+						 String.IsNullOrWhiteSpace(s)
+							 ? s
+							 : char.ToUpper(s[0]) + s.Substring(1))
+					 .ToList();
 		}
 		public Boolean? SortDescending { get; set; } = false; // Κατεύθυνση ταξινόμησης
 

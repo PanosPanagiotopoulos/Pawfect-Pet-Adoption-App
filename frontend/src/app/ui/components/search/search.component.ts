@@ -6,9 +6,20 @@ import { Animal } from 'src/app/models/animal/animal.model';
 import { Breed } from 'src/app/models/breed/breed.model';
 import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
 import { AnimalLookup } from 'src/app/lookup/animal-lookup';
-import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged, tap, finalize, catchError } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
+import { UtilsService } from 'src/app/common/services/utils.service';
+import { LogService } from 'src/app/common/services/log.service';
+import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
+import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
+import { of } from 'rxjs';
+
+interface SearchSuggestion {
+  text: string;
+  query: string;
+  icon: string;
+}
 
 @Component({
   selector: 'app-search',
@@ -26,53 +37,84 @@ export class SearchComponent extends BaseComponent implements OnInit {
   currentIndex = 0;
   isLoading = false;
   isLoadingMore = false;
-  error: string | null = null;
+  error: ErrorDetails | null = null;
+
+  // Search suggestions
+  searchSuggestions: SearchSuggestion[] = [
+    { 
+      text: 'Φιλικό προς παιδιά',
+      query: 'Ένα ήρεμο και φιλικό κατοικίδιο που αγαπάει τα παιδιά',
+      icon: 'lucideHeart'
+    },
+    { 
+      text: 'Μικρό μέγεθος',
+      query: 'Ένα μικρόσωμο κατοικίδιο κατάλληλο για διαμέρισμα',
+      icon: 'lucideDog'
+    },
+    { 
+      text: 'Ενεργητικό',
+      query: 'Ένα ενεργητικό κατοικίδιο για τρέξιμο και παιχνίδι',
+      icon: 'lucideActivity'
+    },
+    { 
+      text: 'Ήσυχο',
+      query: 'Ένα ήσυχο και ήρεμο κατοικίδιο',
+      icon: 'lucideMoon'
+    }
+  ];
 
   // Pagination related properties
-  pageSize = 5;
-  currentOffset = 0;
-  loadThreshold = 0.7;
+  pageSize = 2;
+  currentOffset = 1;
+  loadThreshold = 0.55;
   hasMoreToLoad = true;
+
+  // Initial state
+  isInitialLoad = true; 
 
   // Key to force recreation of SwipeCardComponent
   currentAnimalKey: string | null = null;
 
-  constructor(private animalService: AnimalService) {
+  constructor(
+    private animalService: AnimalService,
+    private utilsService: UtilsService,
+    private logService: LogService,
+    private errorHandler: ErrorHandlerService
+  ) {
     super();
   }
 
-  ngOnInit() {
-    this.loadAnimals();
+  ngOnInit() { }
 
-    this.searchControl.valueChanges
-      .pipe(
-        takeUntil(this._destroyed),
-        debounceTime(300),
-        distinctUntilChanged()
-      )
-      .subscribe(() => {
-        this.resetSearch();
-      });
+  onSearch() {
+    this.isInitialLoad = false;
+    this.resetSearch();
+    this.loadAnimals();
+  }
+
+  applySearchSuggestion(suggestion: SearchSuggestion) {
+    this.searchControl.setValue(suggestion.query);
+    this.onSearch();
   }
 
   loadAnimals(append: boolean = false) {
     if (!this.hasMoreToLoad && append) {
       return;
     }
-
+  
     if (!append) {
       this.isLoading = true;
-      this.currentOffset = 0;
+      this.currentOffset = 1;
       this.hasMoreToLoad = true;
+      this.error = null;
     } else {
       this.isLoadingMore = true;
     }
     
     const lookup: AnimalLookup = {
-      offset: this.currentOffset,
+      offset: this.currentOffset, 
       pageSize: this.pageSize,
       query: this.searchControl.value || '',
-      excludedIds: this.animals.map(animal => animal.id!),
       fields: [
         nameof<Animal>(x => x.id),
         nameof<Animal>(x => x.name),
@@ -83,40 +125,35 @@ export class SearchComponent extends BaseComponent implements OnInit {
         nameof<Animal>(x => x.weight),
         nameof<Animal>(x => x.age),
         nameof<Animal>(x => x.healthStatus),
-        nameof<Animal>(x => x.animalType) + "." + nameof<AnimalType>(x => x.name),
-        nameof<Animal>(x => x.breed) + "." + nameof<Breed>(x => x.name),
-        nameof<Animal>(x => x.shelter) + "." + nameof<Shelter>(x => x.shelterName),
+        [nameof<Animal>(x => x.animalType), nameof<AnimalType>(x => x.name)].join('.'),
+        [nameof<Animal>(x => x.breed), nameof<Breed>(x => x.name)].join('.'),
+        [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.shelterName)].join('.'),
       ],
-      sortBy: ['createdAt'],
+      sortBy: [],
       sortDescending: true
     };
-
+  
     this.animalService.query(lookup)
-      .pipe(takeUntil(this._destroyed))
-      .subscribe({
-        next: (animals) => {
-          if (animals.length < this.pageSize) {
-            this.hasMoreToLoad = false;
-          }
-
-          if (append) {
-            this.animals = [...this.animals, ...animals];
-            this.isLoadingMore = false;
-          } else {
-            this.animals = animals;
-            this.currentIndex = 0;
-            this.isLoading = false;
-          }
-          this.error = null;
-          this.currentOffset++;
-          this.updateCurrentAnimalKey(); 
-        },
-        error: (error) => {
-          console.error('Error loading animals:', error);
-          this.error = 'Παρουσιάστηκε σφάλμα κατά τη φόρτωση των ζώων';
+      .pipe(
+        takeUntil(this._destroyed),
+        catchError(error => {
+          this.error = this.errorHandler.handleError(error);
+          return of([]);
+        }),
+        finalize(() => {
           this.isLoading = false;
           this.isLoadingMore = false;
+        })
+      )
+      .subscribe(animals => {
+        if (animals.length < this.pageSize) {
+          this.hasMoreToLoad = false;
         }
+
+        this.animals = this.utilsService.combineDistinct(this.utilsService.combineDistinct(this.animals, animals), this.savedAnimals);
+        
+        this.currentOffset++;
+        this.updateCurrentAnimalKey();
       });
   }
 
@@ -128,20 +165,20 @@ export class SearchComponent extends BaseComponent implements OnInit {
   }
 
   onSwipeRight(animal: Animal) {
-    this.savedAnimals = [...this.savedAnimals, animal];
+    this.savedAnimals = this.utilsService.combineDistinct(this.savedAnimals, [animal]);
     this.currentIndex++;
-    this.updateCurrentAnimalKey(); // Recreate SwipeCardComponent
+    this.updateCurrentAnimalKey();
     this.checkLoadMore();
   }
 
   onSwipeLeft() {
     this.currentIndex++;
-    this.updateCurrentAnimalKey(); // Recreate SwipeCardComponent
+    this.updateCurrentAnimalKey();
     this.checkLoadMore();
   }
 
   getCurrentAnimal(): Animal | undefined {
-    return this.animals[this.currentIndex] || undefined;
+    return this.animals[this.currentIndex];
   }
 
   hasMoreAnimals(): boolean {
@@ -149,21 +186,16 @@ export class SearchComponent extends BaseComponent implements OnInit {
   }
 
   resetSearch() {
-    this.currentIndex = 0;
-    this.animals = [];
-    this.currentOffset = 0;
-    this.loadAnimals();
+    this.currentOffset = 1;
+    this.error = null;
   }
 
-  // Helper method to generate a unique key for the current animal
   private updateCurrentAnimalKey() {
     const animal = this.getCurrentAnimal();
     if (animal) {
-      // Generate a unique key with timestamp to force recreation
       this.currentAnimalKey = `animal-${animal.id}-${Date.now()}`;
     } else {
       this.currentAnimalKey = null;
     }
-    console.log('Updated animal key:', this.currentAnimalKey);
   }
 }
