@@ -14,6 +14,7 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models;
+using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
@@ -21,6 +22,7 @@ using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.EmailServices;
+using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 using Pawfect_Pet_Adoption_App_API.Services.HttpServices;
 using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
 using Pawfect_Pet_Adoption_App_API.Services.SmsServices;
@@ -41,6 +43,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		private readonly UserBuilder _userBuilder;
 		private readonly Lazy<IShelterService> _shelterService;
 		private readonly IAuthService _authService;
+		private readonly FileQuery _fileQuery;
+		private readonly Lazy<IFileService> _fileService;
 
 		public UserService
 		(
@@ -52,7 +56,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			UserQuery userQuery,
 			UserBuilder userBuilder,
 			Lazy<IShelterService> shelterService,
-			IAuthService authService
+			IAuthService authService,
+			FileQuery fileQuery,
+			Lazy<IFileService> fileService
 		)
 		{
 			_userRepository = userRepository;
@@ -67,6 +73,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			_userBuilder = userBuilder;
 			_shelterService = shelterService;
 			_authService = authService;
+			_fileQuery = fileQuery;
+			_fileService = fileService;
 		}
 
 		public async Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
@@ -84,8 +92,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			{
 				throw new Exception("Αποτυχια perisiting του νεου χρηστη");
 			}
-
-			_logger.LogInformation("New User Created : \n" + JsonHelper.SerializeObjectFormatted(newUser));
 
 			// Save shelter data if any 
 			if (registerPersist.Shelter != null)
@@ -105,6 +111,48 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 
 			return newUser;
+		}
+
+		private async Task PersistProfilePhoto(String profilePhoto, String oldProfilePhoto)
+		{
+			Boolean emptyOldPhoto = String.IsNullOrEmpty(oldProfilePhoto);
+			Boolean emptyNewPhoto = String.IsNullOrEmpty(profilePhoto);
+
+			if (!emptyOldPhoto)
+			{
+				// If no difference with current , return
+				if (oldProfilePhoto.Equals(profilePhoto)) return;
+
+				// If the profile photo was deleted
+				if (emptyNewPhoto)
+					await _fileService.Value.Delete(oldProfilePhoto);
+			}
+
+			// Is empty, means it got deleted, so no need to query for persisting
+			if (emptyNewPhoto) return;
+
+			
+			FileLookup lookup = new FileLookup(_fileQuery);
+			lookup.Ids = new List<String>() { profilePhoto };
+			lookup.Fields = new List<String> { "*" };
+			lookup.Offset = 0;
+			lookup.PageSize = 1;
+
+			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup().CollectAsync();
+			if (attachedFiles == null || !attachedFiles.Any())
+			{
+				_logger.LogError("Failed to saved attached files. No return from query");
+				return;
+			}
+
+			List<FilePersist> persistModels = new List<FilePersist>();
+			foreach (Data.Entities.File file in attachedFiles)
+			{
+				file.FileSaveStatus = FileSaveStatus.Permanent;
+				persistModels.Add(_mapper.Map<FilePersist>(file));
+			}
+
+			await _fileService.Value.Persist(persistModels);
 		}
 
 		public async Task GenerateNewOtpAsync(String? phonenumber)
@@ -415,73 +463,74 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 		public async Task<UserDto?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
+			User? workingUser = null;
+			try
 			{
-				User? workingUser = null;
-				try
+				// Ανακτήστε τον χρήστη με βάση το ID ή το email.
+				workingUser = await RetrieveUserAsync(userPersist.Id, userPersist.Email);
+				Boolean IsCreation = false;
+				// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
+				if ( IsCreation = (workingUser == null) )
 				{
-					// Ανακτήστε τον χρήστη με βάση το ID ή το email.
-					workingUser = await RetrieveUserAsync(userPersist.Id, userPersist.Email);
-
-					// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
-					if (workingUser == null)
+					if (!allowCreation)
 					{
-						if (!allowCreation)
-						{
-							// LOGS //
-							_logger.LogWarning("Έγινε άπότρεψη προσπάθειας κατασκευής χρήστη χωρίς δικαίωμα κατασκευής");
-							return null;
-						}
-
-						workingUser = _mapper.Map<User>(userPersist);
-
-						// Hash τα credentials συνθηματικών του χρήστη
-						this.HashLoginCredentials(ref workingUser);
-
-						workingUser.CreatedAt = DateTime.UtcNow;
-						workingUser.UpdatedAt = DateTime.UtcNow;
-						_logger.LogInformation("Working User Persisting:\n", JsonHelper.SerializeObjectFormatted(workingUser));
-
-						workingUser.Id = await _userRepository.AddAsync(workingUser);
-						if (String.IsNullOrEmpty(workingUser.Id))
-						{
-							throw new Exception("Αποτυχία peristing νέου χρήστη");
-						}
+						// LOGS //
+						_logger.LogWarning("Έγινε άπότρεψη προσπάθειας κατασκευής χρήστη χωρίς δικαίωμα κατασκευής");
+						return null;
 					}
 
-					else
-					{
-						_mapper.Map(userPersist, workingUser);
-						this.HashLoginCredentials(ref workingUser);
-						workingUser.UpdatedAt = DateTime.UtcNow;
-						_logger.LogInformation("Working User Persisting:\n", JsonHelper.SerializeObjectFormatted(workingUser));
-						await _userRepository.UpdateAsync(workingUser);
-					}
+					workingUser = _mapper.Map<User>(userPersist);
 
-					UserDto persisted = new UserDto();
+					// Hash τα credentials συνθηματικών του χρήστη
+					this.HashLoginCredentials(ref workingUser);
 
-					if (buildDto)
-					{
-						// Return dto model
-						UserLookup lookup = new UserLookup(_userQuery);
-						lookup.Ids = new List<String> { workingUser.Id };
-						lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
-						lookup.Offset = 0;
-						lookup.PageSize = 1;
-
-						persisted = (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
-					}
-
-					return persisted;
+					workingUser.CreatedAt = DateTime.UtcNow;
+					workingUser.UpdatedAt = DateTime.UtcNow;
 				}
-				catch (Exception e)
+
+				else
 				{
-					// Καταγράψτε το σφάλμα.
-					_logger.LogError(e, "Σφάλμα στο persisting του χρήστη");
-					return null;
+					_mapper.Map(userPersist, workingUser);
+					this.HashLoginCredentials(ref workingUser);
+					workingUser.UpdatedAt = DateTime.UtcNow;
+					_logger.LogInformation("Working User Persisting:\n", JsonHelper.SerializeObjectFormatted(workingUser));
+					await _userRepository.UpdateAsync(workingUser);
 				}
+
+				await this.PersistProfilePhoto(userPersist.ProfilePhotoId, workingUser.ProfilePhotoId);
+
+				if (IsCreation) workingUser.Id = await _userRepository.AddAsync(workingUser);
+				else workingUser.Id = await _userRepository.UpdateAsync(workingUser);	
+
+				if (String.IsNullOrEmpty(workingUser.Id))
+				{
+					throw new Exception("Αποτυχία peristing νέου χρήστη");
+				}
+
+
+				UserDto persisted = new UserDto();
+
+				if (buildDto)
+				{
+					// Return dto model
+					UserLookup lookup = new UserLookup(_userQuery);
+					lookup.Ids = new List<String> { workingUser.Id };
+					lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
+					lookup.Offset = 0;
+					lookup.PageSize = 1;
+
+					persisted = (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
+				}
+
+				return persisted;
+			}
+			catch (Exception e)
+			{
+				// Καταγράψτε το σφάλμα.
+				_logger.LogError(e, "Σφάλμα στο persisting του χρήστη");
+				return null;
 			}
 		}
-
 		public async Task<UserDto?> Persist(User user, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
 			User? workingUser = null;
@@ -489,9 +538,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			{
 				// Ανακτήστε τον χρήστη με βάση το ID ή το email.
 				workingUser = await RetrieveUserAsync(user.Id, user.Email);
-
+				Boolean IsCreation = false;
 				// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
-				if (workingUser == null)
+				if (IsCreation = (workingUser == null))
 				{
 					if (!allowCreation)
 					{
@@ -509,7 +558,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					workingUser.UpdatedAt = DateTime.UtcNow;
 					_logger.LogInformation("Working User Persisting for creation:\n" + JsonHelper.SerializeObjectFormatted(workingUser));
 
-					workingUser.Id = await _userRepository.AddAsync(workingUser);
 					if (String.IsNullOrEmpty(workingUser.Id))
 					{
 						throw new Exception("Αποτυχία peristing νέου χρήστη");
@@ -524,8 +572,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					_logger.LogInformation("Working User Persisting for update:\n" + JsonHelper.SerializeObjectFormatted(workingUser));
 
 					workingUser.UpdatedAt = DateTime.UtcNow;
-					await _userRepository.UpdateAsync(workingUser);
 				}
+
+				await this.PersistProfilePhoto(user.ProfilePhotoId, workingUser.ProfilePhotoId);
+
+				if (IsCreation) workingUser.Id = await _userRepository.AddAsync(workingUser);
+				else workingUser.Id = await _userRepository.UpdateAsync(workingUser);
+
 
 				UserDto persisted = new UserDto();
 				if (buildDto)

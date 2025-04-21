@@ -137,7 +137,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				if (item.Equals(nameof(UserDto.Location))) projectionFields.Add(nameof(User.Location));
 				if (item.Equals(nameof(UserDto.AuthProvider))) projectionFields.Add(nameof(User.AuthProvider));
 				if (item.Equals(nameof(UserDto.AuthProviderId))) projectionFields.Add(nameof(User.AuthProviderId));
-				if (item.Equals(nameof(UserDto.ProfilePhoto))) projectionFields.Add(nameof(User.ProfilePhoto));
+				if (item.StartsWith(nameof(UserDto.ProfilePhoto))) projectionFields.Add(nameof(User.ProfilePhotoId));
 				if (item.Equals(nameof(UserDto.IsVerified))) projectionFields.Add(nameof(User.IsVerified));
 				if (item.Equals(nameof(UserDto.CreatedAt))) projectionFields.Add(nameof(User.CreatedAt));
 				if (item.Equals(nameof(UserDto.UpdatedAt))) projectionFields.Add(nameof(User.UpdatedAt));

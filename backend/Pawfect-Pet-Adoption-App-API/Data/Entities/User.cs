@@ -64,8 +64,9 @@
 		[BsonIgnoreIfNull]
 		public String? AuthProviderId { get; set; }
 
+		[BsonRepresentation(BsonType.ObjectId)]
 		[BsonIgnoreIfNull]
-		public String? ProfilePhoto { get; set; }
+		public String ProfilePhotoId { get; set; }
 
 		/// <value>
 		/// Υποδηλώνει άν τα στοιχεία του χρήστη έχουν επιβεβαιωθεί

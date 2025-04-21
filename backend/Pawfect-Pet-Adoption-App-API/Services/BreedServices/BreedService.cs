@@ -6,6 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Breed;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.BreedServices
 {
@@ -15,19 +16,22 @@ namespace Pawfect_Pet_Adoption_App_API.Services.BreedServices
 		private readonly BreedBuilder _breedBuilder;
 		private readonly IBreedRepository _breedRepository;
 		private readonly IMapper _mapper;
+		private readonly IConventionService _conventionService;
 
 		public BreedService
 		(
 			BreedQuery breedQuery,
 			BreedBuilder breedBuilder,
 			IBreedRepository breedRepository,
-			IMapper mapper
+			IMapper mapper,
+			IConventionService conventionService
 		)
 		{
 			_breedQuery = breedQuery;
 			_breedBuilder = breedBuilder;
 			_breedRepository = breedRepository;
 			_mapper = mapper;
+			_conventionService = conventionService;
 		}
 
 		public async Task<IEnumerable<BreedDto>> QueryBreedsAsync(BreedLookup breedLookup)
@@ -38,7 +42,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.BreedServices
 
 		public async Task<BreedDto?> Persist(BreedPersist persist)
 		{
-			Boolean isUpdate = await _breedRepository.ExistsAsync(x => x.Id == persist.Id);
+			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Breed data = new Breed();
 			String dataId = String.Empty;
 			if (isUpdate)

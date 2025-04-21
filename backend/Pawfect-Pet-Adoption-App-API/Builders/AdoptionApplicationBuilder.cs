@@ -3,10 +3,12 @@
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
+using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
+using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
 using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
@@ -38,10 +40,16 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		private readonly Lazy<IUserService> _userService;
 		private readonly ShelterLookup _shelterLookup;
 		private readonly IShelterService _shelterService;
+		private readonly FileLookup _fileLookup;
+		private readonly IFileService _fileService;
 
-		public AdoptionApplicationBuilder(AnimalLookup animalLookup, Lazy<IAnimalService> animalService
-										 , UserLookup userLookup, Lazy<IUserService> userService
-										 , ShelterLookup shelterLookup, IShelterService shelterService)
+		public AdoptionApplicationBuilder(
+			AnimalLookup animalLookup, Lazy<IAnimalService> animalService, 
+			UserLookup userLookup, Lazy<IUserService> userService,
+			ShelterLookup shelterLookup, IShelterService shelterService,
+			FileLookup fileLookup, IFileService fileService
+
+			)
 		{
 			_animalLookup = animalLookup;
 			_animalService = animalService;
@@ -49,6 +57,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			_userService = userService;
 			_shelterLookup = shelterLookup;
 			_shelterService = shelterService;
+			_fileLookup = fileLookup;
+			_fileService = fileService;
 		}
 
 		// Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
@@ -70,6 +80,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Shelter)]))
 				: null;
 
+			Dictionary<String, List<FileDto>>? filesMap = foreignEntitiesFields.ContainsKey(nameof(Data.Entities.File))
+				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Data.Entities.File)]))
+				: null;
+
 			List<AdoptionApplicationDto> result = new List<AdoptionApplicationDto>();
 			foreach (AdoptionApplication e in entities)
 			{
@@ -82,6 +96,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (animalMap != null && animalMap.ContainsKey(e.Id)) dto.Animal = animalMap[e.Id];
 				if (userMap != null && userMap.ContainsKey(e.Id)) dto.User = userMap[e.Id];
 				if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
+				if (filesMap != null && filesMap.ContainsKey(e.Id)) dto.AttachedFiles = filesMap[e.Id];
+
 
 				result.Add(dto);
 			}
@@ -159,6 +175,35 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα applications δημιουργώντας ένα Dictionary : [ ApplicationId -> ShelterId ] 
 			return applications.ToDictionary(x => x.Id, x => shelterDtoMap[x.ShelterId]);
+		}
+
+		private async Task<Dictionary<String, List<FileDto>>> CollectFiles(List<AdoptionApplication> adoptionApplications, List<String> fileFields)
+		{
+			List<String> fileIds = adoptionApplications
+				.Where(x => x.AttachedFilesIds != null)
+				.SelectMany(x => x.AttachedFilesIds)
+				.Distinct()
+				.ToList();
+
+			_fileLookup.Offset = LookupParams.Offset;
+			_fileLookup.PageSize = LookupParams.PageSize;
+			_fileLookup.SortDescending = LookupParams.SortDescending;
+			_fileLookup.Query = null;
+			_fileLookup.Ids = fileIds;
+			_fileLookup.Fields = fileFields;
+
+			List<FileDto> fileDtos = (await _fileService.QueryFilesAsync(_fileLookup)).ToList();
+
+			if (fileDtos == null || !fileDtos.Any()) return null;
+
+			Dictionary<String, FileDto> fileDtoMap = fileDtos.ToDictionary(x => x.Id);
+
+			return adoptionApplications.ToDictionary(
+				app => app.Id,
+				app => app.AttachedFilesIds?.Select(fileId => fileDtoMap.TryGetValue(fileId, out FileDto fileDto) ? fileDto : null)
+					.Where(fileDto => fileDto != null)
+					.ToList() ?? null
+			);
 		}
 	}
 }

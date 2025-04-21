@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.DevTools;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.User
 {
@@ -35,6 +36,14 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
 			// Εάν υπάρχει τοποθεσία, πρέπει να είναι έγκυρη σύμφωνα με τους κανόνες δημιουργίας
 			RuleFor(user => user.Location)
 			.SetValidator(new LocationValidator());
+
+			When(user => !String.IsNullOrEmpty(user.ProfilePhotoId), () =>
+			{
+				RuleFor(user => user.ProfilePhotoId)
+				.Cascade(CascadeMode.Stop)
+				.Must(RuleFluentValidation.IsObjectId)
+				.WithMessage("Η φωτογραφία προφίλ δεν είναι έγκυρη.");
+			});
 
 			// Ο τρόπος πρόσβασης του χρήστη είναι απαραίτητος και πρέπει να είναι έγκυρος
 			RuleFor(user => user.AuthProvider)

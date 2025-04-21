@@ -6,6 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Notification;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.NotificationServices
 {
@@ -15,19 +16,22 @@ namespace Pawfect_Pet_Adoption_App_API.Services.NotificationServices
 		private readonly NotificationBuilder _notificationBuilder;
 		private readonly INotificationRepository _notificationRepository;
 		private readonly IMapper _mapper;
+		private readonly IConventionService _conventionService;
 
 		public NotificationService
 		(
 			NotificationQuery notificationQuery,
 			NotificationBuilder notificationBuilder,
 			INotificationRepository notificationRepository,
-			IMapper mapper
+			IMapper mapper,
+			IConventionService conventionService
 		)
 		{
 			_notificationQuery = notificationQuery;
 			_notificationBuilder = notificationBuilder;
 			_notificationRepository = notificationRepository;
 			_mapper = mapper;
+			_conventionService = conventionService;
 		}
 
 		public async Task<IEnumerable<NotificationDto>> QueryNotificationsAsync(NotificationLookup notificationLookup)
@@ -58,7 +62,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.NotificationServices
 
 		public async Task<NotificationDto?> Persist(NotificationPersist persist)
 		{
-			Boolean isUpdate = await _notificationRepository.ExistsAsync(x => x.Id == persist.Id);
+			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Notification data = new Notification();
 
 			//*TODO* Add authorization service with user roles and permissions

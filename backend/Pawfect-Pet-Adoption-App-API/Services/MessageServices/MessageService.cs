@@ -6,6 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Message;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 {
@@ -15,19 +16,22 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 		private readonly MessageBuilder _messageBuilder;
 		private readonly IMessageRepository _messageRepository;
 		private readonly IMapper _mapper;
+		private readonly IConventionService _conventionService;
 
 		public MessageService
 		(
 			MessageQuery messageQuery,
 			MessageBuilder messageBuilder,
 			IMessageRepository messageRepository,
-			IMapper mapper
+			IMapper mapper,
+			IConventionService conventionService
 		)
 		{
 			_messageQuery = messageQuery;
 			_messageBuilder = messageBuilder;
 			_messageRepository = messageRepository;
 			_mapper = mapper;
+			_conventionService = conventionService;
 		}
 
 		public async Task<IEnumerable<MessageDto>> QueryMessagesAsync(MessageLookup messageLookup)
@@ -38,7 +42,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 
 		public async Task<MessageDto?> Persist(MessagePersist persist)
 		{
-			Boolean isUpdate = await _messageRepository.ExistsAsync(x => x.Id == persist.Id);
+			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Message data = new Message();
 			String dataId = String.Empty;
 			if (isUpdate)

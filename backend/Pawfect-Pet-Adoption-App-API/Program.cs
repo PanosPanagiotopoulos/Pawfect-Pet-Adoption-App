@@ -14,9 +14,12 @@ using Pawfect_Pet_Adoption_App_API.Services.AnimalServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices.Extentions;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices.Extentions;
+using Pawfect_Pet_Adoption_App_API.Services.AwsServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.BreedServices.Extention;
+using Pawfect_Pet_Adoption_App_API.Services.Convention.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.ConversationServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.EmailServices.Extention;
+using Pawfect_Pet_Adoption_App_API.Services.FileServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.HttpServices.Extentions;
 using Pawfect_Pet_Adoption_App_API.Services.MessageServices.Extentions;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices.Extentions;
@@ -74,6 +77,9 @@ public class Program
 		AddConfigurationFiles(configBuilder, configurationPaths, "cors", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "db", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "logging", env);
+		AddConfigurationFiles(configBuilder, configurationPaths, "aws", env);
+		AddConfigurationFiles(configBuilder, configurationPaths, "files", env);
+
 
 		// Load environment variables from 'environment.json'
 		foreach (String path in configurationPaths)
@@ -154,7 +160,10 @@ public class Program
 		.AddSearchServices()
 		.AddShelterServices()
 		.AddSmsServices(builder.Configuration.GetSection("SmsService"))
-		.AddUserServices();
+		.AddUserServices()
+		.AddConventionServices()
+		.AddAwsServices(builder.Configuration.GetSection("Aws"))
+		.AddFileServices(builder.Configuration.GetSection("Files"));
 
 		// HttpContextAccessor
 		builder.Services.AddHttpContextAccessor();

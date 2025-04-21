@@ -26,7 +26,16 @@ namespace Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication
                 .IsInEnum()
                 .WithMessage("Η κατάσταση της αίτησης δεν είναι έγκυρη. [ Available: 1, Pending: 2, Rejected: 3 ]");
 
-            RuleFor(application => application.ApplicationDetails)
+            When(adp => adp.AttachedFilesIds != null, () =>
+            {
+                RuleForEach(application => application.AttachedFilesIds)
+				.Cascade(CascadeMode.Stop)
+				.Must(RuleFluentValidation.IsObjectId)
+				.WithMessage("Το ID του file δεν είναι σε σωστή μορφή.");
+			});
+            
+
+			RuleFor(application => application.ApplicationDetails)
                 .Cascade(CascadeMode.Stop)
                 .MinimumLength(15)
                 .WithMessage("Η περιγραφή της αίτησης υιοθεσίας πρέπει να έχει τουλάχιστον 15 χαρακτήρες.");

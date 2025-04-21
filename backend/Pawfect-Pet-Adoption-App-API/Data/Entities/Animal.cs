@@ -58,9 +58,11 @@
 
 
 		/// <value>
-		/// Οι φωτογραφίες του ζώου στο σύστημα , σε μορφη URL όπου είναι αποθηκευμένες στο AWS S3
+		/// Οι φωτογραφίες του ζώου στο σύστημα , σε μορφη FileId όπου είναι αποθηκευμένες στο AWS S3
 		/// </value>
-		public List<String> Photos { get; set; }
+		[BsonRepresentation(BsonType.ObjectId)]
+		[BsonIgnoreIfNull]
+		public List<String> PhotosIds { get; set; }
 
 
 		/// <value>

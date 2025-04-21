@@ -42,6 +42,8 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
 		/// </value>
 		public String? AuthProviderId { get; set; }
 
+		public String ProfilePhotoId { get; set; }
+
 		// *TODO* Set how the saving , parsing and validation of form file data will be done
 		//public IFormFile? AttachedPhoto { get; set; }
 

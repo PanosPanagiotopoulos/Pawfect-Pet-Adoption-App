@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
@@ -32,11 +34,21 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 	{
 		private readonly ShelterLookup _shelterLookup;
 		private readonly Lazy<IShelterService> _shelterService;
+		private readonly FileLookup _fileLookup;
+		private readonly IFileService _fileService;
 
-		public UserBuilder(ShelterLookup shelterLookup, Lazy<IShelterService> shelterService)
+		public UserBuilder
+		(
+			ShelterLookup shelterLookup, 
+			Lazy<IShelterService> shelterService,
+			FileLookup fileLookup, 
+			IFileService fileService
+		)
 		{
 			_shelterLookup = shelterLookup;
 			_shelterService = shelterService;
+			_fileLookup = fileLookup;
+			_fileService = fileService;
 		}
 
 		// Ορίστε τις παραμέτρους αναζήτησης για τον κατασκευαστή
@@ -53,6 +65,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Shelter)]))
 				: null;
 
+			Dictionary<String, FileDto>? fileMap = foreignEntitiesFields.ContainsKey(nameof(Data.Entities.File))
+				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Data.Entities.File)]))
+				: null;
+
 			List<UserDto> result = new List<UserDto>();
 			foreach (User e in entities)
 			{
@@ -65,13 +81,14 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (nativeFields.Contains(nameof(User.Location))) dto.Location = e.Location;
 				if (nativeFields.Contains(nameof(User.AuthProvider))) dto.AuthProvider = e.AuthProvider;
 				if (nativeFields.Contains(nameof(User.AuthProviderId))) dto.AuthProviderId = e.AuthProviderId;
-				if (nativeFields.Contains(nameof(User.ProfilePhoto))) dto.ProfilePhoto = e.ProfilePhoto;
 				if (nativeFields.Contains(nameof(User.IsVerified))) dto.IsVerified = e.IsVerified;
 				if (nativeFields.Contains(nameof(User.HasPhoneVerified))) dto.HasPhoneVerified = e.HasPhoneVerified;
 				if (nativeFields.Contains(nameof(User.HasEmailVerified))) dto.HasEmailVerified = e.HasEmailVerified;
 				if (nativeFields.Contains(nameof(User.CreatedAt))) dto.CreatedAt = e.CreatedAt;
 				if (nativeFields.Contains(nameof(User.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 				if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
+				if (fileMap != null && fileMap.ContainsKey(e.Id)) dto.ProfilePhoto = fileMap[e.Id];
+
 
 				result.Add(dto);
 			}
@@ -103,6 +120,30 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 			// Ταίριασμα του προηγούμενου Dictionary με τους users δημιουργώντας ένα Dictionary : [ UserId -> ShelterId ] 
 			return users.ToDictionary(x => x.Id, x => !String.IsNullOrEmpty(x.ShelterId) ? shelterDtoMap[x.ShelterId] : null);
+		}
+
+		private async Task<Dictionary<String, FileDto>> CollectFiles(List<User> users, List<String> fileFields)
+		{
+			List<String> fileIds = users
+				.Where(x => x.ProfilePhotoId != null)
+				.Select(x => x.ProfilePhotoId)
+				.Distinct()
+				.ToList();
+
+			_fileLookup.Offset = LookupParams.Offset;
+			_fileLookup.PageSize = LookupParams.PageSize;
+			_fileLookup.SortDescending = LookupParams.SortDescending;
+			_fileLookup.Query = null;
+			_fileLookup.Ids = fileIds;
+			_fileLookup.Fields = fileFields;
+
+			List<FileDto> fileDtos = (await _fileService.QueryFilesAsync(_fileLookup)).ToList();
+
+			if (fileDtos == null || !fileDtos.Any()) return null;
+
+			Dictionary<String, FileDto> fileDtoMap = fileDtos.ToDictionary(x => x.Id);
+
+			return users.ToDictionary(x => x.Id, x => fileDtoMap[x.ProfilePhotoId]);
 		}
 	}
 }

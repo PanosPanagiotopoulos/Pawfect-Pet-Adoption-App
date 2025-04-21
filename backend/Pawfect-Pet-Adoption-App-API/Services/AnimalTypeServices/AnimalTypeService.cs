@@ -6,6 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 {
@@ -15,6 +16,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 		private readonly AnimalTypeQuery _animalTypeQuery;
 		private readonly AnimalTypeBuilder _animalTypeBuilder;
 		private readonly IAnimalTypeRepository _animalTypeRepository;
+		private readonly IConventionService _conventionService;
 		private readonly IMapper _mapper;
 		private readonly ILogger<AnimalTypeService> _logger;
 		public AnimalTypeService
@@ -23,6 +25,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 			AnimalTypeQuery animalTypeQuery,
 			AnimalTypeBuilder animalTypeBuilder,
 			IAnimalTypeRepository animalTypeRepository,
+			IConventionService conventionService,
 			IMapper mapper
 		)
 		{
@@ -30,6 +33,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 			_animalTypeQuery = animalTypeQuery;
 			_animalTypeBuilder = animalTypeBuilder;
 			_animalTypeRepository = animalTypeRepository;
+			_conventionService = conventionService;
 			_mapper = mapper;
 		}
 
@@ -41,7 +45,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 
 		public async Task<AnimalTypeDto?> Persist(AnimalTypePersist persist)
 		{
-			Boolean isUpdate = await _animalTypeRepository.ExistsAsync(x => x.Id == persist.Id);
+			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			AnimalType data = new AnimalType();
 			String dataId = String.Empty;
 			if (isUpdate)

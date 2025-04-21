@@ -162,7 +162,7 @@
 		[ProducesResponseType(200, Type = typeof(String))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> RegisterUserUnverified([FromForm] RegisterPersist toRegisterUser)
+		public async Task<IActionResult> RegisterUserUnverified([FromBody] RegisterPersist toRegisterUser)
 		{
 			if (!ModelState.IsValid)
 			{

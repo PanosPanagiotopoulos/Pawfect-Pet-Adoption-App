@@ -6,6 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Conversation;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 {
@@ -15,20 +16,22 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 		private readonly ConversationBuilder _conversationBuilder;
 		private readonly IConversationRepository _conversationRepository;
 		private readonly IMapper _mapper;
-
+		private readonly IConventionService _conventionService;
 
 		public ConversationService
 		(
 			ConversationQuery conversationQuery,
 			ConversationBuilder conversationBuilder,
 			IConversationRepository conversationRepository,
-			IMapper mapper
+			IMapper mapper,
+			IConventionService conventionService
 		)
 		{
 			_conversationQuery = conversationQuery;
 			_conversationBuilder = conversationBuilder;
 			_conversationRepository = conversationRepository;
 			_mapper = mapper;
+			_conventionService = conventionService;
 		}
 
 		public async Task<IEnumerable<ConversationDto>> QueryConversationsAsync(ConversationLookup conversationLookup)
@@ -39,7 +42,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 
 		public async Task<ConversationDto?> Persist(ConversationPersist persist)
 		{
-			Boolean isUpdate = await _conversationRepository.ExistsAsync(x => x.Id == persist.Id);
+			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Conversation data = new Conversation();
 			String dataId = String.Empty;
 			if (isUpdate)

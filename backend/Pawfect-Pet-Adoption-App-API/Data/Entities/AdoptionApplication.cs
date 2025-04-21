@@ -34,8 +34,9 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
 
 		public String ApplicationDetails { get; set; }
 
+		[BsonRepresentation(BsonType.ObjectId)]
 		[BsonIgnoreIfNull]
-		public List<String>? AttachedFilesUrls { get; set; }
+		public List<String>? AttachedFilesIds { get; set; }
 
 		public DateTime CreatedAt { get; set; }
 		public DateTime UpdatedAt { get; set; }

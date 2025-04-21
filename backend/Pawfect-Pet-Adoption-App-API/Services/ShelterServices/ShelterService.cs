@@ -6,6 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 {
@@ -16,6 +17,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 		private readonly IShelterRepository _shelterRepository;
 		private readonly IMapper _mapper;
 		private readonly IUserRepository _userRepository;
+		private readonly IConventionService _conventionService;
 		private readonly UserQuery _userQuery;
 
 		public ShelterService
@@ -24,7 +26,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			ShelterBuilder shelterBuilder,
 			IShelterRepository shelterRepository,
 			IMapper mapper,
-			IUserRepository userRepository
+			IUserRepository userRepository,
+			IConventionService conventionService
 		)
 		{
 			_shelterQuery = shelterQuery;
@@ -32,6 +35,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			_shelterRepository = shelterRepository;
 			_mapper = mapper;
 			_userRepository = userRepository;
+			_conventionService = conventionService;
 		}
 
 		public async Task<IEnumerable<ShelterDto>> QuerySheltersAsync(ShelterLookup shelterLookup)
@@ -63,7 +67,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 		public async Task<ShelterDto?> Persist(ShelterPersist persist, List<String> buildFields = null)
 		{
 
-			Boolean isUpdate = await _shelterRepository.ExistsAsync(x => x.Id == persist.Id);
+			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Shelter data = new Shelter();
 			String dataId = String.Empty;
 			if (isUpdate)

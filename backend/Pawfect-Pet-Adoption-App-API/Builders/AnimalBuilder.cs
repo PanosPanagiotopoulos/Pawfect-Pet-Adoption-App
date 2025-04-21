@@ -4,10 +4,12 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Breed;
+using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices;
 using Pawfect_Pet_Adoption_App_API.Services.BreedServices;
+using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
@@ -37,6 +39,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		private readonly Lazy<IShelterService> _shelterService;
 		private readonly AnimalTypeLookup _animalTypeLookup;
 		private readonly Lazy<IAnimalTypeService> _animalTypeService;
+		private readonly FileLookup _fileLookup;
+		private readonly IFileService _fileService;
 
 		public AnimalBuilder
 		(
@@ -46,7 +50,9 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			ShelterLookup shelterLookup,
 			Lazy<IShelterService> shelterService,
 			AnimalTypeLookup animalTypeLookup,
-			Lazy<IAnimalTypeService> animalTypeService
+			Lazy<IAnimalTypeService> animalTypeService,
+			FileLookup fileLookup, 
+			IFileService fileService
 		)
 		{
 			_logger = logger;
@@ -56,6 +62,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			_shelterService = shelterService;
 			_animalTypeLookup = animalTypeLookup;
 			_animalTypeService = animalTypeService;
+			_fileLookup = fileLookup;
+			_fileService = fileService;
 		}
 
 
@@ -82,6 +90,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				? (await CollectAnimalTypes(entities, foreignEntitiesFields[nameof(AnimalType)]))
 				: null;
 
+			Dictionary<String, List<FileDto>>? filesMap = foreignEntitiesFields.ContainsKey(nameof(Data.Entities.File))
+				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Data.Entities.File)]))
+				: null;
+
 
 			List<AnimalDto> result = new List<AnimalDto>();
 			foreach (Animal e in entities)
@@ -94,14 +106,13 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (nativeFields.Contains(nameof(Animal.Gender))) dto.Gender = e.Gender;
 				if (nativeFields.Contains(nameof(Animal.Weight))) dto.Weight = e.Weight;
 				if (nativeFields.Contains(nameof(Animal.HealthStatus))) dto.HealthStatus = e.HealthStatus;
-				if (nativeFields.Contains(nameof(Animal.Photos))) dto.Photos = e.Photos;
 				if (nativeFields.Contains(nameof(Animal.AdoptionStatus))) dto.AdoptionStatus = e.AdoptionStatus;
 				if (nativeFields.Contains(nameof(Animal.CreatedAt))) dto.CreatedAt = e.CreatedAt;
 				if (nativeFields.Contains(nameof(Animal.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 				if (breedMap != null && breedMap.ContainsKey(e.Id)) dto.Breed = breedMap[e.Id];
 				if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
 				if (animalTypeMap != null && animalTypeMap.ContainsKey(e.Id)) dto.AnimalType = animalTypeMap[e.Id];
-
+				if (filesMap != null && filesMap.ContainsKey(e.Id)) dto.Photos = filesMap[e.Id];
 
 				result.Add(dto);
 			}
@@ -184,6 +195,35 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα animals δημιουργώντας ένα Dictionary : [ AnimalId -> ShelterId ] 
 			return animals.ToDictionary(x => x.Id, x => shelterDtoMap[x.ShelterId]);
+		}
+
+		private async Task<Dictionary<String, List<FileDto>>> CollectFiles(List<Animal> animals, List<String> fileFields)
+		{
+			List<String> fileIds = animals
+				.Where(x => x.PhotosIds != null)
+				.SelectMany(x => x.PhotosIds)
+				.Distinct()
+				.ToList();
+
+			_fileLookup.Offset = LookupParams.Offset;
+			_fileLookup.PageSize = LookupParams.PageSize;
+			_fileLookup.SortDescending = LookupParams.SortDescending;
+			_fileLookup.Query = null;
+			_fileLookup.Ids = fileIds;
+			_fileLookup.Fields = fileFields;
+
+			List<FileDto> fileDtos = (await _fileService.QueryFilesAsync(_fileLookup)).ToList();
+
+			if (fileDtos == null || !fileDtos.Any()) return null;
+
+			Dictionary<String, FileDto> fileDtoMap = fileDtos.ToDictionary(x => x.Id);
+
+			return animals.ToDictionary(
+				animal => animal.Id,
+				app => app.PhotosIds?.Select(fileId => fileDtoMap.TryGetValue(fileId, out FileDto fileDto) ? fileDto : null)
+					.Where(fileDto => fileDto != null)
+					.ToList() ?? null
+			);
 		}
 	}
 }

@@ -131,7 +131,7 @@ public class Seeder
                 BreedId = breeds[0].Id,
                 AnimalTypeId = animalTypes[0].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://images.unsplash.com/photo-1558788353-f76d92427f16?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2017/09/25/13/12/dog-2785074_1280.jpg",
                     "https://images.unsplash.com/photo-1518717758536-85ae29035b6d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
@@ -148,7 +148,7 @@ public class Seeder
                 BreedId = breeds[1].Id,
                 AnimalTypeId = animalTypes[1].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://images.unsplash.com/photo-1601758123927-39d86b14d886?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2018/01/15/07/51/dog-3081774_1280.jpg",
                     "https://images.unsplash.com/photo-1568572933382-74d440642117?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
@@ -165,7 +165,7 @@ public class Seeder
                 BreedId = breeds[2].Id,
                 AnimalTypeId = animalTypes[2].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://images.unsplash.com/photo-1574158622681-2d41c4939f82?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2019/06/18/16/05/dog-4284419_1280.jpg",
                     "https://images.unsplash.com/photo-1558788353-f76d92427f16?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
@@ -182,7 +182,7 @@ public class Seeder
                 BreedId = breeds[0].Id,
                 AnimalTypeId = animalTypes[1].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://cdn.pixabay.com/photo/2016/02/19/10/00/animal-1209728_1280.jpg",
                     "https://images.unsplash.com/photo-1570018145413-1f6206eeabdb?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2017/11/09/21/41/cat-2934720_1280.jpg"
@@ -199,7 +199,7 @@ public class Seeder
                 BreedId = breeds[2].Id,
                 AnimalTypeId = animalTypes[1].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://cdn.pixabay.com/photo/2018/05/07/22/09/dog-3383863_1280.jpg",
                     "https://images.unsplash.com/photo-1583511655623-caa2e58d0d69?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2018/05/07/22/09/dog-3383863_1280.jpg"
@@ -216,7 +216,7 @@ public class Seeder
                 BreedId = breeds[2].Id,
                 AnimalTypeId = animalTypes[0].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://cdn.pixabay.com/photo/2017/11/11/21/46/dog-2944273_1280.jpg",
                     "https://images.unsplash.com/photo-1560807707-8cc77767d783?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2017/11/11/21/46/dog-2944273_1280.jpg"
@@ -233,7 +233,7 @@ public class Seeder
                 BreedId = breeds[1].Id,
                 AnimalTypeId = animalTypes[2].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://cdn.pixabay.com/photo/2015/03/26/09/54/dog-690159_1280.jpg",
                     "https://cdn.pixabay.com/photo/2016/07/27/07/26/dog-1543162_1280.jpg",
                     "https://cdn.pixabay.com/photo/2015/03/26/09/54/dog-690159_1280.jpg"
@@ -250,7 +250,7 @@ public class Seeder
                 BreedId = breeds[1].Id,
                 AnimalTypeId = animalTypes[1].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg",
                     "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg",
                     "https://cdn.pixabay.com/photo/2017/08/30/12/45/dog-2690939_1280.jpg"
@@ -267,7 +267,7 @@ public class Seeder
                 BreedId = breeds[0].Id,
                 AnimalTypeId = animalTypes[0].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://cdn.pixabay.com/photo/2016/03/27/21/06/dog-1280185_1280.jpg",
                     "https://images.unsplash.com/photo-1543466835-00a7907e3c8b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"
@@ -284,7 +284,7 @@ public class Seeder
                 BreedId = breeds[0].Id,
                 AnimalTypeId = animalTypes[1].Id,
                 AdoptionStatus = AdoptionStatus.Available,
-                Photos = new List<string> {
+                PhotosIds = new List<string> {
                     "https://images.unsplash.com/photo-1575691554672-168dd42b0a60?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://images.unsplash.com/photo-1559599189-396b4a8c81d1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60",
                     "https://images.unsplash.com/photo-1575691554672-168dd42b0a60?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=60"

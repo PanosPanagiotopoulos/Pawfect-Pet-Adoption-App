@@ -7,6 +7,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Breed;
 using Pawfect_Pet_Adoption_App_API.Models.Conversation;
+using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Message;
 using Pawfect_Pet_Adoption_App_API.Models.Notification;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
@@ -34,6 +35,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ValidationServices.Extentions
 			services.AddValidatorsFromAssemblyContaining<AnimalValidator>();
 			services.AddValidatorsFromAssemblyContaining<AdoptionApplicationValidator>();
 			services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
+			services.AddValidatorsFromAssemblyContaining<FileValidator>();
 
 			return services;
 		}

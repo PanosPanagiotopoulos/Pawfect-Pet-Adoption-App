@@ -1,6 +1,7 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Breed;
+using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.Animal
@@ -17,7 +18,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Animal
 		public ShelterDto? Shelter { get; set; }
 		public BreedDto? Breed { get; set; }
 		public AnimalTypeDto? AnimalType { get; set; }
-		public List<String>? Photos { get; set; }
+		public List<FileDto>? Photos { get; set; }
 		public AdoptionStatus? AdoptionStatus { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }

@@ -1,5 +1,7 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Query.Implementations;
+using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
@@ -20,6 +22,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 			services.AddScoped<AnimalQuery>();
 			services.AddScoped<AnimalTypeQuery>();
 			services.AddScoped<AdoptionApplicationQuery>();
+			services.AddScoped<FileQuery>();
+
 
 			services.AddScoped<AnimalLookup>();
 			services.AddScoped<UserLookup>();
@@ -42,6 +46,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 			services.AddScoped<AdoptionApplicationBuilder>();
 			services.AddScoped<BreedBuilder>();
 			services.AddScoped<AnimalTypeBuilder>();
+			services.AddScoped<FileBuilder>();
+
 
 			services.AddAutoMapper(
 				typeof(AutoUserBuilder),
@@ -53,7 +59,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 				typeof(AutoAnimalTypeBuilder),
 				typeof(AutoBreedBuilder),
 				typeof(AutoAnimalBuilder),
-				typeof(AutoAdoptionApplicationBuilder)
+				typeof(AutoAdoptionApplicationBuilder),
+				typeof(AutoFileBuilder)
 			);
 
 			// Repositories
@@ -68,6 +75,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 			services.AddScoped<IMessageRepository, MessageRepository>();
 			services.AddScoped<IConversationRepository, ConversationRepository>();
 			services.AddScoped<INotificationRepository, NotificationRepository>();
+			services.AddScoped<IFileRepository, FileRepository>();
 
 
 			return services;

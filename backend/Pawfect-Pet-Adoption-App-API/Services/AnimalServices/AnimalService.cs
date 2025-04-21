@@ -2,32 +2,48 @@
 
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
+using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
+using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 {
 	public class AnimalService : IAnimalService
 	{
+		private readonly ILogger<AnimalService> _logger;
 		private readonly AnimalQuery _animalQuery;
 		private readonly AnimalBuilder _animalBuilder;
 		private readonly IAnimalRepository _animalRepository;
 		private readonly IMapper _mapper;
+		private readonly IConventionService _conventionService;
+		private readonly Lazy<IFileService> _fileService;
+		private readonly FileQuery _fileQuery;
 
 		public AnimalService
 			(
+				ILogger<AnimalService> logger,
 				AnimalQuery animalQuery,
 				AnimalBuilder animalBuilder,
 				IAnimalRepository animalRepository,
-				IMapper mapper
+				IMapper mapper,
+				IConventionService conventionService,
+				Lazy<IFileService> fileService,
+				FileQuery fileQuery
 			)
 		{
+			_logger = logger;
 			_animalQuery = animalQuery;
 			_animalBuilder = animalBuilder;
 			_animalRepository = animalRepository;
 			_mapper = mapper;
+			_conventionService = conventionService;
+			_fileService = fileService;
+			_fileQuery = fileQuery;
 		}
 
 		public async Task<IEnumerable<AnimalDto>> QueryAnimalsAsync(AnimalLookup animalLookup)
@@ -60,19 +76,16 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 
 		public async Task<AnimalDto?> Persist(AnimalPersist persist)
 		{
-			Boolean isUpdate = await _animalRepository.ExistsAsync(x => x.Id == persist.Id);
+			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Animal data = new Animal();
 			String dataId = String.Empty;
 
 			//*TODO* Add authorization service with user roles and permissions
 
-			//*TODO* Add AmazonS3 service integration for image upload/download or deletion
-
 			if (isUpdate)
 			{
 				_mapper.Map(persist, data);
 				data.UpdatedAt = DateTime.UtcNow;
-				dataId = await _animalRepository.UpdateAsync(data);
 			}
 			else
 			{
@@ -80,8 +93,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 				data.Id = null;
 				data.CreatedAt = DateTime.UtcNow;
 				data.UpdatedAt = DateTime.UtcNow;
-				dataId = await _animalRepository.AddAsync(data);
 			}
+
+			await this.PersistFiles(persist.AttachedPhotosIds, data.PhotosIds);
+
+			if (isUpdate) dataId = await _animalRepository.UpdateAsync(data);
+			else dataId = await _animalRepository.AddAsync(data);
 
 			if (String.IsNullOrEmpty(dataId))
 			{
@@ -99,6 +116,48 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 					 await _animalBuilder.SetLookup(lookup)
 					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
 					).FirstOrDefault();
+		}
+
+		private async Task PersistFiles(List<String> attachedFilesIds, List<String> currentFileIds)
+		{
+			// Make nul lto an empty list so that we can delete all current file Ids
+			if (attachedFilesIds == null) { attachedFilesIds = new List<String>(); }
+
+			if (currentFileIds != null)
+			{
+				List<String> diff = currentFileIds.Except(attachedFilesIds).ToList();
+
+				// If no difference with current , return
+				if (diff.Count == 0 && currentFileIds.Count == attachedFilesIds.Count) { return; }
+
+				// Else delete the ones that remains since they where deleted from the file id list
+				if (diff.Count != 0) await _fileService.Value.Delete(diff);
+			}
+
+			// Is empty, means it got deleted, so no need to query for persisting
+			if (attachedFilesIds.Count == 0) return;
+
+			FileLookup lookup = new FileLookup(_fileQuery);
+			lookup.Ids = attachedFilesIds;
+			lookup.Fields = new List<String> { "*" };
+			lookup.Offset = 0;
+			lookup.PageSize = attachedFilesIds.Count;
+
+			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup().CollectAsync();
+			if (attachedFiles == null || !attachedFiles.Any())
+			{
+				_logger.LogError("Failed to saved attached files. No return from query");
+				return;
+			}
+
+			List<FilePersist> persistModels = new List<FilePersist>();
+			foreach (Data.Entities.File file in attachedFiles)
+			{
+				file.FileSaveStatus = FileSaveStatus.Permanent;
+				persistModels.Add(_mapper.Map<FilePersist>(file));
+			}
+
+			await _fileService.Value.Persist(persistModels);
 		}
 	}
 }

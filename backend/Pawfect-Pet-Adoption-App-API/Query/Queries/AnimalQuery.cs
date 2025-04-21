@@ -159,7 +159,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				if (item.Equals(nameof(AnimalDto.Weight))) projectionFields.Add(nameof(Animal.Weight));
 				if (item.Equals(nameof(AnimalDto.AdoptionStatus))) projectionFields.Add(nameof(Animal.AdoptionStatus));
 				if (item.Equals(nameof(AnimalDto.HealthStatus))) projectionFields.Add(nameof(Animal.HealthStatus));
-				if (item.Equals(nameof(AnimalDto.Photos))) projectionFields.Add(nameof(Animal.Photos));
+				if (item.StartsWith(nameof(AnimalDto.Photos))) projectionFields.Add(nameof(Animal.PhotosIds));
 				if (item.Equals(nameof(AnimalDto.CreatedAt))) projectionFields.Add(nameof(Animal.CreatedAt));
 				if (item.Equals(nameof(AnimalDto.UpdatedAt))) projectionFields.Add(nameof(Animal.UpdatedAt));
 				if (item.StartsWith(nameof(AnimalDto.Shelter))) projectionFields.Add(nameof(Animal.ShelterId));

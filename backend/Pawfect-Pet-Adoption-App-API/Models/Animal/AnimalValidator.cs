@@ -52,11 +52,14 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Animal
 				.Must(RuleFluentValidation.IsObjectId)
 				.WithMessage("Το ID του τύπου ζώου δεν είναι σε σωστή μορφή.");
 
-			//RuleFor(animal => animal.AttachedPhotos)
-			//	.Cascade(CascadeMode.Stop)
-			//	.Must(photos => photos.All(photo => Uri.IsWellFormedUriString(photo, UriKind.Absolute) && photo.Contains("s3.amazonaws.com")))
-			//	.WithMessage("Κάθε φωτογραφία πρέπει να είναι έγκυρος σύνδεσμος αποθηκευμένου αρχείου φωτογραφίας.");
-
+			When(animal => animal.AttachedPhotosIds != null, () =>
+			{
+				RuleForEach(animal => animal.AttachedPhotosIds)
+					.Cascade(CascadeMode.Stop)
+					.Must(RuleFluentValidation.IsObjectId)
+					.WithMessage("Κάθε φωτογραφία πρέπει να είναι έγκυρο file id.");
+			});
+			
 			RuleFor(animal => animal.AdoptionStatus)
 			.Cascade(CascadeMode.Stop)
 			.IsInEnum()

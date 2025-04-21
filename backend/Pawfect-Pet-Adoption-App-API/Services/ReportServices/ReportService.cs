@@ -6,6 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 {
@@ -15,19 +16,22 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 		private readonly ReportBuilder _reportBuilder;
 		private readonly IReportRepository _reportRepository;
 		private readonly IMapper _mapper;
+		private readonly IConventionService _conventionService;
 
 		public ReportService
 			(
 				ReportQuery reportQuery,
 				ReportBuilder reportBuilder,
 				IReportRepository reportRepository,
-				IMapper mapper
+				IMapper mapper,
+				IConventionService conventionService
 			)
 		{
 			_reportQuery = reportQuery;
 			_reportBuilder = reportBuilder;
 			_reportRepository = reportRepository;
 			_mapper = mapper;
+			_conventionService = conventionService;
 		}
 
 		public async Task<IEnumerable<ReportDto>> QueryReportsAsync(ReportLookup reportLookup)
@@ -56,7 +60,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 
 		public async Task<ReportDto?> Persist(ReportPersist persist)
 		{
-			Boolean isUpdate = await _reportRepository.ExistsAsync(x => x.Id == persist.Id);
+			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Report data = new Report();
 			String dataId = String.Empty;
 			if (isUpdate)
