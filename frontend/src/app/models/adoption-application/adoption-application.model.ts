@@ -1,6 +1,7 @@
 import { Animal } from '../animal/animal.model';
 import { Shelter } from '../shelter/shelter.model';
 import { User } from '../user/user.model';
+import { File } from '../file/file.model';
 
 // AdoptionApplication Models
 export interface AdoptionApplication {
@@ -10,7 +11,7 @@ export interface AdoptionApplication {
   shelter?: Shelter;
   status?: ApplicationStatus;
   applicationDetails?: string;
-  attachedFilesUrls?: string[];
+  attachedFiles?: File[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -22,8 +23,7 @@ export interface AdoptionApplicationPersist {
   shelterId: string;
   status: ApplicationStatus;
   applicationDetails: string;
-  //*TODO* Is type ok?
-  attachedFiles: File[];
+  attachedFilesIds: string[];
 }
 
 // Enums

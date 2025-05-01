@@ -2,11 +2,15 @@
 
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Conversation;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Models.Message;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
+using Pawfect_Pet_Adoption_App_API.Services.MessageServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 {
@@ -17,6 +21,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 		private readonly IConversationRepository _conversationRepository;
 		private readonly IMapper _mapper;
 		private readonly IConventionService _conventionService;
+		private readonly MessageQuery _messageQuery;
+		private readonly Lazy<IMessageService> _messageService;
 
 		public ConversationService
 		(
@@ -24,7 +30,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 			ConversationBuilder conversationBuilder,
 			IConversationRepository conversationRepository,
 			IMapper mapper,
-			IConventionService conventionService
+			IConventionService conventionService,
+			MessageQuery messageQuery,
+			Lazy<IMessageService> messageService
 		)
 		{
 			_conversationQuery = conversationQuery;
@@ -32,6 +40,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 			_conversationRepository = conversationRepository;
 			_mapper = mapper;
 			_conventionService = conventionService;
+			_messageQuery = messageQuery;
+			_messageService = messageService;
 		}
 
 		public async Task<IEnumerable<ConversationDto>> QueryConversationsAsync(ConversationLookup conversationLookup)
@@ -40,23 +50,26 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 			return await _conversationBuilder.SetLookup(conversationLookup).BuildDto(queriedConversations, conversationLookup.Fields.ToList());
 		}
 
-		public async Task<ConversationDto?> Persist(ConversationPersist persist)
+		public async Task<ConversationDto?> Persist(ConversationPersist persist, List<String> fields)
 		{
 			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Conversation data = new Conversation();
 			String dataId = String.Empty;
 			if (isUpdate)
 			{
-				_mapper.Map(persist, data);
-				dataId = await _conversationRepository.UpdateAsync(data);
+				// TODO : Correct logic?
+				throw new InvalidOperationException("Cannot update a conversation");
 			}
 			else
 			{
 				_mapper.Map(persist, data);
 				data.Id = null; // Ensure new ID is generated
 				data.CreatedAt = DateTime.UtcNow;
-				dataId = await _conversationRepository.AddAsync(data);
+				data.UpdatedAt = DateTime.UtcNow;
 			}
+
+			if (isUpdate) dataId = await _conversationRepository.UpdateAsync(data);
+			else dataId = await _conversationRepository.AddAsync(data);
 
 			if (String.IsNullOrEmpty(dataId))
 			{
@@ -66,7 +79,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 			// Return dto model
 			ConversationLookup lookup = new ConversationLookup(_conversationQuery);
 			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = new List<String> { "*", nameof(User) + ".*", nameof(Animal) + ".*" };
+			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
@@ -74,6 +87,23 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 					 await _conversationBuilder.SetLookup(lookup)
 					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
 					).FirstOrDefault();
+		}
+
+		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+
+		public async Task Delete(List<String> ids)
+		{
+			// TODO : Authorization
+			MessageLookup lookup = new MessageLookup(_messageQuery);
+			lookup.ConversationIds = ids;
+			lookup.Fields = new List<String> { nameof(MessageDto.Id) };
+			lookup.Offset = 0;
+			lookup.PageSize = 50;
+
+			List<Message> messages = await lookup.EnrichLookup().CollectAsync();
+			await _messageService.Value.Delete(messages?.Select(x => x.Id).ToList());
+
+			await _conversationRepository.DeleteAsync(ids);
 		}
 	}
 }

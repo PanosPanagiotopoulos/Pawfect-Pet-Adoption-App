@@ -20,9 +20,10 @@
 
         public List<String>? ExcludedIds { get; set; }
 
+		public List<String>? ShelterIds { get; set; }
 
-        // Λίστα με τα ονόματα των χρηστών
-        public List<String>? FullNames { get; set; }
+		// Λίστα με τα ονόματα των χρηστών
+		public List<String>? FullNames { get; set; }
 
         // Λίστα με τους ρόλους των χρηστών
         public List<UserRole>? Roles { get; set; }
@@ -52,6 +53,7 @@
 
             // Προσθέτει τα φίλτρα στο UserQuery
             _userQuery.Ids = this.Ids;
+            _userQuery.ShelterIds = this.ShelterIds;
             _userQuery.FullNames = this.FullNames;
             _userQuery.Roles = this.Roles;
             _userQuery.Cities = this.Cities;

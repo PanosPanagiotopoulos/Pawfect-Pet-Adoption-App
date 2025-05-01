@@ -4,7 +4,8 @@ import { InstallationConfigurationService } from '../common/services/installatio
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { UserLookup } from '../lookup/user-lookup';
-import { AuthProvider, User, UserPersist } from '../models/user/user.model';
+import { User, UserPersist } from '../models/user/user.model';
+import { AuthProvider } from '../common/enum/auth-provider.enum';
 
 @Injectable({
   providedIn: 'root',

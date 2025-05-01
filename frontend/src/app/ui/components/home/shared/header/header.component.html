@@ -60,7 +60,7 @@
           <app-dropdown [(isOpen)]="isUserMenuOpen">
             <div trigger class="flex items-center space-x-2 cursor-pointer">
               <app-user-avatar
-                [imageUrl]="currentUser?.profilePhoto!"
+                [imageUrl]="currentUser?.profilePhoto.sourceUrl!"
                 [name]="currentUser?.fullName"
               ></app-user-avatar>
             </div>

@@ -2,6 +2,7 @@ import { Gender } from 'src/app/common/enum/gender';
 import { AnimalType } from '../animal-type/animal-type.model';
 import { Shelter } from '../shelter/shelter.model';
 import { Breed } from '../breed/breed.model';
+import { File } from '../file/file.model';
 
 // Animal Models
 export interface Animal {
@@ -15,7 +16,7 @@ export interface Animal {
   shelter?: Shelter;
   breed?: Breed;
   animalType?: AnimalType;
-  photos?: string[];
+  photos?: File[];
   adoptionStatus?: AdoptionStatus;
   createdAt?: Date;
   updatedAt?: Date;
@@ -32,8 +33,7 @@ export interface AnimalPersist {
   shelterId: string;
   breedId: string;
   animalTypeId: string;
-  //*TODO* Is type ok?
-  attachedPhotos: File[];
+  photosIds: string[];
   adoptionStatus: AdoptionStatus;
 }
 

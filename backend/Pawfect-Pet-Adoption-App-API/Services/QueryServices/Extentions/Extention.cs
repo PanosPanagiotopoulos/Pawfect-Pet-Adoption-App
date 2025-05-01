@@ -35,6 +35,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 			services.AddScoped<AdoptionApplicationLookup>();
 			services.AddScoped<BreedLookup>();
 			services.AddScoped<AnimalTypeLookup>();
+			services.AddScoped<FileLookup>();
+
 
 			services.AddScoped<AnimalBuilder>();
 			services.AddScoped<UserBuilder>();

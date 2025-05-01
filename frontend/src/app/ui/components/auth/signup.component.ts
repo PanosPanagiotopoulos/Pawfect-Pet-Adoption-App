@@ -640,7 +640,7 @@ export class SignupComponent
           location: formValue.location,
           authProvider: formValue.authProvider,
           authProviderId: formValue.authProviderId,
-          attachedPhoto: formValue.profilePhoto,
+          profilePhotoId: formValue.profilePhoto,
           hasPhoneVerified: formValue.hasPhoneVerified,
           hasEmailVerified: formValue.hasEmailVerified,
         },

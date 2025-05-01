@@ -7,7 +7,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 	{
 		// Συνάρτηση για query στα conversations
 		Task<IEnumerable<ConversationDto>> QueryConversationsAsync(ConversationLookup conversationLookup);
-
-		Task<ConversationDto?> Persist(ConversationPersist persist);
+		Task<ConversationDto?> Persist(ConversationPersist persist, List<String> fields);
+		Task Delete(String id);
+		Task Delete(List<String> ids);
 	}
 }

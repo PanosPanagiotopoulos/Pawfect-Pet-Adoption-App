@@ -2,9 +2,11 @@
 
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Message;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
@@ -40,23 +42,28 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 			return await _messageBuilder.SetLookup(messageLookup).BuildDto(queriedMessages, messageLookup.Fields.ToList());
 		}
 
-		public async Task<MessageDto?> Persist(MessagePersist persist)
+		public async Task<MessageDto?> Persist(MessagePersist persist, List<String> fields)
 		{
 			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Message data = new Message();
 			String dataId = String.Empty;
 			if (isUpdate)
 			{
+				data = await _messageRepository.FindAsync(x => x.Id == persist.Id);
+
+				if (data == null) throw new InvalidDataException("No entity found with id given");
+
 				_mapper.Map(persist, data);
-				dataId = await _messageRepository.UpdateAsync(data);
 			}
 			else
 			{
 				_mapper.Map(persist, data);
 				data.Id = null; // Ensure new ID is generated
 				data.CreatedAt = DateTime.UtcNow;
-				dataId = await _messageRepository.AddAsync(data);
 			}
+
+			if (isUpdate) dataId = await _messageRepository.UpdateAsync(data);
+			else dataId = await _messageRepository.AddAsync(data);
 
 			if (String.IsNullOrEmpty(dataId))
 			{
@@ -66,7 +73,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 			// Return dto model
 			MessageLookup lookup = new MessageLookup(_messageQuery);
 			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = new List<String> { "*", nameof(User) + ".*" };
+			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
@@ -74,6 +81,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 					 await _messageBuilder.SetLookup(lookup)
 					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
 					).FirstOrDefault();
+		}
+
+		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+
+		public async Task Delete(List<String> ids)
+		{
+			// TODO : Authorization
+			await _messageRepository.DeleteAsync(ids);
 		}
 	}
 }

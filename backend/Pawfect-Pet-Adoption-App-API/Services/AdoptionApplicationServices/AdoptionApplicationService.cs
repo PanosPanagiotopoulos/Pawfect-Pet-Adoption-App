@@ -4,6 +4,7 @@ using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
+using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
@@ -71,13 +72,17 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 			return (await _adoptionApplicationBuilder.SetLookup(lookup).BuildDto(adoptionApplication, fields)).FirstOrDefault();
 		}
 
-		public async Task<AdoptionApplicationDto?> Persist(AdoptionApplicationPersist persist)
+		public async Task<AdoptionApplicationDto?> Persist(AdoptionApplicationPersist persist, List<String> fields)
 		{
 			Boolean isUpdate =  _conventionService.IsValidId(persist.Id);
 			AdoptionApplication data = new AdoptionApplication();
 			String dataId = String.Empty;
 			if (isUpdate)
 			{
+				data = await _adoptionApplicationRepository.FindAsync(x => x.Id == persist.Id);
+
+				if (data == null) throw new InvalidDataException("No entity found with id given");
+
 				_mapper.Map(persist, data);
 				data.UpdatedAt = DateTime.UtcNow;
 			}
@@ -104,7 +109,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 			// Return dto model
 			AdoptionApplicationLookup lookup = new AdoptionApplicationLookup(_adoptionApplicationQuery);
 			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = new List<String> { "*", nameof(User) + ".*", nameof(Shelter) + ".*", nameof(Animal) + ".*", nameof(Data.Entities.File) + ".*" };
+			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
@@ -153,7 +158,29 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 				persistModels.Add(_mapper.Map<FilePersist>(file));
 			}
 
-			await _fileService.Value.Persist(persistModels);
+			await _fileService.Value.Persist
+			(
+				persistModels, 
+				new List<String>() { nameof(FileDto.Id) }
+			);
+		}
+
+		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+
+		public async Task Delete(List<String> ids)
+		{
+			// TODO : Authorization
+			FileLookup lookup = new FileLookup(_fileQuery);
+			lookup.OwnerIds = ids;
+			lookup.Fields = new List<String> { nameof(AdoptionApplicationDto.Id) };
+			lookup.Offset = 0;
+			lookup.PageSize = 50;
+
+			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup().CollectAsync();
+			await _fileService.Value.Delete(attachedFiles?.Select(x => x.Id).ToList());
+
+
+			await _adoptionApplicationRepository.DeleteAsync(ids);
 		}
 	}
 }

@@ -23,8 +23,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         public List<String>? ExcludedIds { get; set; }
 
-        // Λίστα με τα ονόματα των χρηστών για φιλτράρισμα
-        public List<String>? FullNames { get; set; }
+		public List<String>? ShelterIds { get; set; }
+
+		// Λίστα με τα ονόματα των χρηστών για φιλτράρισμα
+		public List<String>? FullNames { get; set; }
 
 		// Λίστα με τους ρόλους των χρηστών για φιλτράρισμα
 		public List<UserRole>? Roles { get; set; }
@@ -67,8 +69,17 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
                 filter &= builder.Nin("Id", referenceIds.Where(id => id != ObjectId.Empty));
             }
 
-            // Εφαρμόζει φίλτρο για τις λεπτομέρειες της αίτησης χρησιμοποιώντας regex
-            if (!String.IsNullOrEmpty(Query))
+			if (ShelterIds != null && ShelterIds.Any())
+			{
+				// Convert String IDs to ObjectId for comparison
+				IEnumerable<ObjectId> referenceIds = ShelterIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+				// Ensure that only valid ObjectId values are passed in the filter
+				filter &= builder.In("ShelterId", referenceIds.Where(id => id != ObjectId.Empty));
+			}
+
+			// Εφαρμόζει φίλτρο για τις λεπτομέρειες της αίτησης χρησιμοποιώντας regex
+			if (!String.IsNullOrEmpty(Query))
 			{
 				filter &= builder.Regex(user => user.FullName, new MongoDB.Bson.BsonRegularExpression(Query, "i"));
 			}

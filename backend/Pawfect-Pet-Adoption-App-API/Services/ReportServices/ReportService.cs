@@ -2,9 +2,11 @@
 
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
@@ -58,16 +60,19 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 			return (await _reportBuilder.SetLookup(lookup).BuildDto(report, fields)).FirstOrDefault();
 		}
 
-		public async Task<ReportDto?> Persist(ReportPersist persist)
+		public async Task<ReportDto?> Persist(ReportPersist persist, List<String> fields)
 		{
 			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Report data = new Report();
 			String dataId = String.Empty;
 			if (isUpdate)
 			{
+				data = await _reportRepository.FindAsync(x => x.Id == persist.Id);
+
+				if (data == null) throw new InvalidDataException("No entity found with id given");
+
 				_mapper.Map(persist, data);
 				data.UpdatedAt = DateTime.UtcNow;
-				dataId = await _reportRepository.UpdateAsync(data);
 			}
 			else
 			{
@@ -75,8 +80,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 				data.Id = null; // Ensure new ID is generated
 				data.CreatedAt = DateTime.UtcNow;
 				data.UpdatedAt = DateTime.UtcNow;
-				dataId = await _reportRepository.AddAsync(data);
 			}
+
+			if (isUpdate) dataId = await _reportRepository.UpdateAsync(data);
+			else dataId = await _reportRepository.AddAsync(data);
 
 			if (String.IsNullOrEmpty(dataId))
 			{
@@ -86,7 +93,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 			// Return dto model
 			ReportLookup lookup = new ReportLookup(_reportQuery);
 			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = new List<String> { "*", nameof(User) + ".*" };
+			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
@@ -96,5 +103,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 					).FirstOrDefault();
 		}
 
+		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+
+		public async Task Delete(List<String> ids)
+		{
+			// TODO : Authorization
+			await _reportRepository.DeleteAsync(ids);
+		}
 	}
 }

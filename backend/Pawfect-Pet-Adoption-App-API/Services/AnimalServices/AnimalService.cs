@@ -7,6 +7,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices;
@@ -74,7 +75,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 			return (await _animalBuilder.SetLookup(lookup).BuildDto(animal, fields)).FirstOrDefault();
 		}
 
-		public async Task<AnimalDto?> Persist(AnimalPersist persist)
+		public async Task<AnimalDto?> Persist(AnimalPersist persist, List<String> fields)
 		{
 			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
 			Animal data = new Animal();
@@ -84,6 +85,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 
 			if (isUpdate)
 			{
+				data = await _animalRepository.FindAsync(x => x.Id == persist.Id);
+
+				if (data == null) throw new InvalidDataException("No entity found with id given");
+
 				_mapper.Map(persist, data);
 				data.UpdatedAt = DateTime.UtcNow;
 			}
@@ -108,7 +113,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 			// Return dto model
 			AnimalLookup lookup = new AnimalLookup(_animalQuery);
 			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = new List<String> { "*", nameof(Shelter) + ".*", nameof(Breed) + ".*", nameof(AnimalType) + ".*" };
+			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
@@ -157,7 +162,29 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 				persistModels.Add(_mapper.Map<FilePersist>(file));
 			}
 
-			await _fileService.Value.Persist(persistModels);
+			await _fileService.Value.Persist
+			(
+				persistModels,
+				new List<String>() { nameof(FileDto.Id) }
+			);
+		}
+
+		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+
+		public async Task Delete(List<String> ids)
+		{
+			// TODO : Authorization
+
+			FileLookup lookup = new FileLookup(_fileQuery);
+			lookup.OwnerIds = ids;
+			lookup.Fields = new List<String> { nameof(AnimalDto.Id) };
+			lookup.Offset = 0;
+			lookup.PageSize = 50;
+
+			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup().CollectAsync();
+			await _fileService.Value.Delete(attachedFiles?.Select(x => x.Id).ToList());
+
+			await _animalRepository.DeleteAsync(ids);
 		}
 	}
 }

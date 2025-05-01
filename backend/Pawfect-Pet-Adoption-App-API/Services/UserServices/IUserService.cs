@@ -22,7 +22,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		/// <param name="registerPersist">Τα στοιχεία του χρήστη για εγγραφή.</param>
 		/// <returns>Το ID του εγγεγραμμένου χρήστη.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η εγγραφή του χρήστη.</exception>
-		Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist);
+		Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist, List<String> fields);
 
 		/// <summary>
 		/// Επαλήθευση OTP χρήστη.
@@ -118,5 +118,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		Task<User?> GetGoogleUser(String? authorisationCode);
 
 		Task<(String, String)> RetrieveGoogleCredentials(String? authorisationCode);
+		Task Delete(String id);
+		Task Delete(List<String> ids);
 	}
 }

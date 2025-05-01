@@ -19,6 +19,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.EmailServices;
@@ -42,6 +43,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		private readonly UserQuery _userQuery;
 		private readonly UserBuilder _userBuilder;
 		private readonly Lazy<IShelterService> _shelterService;
+		private readonly ShelterQuery _shelterQuery;
 		private readonly IAuthService _authService;
 		private readonly FileQuery _fileQuery;
 		private readonly Lazy<IFileService> _fileService;
@@ -56,9 +58,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			UserQuery userQuery,
 			UserBuilder userBuilder,
 			Lazy<IShelterService> shelterService,
+			ShelterQuery shelterQuery,
 			IAuthService authService,
 			FileQuery fileQuery,
 			Lazy<IFileService> fileService
+			
 		)
 		{
 			_userRepository = userRepository;
@@ -72,12 +76,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			_userQuery = userQuery;
 			_userBuilder = userBuilder;
 			_shelterService = shelterService;
+			_shelterQuery = shelterQuery;
 			_authService = authService;
 			_fileQuery = fileQuery;
 			_fileService = fileService;
 		}
 
-		public async Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist)
+		public async Task<UserDto?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist, List<String> fields)
 		{
 			// Ελέγξτε αν ο χρήστης υπάρχει ήδη. Αν ναι, επιστρέψτε το υπάρχον ID του χρήστη.
 			if (await _userRepository.ExistsAsync(user => user.Email == registerPersist.User.Email))
@@ -86,7 +91,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 
 			// Αποθηκεύστε τα δεδομένα του χρήστη.
-			UserDto newUser = await Persist(registerPersist.User, true);
+			UserDto newUser = await Persist(registerPersist.User, true, buildDto: true, buildFields: fields);
 
 			if (newUser == null)
 			{
@@ -103,11 +108,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 					throw new Exception("Αποτυχια persisting shelter");
 				}
 
-				User updatedUser = _mapper.Map<User>(newUser);
-
-				updatedUser.ShelterId = newShelter.Id;
-
-				return await Persist(updatedUser, false);
+				return await this.Get(newUser.Id, fields);
 			}
 
 			return newUser;
@@ -138,21 +139,20 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup().CollectAsync();
-			if (attachedFiles == null || !attachedFiles.Any())
+			Data.Entities.File profilePhotoFile = (await lookup.EnrichLookup().CollectAsync()).FirstOrDefault();
+			if (profilePhotoFile == null)
 			{
 				_logger.LogError("Failed to saved attached files. No return from query");
 				return;
 			}
+			
+			profilePhotoFile.FileSaveStatus = FileSaveStatus.Permanent;
 
-			List<FilePersist> persistModels = new List<FilePersist>();
-			foreach (Data.Entities.File file in attachedFiles)
-			{
-				file.FileSaveStatus = FileSaveStatus.Permanent;
-				persistModels.Add(_mapper.Map<FilePersist>(file));
-			}
-
-			await _fileService.Value.Persist(persistModels);
+			await _fileService.Value.Persist
+			(
+				_mapper.Map<FilePersist>(profilePhotoFile),
+				new List<String>() { nameof(FileDto.Id) }
+			);
 		}
 
 		public async Task GenerateNewOtpAsync(String? phonenumber)
@@ -664,6 +664,23 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 
 			return (await _userBuilder.SetLookup(lookup).BuildDto(user, fields)).FirstOrDefault();
+		}
+
+		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+
+		public async Task Delete(List<String> ids)
+		{
+			// TODO : Authorization
+			ShelterLookup sLookup = new ShelterLookup(_shelterQuery);
+			sLookup.UserIds = ids;
+			sLookup.Fields = new List<String> { nameof(ShelterDto.Id) };
+			sLookup.Offset = 0;
+			sLookup.PageSize = 10000;
+
+			List<Shelter> animals = await sLookup.EnrichLookup().CollectAsync();
+			await _shelterService.Value.Delete(animals?.Select(x => x.Id).ToList());
+
+			await _userRepository.DeleteAsync(ids);
 		}
 	}
 }

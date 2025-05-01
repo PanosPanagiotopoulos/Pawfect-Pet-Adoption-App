@@ -1,17 +1,20 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
+using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Files;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Services.AwsServices;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
+using System.Linq;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 {
@@ -61,11 +64,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			return await _fileBuilder.SetLookup(fileLookup).BuildDto(queriedFiles, fileLookup.Fields.ToList());
 		}
 
-		public async Task<FileDto> Persist(FilePersist persist)
+		public async Task<FileDto> Persist(FilePersist persist, List<String> fields)
 		{
-			return (await this.Persist(new List<FilePersist>() { persist })).FirstOrDefault();
+			return (await this.Persist(new List<FilePersist>() { persist }, fields)).FirstOrDefault();
 		}
-		public async Task<List<FileDto>> Persist(List<FilePersist> persists)
+		public async Task<List<FileDto>> Persist(List<FilePersist> persists, List<String> fields)
 		{
 			// TODO : Authorization
 
@@ -120,7 +123,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			// Return dto model
 			FileLookup lookup = new FileLookup(_fileQuery);
 			lookup.Ids = persistedIds;
-			lookup.Fields = new List<String> { "*" };
+			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
@@ -152,7 +155,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			List<Data.Entities.FileInfo> fileInfos = tempMediaFiles.Select(tmf =>
 			{
 				String fileId = ObjectId.GenerateNewId().ToString();
-				String key = $"{fileId}-{tmf.OwnerId}";
+				String key = _awsService.ConstructAwsKey(fileId, tmf.OwnerId);
 				(Boolean IsValid, String ErrorMessage) validationResult = _conventionService.IsValidFile(tmf.File, _filesConfig);
 				return new Data.Entities.FileInfo
 				{
@@ -277,7 +280,30 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 
 		public async Task Delete(List<String> ids)
 		{
-			// Delete logic for adoption application
+			// TODO : Authorization
+			FileLookup lookup = new FileLookup(_fileQuery);
+			lookup.Ids = ids;
+			lookup.Fields = new List<String> { nameof(FileDto.Id), nameof(FileDto.Owner) };
+			lookup.Offset = 0;
+			lookup.PageSize = 1000;
+
+			List<Data.Entities.File> files = await lookup.EnrichLookup().CollectAsync();
+
+			List<String> keys = files.Select(file => { return _awsService.ConstructAwsKey(file.Id, file.OwnerId); } ).ToList();
+
+			Dictionary<String, Boolean> results = await _awsService.DeleteAsync(keys);
+
+			List<String> failedIds = results.Where(r => !r.Value).Select(r => r.Key.Split('-')[0]).ToList();
+
+			if (failedIds.Any())
+			{
+				_logger.LogError("Not all objects where deleted from AWS. Removing them from file deleting pipeline");
+
+				// Remove failed file IDs from the original ids list
+				ids = ids.Except(failedIds).ToList();
+			}
+
+			await _fileRepository.DeleteAsync(ids);
 		}
 	}
 }

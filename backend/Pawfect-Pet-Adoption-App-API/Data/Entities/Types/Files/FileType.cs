@@ -2,20 +2,20 @@
 {
 	public static class FileType
 	{
-		public const string PDF = "PDF";
-		public const string JPG = "JPG";
-		public const string JPEG = "JPEG";
-		public const string PNG = "PNG";
-		public const string GIF = "GIF";
-		public const string MP4 = "MP4";
-		public const string MOV = "MOV";
-		public const string AVI = "AVI";
-		public const string MP3 = "MP3";
-		public const string WAV = "WAV";
-		public const string FLAC = "FLAC";
-		public const string OGG = "OGG";
-		public const string WEBM = "WEBM";
-		public const string WMV = "WMV";
-		public const string EXCEL = "EXCEL";
+		public const String PDF = "PDF";
+		public const String JPG = "JPG";
+		public const String JPEG = "JPEG";
+		public const String PNG = "PNG";
+		public const String GIF = "GIF";
+		public const String MP4 = "MP4";
+		public const String MOV = "MOV";
+		public const String AVI = "AVI";
+		public const String MP3 = "MP3";
+		public const String WAV = "WAV";
+		public const String FLAC = "FLAC";
+		public const String OGG = "OGG";
+		public const String WEBM = "WEBM";
+		public const String WMV = "WMV";
+		public const String EXCEL = "EXCEL";
 	}
 }

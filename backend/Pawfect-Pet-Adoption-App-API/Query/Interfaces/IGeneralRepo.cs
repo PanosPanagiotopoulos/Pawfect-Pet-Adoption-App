@@ -25,16 +25,18 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
 		/// </summary>
 		/// <param name="id">Το αναγνωριστικό του μοντέλου που θα διαγραφεί.</param>
 		Task<Boolean> DeleteAsync(String id);
-        Task<Boolean> DeleteAsync(T entity);
+		Task<Boolean> DeleteAsync(T entity);
+		Task<List<Boolean>> DeleteAsync(List<String> ids);
+		Task<List<Boolean>> DeleteAsync(List<T> entities);
 
-        /// <summary>
-        /// Ελέγχει αν υπάρχει ένα στοιχείο με βάση την δοθείσα συνθήκη. 
-        /// Το πρόγραμμα μπορεί να περάσει μια γενική συνθήκη και να ελέγξει αν υπάρχει 
-        /// ένα στοιχείο που ταιριάζει με τις παραμέτρους που χρειάζεται για την κλήση.
-        /// </summary>
-        /// <param name="predicate">Η συνθήκη για τον έλεγχο της ύπαρξης ενός στοιχείου.</param>
-        /// <returns>Ένα Booleanean που υποδηλώνει αν υπάρχει ένα στοιχείο που ταιριάζει με τη συνθήκη.</returns>
-        Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate);
+		/// <summary>
+		/// Ελέγχει αν υπάρχει ένα στοιχείο με βάση την δοθείσα συνθήκη. 
+		/// Το πρόγραμμα μπορεί να περάσει μια γενική συνθήκη και να ελέγξει αν υπάρχει 
+		/// ένα στοιχείο που ταιριάζει με τις παραμέτρους που χρειάζεται για την κλήση.
+		/// </summary>
+		/// <param name="predicate">Η συνθήκη για τον έλεγχο της ύπαρξης ενός στοιχείου.</param>
+		/// <returns>Ένα Booleanean που υποδηλώνει αν υπάρχει ένα στοιχείο που ταιριάζει με τη συνθήκη.</returns>
+		Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate);
 
         /// <summary>
         /// Ελέγχει αν υπάρχει ένα στοιχείο με βάση την δοθείσα συνθήκη. 

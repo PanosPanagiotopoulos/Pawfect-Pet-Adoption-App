@@ -2,11 +2,16 @@
 
 using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
+using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
+using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 {
@@ -18,7 +23,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 		private readonly IMapper _mapper;
 		private readonly IUserRepository _userRepository;
 		private readonly IConventionService _conventionService;
+		private readonly AnimalQuery _animalQuery;
+		private readonly Lazy<IAnimalService> _animalService;
 		private readonly UserQuery _userQuery;
+		private readonly Lazy<IUserService> _userService;
 
 		public ShelterService
 		(
@@ -27,7 +35,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			IShelterRepository shelterRepository,
 			IMapper mapper,
 			IUserRepository userRepository,
-			IConventionService conventionService
+			IConventionService conventionService,
+			AnimalQuery animalQuery,
+			Lazy<IAnimalService> animalService,
+			UserQuery userQuery,
+			Lazy<IUserService> userService
 		)
 		{
 			_shelterQuery = shelterQuery;
@@ -36,6 +48,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			_mapper = mapper;
 			_userRepository = userRepository;
 			_conventionService = conventionService;
+			_animalQuery = animalQuery;
+			_animalService = animalService;
+			_userQuery = userQuery;
+			_userService = userService;
 		}
 
 		public async Task<IEnumerable<ShelterDto>> QuerySheltersAsync(ShelterLookup shelterLookup)
@@ -72,16 +88,25 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			String dataId = String.Empty;
 			if (isUpdate)
 			{
-				// *TODO* Not allow update of user id
+				data = await _shelterRepository.FindAsync(x => x.Id == persist.Id);
+
+				if (data == null) throw new InvalidDataException("No entity found with id given");
+
+				if (!persist.UserId.Equals(data.UserId))
+				{
+					throw new InvalidOperationException("Cannot change user id on shelter");
+				}
+
 				_mapper.Map(persist, data);
-				dataId = await _shelterRepository.UpdateAsync(data);
 			}
 			else
 			{
 				_mapper.Map(persist, data);
 				data.Id = null;
-				dataId = await _shelterRepository.AddAsync(data);
 			}
+
+			if (isUpdate) dataId = await _shelterRepository.UpdateAsync(data);
+			else dataId = await _shelterRepository.AddAsync(data);
 
 			if (String.IsNullOrEmpty(dataId))
 			{
@@ -108,6 +133,32 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 					 await _shelterBuilder.SetLookup(lookup)
 					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
 					).FirstOrDefault();
+		}
+
+		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+
+		public async Task Delete(List<String> ids)
+		{
+			// TODO : Authorization
+			AnimalLookup aLookup = new AnimalLookup(_animalQuery);
+			aLookup.ShelterIds = ids;
+			aLookup.Fields = new List<String> { nameof(AnimalDto.Id) };
+			aLookup.Offset = 0;
+			aLookup.PageSize = 10000;
+
+			List<Animal> animals = await aLookup.EnrichLookup().CollectAsync();
+			await _animalService.Value.Delete(animals?.Select(x => x.Id).ToList());
+
+			await _shelterRepository.DeleteAsync(ids);
+			
+			UserLookup uLookup = new UserLookup(_userQuery);
+			uLookup.ShelterIds = ids;
+			uLookup.Fields = new List<String> { nameof(UserDto.Id) };
+			uLookup.Offset = 0;
+			uLookup.PageSize = 100;
+
+			List<User> users = await uLookup.EnrichLookup().CollectAsync();
+			await _userService.Value.Delete(animals?.Select(x => x.Id).ToList());
 		}
 	}
 }

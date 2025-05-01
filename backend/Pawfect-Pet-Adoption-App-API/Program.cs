@@ -149,7 +149,6 @@ public class Program
 		.AddAnimalTypeServices()
 		.AddBreedServices()
 		.AddAuthenticationServices(builder.Configuration.GetSection("Authentication"))
-		.AddBreedServices()
 		.AddConversationServices()
 		.AddEmailServices(builder.Configuration.GetSection("SendGrid"))
 		.AddHttpServices()

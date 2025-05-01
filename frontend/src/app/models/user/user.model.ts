@@ -1,4 +1,7 @@
 import { Shelter } from '../shelter/shelter.model';
+import { File } from '../file/file.model';
+import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
+import { UserRole } from 'src/app/common/enum/user-role.enum';
 
 export interface User {
   id?: string;
@@ -10,7 +13,7 @@ export interface User {
   shelter?: Shelter;
   authProvider?: AuthProvider;
   authProviderId?: string;
-  profilePhoto?: string;
+  profilePhoto?: File;
   isVerified?: boolean;
   hasPhoneVerified?: boolean;
   hasEmailVerified?: boolean;
@@ -28,7 +31,7 @@ export interface UserPersist {
   location: Location;
   authProvider: AuthProvider;
   authProviderId?: string;
-  attachedPhoto?: File;
+  profilePhotoId?: string;
   hasPhoneVerified: boolean;
   hasEmailVerified: boolean;
 }
@@ -39,16 +42,4 @@ export interface Location {
   zipCode?: string;
   address?: string;
   number?: string;
-}
-
-// Enums
-export enum UserRole {
-  User = 1,
-  Shelter = 2,
-  Admin = 3,
-}
-
-export enum AuthProvider {
-  Local = 1,
-  Google = 2,
 }

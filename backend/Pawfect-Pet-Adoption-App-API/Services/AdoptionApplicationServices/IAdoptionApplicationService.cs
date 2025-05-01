@@ -10,6 +10,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 
 		Task<AdoptionApplicationDto?> Get(String id, List<String> fields);
 
-		Task<AdoptionApplicationDto?> Persist(AdoptionApplicationPersist persist);
+		Task<AdoptionApplicationDto?> Persist(AdoptionApplicationPersist persist, List<String> fields);
+		Task Delete(String id);
+		Task Delete(List<String> ids);
 	}
 }

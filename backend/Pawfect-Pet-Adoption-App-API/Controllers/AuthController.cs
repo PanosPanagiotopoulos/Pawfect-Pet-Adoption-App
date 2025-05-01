@@ -162,7 +162,7 @@
 		[ProducesResponseType(200, Type = typeof(String))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> RegisterUserUnverified([FromBody] RegisterPersist toRegisterUser)
+		public async Task<IActionResult> RegisterUserUnverified([FromBody] RegisterPersist toRegisterUser, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -171,7 +171,7 @@
 
 			try
 			{
-				return Ok(await _userService.RegisterUserUnverifiedAsync(toRegisterUser));
+				return Ok(await _userService.RegisterUserUnverifiedAsync(toRegisterUser, fields));
 			}
 			catch (InvalidDataException ide)
 			{

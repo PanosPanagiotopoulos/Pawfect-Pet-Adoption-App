@@ -1,8 +1,8 @@
 {
-  "Aws": {
-	"BucketName": "%{AwsBucketName}%",
-	"AccessKey": "%{AwsAccessKey}%",
-	"SecretKey": "%{AwsSecretKey}%",
-	"Region": "%{AwsRegion}%"
-  }
+	"Aws": {
+		"BucketName": "%{AwsBucketName}%",
+		"AccessKey": "%{AwsAccessKey}%",
+		"SecretKey": "%{AwsSecretKey}%",
+		"Region": "%{AwsRegion}%"
+	}
 }

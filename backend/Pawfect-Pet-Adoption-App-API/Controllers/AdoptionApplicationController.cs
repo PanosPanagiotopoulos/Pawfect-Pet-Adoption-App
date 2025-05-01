@@ -100,7 +100,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		[ProducesResponseType(200, Type = typeof(AdoptionApplicationDto))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> Persist([FromBody] AdoptionApplicationPersist model)
+		public async Task<IActionResult> Persist([FromBody] AdoptionApplicationPersist model, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid)
 			{
@@ -109,7 +109,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				AdoptionApplicationDto? adoptionApplication = await _adoptionApplicationService.Persist(model);
+				AdoptionApplicationDto? adoptionApplication = await _adoptionApplicationService.Persist(model, fields);
 
 				if (adoptionApplication == null)
 				{
@@ -126,6 +126,74 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 			catch (Exception e)
 			{
 				_logger.LogError(e, "Error ενώ κάναμε persist adoptionApplication");
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
+			}
+		}
+
+		/// <summary>
+		/// Delete an adoption application by ID.
+		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
+		/// </summary>
+		[HttpPost("delete")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(404)]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> Delete([FromBody] String id)
+		{
+			// TODO: Add authorization
+			if (String.IsNullOrEmpty(id) || !ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				await _adoptionApplicationService.Delete(id);
+				return Ok();
+			}
+			catch (InvalidOperationException e)
+			{
+				_logger.LogError(e, "Αποτυχία διαγραφής αίτησης με ID {Id}", id);
+				return NotFound();
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e, "Error ενώ κάναμε delete adoptionApplication με ID {Id}", id);
+				return RequestHandlerTool.HandleInternalServerError(e, "POST");
+			}
+		}
+
+		/// <summary>
+		/// Delete multiple adoption applications by IDs.
+		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
+		/// </summary>
+		[HttpPost("delete/many")]
+		[ProducesResponseType(200)]
+		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
+		[ProducesResponseType(404)]
+		[ProducesResponseType(500, Type = typeof(String))]
+		public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
+		{
+			// TODO: Add authorization
+			if (ids == null || !ids.Any() || !ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+
+			try
+			{
+				await _adoptionApplicationService.Delete(ids);
+				return Ok();
+			}
+			catch (InvalidOperationException e)
+			{
+				_logger.LogError(e, "Αποτυχία διαγραφής αιτήσεων με IDs {Ids}", String.Join(", ", ids));
+				return NotFound();
+			}
+			catch (Exception e)
+			{
+				_logger.LogError(e, "Error ενώ κάναμε delete πολλαπλών adoptionApplications με IDs {Ids}", String.Join(", ", ids));
 				return RequestHandlerTool.HandleInternalServerError(e, "POST");
 			}
 		}

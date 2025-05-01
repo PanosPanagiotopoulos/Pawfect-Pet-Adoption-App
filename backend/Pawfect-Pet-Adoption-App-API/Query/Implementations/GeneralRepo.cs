@@ -51,7 +51,7 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 				throw new ArgumentException("No entities provided for update.");
 
 			List<WriteModel<T>> updates = new List<WriteModel<T>>();
-			foreach (var entity in entities)
+			foreach (T entity in entities)
 			{
 				PropertyInfo idProperty = entity.GetType().GetProperty("Id");
 				if (idProperty == null)
@@ -74,15 +74,47 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 
 		public async Task<Boolean> DeleteAsync(String id)
 		{
-			FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", new ObjectId(id));
-			DeleteResult result = await _collection.DeleteOneAsync(filter);
-			return result.DeletedCount > 0;
+			List<Boolean> results = await DeleteAsync(new List<String> { id });
+			return results.FirstOrDefault();
 		}
-
 		public async Task<Boolean> DeleteAsync(T entity)
 		{
-			String? id = entity.GetType().GetProperty("Id").GetValue(entity, null).ToString();
+			String id = entity.GetType().GetProperty("Id")?.GetValue(entity)?.ToString();
+			if (String.IsNullOrEmpty(id))
+				throw new MongoException("Entity does not contain a valid 'Id' property");
 			return await DeleteAsync(id);
+		}
+
+		public async Task<List<Boolean>> DeleteAsync(List<String> ids)
+		{
+			if (ids == null || !ids.Any())
+				throw new ArgumentException("No IDs provided for deletion.");
+
+			List<String> validIds = ids.Where(id => ObjectId.TryParse(id, out _)).ToList();
+			if (ids.Count != validIds.Count)
+				throw new MongoException("Not all objectIds where valid for deletion.");
+
+			FilterDefinition<T> filter = Builders<T>.Filter.In("_id", validIds.Select(id => new ObjectId(id)));
+			DeleteResult result = await _collection.DeleteManyAsync(filter);
+
+			// Return a list indicating which IDs were deleted
+			return ids.Select(id => validIds.Contains(id) && result.DeletedCount > 0).ToList();
+		}
+
+		public async Task<List<Boolean>> DeleteAsync(List<T> entities)
+		{
+			if (entities == null || !entities.Any())
+				throw new ArgumentException("No entities provided for deletion.");
+
+			List<String> ids = entities
+				.Select(e => e.GetType().GetProperty("Id")?.GetValue(e)?.ToString())
+				.Where(id => !String.IsNullOrEmpty(id))
+				.ToList();
+
+			if (ids.Count != entities.Count)
+				throw new MongoException("Not all ids where valid to delete.");
+
+			return await DeleteAsync(ids);
 		}
 
 		public async Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate)

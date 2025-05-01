@@ -85,11 +85,11 @@ export class AuthService {
     formData.append('user', JSON.stringify(registerData.user));
 
     // Append the file separately if it exists
-    if (registerData.user.attachedPhoto) {
+    if (registerData.user.profilePhotoId) {
       formData.append(
         'AttachedPhoto',
-        registerData.user.attachedPhoto,
-        registerData.user.attachedPhoto.name
+        registerData.user.profilePhotoId,
+        registerData.user.profilePhotoId.name
       );
     }
 
