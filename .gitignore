@@ -10,6 +10,7 @@ frontend/out-tsc/
 # Environment and Configuration Files
 frontend/.env
 frontend/src/configs/
+frontend/prompt.MD
 
 frontend/package-lock.json
 
@@ -60,7 +61,7 @@ backend/Pawfect-Pet-Adoption-App-API/*.config
 backend/Pawfect-Pet-Adoption-App-API/logs/
 backend/Pawfect-Pet-Adoption-App-API/PawfectUser_accessKeys.csv
 
-
+    
 # Entity Framework Migrations
 backend/Pawfect-Pet-Adoption-App-API/Migrations/
 
