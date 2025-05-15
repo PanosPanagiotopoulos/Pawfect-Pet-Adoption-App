@@ -1,16 +1,13 @@
 ﻿using AutoMapper;
-
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
-using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
-using Pawfect_Pet_Adoption_App_API.Services.FileServices;
-using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
-using Pawfect_Pet_Adoption_App_API.Services.UserServices;
+using Pawfect_Pet_Adoption_App_API.Query;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
 {
@@ -31,38 +28,23 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 	public class AdoptionApplicationBuilder : BaseBuilder<AdoptionApplicationDto, AdoptionApplication>
 	{
-		// Ορίστε τις παραμέτρους αναζήτησης για τον κατασκευαστή
-		public override BaseBuilder<AdoptionApplicationDto, AdoptionApplication> SetLookup(Lookup lookup) { base.LookupParams = lookup; return this; }
-
-		private readonly AnimalLookup _animalLookup;
-		private readonly Lazy<IAnimalService> _animalService;
-		private readonly UserLookup _userLookup;
-		private readonly Lazy<IUserService> _userService;
-		private readonly ShelterLookup _shelterLookup;
-		private readonly IShelterService _shelterService;
-		private readonly FileLookup _fileLookup;
-		private readonly IFileService _fileService;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory; 
 
 		public AdoptionApplicationBuilder(
-			AnimalLookup animalLookup, Lazy<IAnimalService> animalService, 
-			UserLookup userLookup, Lazy<IUserService> userService,
-			ShelterLookup shelterLookup, IShelterService shelterService,
-			FileLookup fileLookup, IFileService fileService
-
-			)
+            IQueryFactory queryFactory,
+            IBuilderFactory builderFactory
+        )
 		{
-			_animalLookup = animalLookup;
-			_animalService = animalService;
-			_userLookup = userLookup;
-			_userService = userService;
-			_shelterLookup = shelterLookup;
-			_shelterService = shelterService;
-			_fileLookup = fileLookup;
-			_fileService = fileService;
-		}
+            this._queryFactory = queryFactory;
+            this._builderFactory = builderFactory;
+        }
 
-		// Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-		public override async Task<List<AdoptionApplicationDto>> BuildDto(List<AdoptionApplication> entities, List<String> fields)
+        public AuthorizationFlags _authorise = AuthorizationFlags.None;
+		public AdoptionApplicationBuilder Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
+
+        // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
+        public override async Task<List<AdoptionApplicationDto>> BuildDto(List<AdoptionApplication> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
@@ -110,20 +92,24 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> animalIds = applications.Select(x => x.AnimalId).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_animalLookup.Offset = LookupParams.Offset;
+			AnimalLookup animalLookup = new AnimalLookup();
+
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            animalLookup.Offset = 1;
 			// Γενική τιμή για τη λήψη των dtos
-			_animalLookup.PageSize = LookupParams.PageSize;
-			_animalLookup.SortDescending = LookupParams.SortDescending;
-			_animalLookup.Query = null;
-			_animalLookup.Ids = animalIds;
-			_animalLookup.Fields = animalFields;
+			animalLookup.PageSize = 1000;
+			animalLookup.Ids = animalIds;
+			animalLookup.Fields = animalFields;
 
-			// Κατασκευή των dtos
-			List<AnimalDto> animalDtos = (await _animalService.Value.QueryAnimalsAsync(_animalLookup)).ToList();
+			List<Data.Entities.Animal> animals = await animalLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-			// Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
-			Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
+            // Κατασκευή των dtos
+            List<AnimalDto> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).BuildDto(animals, animalFields);
+
+			if (animalDtos == null || !animalDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
+            Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα applications δημιουργώντας ένα Dictionary : [ ApplicationId -> AnimalId ] 
 			return applications.ToDictionary(x => x.Id, x => animalDtoMap[x.AnimalId]);
@@ -134,20 +120,23 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = applications.Select(x => x.UserId).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_animalLookup.Offset = LookupParams.Offset;
+			UserLookup userLookup = new UserLookup();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            userLookup.Offset = 1;
 			// Γενική τιμή για τη λήψη των dtos
-			_animalLookup.PageSize = LookupParams.PageSize;
-			_animalLookup.SortDescending = LookupParams.SortDescending;
-			_animalLookup.Query = null;
-			_animalLookup.Ids = userIds;
-			_animalLookup.Fields = userFields;
+			userLookup.PageSize = 1000;
+			userLookup.Ids = userIds;
+			userLookup.Fields = userFields;
 
-			// Κατασκευή των dtos
-			List<UserDto> userDtos = (await _userService.Value.QueryUsersAsync(_userLookup)).ToList();
+            List<Data.Entities.User> users = await userLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
-			Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
+            // Κατασκευή των dtos
+            List<UserDto> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).BuildDto(users, userFields);
+
+            if (userDtos == null || !userDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
+            Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα applications δημιουργώντας ένα Dictionary : [ ApplicationId -> UserId ] 
 			return applications.ToDictionary(x => x.Id, x => userDtoMap[x.UserId]);
@@ -158,20 +147,24 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> shelterIds = applications.Select(x => x.ShelterId).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_animalLookup.Offset = LookupParams.Offset;
+            ShelterLookup shelterLookup = new ShelterLookup();
+
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            shelterLookup.Offset = 1;
 			// Γενική τιμή για τη λήψη των dtos
-			_animalLookup.PageSize = LookupParams.PageSize;
-			_animalLookup.SortDescending = LookupParams.SortDescending;
-			_animalLookup.Query = null;
-			_animalLookup.Ids = shelterIds;
-			_animalLookup.Fields = shelterFields;
+			shelterLookup.PageSize = 1000;
+			shelterLookup.Ids = shelterIds;
+			shelterLookup.Fields = shelterFields;
 
-			// Κατασκευή των dtos
-			List<ShelterDto> shelterDtos = (await _shelterService.QuerySheltersAsync(_shelterLookup)).ToList();
+            List<Data.Entities.Shelter> shelters = await shelterLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ ShelterId -> ShelterDto ]
-			Dictionary<String, ShelterDto> shelterDtoMap = shelterDtos.ToDictionary(x => x.Id);
+            // Κατασκευή των dtos
+            List<ShelterDto> shelterDtos = await _builderFactory.Builder<ShelterBuilder>().Authorise(this._authorise).BuildDto(shelters, shelterFields);
+
+            if (shelterDtos == null || !shelterDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ ShelterId -> ShelterDto ]
+            Dictionary<String, ShelterDto> shelterDtoMap = shelterDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα applications δημιουργώντας ένα Dictionary : [ ApplicationId -> ShelterId ] 
 			return applications.ToDictionary(x => x.Id, x => shelterDtoMap[x.ShelterId]);
@@ -185,16 +178,20 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				.Distinct()
 				.ToList();
 
-			_fileLookup.Offset = LookupParams.Offset;
-			_fileLookup.PageSize = LookupParams.PageSize;
-			_fileLookup.SortDescending = LookupParams.SortDescending;
-			_fileLookup.Query = null;
-			_fileLookup.Ids = fileIds;
-			_fileLookup.Fields = fileFields;
+			FileLookup fileLookup = new FileLookup();
 
-			List<FileDto> fileDtos = (await _fileService.QueryFilesAsync(_fileLookup)).ToList();
+			fileLookup.Offset = 1;
+			fileLookup.PageSize = 1000;
+			fileLookup.Ids = fileIds;
+			fileLookup.Fields = fileFields;
 
-			if (fileDtos == null || !fileDtos.Any()) return null;
+            List<Data.Entities.File> files = await fileLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
+
+            // Κατασκευή των dtos
+            List<FileDto> fileDtos = await _builderFactory.Builder<FileBuilder>().Authorise(this._authorise).BuildDto(files, fileFields);
+
+
+            if (fileDtos == null || !fileDtos.Any()) return null;
 
 			Dictionary<String, FileDto> fileDtoMap = fileDtos.ToDictionary(x => x.Id);
 

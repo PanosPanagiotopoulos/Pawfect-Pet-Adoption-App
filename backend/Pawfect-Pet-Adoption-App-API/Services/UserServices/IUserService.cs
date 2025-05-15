@@ -8,15 +8,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 	public interface IUserService
 	{
 		/// <summary>
-		/// Querying δεδομένων χρήστη.
-		/// </summary>
-		/// <param name="userLookup">Τα στοιχεία ζητούμενα στοιχεία querying για τον χρήστη.</param>
-		/// <returns>Το Λίστα απο DTO user.</returns>
-		Task<IEnumerable<UserDto>> QueryUsersAsync(UserLookup userLookup);
-
-		Task<UserDto?> Get(String id, List<String> fields);
-
-		/// <summary>
 		/// Εγγραφή μη επιβεβαιωμένου χρήστη.
 		/// </summary>
 		/// <param name="registerPersist">Τα στοιχεία του χρήστη για εγγραφή.</param>

@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
+using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Conversation;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
 using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
@@ -27,21 +30,19 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 	public class ConversationBuilder : BaseBuilder<ConversationDto, Conversation>
 	{
-		private readonly UserLookup _userLookup;
-		private readonly AnimalLookup _animalLookup;
-		private readonly Lazy<IUserService> _userService;
-		private readonly Lazy<IAnimalService> _animalService;
-
-		public ConversationBuilder(UserLookup userLookup, AnimalLookup animalLookup, Lazy<IUserService> userService, Lazy<IAnimalService> animalService)
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
+        public ConversationBuilder(IQueryFactory queryFactory, IBuilderFactory builderFactory)
 		{
-			_userLookup = userLookup;
-			_animalLookup = animalLookup;
-			_userService = userService;
-			_animalService = animalService;
-		}
+            this._queryFactory = queryFactory;
+            this._builderFactory = builderFactory;
+        }
 
-		// Ορίστε τις παραμέτρους αναζήτησης για τον κατασκευαστή
-		public override BaseBuilder<ConversationDto, Conversation> SetLookup(Lookup lookup) { base.LookupParams = lookup; return this; }
+        public AuthorizationFlags _authorise = AuthorizationFlags.None;
+        
+
+        public ConversationBuilder Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
+
 
 		// Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
 		public override async Task<List<ConversationDto>> BuildDto(List<Conversation> entities, List<String> fields)
@@ -79,22 +80,23 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = conversations.SelectMany(x => x.UserIds).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_userLookup.Offset = LookupParams.Offset;
-			// Γενική τιμή για τη λήψη των dtos
-			_userLookup.PageSize = LookupParams.PageSize;
-			_userLookup.SortDescending = LookupParams.SortDescending;
-			_userLookup.Query = null;
-			_userLookup.Ids = userIds;
-			_userLookup.Fields = userFields;
+			UserLookup userLookup = new UserLookup();
 
-			// Κατασκευή των dtos
-			List<UserDto> userDtos = (await _userService.Value.QueryUsersAsync(_userLookup)).ToList();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            userLookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            userLookup.PageSize = 1000;
+            userLookup.Ids = userIds;
+            userLookup.Fields = userFields;
 
-			if (userDtos == null || userDtos.Count < 2) return null;
+            List<Data.Entities.User> users = await userLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
-			Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
+            List<UserDto> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).BuildDto(users, userFields);
+
+            if (userDtos == null || !userDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
+            Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τις conversations δημιουργώντας ένα Dictionary : [ ConversationId -> List<UserDto> ] 
 			return conversations.ToDictionary(x => x.Id, x => x.UserIds.Select(id => userDtoMap[id]).ToList());
@@ -105,20 +107,24 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> animalIds = conversations.Select(x => x.AnimalId).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_animalLookup.Offset = LookupParams.Offset;
-			// Γενική τιμή για τη λήψη των dtos
-			_animalLookup.PageSize = LookupParams.PageSize;
-			_animalLookup.SortDescending = LookupParams.SortDescending;
-			_animalLookup.Query = null;
-			_animalLookup.Ids = animalIds;
-			_animalLookup.Fields = animalFields;
+            AnimalLookup animalLookup = new AnimalLookup();
 
-			// Κατασκευή των dtos
-			List<AnimalDto> animalDtos = (await _animalService.Value.QueryAnimalsAsync(_animalLookup)).ToList();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            animalLookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            animalLookup.PageSize = 1000;
+            animalLookup.Ids = animalIds;
+            animalLookup.Fields = animalFields;
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
-			Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
+            List<Data.Entities.Animal> animals = await animalLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
+
+            // Κατασκευή των dtos
+            List<AnimalDto> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).BuildDto(animals, animalFields);
+
+            if (animalDtos == null || !animalDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
+            Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τις conversations δημιουργώντας ένα Dictionary : [ ConversationId -> AnimalId ] 
 			return conversations.ToDictionary(x => x.Id, x => animalDtoMap[x.AnimalId]);

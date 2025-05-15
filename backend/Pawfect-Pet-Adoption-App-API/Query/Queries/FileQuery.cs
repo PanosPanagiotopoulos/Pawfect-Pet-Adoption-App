@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
@@ -26,7 +27,11 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
 		public String? Name { get; set; }
 
-		protected override Task<FilterDefinition<Data.Entities.File>> ApplyFilters()
+        private AuthorizationFlags _authorise = AuthorizationFlags.None;
+
+        public FileQuery Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
+
+        public override Task<FilterDefinition<Data.Entities.File>> ApplyFilters()
 		{
 			FilterDefinitionBuilder<Data.Entities.File> builder = Builders<Data.Entities.File>.Filter;
 			FilterDefinition<Data.Entities.File> filter = builder.Empty;

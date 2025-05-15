@@ -6,7 +6,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 	public abstract class BaseQuery<T> where T : class
 	{
 		// Η συλλογή στην οποία αναφέρεται η ερώτηση
-		protected IMongoCollection<T>? _collection { get; set; }
+		public IMongoCollection<T>? _collection { get; set; }
 		public int Offset { get; set; } = 1;
 		public int PageSize { get; set; } = 10;
 		public ICollection<String>? Fields { get; set; }
@@ -15,7 +15,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		public String? Query { get; set; } = null;
 
 		// Εφαρμόζει τα φίλτρα στην ερώτηση
-		protected abstract Task<FilterDefinition<T>> ApplyFilters();
+		public abstract Task<FilterDefinition<T>> ApplyFilters();
 
 		// Επιστρέφει τα ονόματα των πεδίων που περιέχονται στη λίστα fields
 		public abstract List<String> FieldNamesOf(List<String> fields);

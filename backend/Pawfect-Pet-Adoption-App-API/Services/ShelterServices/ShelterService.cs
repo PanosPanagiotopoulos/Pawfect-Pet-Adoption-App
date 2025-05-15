@@ -6,8 +6,8 @@ using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
@@ -27,58 +27,31 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 		private readonly Lazy<IAnimalService> _animalService;
 		private readonly UserQuery _userQuery;
 		private readonly Lazy<IUserService> _userService;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
 
-		public ShelterService
+        public ShelterService
 		(
-			ShelterQuery shelterQuery,
-			ShelterBuilder shelterBuilder,
 			IShelterRepository shelterRepository,
 			IMapper mapper,
 			IUserRepository userRepository,
 			IConventionService conventionService,
-			AnimalQuery animalQuery,
 			Lazy<IAnimalService> animalService,
-			UserQuery userQuery,
-			Lazy<IUserService> userService
-		)
+			Lazy<IUserService> userService,
+			IQueryFactory queryFactory,
+            IBuilderFactory builderFactory
+
+        )
 		{
-			_shelterQuery = shelterQuery;
-			_shelterBuilder = shelterBuilder;
 			_shelterRepository = shelterRepository;
 			_mapper = mapper;
 			_userRepository = userRepository;
 			_conventionService = conventionService;
-			_animalQuery = animalQuery;
 			_animalService = animalService;
-			_userQuery = userQuery;
 			_userService = userService;
-		}
-
-		public async Task<IEnumerable<ShelterDto>> QuerySheltersAsync(ShelterLookup shelterLookup)
-		{
-			List<Shelter> queriedShelters = await shelterLookup.EnrichLookup(_shelterQuery).CollectAsync();
-			return await _shelterBuilder.SetLookup(shelterLookup).BuildDto(queriedShelters, shelterLookup.Fields.ToList());
-		}
-
-		public async Task<ShelterDto?> Get(String id, List<String> fields)
-		{
-			//*TODO* Add authorization service with user roles and permissions
-
-			ShelterLookup lookup = new ShelterLookup(_shelterQuery);
-			lookup.Ids = new List<String> { id };
-			lookup.Fields = fields;
-			lookup.PageSize = 1;
-			lookup.Offset = 0;
-
-			List<Shelter> shelter = await lookup.EnrichLookup().CollectAsync();
-
-			if (shelter == null)
-			{
-				throw new InvalidDataException("Δεν βρέθηκε shelter με αυτό το ID");
-			}
-
-			return (await _shelterBuilder.SetLookup(lookup).BuildDto(shelter, fields)).FirstOrDefault();
-		}
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+        }
 
 		public async Task<ShelterDto?> Persist(ShelterPersist persist, List<String> buildFields = null)
 		{
@@ -123,41 +96,38 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			}
 
 			// Return dto model
-			ShelterLookup lookup = new ShelterLookup(_shelterQuery);
+			ShelterLookup lookup = new ShelterLookup();
 			lookup.Ids = new List<String> { dataId };
 			lookup.Fields = buildFields ?? new List<String> { "*", nameof(User) + ".*" };
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			return (
-					 await _shelterBuilder.SetLookup(lookup)
-					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
-					).FirstOrDefault();
-		}
+            return (await _builderFactory.Builder<ShelterBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [..lookup.Fields])).FirstOrDefault();
+        }
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 
 		public async Task Delete(List<String> ids)
 		{
 			// TODO : Authorization
-			AnimalLookup aLookup = new AnimalLookup(_animalQuery);
+			AnimalLookup aLookup = new AnimalLookup();
 			aLookup.ShelterIds = ids;
 			aLookup.Fields = new List<String> { nameof(AnimalDto.Id) };
 			aLookup.Offset = 0;
 			aLookup.PageSize = 10000;
 
-			List<Animal> animals = await aLookup.EnrichLookup().CollectAsync();
+			List<Animal> animals = await aLookup.EnrichLookup(_queryFactory).CollectAsync();
 			await _animalService.Value.Delete(animals?.Select(x => x.Id).ToList());
 
 			await _shelterRepository.DeleteAsync(ids);
 			
-			UserLookup uLookup = new UserLookup(_userQuery);
+			UserLookup uLookup = new UserLookup();
 			uLookup.ShelterIds = ids;
 			uLookup.Fields = new List<String> { nameof(UserDto.Id) };
 			uLookup.Offset = 0;
 			uLookup.PageSize = 100;
 
-			List<User> users = await uLookup.EnrichLookup().CollectAsync();
+			List<User> users = await uLookup.EnrichLookup(_queryFactory).CollectAsync();
 			await _userService.Value.Delete(animals?.Select(x => x.Id).ToList());
 		}
 	}

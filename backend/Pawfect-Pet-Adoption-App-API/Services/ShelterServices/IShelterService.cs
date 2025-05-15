@@ -5,10 +5,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 {
 	public interface IShelterService
 	{
-		// Συνάρτηση για query στα shelters
-		Task<IEnumerable<ShelterDto>> QuerySheltersAsync(ShelterLookup shelterLookup);
-
-		Task<ShelterDto?> Get(String id, List<String> fields);
 		Task<ShelterDto?> Persist(ShelterPersist persist, List<String> buildFields = null);
 		Task Delete(String id);
 		Task Delete(List<String> ids);

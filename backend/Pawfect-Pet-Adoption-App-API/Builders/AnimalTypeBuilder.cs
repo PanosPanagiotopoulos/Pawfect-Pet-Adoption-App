@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 
@@ -23,8 +24,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
     public class AnimalTypeBuilder : BaseBuilder<AnimalTypeDto, AnimalType>
     {
-        // Ορίστε τις παραμέτρους αναζήτησης για τον κατασκευαστή
-        public override BaseBuilder<AnimalTypeDto, AnimalType> SetLookup(Lookup lookup) { base.LookupParams = lookup; return this; }
+        public AuthorizationFlags _authorise = AuthorizationFlags.None;
+        public AnimalTypeBuilder Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
 
         // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
         public override async Task<List<AnimalTypeDto>> BuildDto(List<AnimalType> entities, List<String> fields)

@@ -7,15 +7,15 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 {
-	public class AuthService : IAuthService
+	public class AuthenticationService : IAuthenticationService
 	{
 		private readonly GoogleOauth2Config _googleOauth2Config;
-		private readonly ILogger<AuthService> _logger;
+		private readonly ILogger<AuthenticationService> _logger;
 
-		public AuthService
+		public AuthenticationService
 		(
 			IOptions<GoogleOauth2Config> configuration,
-			ILogger<AuthService> logger
+			ILogger<AuthenticationService> logger
 		)
 		{
 			_googleOauth2Config = configuration.Value;

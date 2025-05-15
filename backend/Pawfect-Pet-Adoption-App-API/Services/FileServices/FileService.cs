@@ -6,12 +6,10 @@ using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Files;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Services.AwsServices;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 using System.Linq;
@@ -24,10 +22,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		private readonly IFileRepository _fileRepository;
 		private readonly IAwsService _awsService;
 		private readonly IMapper _mapper;
-		private readonly FileQuery _fileQuery;
-		private readonly FileBuilder _fileBuilder;
 		private readonly IConventionService _conventionService;
-		private readonly FilesConfig _filesConfig;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
+        private readonly FilesConfig _filesConfig;
 
 		public FileService
 		(
@@ -35,34 +33,35 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			IFileRepository fileRepository,
 			IAwsService awsService,
 			IMapper mapper,
-			FileQuery fileQuery,
-			FileBuilder fileBuilder,
 			IConventionService conventionService,
-			IOptions<FilesConfig> filesConfig
+			IOptions<FilesConfig> filesConfig,
+			IQueryFactory queryFactory,
+            IBuilderFactory builderFactory
 
-		)
+        )
 		{
 			_logger = logger;
 			_fileRepository = fileRepository;
 			_awsService = awsService;
 			_mapper = mapper;
-			_fileQuery = fileQuery;
-			_fileBuilder = fileBuilder;
 			_conventionService = conventionService;
-			_filesConfig = filesConfig.Value;
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+            _filesConfig = filesConfig.Value;
 		}
 
-		public async Task<IEnumerable<FileDto>> QueryFilesAsync(FileLookup fileLookup)
-		{
-			if (fileLookup.FileSaveStatuses == null)
-				fileLookup.FileSaveStatuses = new List<FileSaveStatus>() { FileSaveStatus.Permanent };
+		//public async Task<IEnumerable<FileDto>> QueryFilesAsync(FileLookup fileLookup)
+		//{
+		//	if (fileLookup.FileSaveStatuses == null)
+		//		fileLookup.FileSaveStatuses = new List<FileSaveStatus>() { FileSaveStatus.Permanent };
 
-			if (!fileLookup.FileSaveStatuses.Contains(FileSaveStatus.Permanent))
-				fileLookup.FileSaveStatuses.Add(FileSaveStatus.Permanent);
+		//	if (!fileLookup.FileSaveStatuses.Contains(FileSaveStatus.Permanent))
+		//		fileLookup.FileSaveStatuses.Add(FileSaveStatus.Permanent);
 
-			List<Data.Entities.File> queriedFiles = await fileLookup.EnrichLookup(_fileQuery).CollectAsync();
-			return await _fileBuilder.SetLookup(fileLookup).BuildDto(queriedFiles, fileLookup.Fields.ToList());
-		}
+		//	List<Data.Entities.File> queriedFiles = await fileLookup.EnrichLookup(_fileQuery).CollectAsync();
+
+		//	return await _fileBuilder.SetLookup(fileLookup).BuildDto(queriedFiles, fileLookup.Fields.ToList());
+		//}
 
 		public async Task<FileDto> Persist(FilePersist persist, List<String> fields)
 		{
@@ -121,25 +120,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			}
 
 			// Return dto model
-			FileLookup lookup = new FileLookup(_fileQuery);
+			FileLookup lookup = new FileLookup();
 			lookup.Ids = persistedIds;
 			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			return await _fileBuilder.SetLookup(lookup).BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList());
-		}
-
-		public async Task<FileDto> Get(String id, List<String> fields)
-		{
-			Data.Entities.File file = await _fileRepository.FindAsync(f => f.Id == id, fields);
-			if (file == null)
-			{
-				throw new InvalidOperationException("File not found");
-			}
-
-			return (await _fileBuilder.BuildDto(new List<Data.Entities.File> { file }, fields)).FirstOrDefault();
-		}
+            return await _builderFactory.Builder<FileBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields);
+        }
 
 		public async Task<FileDto> SaveTemporarily(TempMediaFile tempMediaFile)
 		{
@@ -227,7 +215,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 
 					// Step 4: Build DTOs for successful uploads
 					List<String> fileIds = files.Select(f => f.Id).ToList();
-					FileLookup lookup = new FileLookup(_fileQuery)
+					FileLookup lookup = new FileLookup()
 					{
 						Ids = fileIds,
 						Fields = new List<String> { "*" },
@@ -235,9 +223,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 						PageSize = fileIds.Count
 					};
 
-					dtos = await this.QueryFilesAsync(lookup);
+					dtos = await _builderFactory.Builder<FileBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [..lookup.Fields]);
 
-					saveResults.AddRange((await Task.WhenAll(uploadTasks)).Where(r => r.Persist != null).ToList().Select((su, index) => new FileSaveResult
+                    saveResults.AddRange((await Task.WhenAll(uploadTasks)).Where(r => r.Persist != null).ToList().Select((su, index) => new FileSaveResult
 					{
 						FileName = su.FileName,
 						File = dtos.ElementAt(index),
@@ -281,13 +269,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		public async Task Delete(List<String> ids)
 		{
 			// TODO : Authorization
-			FileLookup lookup = new FileLookup(_fileQuery);
+			FileLookup lookup = new FileLookup();
 			lookup.Ids = ids;
 			lookup.Fields = new List<String> { nameof(FileDto.Id), nameof(FileDto.Owner) };
 			lookup.Offset = 0;
 			lookup.PageSize = 1000;
 
-			List<Data.Entities.File> files = await lookup.EnrichLookup().CollectAsync();
+			List<Data.Entities.File> files = await lookup.EnrichLookup(_queryFactory).CollectAsync();
 
 			List<String> keys = files.Select(file => { return _awsService.ConstructAwsKey(file.Id, file.OwnerId); } ).ToList();
 

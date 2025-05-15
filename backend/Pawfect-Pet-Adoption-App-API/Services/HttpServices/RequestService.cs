@@ -1,8 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
-
-using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.HttpServices
 {
@@ -60,21 +57,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.HttpServices
 				_logger.LogError(ex, "Error προσπαθώντας να βρεθεί το URI για το frontend");
 				return null;
 			}
-		}
-
-		// Επιστροφή του Authenticated User ID απο το request
-		public String? GetUserId()
-		{
-			try
-			{
-				return _httpContextAccessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Error προσπαθώντας να βρεθεί το id του Authenticated χρήστη");
-				return null;
-			}
-
 		}
 	}
 }

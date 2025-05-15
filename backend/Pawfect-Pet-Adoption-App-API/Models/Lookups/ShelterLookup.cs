@@ -2,19 +2,11 @@
 {
     using Pawfect_Pet_Adoption_App_API.Data.Entities;
     using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+    using Pawfect_Pet_Adoption_App_API.Query;
     using Pawfect_Pet_Adoption_App_API.Query.Queries;
 
     public class ShelterLookup : Lookup
     {
-        private ShelterQuery _shelterQuery { get; set; }
-
-        public ShelterLookup(ShelterQuery shelterQuery)
-        {
-            _shelterQuery = shelterQuery;
-        }
-
-        public ShelterLookup() { }
-
         // Λίστα με τα αναγνωριστικά των καταφυγίων
         public List<String>? Ids { get; set; }
 
@@ -34,28 +26,26 @@
         /// Εμπλουτίζει το ShelterQuery με τα φίλτρα και τις επιλογές του lookup.
         /// </summary>
         /// <returns>Το εμπλουτισμένο ShelterQuery.</returns>
-        public ShelterQuery EnrichLookup(ShelterQuery? toEnrichQuery = null)
+        public ShelterQuery EnrichLookup(IQueryFactory queryFactory)
         {
-            if (toEnrichQuery != null && _shelterQuery == null)
-            {
-                _shelterQuery = toEnrichQuery;
-            }
+            ShelterQuery shelterQuery = queryFactory.Query<ShelterQuery>();
+
             // Προσθέτει τα φίλτρα στο ShelterQuery
-            _shelterQuery.Ids = this.Ids;
-            _shelterQuery.UserIds = this.UserIds;
-            _shelterQuery.VerificationStatuses = this.VerificationStatuses;
-            _shelterQuery.VerifiedBy = this.VerifiedBy;
-            _shelterQuery.Query = this.Query;
+            shelterQuery.Ids = this.Ids;
+            shelterQuery.UserIds = this.UserIds;
+            shelterQuery.VerificationStatuses = this.VerificationStatuses;
+            shelterQuery.VerifiedBy = this.VerifiedBy;
+            shelterQuery.Query = this.Query;
 
             // Ορίζει επιπλέον επιλογές για το ShelterQuery
-            _shelterQuery.PageSize = this.PageSize;
-            _shelterQuery.Offset = this.Offset;
-            _shelterQuery.SortDescending = this.SortDescending;
-            _shelterQuery.Fields = _shelterQuery.FieldNamesOf(this.Fields.ToList());
-            _shelterQuery.SortBy = this.SortBy;
-            _shelterQuery.ExcludedIds = this.ExcludedIds;
+            shelterQuery.PageSize = this.PageSize;
+            shelterQuery.Offset = this.Offset;
+            shelterQuery.SortDescending = this.SortDescending;
+            shelterQuery.Fields = shelterQuery.FieldNamesOf(this.Fields.ToList());
+            shelterQuery.SortBy = this.SortBy;
+            shelterQuery.ExcludedIds = this.ExcludedIds;
 
-            return _shelterQuery;
+            return shelterQuery;
         }
         public override Type GetEntityType() { return typeof(Shelter); }
     }

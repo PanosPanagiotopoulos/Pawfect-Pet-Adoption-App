@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -13,12 +15,20 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 	{
 		private readonly IShelterService _shelterService;
 		private readonly ILogger<ShelterController> _logger;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
 
-		public ShelterController(IShelterService shelterService, ILogger<ShelterController> logger)
+        public ShelterController
+			(
+				IShelterService shelterService, ILogger<ShelterController> logger,
+				IQueryFactory queryFactory, IBuilderFactory builderFactory
+            )
 		{
 			_shelterService = shelterService;
 			_logger = logger;
-		}
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+        }
 
 		/// <summary>
 		/// Query ζώων.
@@ -38,15 +48,19 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				IEnumerable<ShelterDto>? models = await _shelterService.QuerySheltersAsync(shelterLookup);
+                List<Data.Entities.Shelter> datas = await shelterLookup
+                                                        .EnrichLookup(_queryFactory)
+                                                        .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                                                        .CollectAsync();
 
-				if (models == null)
-				{
-					return NotFound();
-				}
+                List<ShelterDto> models = await _builderFactory.Builder<ShelterBuilder>()
+                                                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                                                    .BuildDto(datas, shelterLookup.Fields.ToList());
 
-				return Ok(models);
-			}
+                if (models == null) return NotFound();
+
+                return Ok(models);
+            }
 			catch (Exception e)
 			{
 				_logger.LogError(e, "Error καθώς κάναμε query shelters");
@@ -72,15 +86,22 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				ShelterDto? model = await _shelterService.Get(id, fields);
+                ShelterLookup lookup = new ShelterLookup();
 
-				if (model == null)
-				{
-					return NotFound();
-				}
+                // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+                lookup.Offset = 1;
+                // Γενική τιμή για τη λήψη των dtos
+                lookup.PageSize = 1;
+                lookup.Ids = [id];
+                lookup.Fields = fields;
 
-				return Ok(model);
-			}
+                ShelterDto model = (await _builderFactory.Builder<ShelterBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+
+                if (model == null) return NotFound();
+
+
+                return Ok(model);
+            }
 			catch (InvalidDataException e)
 			{
 				_logger.LogError(e, "Δεν βρέθηκε το καταφύγιο");

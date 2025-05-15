@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Middleware;
@@ -20,6 +21,7 @@ using Pawfect_Pet_Adoption_App_API.Services.Convention.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.ConversationServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.EmailServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices.Extention;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices.Extensions;
 using Pawfect_Pet_Adoption_App_API.Services.HttpServices.Extentions;
 using Pawfect_Pet_Adoption_App_API.Services.MessageServices.Extentions;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices.Extentions;
@@ -79,10 +81,11 @@ public class Program
 		AddConfigurationFiles(configBuilder, configurationPaths, "logging", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "aws", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "files", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "permissions", env);
 
 
-		// Load environment variables from 'environment.json'
-		foreach (String path in configurationPaths)
+        // Load environment variables from 'environment.json'
+        foreach (String path in configurationPaths)
 		{
 			String envFilePath = Path.Combine(path, "environment.json");
 			if (File.Exists(envFilePath))
@@ -140,6 +143,9 @@ public class Program
 		// Cors Configuration
 		builder.Services.Configure<CorsConfig>(builder.Configuration.GetSection("Cors"));
 
+        // HttpContextAccessor
+        builder.Services.AddHttpContextAccessor();
+
 		// Services
 		builder.Services
 		.AddQueryAndBuilderServices()
@@ -148,7 +154,7 @@ public class Program
 		.AddAnimalServices()
 		.AddAnimalTypeServices()
 		.AddBreedServices()
-		.AddAuthenticationServices(builder.Configuration.GetSection("Authentication"))
+		.AddAuthenticationServices(builder.Configuration.GetSection("Authentication"), builder.Configuration.GetSection("PermissionConfig"))
 		.AddConversationServices()
 		.AddEmailServices(builder.Configuration.GetSection("SendGrid"))
 		.AddHttpServices()
@@ -162,14 +168,41 @@ public class Program
 		.AddUserServices()
 		.AddConventionServices()
 		.AddAwsServices(builder.Configuration.GetSection("Aws"))
-		.AddFileServices(builder.Configuration.GetSection("Files"));
+		.AddFileServices(builder.Configuration.GetSection("Files"))
+		.AddFilterBuilderServices();
 
-		// HttpContextAccessor
-		builder.Services.AddHttpContextAccessor();
+        // Authorisation
+        builder.Services.AddAuthorization(options =>
+        {
+            // Permission-based policies
+            List<String> permissions = typeof(Permission).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                .Where(f => f.FieldType == typeof(String))
+                .Select(f => f.GetValue(null)?.ToString())
+                .Where(p => !String.IsNullOrEmpty(p))
+                .ToList();
 
+            foreach (String permission in permissions)
+            {
+                options.AddPolicy(permission, policy =>
+                    policy.RequireAssertion(context =>
+                    {
+                        using IServiceScope scope = context.Resource is IServiceProvider sp
+                            ? sp.CreateScope()
+                            : builder.Services.BuildServiceProvider().CreateScope();
+                        PermissionPolicyProvider permissionProvider = scope.ServiceProvider.GetRequiredService<PermissionPolicyProvider>();
+                        return permissionProvider.HasPermission(context.User, permission);
+                    }));
+            }
 
-		// CORS
-		List<String> allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<List<String>>() ?? new List<String>();
+            // Owned and Affiliated policies
+            options.AddPolicy("OwnedPolicy", policy =>
+                policy.AddRequirements(new OwnedRequirement(new OwnedResource(String.Empty))));
+            options.AddPolicy("AffiliatedPolicy", policy =>
+                policy.AddRequirements(new AffiliatedRequirement(new AffiliatedResource())));
+        });
+
+        // CORS
+        List<String> allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<List<String>>() ?? new List<String>();
 		builder.Services.AddCors(options =>
 		{
 			options.AddPolicy("Cors", policyBuilder =>

@@ -5,6 +5,7 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Message;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
@@ -14,33 +15,27 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 {
 	public class MessageService : IMessageService
 	{
-		private readonly MessageQuery _messageQuery;
-		private readonly MessageBuilder _messageBuilder;
 		private readonly IMessageRepository _messageRepository;
 		private readonly IMapper _mapper;
 		private readonly IConventionService _conventionService;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
 
-		public MessageService
+        public MessageService
 		(
-			MessageQuery messageQuery,
-			MessageBuilder messageBuilder,
 			IMessageRepository messageRepository,
 			IMapper mapper,
-			IConventionService conventionService
-		)
+			IConventionService conventionService,
+			IQueryFactory queryFactory,
+            IBuilderFactory builderFactory
+        )
 		{
-			_messageQuery = messageQuery;
-			_messageBuilder = messageBuilder;
 			_messageRepository = messageRepository;
 			_mapper = mapper;
 			_conventionService = conventionService;
-		}
-
-		public async Task<IEnumerable<MessageDto>> QueryMessagesAsync(MessageLookup messageLookup)
-		{
-			List<Message> queriedMessages = await messageLookup.EnrichLookup(_messageQuery).CollectAsync();
-			return await _messageBuilder.SetLookup(messageLookup).BuildDto(queriedMessages, messageLookup.Fields.ToList());
-		}
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+        }
 
 		public async Task<MessageDto?> Persist(MessagePersist persist, List<String> fields)
 		{
@@ -71,17 +66,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 			}
 
 			// Return dto model
-			MessageLookup lookup = new MessageLookup(_messageQuery);
+			MessageLookup lookup = new MessageLookup();
 			lookup.Ids = new List<String> { dataId };
 			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			return (
-					 await _messageBuilder.SetLookup(lookup)
-					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
-					).FirstOrDefault();
-		}
+            return (await _builderFactory.Builder<MessageBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+        }
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 

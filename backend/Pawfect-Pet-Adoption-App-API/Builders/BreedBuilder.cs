@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Breed;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
@@ -25,20 +27,20 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 	public class BreedBuilder : BaseBuilder<BreedDto, Breed>
 	{
-		private readonly AnimalTypeLookup _animalTypeLookup;
-		private readonly Lazy<IAnimalTypeService> _animalTypeService;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
 
-		public BreedBuilder(AnimalTypeLookup animalTypeLookup, Lazy<IAnimalTypeService> animalTypeService)
+		public BreedBuilder(IQueryFactory queryFactory, IBuilderFactory builderFactory)
 		{
-			_animalTypeLookup = animalTypeLookup;
-			_animalTypeService = animalTypeService;
+            this._queryFactory = queryFactory;
+            this._builderFactory = builderFactory;
 		}
 
-		// Ορίστε τις παραμέτρους αναζήτησης για τον κατασκευαστή
-		public override BaseBuilder<BreedDto, Breed> SetLookup(Lookup lookup) { base.LookupParams = lookup; return this; }
+        public AuthorizationFlags _authorise = AuthorizationFlags.None;
+        public BreedBuilder Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
 
-		// Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-		public override async Task<List<BreedDto>> BuildDto(List<Breed> entities, List<String> fields)
+        // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
+        public override async Task<List<BreedDto>> BuildDto(List<Breed> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
@@ -73,20 +75,23 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> animalTypeIds = breeds.Select(x => x.TypeId).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_animalTypeLookup.Offset = LookupParams.Offset;
-			// Γενική τιμή για τη λήψη των dtos
-			_animalTypeLookup.PageSize = LookupParams.PageSize;
-			_animalTypeLookup.SortDescending = LookupParams.SortDescending;
-			_animalTypeLookup.Query = null;
-			_animalTypeLookup.Ids = animalTypeIds;
-			_animalTypeLookup.Fields = animalTypeFields;
+            AnimalTypeLookup animalTypeLookup = new AnimalTypeLookup();
 
-			// Κατασκευή των dtos
-			List<AnimalTypeDto> animalTypeDtos = (await _animalTypeService.Value.QueryAnimalTypesAsync(_animalTypeLookup)).ToList();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            animalTypeLookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            animalTypeLookup.PageSize = 1000;
+            animalTypeLookup.Ids = animalTypeIds;
+            animalTypeLookup.Fields = animalTypeFields;
 
-			// Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ AssetTypeId -> AssetTypeDto ]
-			Dictionary<String, AnimalTypeDto> animalTypeDtoMap = animalTypeDtos.ToDictionary(x => x.Id);
+            List<Data.Entities.AnimalType> animalTypes = await animalTypeLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
+
+            List<AnimalTypeDto> animalTypeDtos = await _builderFactory.Builder<AnimalTypeBuilder>().Authorise(this._authorise).BuildDto(animalTypes, animalTypeFields);
+
+            if (animalTypeDtos == null || !animalTypeDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ AssetTypeId -> AssetTypeDto ]
+            Dictionary<String, AnimalTypeDto> animalTypeDtoMap = animalTypeDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα assets δημιουργώντας ένα Dictionary : [ AssetId -> AssetTypeId ] 
 			return breeds.ToDictionary(x => x.Id, x => animalTypeDtoMap[x.TypeId]);

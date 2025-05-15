@@ -5,6 +5,7 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Breed;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
@@ -14,33 +15,27 @@ namespace Pawfect_Pet_Adoption_App_API.Services.BreedServices
 {
 	public class BreedService : IBreedService
 	{
-		private readonly BreedQuery _breedQuery;
-		private readonly BreedBuilder _breedBuilder;
 		private readonly IBreedRepository _breedRepository;
 		private readonly IMapper _mapper;
 		private readonly IConventionService _conventionService;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
 
-		public BreedService
+        public BreedService
 		(
-			BreedQuery breedQuery,
-			BreedBuilder breedBuilder,
 			IBreedRepository breedRepository,
 			IMapper mapper,
-			IConventionService conventionService
-		)
+			IConventionService conventionService,
+			IQueryFactory queryFactory,
+            IBuilderFactory builderFactory
+        )
 		{
-			_breedQuery = breedQuery;
-			_breedBuilder = breedBuilder;
 			_breedRepository = breedRepository;
 			_mapper = mapper;
 			_conventionService = conventionService;
-		}
-
-		public async Task<IEnumerable<BreedDto>> QueryBreedsAsync(BreedLookup breedLookup)
-		{
-			List<Breed> queriedBreeds = await breedLookup.EnrichLookup(_breedQuery).CollectAsync();
-			return await _breedBuilder.SetLookup(breedLookup).BuildDto(queriedBreeds, breedLookup.Fields.ToList());
-		}
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+        }
 
 		public async Task<BreedDto?> Persist(BreedPersist persist, List<String> fields)
 		{
@@ -73,17 +68,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.BreedServices
 			}
 
 			// Return dto model
-			BreedLookup lookup = new BreedLookup(_breedQuery);
+			BreedLookup lookup = new BreedLookup();
 			lookup.Ids = new List<String> { dataId };
 			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			return (
-					 await _breedBuilder.SetLookup(lookup)
-					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
-					).FirstOrDefault();
-		}
+			return (await _builderFactory.Builder<BreedBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+        }
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 

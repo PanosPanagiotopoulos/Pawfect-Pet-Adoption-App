@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices;
+using System.Linq;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
@@ -13,12 +15,21 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 	{
 		private readonly IAdoptionApplicationService _adoptionApplicationService;
 		private readonly ILogger<AdoptionApplicationController> _logger;
+        private readonly IBuilderFactory _builderFactory;
+        private readonly IQueryFactory _queryFactory;
 
-		public AdoptionApplicationController(IAdoptionApplicationService adoptionApplicationService, ILogger<AdoptionApplicationController> logger)
+        public AdoptionApplicationController(
+			IAdoptionApplicationService adoptionApplicationService, ILogger<AdoptionApplicationController> logger,
+            IBuilderFactory builderFactory,	
+            IQueryFactory queryFactory
+
+            )
 		{
 			_adoptionApplicationService = adoptionApplicationService;
 			_logger = logger;
-		}
+            _builderFactory = builderFactory;
+            _queryFactory = queryFactory;
+        }
 
 		/// <summary>
 		/// Query adoptionApplications.
@@ -34,18 +45,21 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 			if (!ModelState.IsValid)
 			{
 				return BadRequest(ModelState);
-			}
-
-			try
+            }
+            try
 			{
-				IEnumerable<AdoptionApplicationDto>? adoptionApplications = await _adoptionApplicationService.QueryAdoptionApplicationsAsync(adoptionApplicationLookup);
+				List<Data.Entities.AdoptionApplication> datas = await adoptionApplicationLookup
+																	 .EnrichLookup(_queryFactory)
+																	 .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+																	 .CollectAsync();
 
-				if (adoptionApplications == null)
-				{
-					return NotFound();
-				}
+                List<AdoptionApplicationDto> models = await _builderFactory.Builder<AdoptionApplicationBuilder>()
+                                                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+													.BuildDto(datas, adoptionApplicationLookup.Fields.ToList());
 
-				return Ok(adoptionApplications);
+				if (models == null) return NotFound();
+
+				return Ok(models);
 			}
 			catch (Exception e)
 			{
@@ -72,14 +86,21 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				AdoptionApplicationDto? adoptionApplication = await _adoptionApplicationService.Get(id, fields);
+                AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
 
-				if (adoptionApplication == null)
-				{
-					return NotFound();
-				}
+                // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+                lookup.Offset = 1;
+                // Γενική τιμή για τη λήψη των dtos
+                lookup.PageSize = 1;
+                lookup.Ids = [id];
+                lookup.Fields = fields;
 
-				return Ok(adoptionApplication);
+                AdoptionApplicationDto model = (await _builderFactory.Builder<AdoptionApplicationBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+
+                if (model == null) return NotFound();
+				
+
+				return Ok(model);
 			}
 			catch (InvalidDataException e)
 			{

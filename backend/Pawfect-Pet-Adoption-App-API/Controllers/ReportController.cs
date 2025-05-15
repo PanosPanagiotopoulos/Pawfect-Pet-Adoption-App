@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.ReportServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -13,12 +15,19 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 	{
 		private readonly IReportService _reportService;
 		private readonly ILogger<ReportController> _logger;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
 
-		public ReportController(IReportService reportService, ILogger<ReportController> logger)
+        public ReportController(
+				IReportService reportService, ILogger<ReportController> logger,
+				IQueryFactory queryFactory, IBuilderFactory builderFactory
+            )
 		{
 			_reportService = reportService;
 			_logger = logger;
-		}
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+        }
 
 		/// <summary>
 		/// Query reports.
@@ -38,15 +47,19 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				IEnumerable<ReportDto>? models = await _reportService.QueryReportsAsync(reportLookup);
+                List<Data.Entities.Report> datas = await reportLookup
+                                                        .EnrichLookup(_queryFactory)
+                                                        .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                                                        .CollectAsync();
 
-				if (models == null)
-				{
-					return NotFound();
-				}
+                List<ReportDto> models = await _builderFactory.Builder<ReportBuilder>()
+                                                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                                                    .BuildDto(datas, reportLookup.Fields.ToList());
 
-				return Ok(models);
-			}
+                if (models == null) return NotFound();
+
+                return Ok(models);
+            }
 			catch (Exception e)
 			{
 				_logger.LogError(e, "Error καθώς κάναμε query reports");
@@ -72,15 +85,22 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				ReportDto? model = await _reportService.Get(id, fields);
+                ReportLookup lookup = new ReportLookup();
 
-				if (model == null)
-				{
-					return NotFound();
-				}
+                // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+                lookup.Offset = 1;
+                // Γενική τιμή για τη λήψη των dtos
+                lookup.PageSize = 1;
+                lookup.Ids = [id];
+                lookup.Fields = fields;
 
-				return Ok(model);
-			}
+                ReportDto model = (await _builderFactory.Builder<ReportBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+
+                if (model == null) return NotFound();
+
+
+                return Ok(model);
+            }
 			catch (InvalidDataException e)
 			{
 				_logger.LogError(e, "Δεν βρέθηκε αναφορά");

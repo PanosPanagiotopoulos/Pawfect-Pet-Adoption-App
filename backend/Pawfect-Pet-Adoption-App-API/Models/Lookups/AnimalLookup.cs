@@ -1,21 +1,12 @@
-﻿// FILE: Models/Lookups/AnimalLookup.cs
-namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
+﻿namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 {
     using Pawfect_Pet_Adoption_App_API.Data.Entities;
     using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+    using Pawfect_Pet_Adoption_App_API.Query;
     using Pawfect_Pet_Adoption_App_API.Query.Queries;
 
     public class AnimalLookup : Lookup
     {
-        private AnimalQuery _animalQuery { get; set; }
-
-        public AnimalLookup(AnimalQuery animalQuery)
-        {
-            _animalQuery = animalQuery;
-        }
-
-        public AnimalLookup() { }
-
         // Λίστα από IDs ζώων για φιλτράρισμα
         public List<String>? Ids { get; set; }
 
@@ -44,32 +35,29 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
         /// Εμπλουτίζει το AnimalQuery με τα φίλτρα και τις επιλογές του lookup.
         /// </summary>
         /// <returns>Το εμπλουτισμένο AnimalQuery.</returns>
-        public AnimalQuery EnrichLookup(AnimalQuery? toEnrichQuery = null)
+        public AnimalQuery EnrichLookup(IQueryFactory queryFactory)
         {
-            if (toEnrichQuery != null && _animalQuery == null)
-            {
-                _animalQuery = toEnrichQuery;
-            }
+            AnimalQuery animalQuery = queryFactory.Query<AnimalQuery>();
 
             // Προσθέτει τα φίλτρα στο AnimalQuery
-            _animalQuery.Ids = this.Ids;
-            _animalQuery.ShelterIds = this.ShelterIds;
-            _animalQuery.BreedIds = this.BreedIds;
-            _animalQuery.TypeIds = this.TypeIds;
-            _animalQuery.AdoptionStatuses = this.AdoptionStatuses;
-            _animalQuery.CreateFrom = this.CreateFrom;
-            _animalQuery.CreatedTill = this.CreatedTill;
-            _animalQuery.Query = this.Query;
+            animalQuery.Ids = this.Ids;
+            animalQuery.ShelterIds = this.ShelterIds;
+            animalQuery.BreedIds = this.BreedIds;
+            animalQuery.TypeIds = this.TypeIds;
+            animalQuery.AdoptionStatuses = this.AdoptionStatuses;
+            animalQuery.CreateFrom = this.CreateFrom;
+            animalQuery.CreatedTill = this.CreatedTill;
+            animalQuery.Query = this.Query;
 
             // Ορίζει επιπλέον επιλογές για το AnimalQuery
-            _animalQuery.PageSize = this.PageSize;
-            _animalQuery.Offset = this.Offset;
-            _animalQuery.SortDescending = this.SortDescending;
-            _animalQuery.Fields = _animalQuery.FieldNamesOf(this.Fields.ToList());
-            _animalQuery.SortBy = this.SortBy;
-            _animalQuery.ExcludedIds = this.ExcludedIds;
+            animalQuery.PageSize = this.PageSize;
+            animalQuery.Offset = this.Offset;
+            animalQuery.SortDescending = this.SortDescending;
+            animalQuery.Fields = animalQuery.FieldNamesOf(this.Fields.ToList());
+            animalQuery.SortBy = this.SortBy;
+            animalQuery.ExcludedIds = this.ExcludedIds;
 
-            return _animalQuery;
+            return animalQuery;
         }
 
         /// <summary>

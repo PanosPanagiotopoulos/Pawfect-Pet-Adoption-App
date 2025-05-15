@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Notification;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.NotificationServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -11,20 +12,28 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 	[Route("api/notifications")]
 	public class NotificationController : ControllerBase
 	{
-		private readonly INotificationService _notificationService;
-		private readonly ILogger<NotificationController> _logger;
+        private readonly INotificationService _notificationService;
+        private readonly ILogger<NotificationController> _logger;
+        private readonly IBuilderFactory _builderFactory;
+        private readonly IQueryFactory _queryFactory;
 
-		public NotificationController(INotificationService notificationService, ILogger<NotificationController> logger)
-		{
-			_notificationService = notificationService;
-			_logger = logger;
-		}
+        public NotificationController(
+            INotificationService notificationService,
+            ILogger<NotificationController> logger,
+            IBuilderFactory builderFactory,
+            IQueryFactory queryFactory)
+        {
+            _notificationService = notificationService;
+            _logger = logger;
+            _builderFactory = builderFactory;
+            _queryFactory = queryFactory;
+        }
 
-		/// <summary>
-		/// Query notifications.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
-		[HttpPost("query")]
+        /// <summary>
+        /// Query notifications.
+        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
+        /// </summary>
+        [HttpPost("query")]
 		[ProducesResponseType(200, Type = typeof(IEnumerable<NotificationDto>))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(404)]
@@ -38,15 +47,19 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				IEnumerable<NotificationDto>? notifications = await _notificationService.QueryNotificationsAsync(notificationLookup);
+                List<Data.Entities.Notification> datas = await notificationLookup
+                    .EnrichLookup(_queryFactory)
+                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                    .CollectAsync();
 
-				if (notifications == null)
-				{
-					return NotFound();
-				}
+                List<NotificationDto> models = await _builderFactory.Builder<NotificationBuilder>()
+                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                    .BuildDto(datas, notificationLookup.Fields.ToList());
 
-				return Ok(notifications);
-			}
+                if (models == null) return NotFound();
+
+                return Ok(models);
+            }
 			catch (Exception e)
 			{
 				_logger.LogError(e, "Error ενώ κάναμε query notifications");
@@ -72,15 +85,22 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				NotificationDto? notification = await _notificationService.Get(id, fields);
+                NotificationLookup lookup = new NotificationLookup
+                {
+                    Offset = 1,
+                    PageSize = 1,
+                    Ids = new List<String> { id },
+                    Fields = fields
+                };
 
-				if (notification == null)
-				{
-					return NotFound();
-				}
+                NotificationDto model = (await _builderFactory.Builder<NotificationBuilder>()
+                    .BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields))
+                    .FirstOrDefault();
 
-				return Ok(notification);
-			}
+                if (model == null) return NotFound();
+
+                return Ok(model);
+            }
 			catch (InvalidDataException e)
 			{
 				_logger.LogError(e, "Δεν βρέθηκε ειδοποίηση");

@@ -5,6 +5,7 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
@@ -15,35 +16,29 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 	public class AnimalTypeService : IAnimalTypeService
 	{
 		private readonly ILogger<AnimalTypeService> logger;
-		private readonly AnimalTypeQuery _animalTypeQuery;
-		private readonly AnimalTypeBuilder _animalTypeBuilder;
 		private readonly IAnimalTypeRepository _animalTypeRepository;
 		private readonly IConventionService _conventionService;
 		private readonly IMapper _mapper;
-		private readonly ILogger<AnimalTypeService> _logger;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
+        private readonly ILogger<AnimalTypeService> _logger;
 		public AnimalTypeService
 		(
 			ILogger<AnimalTypeService> logger,
-			AnimalTypeQuery animalTypeQuery,
-			AnimalTypeBuilder animalTypeBuilder,
 			IAnimalTypeRepository animalTypeRepository,
 			IConventionService conventionService,
-			IMapper mapper
-		)
+			IMapper mapper,
+			IQueryFactory queryFactory,
+            IBuilderFactory builderFactory
+        )
 		{
 			_logger = logger;
-			_animalTypeQuery = animalTypeQuery;
-			_animalTypeBuilder = animalTypeBuilder;
 			_animalTypeRepository = animalTypeRepository;
 			_conventionService = conventionService;
 			_mapper = mapper;
-		}
-
-		public async Task<IEnumerable<AnimalTypeDto>> QueryAnimalTypesAsync(AnimalTypeLookup animalTypeLookup)
-		{
-			List<AnimalType> queriedAnimalTypes = await animalTypeLookup.EnrichLookup(_animalTypeQuery).CollectAsync();
-			return await _animalTypeBuilder.SetLookup(animalTypeLookup).BuildDto(queriedAnimalTypes, animalTypeLookup.Fields.ToList());
-		}
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+        }
 
 		public async Task<AnimalTypeDto?> Persist(AnimalTypePersist persist, List<String> fields)
 		{
@@ -76,16 +71,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 			}
 
 			// Return dto model
-			AnimalTypeLookup lookup = new AnimalTypeLookup(_animalTypeQuery);
+			AnimalTypeLookup lookup = new AnimalTypeLookup();
 			lookup.Ids = new List<String> { dataId };
 			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			return (
-					 await _animalTypeBuilder.SetLookup(lookup)
-					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
-					).FirstOrDefault();
+			return (await _builderFactory.Builder<AnimalTypeBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
 		}
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }

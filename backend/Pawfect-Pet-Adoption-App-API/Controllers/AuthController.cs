@@ -23,21 +23,21 @@
 		private readonly IUserService _userService;
 		private readonly ILogger<AuthController> _logger;
 		private readonly JwtService _jwtService;
-		private readonly IAuthService _authService;
+		private readonly IAuthenticationService _authService;
 		private readonly IMapper _mapper;
 
-		public AuthController(
+        public AuthController(
 			IUserService userService, ILogger<AuthController> logger
-			, JwtService jwtService, IAuthService authService
+			, JwtService jwtService, IAuthenticationService authService
 			, IMapper mapper
-			)
+            )
 		{
 			_userService = userService;
 			_logger = logger;
 			_jwtService = jwtService;
 			_authService = authService;
 			_mapper = mapper;
-		}
+        }
 
 		/// <summary>
 		/// Συνάρτηση για την εκτέλεση σύνδεσης χρήστη
@@ -83,7 +83,7 @@
 					return Unauthorized("Ο χρήστης δεν έχει επιβεβαιώσει τα στοιχεία του αριθμού τηλεφώνου του.");
 				}
 
-				String? token = _jwtService.GenerateJwtToken(user.Id, user.Email, user.Role.ToString(), user.HasEmailVerified.ToString(), user.IsVerified.ToString());
+				String? token = _jwtService.GenerateJwtToken(user.Id, user.Email, new List<String>() { user.Role.ToString() }, user.HasEmailVerified.ToString(), user.IsVerified.ToString());
 				if (token == null)
 				{
 					// LOGS //
@@ -91,7 +91,7 @@
 					return RequestHandlerTool.HandleInternalServerError(new InvalidOperationException("Αποτυχία παραγωγής JWT Token"), "POST");
 				}
 
-				return Ok(new LoggedAccount() { Token = token, Email = user.Email, Phone = user.Phone, Role = user.Role, LoggedAt = DateTime.UtcNow, IsEmailVerified = user.HasEmailVerified, IsPhoneVerified = user.HasPhoneVerified, IsVerified = user.IsVerified });
+				return Ok(new LoggedAccount() { Token = token, Email = user.Email, Phone = user.Phone, Roles = new List<UserRole>() { user.Role }, LoggedAt = DateTime.UtcNow, IsEmailVerified = user.HasEmailVerified, IsPhoneVerified = user.HasPhoneVerified, IsVerified = user.IsVerified });
 			}
 			catch (Exception e)
 			{

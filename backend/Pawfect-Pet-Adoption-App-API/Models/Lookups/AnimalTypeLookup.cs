@@ -2,19 +2,11 @@
 namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 {
 	using Pawfect_Pet_Adoption_App_API.Data.Entities;
-	using Pawfect_Pet_Adoption_App_API.Query.Queries;
+    using Pawfect_Pet_Adoption_App_API.Query;
+    using Pawfect_Pet_Adoption_App_API.Query.Queries;
 
 	public class AnimalTypeLookup : Lookup
 	{
-		private AnimalTypeQuery _animalTypeQuery { get; set; }
-
-		public AnimalTypeLookup(AnimalTypeQuery animalTypeQuery)
-		{
-			_animalTypeQuery = animalTypeQuery;
-		}
-
-		public AnimalTypeLookup() { }
-
 		// Λίστα από IDs τύπων ζώων για φιλτράρισμα
 		public List<String>? Ids { get; set; }
 
@@ -28,27 +20,24 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 		/// Εμπλουτίζει το AnimalTypeQuery με τα φίλτρα και τις επιλογές του lookup.
 		/// </summary>
 		/// <returns>Το εμπλουτισμένο AnimalTypeQuery.</returns>
-		public AnimalTypeQuery EnrichLookup(AnimalTypeQuery toEnrichQuery = null)
+		public AnimalTypeQuery EnrichLookup(IQueryFactory queryFactory)
 		{
-			if (toEnrichQuery != null && _animalTypeQuery == null)
-			{
-				_animalTypeQuery = toEnrichQuery;
-			}
+			AnimalTypeQuery animalTypeQuery = queryFactory.Query<AnimalTypeQuery>();
 
 			// Προσθέτει τα φίλτρα στο AnimalTypeQuery
-			_animalTypeQuery.Ids = this.Ids;
-			_animalTypeQuery.Name = this.Name;
-			_animalTypeQuery.Query = this.Query;
+			animalTypeQuery.Ids = this.Ids;
+			animalTypeQuery.Name = this.Name;
+			animalTypeQuery.Query = this.Query;
 
 			// Ορίζει επιπλέον επιλογές για το AnimalTypeQuery
-			_animalTypeQuery.PageSize = this.PageSize;
-			_animalTypeQuery.Offset = this.Offset;
-			_animalTypeQuery.SortDescending = this.SortDescending;
-			_animalTypeQuery.Fields = _animalTypeQuery.FieldNamesOf(this.Fields.ToList());
-			_animalTypeQuery.SortBy = this.SortBy;
-			_animalTypeQuery.ExcludedIds = this.ExcludedIds;
+			animalTypeQuery.PageSize = this.PageSize;
+			animalTypeQuery.Offset = this.Offset;
+			animalTypeQuery.SortDescending = this.SortDescending;
+			animalTypeQuery.Fields = animalTypeQuery.FieldNamesOf(this.Fields.ToList());
+			animalTypeQuery.SortBy = this.SortBy;
+			animalTypeQuery.ExcludedIds = this.ExcludedIds;
 
-            return _animalTypeQuery;
+            return animalTypeQuery;
 		}
 
 		/// <summary>

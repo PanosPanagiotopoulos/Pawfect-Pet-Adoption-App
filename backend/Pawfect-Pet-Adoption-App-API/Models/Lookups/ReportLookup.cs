@@ -2,17 +2,11 @@
 {
 	using Pawfect_Pet_Adoption_App_API.Data.Entities;
 	using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-	using Pawfect_Pet_Adoption_App_API.Query.Queries;
+    using Pawfect_Pet_Adoption_App_API.Query;
+    using Pawfect_Pet_Adoption_App_API.Query.Queries;
 
 	public class ReportLookup : Lookup
 	{
-		private ReportQuery _reportQuery { get; set; }
-
-		public ReportLookup(ReportQuery reportQuery)
-		{
-			_reportQuery = reportQuery;
-		}
-
 		public ReportLookup() { }
 
 		// Λίστα με τα αναγνωριστικά των αναφορών
@@ -43,31 +37,29 @@
 		/// Εμπλουτίζει το ReportQuery με τα φίλτρα και τις επιλογές του lookup.
 		/// </summary>
 		/// <returns>Το εμπλουτισμένο ReportQuery.</returns>
-		public ReportQuery EnrichLookup(ReportQuery? toEnrichQuery = null)
+		public ReportQuery EnrichLookup(IQueryFactory queryFactory)
 		{
-			if (toEnrichQuery != null && _reportQuery == null)
-			{
-				_reportQuery = toEnrichQuery;
-			}
-			// Προσθέτει τα φίλτρα στο ReportQuery
-			_reportQuery.Ids = this.Ids;
-			_reportQuery.ReporteredIds = this.ReporteredIds;
-			_reportQuery.ReportedIds = this.ReportedIds;
-			_reportQuery.ReportTypes = this.ReportTypes;
-			_reportQuery.ReportStatus = this.ReportStatus;
-			_reportQuery.CreateFrom = this.CreateFrom;
-			_reportQuery.CreatedTill = this.CreatedTill;
-			_reportQuery.Query = this.Query;
+			ReportQuery reportQuery = queryFactory.Query<ReportQuery>();
+
+            // Προσθέτει τα φίλτρα στο ReportQuery
+            reportQuery.Ids = this.Ids;
+			reportQuery.ReporteredIds = this.ReporteredIds;
+			reportQuery.ReportedIds = this.ReportedIds;
+			reportQuery.ReportTypes = this.ReportTypes;
+			reportQuery.ReportStatus = this.ReportStatus;
+			reportQuery.CreateFrom = this.CreateFrom;
+			reportQuery.CreatedTill = this.CreatedTill;
+			reportQuery.Query = this.Query;
 
 			// Ορίζει επιπλέον επιλογές για το ReportQuery
-			_reportQuery.PageSize = this.PageSize;
-			_reportQuery.Offset = this.Offset;
-			_reportQuery.SortDescending = this.SortDescending;
-			_reportQuery.Fields = _reportQuery.FieldNamesOf(this.Fields.ToList());
-			_reportQuery.SortBy = this.SortBy;
-			_reportQuery.ExcludedIds = this.ExcludedIds;
+			reportQuery.PageSize = this.PageSize;
+			reportQuery.Offset = this.Offset;
+			reportQuery.SortDescending = this.SortDescending;
+			reportQuery.Fields = reportQuery.FieldNamesOf([.. this.Fields]);
+			reportQuery.SortBy = this.SortBy;
+			reportQuery.ExcludedIds = this.ExcludedIds;
 
-            return _reportQuery;
+            return reportQuery;
 		}
 
 		/// <summary>

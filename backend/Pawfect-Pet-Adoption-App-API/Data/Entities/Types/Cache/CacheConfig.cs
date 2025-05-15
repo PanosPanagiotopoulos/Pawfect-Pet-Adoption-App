@@ -3,5 +3,7 @@
 	public class CacheConfig
 	{
 		public int TokensCacheTime { get; set; }
-	}
+        public int PermissionCacheTime { get; set; }
+
+    }
 }

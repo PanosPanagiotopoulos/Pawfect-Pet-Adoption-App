@@ -1,8 +1,9 @@
-﻿// FILE: Query/Queries/AnimalTypeQuery.cs
+﻿
 using MongoDB.Bson;
 using MongoDB.Driver;
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
@@ -27,9 +28,12 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
         // Ονομασία τύπων ζώων για φιλτράρισμα
         public String? Name { get; set; }
 
-		// Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
-		// Έξοδος: FilterDefinition<AnimalType> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-		protected override Task<FilterDefinition<AnimalType>> ApplyFilters()
+        private AuthorizationFlags _authorise = AuthorizationFlags.None;
+        public AnimalTypeQuery Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
+
+        // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
+        // Έξοδος: FilterDefinition<AnimalType> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
+        public override Task<FilterDefinition<AnimalType>> ApplyFilters()
 		{
 			FilterDefinitionBuilder<AnimalType> builder = Builders<AnimalType>.Filter;
 			FilterDefinition<AnimalType> filter = builder.Empty;

@@ -9,8 +9,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		Task<List<FileDto>> Persist(List<FilePersist> persist, List<String> fields);
 		Task<FileDto> SaveTemporarily(TempMediaFile tempMediaFile);
 		Task<IEnumerable<FileDto>> SaveTemporarily(List<TempMediaFile> tempMediaFiles);
-		Task<FileDto> Get(String id, List<String> fields);
-		Task<IEnumerable<FileDto>> QueryFilesAsync(FileLookup fileLookup);
 		Task Delete(String id);
 		Task Delete(List<String> ids);
 	}

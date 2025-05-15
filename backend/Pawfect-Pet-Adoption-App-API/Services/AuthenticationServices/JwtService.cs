@@ -1,162 +1,181 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
-
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-
 using System.Text;
+using System.Collections.Generic;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 {
-	/// <summary>
-	/// Μοναδική (singleton) υπηρεσία για τη διαχείριση του authentication
-	/// </summary>
-	public class JwtService
-	{
-		/// <summary>
-		/// Η διαμόρφωση της εφαρμογής (ρυθμίσεις από appsettings.json)
-		/// </summary>
-		private readonly JwtConfig _jwtConfiguration;
-		private readonly CacheConfig _cacheConfiguration;
-		private readonly ILogger<JwtService> _logger;
-		private readonly IMemoryCache _memoryCache;
+    /// <summary>
+    /// Μοναδική (singleton) υπηρεσία για τη διαχείριση του authentication
+    /// </summary>
+    public class JwtService
+    {
+        /// <summary>
+        /// Η διαμόρφωση της εφαρμογής (ρυθμίσεις από appsettings.json)
+        /// </summary>
+        private readonly JwtConfig _jwtConfiguration;
+        private readonly CacheConfig _cacheConfiguration;
+        private readonly ILogger<JwtService> _logger;
+        private readonly IMemoryCache _memoryCache;
 
-		public JwtService
-		(
-			IOptions<JwtConfig> jwtConfiguration,
-			IOptions<CacheConfig> cacheConfiguration,
-			ILogger<JwtService> logger,
-			IMemoryCache memoryCache
-		)
-		{
-			_jwtConfiguration = jwtConfiguration.Value;
-			_cacheConfiguration = cacheConfiguration.Value;
-			_logger = logger;
-			_memoryCache = memoryCache;
-		}
+        public JwtService(
+            IOptions<JwtConfig> jwtConfiguration,
+            IOptions<CacheConfig> cacheConfiguration,
+            ILogger<JwtService> logger,
+            IMemoryCache memoryCache)
+        {
+            _jwtConfiguration = jwtConfiguration.Value;
+            _cacheConfiguration = cacheConfiguration.Value;
+            _logger = logger;
+            _memoryCache = memoryCache;
+        }
 
-		/// <summary>
-		/// Δημιουργεί το JWT token.
-		/// </summary>
-		/// <param name="userId">Το μοναδικό αναγνωριστικό του χρήστη.</param>
-		/// <param name="email">Το email του χρήστη.</param>
-		/// <param name="role">Ο ρόλος του χρήστη.</param>
-		/// <returns>Ένα JWT token σε μορφή String</returns>
-		public String? GenerateJwtToken(String userId, String email, String role, String isEmailVerified, String isVerified)
-		{
-			String? issuer = _jwtConfiguration.Issuer; // Εκδότης του token
-			List<String>? audiences = _jwtConfiguration.Audiences; // Αποδέκτης του token
-			String? jwtKey = _jwtConfiguration.Key; // Μυστικό Κλειδί JWT token
+        /// <summary>
+        /// Δημιουργεί το JWT token.
+        /// </summary>
+        /// <param name="userId">Το μοναδικό αναγνωριστικό του χρήστη.</param>
+        /// <param name="email">Το email του χρήστη.</param>
+        /// <param name="roles">Η λίστα των ρόλων του χρήστη.</param>
+        /// <param name="affiliatedRoles">Η λίστα των συνδεδεμένων ρόλων του χρήστη.</param>
+        /// <param name="isEmailVerified">Flag επιβεβαίωσης email.</param>
+        /// <param name="isVerified">Flag επιβεβαίωσης χρήστη.</param>
+        /// <returns>Ένα JWT token σε μορφή String ή null αν αποτύχει.</returns>
+        public String? GenerateJwtToken(String userId, String email, List<String> roles, String isEmailVerified, String isVerified)
+        {
+            String? issuer = _jwtConfiguration.Issuer;
+            List<String>? audiences = _jwtConfiguration.Audiences;
+            String? jwtKey = _jwtConfiguration.Key;
 
-			if (String.IsNullOrEmpty(issuer) || audiences == null || !audiences.Any() || String.IsNullOrEmpty(jwtKey))
-			{
-				// LOGS //
-				_logger.LogError("Δεν βρέθηκε configuration για τον εκδότη ή τον αποδέκτη του JWT ή του μυστικού κλειδιού JWT");
-				return null;
-			}
+            if (String.IsNullOrEmpty(issuer) || audiences == null || !audiences.Any() || String.IsNullOrEmpty(jwtKey))
+            {
+                _logger.LogError("Δεν βρέθηκε configuration για τον εκδότη, τον αποδέκτη ή το μυστικό κλειδί του JWT.");
+                return null;
+            }
 
-			// Δημιουργεί τις απαιτούμενες δηλώσεις (claims) για το JWT
-			List<Claim> claims = new List<Claim>
-		{
-			new Claim(JwtRegisteredClaimNames.NameId, userId), // Αναγνωριστικό χρήστη
-            new Claim(JwtRegisteredClaimNames.Email, email), // Email χρήστη
-			new Claim("isEmailVerified", isEmailVerified), // Flag επιβεβαιωσης χρηστη
-			new Claim("isVerified", isVerified), // Flag επιβεβαιωσης χρηστη
-			new Claim("Role", role), // Ρόλος χρήστη
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique Id του token 
-        };
+            if (String.IsNullOrEmpty(userId) || String.IsNullOrEmpty(email))
+            {
+                _logger.LogError("Το userId ή το email είναι κενό ή null.");
+                return null;
+            }
 
-			// Δημιουργεί το κλειδί ασφαλείας από τις ρυθμίσεις
-			SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-			// Ορίζει την κρυπτογράφηση HMAC-SHA256
-			SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            if (roles == null || !roles.Any())
+            {
+                _logger.LogError("Η λίστα των ρόλων είναι κενή ή null για το userId: {UserId}.", userId);
+                return null;
+            }
+           
+            // Δημιουργεί τις απαιτούμενες δηλώσεις (claims) για το JWT
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.NameId, userId),
+                new Claim(JwtRegisteredClaimNames.Email, email),
+                new Claim("isEmailVerified", isEmailVerified),
+                new Claim("isVerified", isVerified),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
-			// Add multiple audiences as a custom claim
-			foreach (String audience in audiences)
-			{
-				claims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
-			}
+            // Add multiple roles as individual claims
+            foreach (String role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
-			// Δημιουργεί το JWT token
-			JwtSecurityToken token = new JwtSecurityToken(
-				issuer: issuer,
-				claims: claims, // Δηλώσεις που περιλαμβάνονται στο token
-				expires: DateTime.UtcNow.AddMinutes(_cacheConfiguration.TokensCacheTime), // Λήξη του token (σε 1 ώρα)
-				signingCredentials: creds // Διαπιστευτήρια κρυπτογράφησης
-			);
+            // Add multiple audiences as individual claims
+            foreach (String audience in audiences)
+            {
+                claims.Add(new Claim(JwtRegisteredClaimNames.Aud, audience));
+            }
 
-			// Επιστρέφει το token σε μορφή String
-			return new JwtSecurityTokenHandler().WriteToken(token);
-		}
+            // Δημιουργεί το κλειδί ασφαλείας από τις ρυθμίσεις
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-		/// <summary>
-		/// Ακυρώνει το token.
-		/// </summary>
-		/// <param name="tokenId">Το μοναδικό αναγνωριστικό του token.</param>
-		/// <param name="expiration">Η ημερομηνία λήξης του token.</param>
-		public void RevokeToken(String tokenId, DateTime expiration)
-		{
-			TimeSpan relativeExpiration = expiration - DateTime.UtcNow;
+            // Δημιουργεί το JWT token
+            JwtSecurityToken token = new JwtSecurityToken(
+                issuer: issuer,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(_cacheConfiguration.TokensCacheTime),
+                signingCredentials: creds
+            );
 
-			if (relativeExpiration <= TimeSpan.Zero)
-			{
-				// LOGS //
-				_logger.LogError("Attempted to revoke a token that has already expired. TokenId: {TokenId}", tokenId);
-				return;
-			}
+            String jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
-			_memoryCache.Set(tokenId, true, relativeExpiration);
-		}
+            return jwtToken;
+        }
 
-		/// <summary>
-		/// Ελέγχει εάν το token έχει ακυρωθεί.
-		/// </summary>
-		/// <param name="tokenId">Το μοναδικό αναγνωριστικό του token.</param>
-		/// <returns>Επιστρέφει true εάν το token έχει ακυρωθεί, αλλιώς false.</returns>
-		public Boolean IsTokenRevoked(String tokenId)
-		{
-			return _memoryCache.TryGetValue(tokenId, out _);
-		}
+        /// <summary>
+        /// Ακυρώνει το token.
+        /// </summary>
+        /// <param name="tokenId">Το μοναδικό αναγνωριστικό του token.</param>
+        /// <param name="expiration">Η ημερομηνία λήξης του token.</param>
+        public void RevokeToken(String tokenId, DateTime expiration)
+        {
+            TimeSpan relativeExpiration = expiration - DateTime.UtcNow;
 
-		/// <summary>
-		/// Δημιουργεί το μυστικό κλειδί (secret key) για το JWT χρησιμοποιώντας έναν τυχαίο αλγόριθμο.
-		/// </summary>
-		/// <returns>Μυστικό κλειδί σε μορφή Base64 String</returns>
-		private String GenerateJwtSecretKey()
-		{
-			// Δημιουργεί ένα κλειδί 256-bit (32 bytes)
-			byte[] key = new byte[32];
-			RandomNumberGenerator.Fill(key); // Γεμίζει το κλειδί με τυχαία δεδομένα
+            if (relativeExpiration <= TimeSpan.Zero)
+            {
+                _logger.LogError("Attempted to revoke a token that has already expired. TokenId: {TokenId}", tokenId);
+                return;
+            }
 
-			// Επιστρέφει το κλειδί σε μορφή Base64 String
-			return Convert.ToBase64String(key);
-		}
+            _memoryCache.Set(tokenId, true, relativeExpiration);
+            _logger.LogInformation("Ακυρώθηκε το token με TokenId: {TokenId}.", tokenId);
+        }
 
-		public static JwtConfig GetJwtSettings(IConfiguration configuration)
-		{
-			JwtConfig? jwtSettings = configuration.GetSection("Jwt").Get<JwtConfig>();
+        /// <summary>
+        /// Ελέγχει εάν το token έχει ακυρωθεί.
+        /// </summary>
+        /// <param name="tokenId">Το μοναδικό αναγνωριστικό του token.</param>
+        /// <returns>Επιστρέφει true εάν το token έχει ακυρωθεί, αλλιώς false.</returns>
+        public Boolean IsTokenRevoked(String tokenId)
+        {
+            Boolean isRevoked = _memoryCache.TryGetValue(tokenId, out _);
+            if (isRevoked)
+            {
+                _logger.LogWarning("Το token με TokenId: {TokenId} έχει ακυρωθεί.", tokenId);
+            }
+            return isRevoked;
+        }
 
-			if (String.IsNullOrEmpty(jwtSettings.Key))
-			{
-				throw new ArgumentException("JWT Key δεν βρεθηκε.");
-			}
+        /// <summary>
+        /// Δημιουργεί το μυστικό κλειδί (secret key) για το JWT χρησιμοποιώντας έναν τυχαίο αλγόριθμο.
+        /// </summary>
+        /// <returns>Μυστικό κλειδί σε μορφή Base64 String</returns>
+        private String GenerateJwtSecretKey()
+        {
+            byte[] key = new byte[32];
+            RandomNumberGenerator.Fill(key);
+            String secretKey = Convert.ToBase64String(key);
+            _logger.LogInformation("Δημιουργήθηκε νέο μυστικό κλειδί JWT.");
+            return secretKey;
+        }
 
-			if (String.IsNullOrEmpty(jwtSettings.Issuer))
-			{
-				throw new ArgumentException("JWT Issuer δεν βρεθηκε.");
-			}
+        public static JwtConfig GetJwtSettings(IConfiguration configuration)
+        {
+            JwtConfig? jwtSettings = configuration.GetSection("Jwt").Get<JwtConfig>();
 
-			if (jwtSettings.Audiences == null || !jwtSettings.Audiences.Any())
-			{
-				throw new ArgumentException("JWT audiencess δεν βρεθηκε.");
-			}
+            if (String.IsNullOrEmpty(jwtSettings.Key))
+            {
+                throw new ArgumentException("JWT Key δεν βρέθηκε.");
+            }
 
-			return jwtSettings;
-		}
-	}
+            if (String.IsNullOrEmpty(jwtSettings.Issuer))
+            {
+                throw new ArgumentException("JWT Issuer δεν βρέθηκε.");
+            }
+
+            if (jwtSettings.Audiences == null || !jwtSettings.Audiences.Any())
+            {
+                throw new ArgumentException("JWT audiences δεν βρέθηκαν.");
+            }
+
+            return jwtSettings;
+        }
+    }
 }

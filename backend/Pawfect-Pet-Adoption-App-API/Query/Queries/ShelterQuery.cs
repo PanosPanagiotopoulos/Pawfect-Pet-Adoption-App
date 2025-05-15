@@ -3,6 +3,7 @@ using MongoDB.Driver;
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
@@ -33,9 +34,13 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		// Λίστα με τα IDs των admin που επιβεβαίωσαν για φιλτράρισμα
 		public List<String>? VerifiedBy { get; set; }
 
-		// Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
-		// Έξοδος: FilterDefinition<Shelter> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-		protected override Task<FilterDefinition<Shelter>> ApplyFilters()
+        private AuthorizationFlags _authorise = AuthorizationFlags.None;
+
+        public ShelterQuery Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
+
+        // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
+        // Έξοδος: FilterDefinition<Shelter> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
+        public override Task<FilterDefinition<Shelter>> ApplyFilters()
 		{
 			FilterDefinitionBuilder<Shelter> builder = Builders<Shelter>.Filter;
 			FilterDefinition<Shelter> filter = builder.Empty;

@@ -2,19 +2,11 @@
 {
     using Pawfect_Pet_Adoption_App_API.Data.Entities;
     using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+    using Pawfect_Pet_Adoption_App_API.Query;
     using Pawfect_Pet_Adoption_App_API.Query.Queries;
 
     public class UserLookup : Lookup
     {
-        private UserQuery _userQuery { get; set; }
-
-        public UserLookup(UserQuery userQuery)
-        {
-            _userQuery = userQuery;
-        }
-        public UserLookup() { }
-
-
         // Λίστα με τα αναγνωριστικά των χρηστών
         public List<String>? Ids { get; set; }
 
@@ -44,33 +36,30 @@
         /// Εμπλουτίζει το UserQuery με τα φίλτρα και τις επιλογές του lookup.
         /// </summary>
         /// <returns>Το εμπλουτισμένο UserQuery.</returns>
-        public UserQuery EnrichLookup(UserQuery? toEnrichQuery = null)
+        public UserQuery EnrichLookup(IQueryFactory queryFactory)
         {
-            if (toEnrichQuery != null && _userQuery == null)
-            {
-                _userQuery = toEnrichQuery;
-            }
+            UserQuery userQuery = queryFactory.Query<UserQuery>();
 
             // Προσθέτει τα φίλτρα στο UserQuery
-            _userQuery.Ids = this.Ids;
-            _userQuery.ShelterIds = this.ShelterIds;
-            _userQuery.FullNames = this.FullNames;
-            _userQuery.Roles = this.Roles;
-            _userQuery.Cities = this.Cities;
-            _userQuery.Zipcodes = this.Zipcodes;
-            _userQuery.CreatedFrom = this.CreatedFrom;
-            _userQuery.CreatedTill = this.CreatedTill;
-            _userQuery.Query = this.Query;
+            userQuery.Ids = this.Ids;
+            userQuery.ShelterIds = this.ShelterIds;
+            userQuery.FullNames = this.FullNames;
+            userQuery.Roles = this.Roles;
+            userQuery.Cities = this.Cities;
+            userQuery.Zipcodes = this.Zipcodes;
+            userQuery.CreatedFrom = this.CreatedFrom;
+            userQuery.CreatedTill = this.CreatedTill;
+            userQuery.Query = this.Query;
 
             // Ορίζει επιπλέον επιλογές για το UserQuery
-            _userQuery.PageSize = this.PageSize;
-            _userQuery.Offset = this.Offset;
-            _userQuery.SortDescending = this.SortDescending;
-            _userQuery.Fields = _userQuery.FieldNamesOf(this.Fields.ToList());
-            _userQuery.SortBy = this.SortBy;
-            _userQuery.ExcludedIds = this.ExcludedIds;
+            userQuery.PageSize = this.PageSize;
+            userQuery.Offset = this.Offset;
+            userQuery.SortDescending = this.SortDescending;
+            userQuery.Fields = userQuery.FieldNamesOf(this.Fields.ToList());
+            userQuery.SortBy = this.SortBy;
+            userQuery.ExcludedIds = this.ExcludedIds;
 
-            return _userQuery;
+            return userQuery;
         }
 
         /// <summary>

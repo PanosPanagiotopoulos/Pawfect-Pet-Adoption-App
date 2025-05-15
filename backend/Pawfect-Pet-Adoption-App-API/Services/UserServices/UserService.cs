@@ -18,8 +18,8 @@ using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.EmailServices;
@@ -32,7 +32,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 {
 	public class UserService : IUserService
 	{
-		private readonly IUserRepository _userRepository;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
+        private readonly IUserRepository _userRepository;
 		private readonly IMapper _mapper;
 		private readonly ILogger<UserService> _logger;
 		private readonly IMemoryCache _memoryCache;
@@ -40,32 +42,28 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		private readonly IEmailService _emailService;
 		private readonly RequestService _requestService;
 		private readonly CacheConfig _cacheConfig;
-		private readonly UserQuery _userQuery;
-		private readonly UserBuilder _userBuilder;
 		private readonly Lazy<IShelterService> _shelterService;
-		private readonly ShelterQuery _shelterQuery;
-		private readonly IAuthService _authService;
-		private readonly FileQuery _fileQuery;
+		private readonly IAuthenticationService _authService;
 		private readonly Lazy<IFileService> _fileService;
 
 		public UserService
 		(
-			IUserRepository userRepository, IMapper mapper,
+			IQueryFactory queryFactory,
+            IBuilderFactory builderFactory,
+            IUserRepository userRepository, IMapper mapper,
 			ILogger<UserService> logger, IMemoryCache memoryCache,
 			ISmsService smsService, IEmailService emailService,
 			RequestService requestService,
 			IOptions<CacheConfig> configuration,
-			UserQuery userQuery,
-			UserBuilder userBuilder,
 			Lazy<IShelterService> shelterService,
-			ShelterQuery shelterQuery,
-			IAuthService authService,
-			FileQuery fileQuery,
+			IAuthenticationService authService,
 			Lazy<IFileService> fileService
 			
 		)
 		{
-			_userRepository = userRepository;
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+            _userRepository = userRepository;
 			_mapper = mapper;
 			_logger = logger;
 			_memoryCache = memoryCache;
@@ -73,12 +71,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			_emailService = emailService;
 			_requestService = requestService;
 			_cacheConfig = configuration.Value;
-			_userQuery = userQuery;
-			_userBuilder = userBuilder;
 			_shelterService = shelterService;
-			_shelterQuery = shelterQuery;
 			_authService = authService;
-			_fileQuery = fileQuery;
 			_fileService = fileService;
 		}
 
@@ -133,13 +127,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			if (emptyNewPhoto) return;
 
 			
-			FileLookup lookup = new FileLookup(_fileQuery);
+			FileLookup lookup = new FileLookup();
 			lookup.Ids = new List<String>() { profilePhoto };
 			lookup.Fields = new List<String> { "*" };
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			Data.Entities.File profilePhotoFile = (await lookup.EnrichLookup().CollectAsync()).FirstOrDefault();
+			Data.Entities.File profilePhotoFile = (await lookup.EnrichLookup(_queryFactory).CollectAsync()).FirstOrDefault();
 			if (profilePhotoFile == null)
 			{
 				_logger.LogError("Failed to saved attached files. No return from query");
@@ -513,14 +507,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				if (buildDto)
 				{
 					// Return dto model
-					UserLookup lookup = new UserLookup(_userQuery);
+					UserLookup lookup = new UserLookup();
 					lookup.Ids = new List<String> { workingUser.Id };
 					lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
 					lookup.Offset = 0;
 					lookup.PageSize = 1;
 
-					persisted = (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
-				}
+					persisted = (await _builderFactory.Builder<UserBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [..lookup.Fields])).FirstOrDefault();
+                }
 
 				return persisted;
 			}
@@ -584,15 +578,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				if (buildDto)
 				{
 					// Return dto model
-					UserLookup lookup = new UserLookup(_userQuery);
+					UserLookup lookup = new UserLookup();
 					lookup.Ids = new List<String> { workingUser.Id };
 					lookup.Fields = buildFields ?? new List<String> { "*", nameof(Shelter) + ".*" };
 					lookup.Offset = 0;
 					lookup.PageSize = 1;
 
 
-					persisted = (await _userBuilder.SetLookup(lookup).BuildDto(new List<User>() { workingUser }, lookup.Fields.ToList())).FirstOrDefault();
-				}
+                    persisted = (await _builderFactory.Builder<UserBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [.. lookup.Fields])).FirstOrDefault();
+                }
 
 				return persisted;
 			}
@@ -642,28 +636,22 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 		}
 
-		public async Task<IEnumerable<UserDto>> QueryUsersAsync(UserLookup userLookup)
-		{
-			List<User> queriedUsers = await userLookup.EnrichLookup(_userQuery).CollectAsync();
-			return await _userBuilder.SetLookup(userLookup).BuildDto(queriedUsers, userLookup.Fields.ToList());
-		}
-
 		public async Task<UserDto?> Get(String id, List<String> fields)
 		{
-			UserLookup lookup = new UserLookup(_userQuery);
+			UserLookup lookup = new UserLookup();
 			lookup.Ids = new List<String> { id };
 			lookup.Fields = fields;
 			lookup.PageSize = 1;
 			lookup.Offset = 0;
 
-			List<User> user = await lookup.EnrichLookup().CollectAsync();
+			List<User> user = await lookup.EnrichLookup(_queryFactory).CollectAsync();
 
 			if (user == null)
 			{
 				throw new InvalidDataException("Δεν βρέθηκε χρήστης με αυτό το ID");
 			}
 
-			return (await _userBuilder.SetLookup(lookup).BuildDto(user, fields)).FirstOrDefault();
+			return (await _builderFactory.Builder<UserBuilder>().Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation).BuildDto(user, fields)).FirstOrDefault();
 		}
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
@@ -671,13 +659,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		public async Task Delete(List<String> ids)
 		{
 			// TODO : Authorization
-			ShelterLookup sLookup = new ShelterLookup(_shelterQuery);
+			ShelterLookup sLookup = new ShelterLookup();
 			sLookup.UserIds = ids;
 			sLookup.Fields = new List<String> { nameof(ShelterDto.Id) };
 			sLookup.Offset = 0;
 			sLookup.PageSize = 10000;
 
-			List<Shelter> animals = await sLookup.EnrichLookup().CollectAsync();
+			List<Shelter> animals = await sLookup.EnrichLookup(_queryFactory).CollectAsync();
 			await _shelterService.Value.Delete(animals?.Select(x => x.Id).ToList());
 
 			await _userRepository.DeleteAsync(ids);

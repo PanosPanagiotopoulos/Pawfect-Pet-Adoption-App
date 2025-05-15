@@ -1,21 +1,11 @@
 ﻿namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 {
     using Pawfect_Pet_Adoption_App_API.Data.Entities;
+    using Pawfect_Pet_Adoption_App_API.Query;
     using Pawfect_Pet_Adoption_App_API.Query.Queries;
 
     public class ConversationLookup : Lookup
     {
-        private ConversationQuery _conversationQuery { get; set; }
-
-        // Constructor για την κλάση ConversationLookup
-        // Είσοδος: conversationQuery - μια έκδοση της κλάσης ConversationQuery
-        public ConversationLookup(ConversationQuery conversationQuery)
-        {
-            _conversationQuery = conversationQuery;
-        }
-
-        public ConversationLookup() { }
-
         // Λίστα με τα IDs των συνομιλιών
         public List<String>? Ids { get; set; }
 
@@ -36,30 +26,27 @@
 
         // Εμπλουτίζει το ConversationQuery με τα φίλτρα και τις επιλογές του lookup
         // Έξοδος: Το εμπλουτισμένο ConversationQuery
-        public ConversationQuery EnrichLookup(ConversationQuery? toEnrichQuery = null)
+        public ConversationQuery EnrichLookup(IQueryFactory queryFactory)
         {
-            if (_conversationQuery == null && toEnrichQuery != null)
-            {
-                _conversationQuery = toEnrichQuery;
-            }
+            ConversationQuery conversationQuery = queryFactory.Query<ConversationQuery>();
 
             // Προσθέτει φίλτρα στο ConversationQuery
-            _conversationQuery.Ids = this.Ids;
-            _conversationQuery.UserIds = this.UserIds;
-            _conversationQuery.AnimalIds = this.AnimalIds;
-            _conversationQuery.CreateFrom = this.CreateFrom;
-            _conversationQuery.CreatedTill = this.CreatedTill;
-            _conversationQuery.Query = this.Query;
+            conversationQuery.Ids = this.Ids;
+            conversationQuery.UserIds = this.UserIds;
+            conversationQuery.AnimalIds = this.AnimalIds;
+            conversationQuery.CreateFrom = this.CreateFrom;
+            conversationQuery.CreatedTill = this.CreatedTill;
+            conversationQuery.Query = this.Query;
 
             // Ορίζει επιπλέον επιλογές για το ConversationQuery
-            _conversationQuery.PageSize = this.PageSize;
-            _conversationQuery.Offset = this.Offset;
-            _conversationQuery.SortDescending = this.SortDescending;
-            _conversationQuery.Fields = _conversationQuery.FieldNamesOf(this.Fields.ToList());
-            _conversationQuery.SortBy = this.SortBy;
-            _conversationQuery.ExcludedIds = this.ExcludedIds;
+            conversationQuery.PageSize = this.PageSize;
+            conversationQuery.Offset = this.Offset;
+            conversationQuery.SortDescending = this.SortDescending;
+            conversationQuery.Fields = conversationQuery.FieldNamesOf(this.Fields.ToList());
+            conversationQuery.SortBy = this.SortBy;
+            conversationQuery.ExcludedIds = this.ExcludedIds;
 
-            return _conversationQuery;
+            return conversationQuery;
         }
 
         // Επιστρέφει τον τύπο οντότητας του ConversationLookup

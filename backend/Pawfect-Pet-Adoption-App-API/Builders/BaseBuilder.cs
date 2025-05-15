@@ -5,12 +5,8 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 {
 	public abstract class BaseBuilder<M, E>
 	{
-		protected Lookup LookupParams { get; set; }
-
-		public abstract BaseBuilder<M, E> SetLookup(Lookup lookup);
-
 		public abstract Task<List<M>> BuildDto(List<E> entities, List<String> fields);
-		protected virtual (List<String>, Dictionary<String, List<String>>) ExtractBuildFields(List<String> fields)
+		public virtual (List<String>, Dictionary<String, List<String>>) ExtractBuildFields(List<String> fields)
 		{
 			// 1) Πάρτε τα πεδία του entity που πρέπει να είναι στη λίστα fields
 			List<String> entityProperties = EntityHelper.GetAllPropertyNames(typeof(E)).ToList();

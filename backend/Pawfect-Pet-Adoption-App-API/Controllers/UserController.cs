@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -13,12 +15,21 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 	{
 		private readonly IUserService _userService;
 		private readonly ILogger<UserController> _logger;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
 
-		public UserController(IUserService userService, ILogger<UserController> logger)
+        public UserController
+			(
+			IUserService userService, ILogger<UserController> logger,
+			IQueryFactory queryFactory, IBuilderFactory builderFactory
+			
+			)
 		{
 			_userService = userService;
 			_logger = logger;
-		}
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+        }
 
 		/// <summary>
 		/// Query χρήστες.
@@ -38,15 +49,19 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				IEnumerable<UserDto>? models = await _userService.QueryUsersAsync(userLookup);
+                List<Data.Entities.User> datas = await userLookup
+                                                        .EnrichLookup(_queryFactory)
+                                                        .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                                                        .CollectAsync();
 
-				if (models == null)
-				{
-					return NotFound();
-				}
+                List<UserDto> models = await _builderFactory.Builder<UserBuilder>()
+                                                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                                                    .BuildDto(datas, userLookup.Fields.ToList());
 
-				return Ok(models);
-			}
+                if (models == null) return NotFound();
+
+                return Ok(models);
+            }
 			catch (Exception e)
 			{
 				_logger.LogError(e, "Error καθώς κάναμε query users");
@@ -71,15 +86,22 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 			}
 			try
 			{
-				UserDto? model = await _userService.Get(id, fields);
+                UserLookup lookup = new UserLookup();
 
-				if (model == null)
-				{
-					return NotFound();
-				}
+                // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+                lookup.Offset = 1;
+                // Γενική τιμή για τη λήψη των dtos
+                lookup.PageSize = 1;
+                lookup.Ids = [id];
+                lookup.Fields = fields;
 
-				return Ok(model);
-			}
+                UserDto model = (await _builderFactory.Builder<UserBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+
+                if (model == null) return NotFound();
+
+
+                return Ok(model);
+            }
 			catch (InvalidDataException e)
 			{
 				_logger.LogError(e, "Δεν βρέθηκε χρήστης");

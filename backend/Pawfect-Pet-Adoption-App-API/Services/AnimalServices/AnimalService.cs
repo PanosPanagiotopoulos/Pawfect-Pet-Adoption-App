@@ -6,6 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
@@ -17,64 +18,33 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 	public class AnimalService : IAnimalService
 	{
 		private readonly ILogger<AnimalService> _logger;
-		private readonly AnimalQuery _animalQuery;
-		private readonly AnimalBuilder _animalBuilder;
 		private readonly IAnimalRepository _animalRepository;
 		private readonly IMapper _mapper;
 		private readonly IConventionService _conventionService;
 		private readonly Lazy<IFileService> _fileService;
-		private readonly FileQuery _fileQuery;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
 
-		public AnimalService
+        public AnimalService
 			(
 				ILogger<AnimalService> logger,
-				AnimalQuery animalQuery,
-				AnimalBuilder animalBuilder,
 				IAnimalRepository animalRepository,
 				IMapper mapper,
-				IConventionService conventionService,
 				Lazy<IFileService> fileService,
-				FileQuery fileQuery
-			)
+				IQueryFactory queryFactory,
+                IBuilderFactory builderFactory,
+                IConventionService conventionService
+
+            )
 		{
 			_logger = logger;
-			_animalQuery = animalQuery;
-			_animalBuilder = animalBuilder;
 			_animalRepository = animalRepository;
 			_mapper = mapper;
 			_conventionService = conventionService;
 			_fileService = fileService;
-			_fileQuery = fileQuery;
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
 		}
-
-		public async Task<IEnumerable<AnimalDto>> QueryAnimalsAsync(AnimalLookup animalLookup)
-		{
-			//*TODO* Add authorization service with user roles and permissions
-
-			List<Animal> queriedAnimals = await animalLookup.EnrichLookup(_animalQuery).CollectAsync();
-			return await _animalBuilder.SetLookup(animalLookup).BuildDto(queriedAnimals, animalLookup.Fields.ToList());
-		}
-
-		public async Task<AnimalDto?> Get(String id, List<String> fields)
-		{
-			//*TODO* Add authorization service with user roles and permissions
-
-			AnimalLookup lookup = new AnimalLookup(_animalQuery);
-			lookup.Ids = new List<String> { id };
-			lookup.Fields = fields;
-			lookup.PageSize = 1;
-			lookup.Offset = 0;
-
-			List<Animal> animal = await lookup.EnrichLookup().CollectAsync();
-
-			if (animal == null)
-			{
-				throw new InvalidDataException("Δεν βρέθηκε ζώο με αυτό το ID");
-			}
-
-			return (await _animalBuilder.SetLookup(lookup).BuildDto(animal, fields)).FirstOrDefault();
-		}
-
 		public async Task<AnimalDto?> Persist(AnimalPersist persist, List<String> fields)
 		{
 			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
@@ -111,16 +81,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 			}
 
 			// Return dto model
-			AnimalLookup lookup = new AnimalLookup(_animalQuery);
+			AnimalLookup lookup = new AnimalLookup();
 			lookup.Ids = new List<String> { dataId };
 			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			return (
-					 await _animalBuilder.SetLookup(lookup)
-					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
-					).FirstOrDefault();
+			return (await _builderFactory.Builder<AnimalBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
 		}
 
 		private async Task PersistFiles(List<String> attachedFilesIds, List<String> currentFileIds)
@@ -142,13 +109,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 			// Is empty, means it got deleted, so no need to query for persisting
 			if (attachedFilesIds.Count == 0) return;
 
-			FileLookup lookup = new FileLookup(_fileQuery);
+			FileLookup lookup = new FileLookup();
 			lookup.Ids = attachedFilesIds;
 			lookup.Fields = new List<String> { "*" };
 			lookup.Offset = 0;
 			lookup.PageSize = attachedFilesIds.Count;
 
-			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup().CollectAsync();
+			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup(_queryFactory).CollectAsync();
 			if (attachedFiles == null || !attachedFiles.Any())
 			{
 				_logger.LogError("Failed to saved attached files. No return from query");
@@ -175,13 +142,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 		{
 			// TODO : Authorization
 
-			FileLookup lookup = new FileLookup(_fileQuery);
+			FileLookup lookup = new FileLookup();
 			lookup.OwnerIds = ids;
 			lookup.Fields = new List<String> { nameof(AnimalDto.Id) };
 			lookup.Offset = 0;
 			lookup.PageSize = 50;
 
-			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup().CollectAsync();
+			List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup(_queryFactory).CollectAsync();
 			await _fileService.Value.Delete(attachedFiles?.Select(x => x.Id).ToList());
 
 			await _animalRepository.DeleteAsync(ids);

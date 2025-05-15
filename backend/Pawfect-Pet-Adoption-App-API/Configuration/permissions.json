@@ -1,0 +1,237 @@
+{
+  "PermissionConfig": {
+    "Policies": [
+      // Users
+      {
+        "Permission": "BrowseUsers",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "EditUsers",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteUsers",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+
+      // Shelters
+      {
+        "Permission": "BrowseShelters",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "EditShelters",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "Shelter" ]
+      },
+      {
+        "Permission": "DeleteShelters",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+
+      // Animals
+      {
+        "Permission": "CreateAnimals",
+        "Roles": [ "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseAnimals",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "EditAnimals",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "Shelter" ]
+      },
+      {
+        "Permission": "DeleteAnimals",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "Shelter" ]
+      },
+
+      // Animal Types
+      {
+        "Permission": "CreateAnimalTypes",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseAnimalTypes",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "EditAnimalTypes",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteAnimalTypes",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+
+      // Breeds
+      {
+        "Permission": "CreateBreeds",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseBreeds",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "EditBreeds",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteBreeds",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+
+      // Adoption Applications
+      {
+        "Permission": "CreateAdoptionApplications",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseAdoptionApplications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "Shelter" ]
+      },
+      {
+        "Permission": "EditAdoptionApplications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "Shelter" ]
+      },
+      {
+        "Permission": "DeleteAdoptionApplications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "Shelter" ]
+      },
+
+      // Files
+      {
+        "Permission": "CreateFiles",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseFiles",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "User", "Shelter" ]
+      },
+      {
+        "Permission": "EditFiles",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteFiles",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+
+      // Conversations
+      {
+        "Permission": "CreateConversations",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseConversations",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "User", "Shelter" ]
+      },
+      {
+        "Permission": "EditConversations",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteConversations",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+
+      // Messages
+      {
+        "Permission": "CreateMessages",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseMessages",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "User", "Shelter" ]
+      },
+      {
+        "Permission": "EditMessages",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteMessages",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+
+      // Notifications
+      {
+        "Permission": "CreateNotifications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseNotifications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "EditNotifications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteNotifications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+
+      // Reports
+      {
+        "Permission": "CreateReports",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseReports",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "User", "Shelter" ]
+      },
+      {
+        "Permission": "EditReports",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteReports",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      }
+    ]
+  }
+}

@@ -2,10 +2,12 @@
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
 using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
@@ -33,30 +35,27 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 	public class ShelterBuilder : BaseBuilder<ShelterDto, Shelter>
 	{
-		private readonly UserLookup _userLookup;
-		private readonly Lazy<IUserService> _userService;
-		private readonly AnimalLookup _animalLookup;
-		private readonly Lazy<IAnimalService> _animalService;
-
-		public ShelterBuilder
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
+        public ShelterBuilder
 		(
-		  UserLookup userLookup,
-		  Lazy<IUserService> userService,
-		  AnimalLookup animalLookup,
-		  Lazy<IAnimalService> animalService
-		)
+		  IQueryFactory queryFactory,
+          IBuilderFactory builderFactory
+
+        )
 		{
-			_userLookup = userLookup;
-			_userService = userService;
-			_animalLookup = animalLookup;
-			_animalService = animalService;
-		}
+            this._queryFactory = queryFactory;
+            this._builderFactory = builderFactory;
+        }
 
-		// Ορίστε τις παραμέτρους αναζήτησης για τον κατασκευαστή
-		public override BaseBuilder<ShelterDto, Shelter> SetLookup(Lookup lookup) { base.LookupParams = lookup; return this; }
+        public AuthorizationFlags _authorise = AuthorizationFlags.None;
+        
 
-		// Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-		public override async Task<List<ShelterDto>> BuildDto(List<Shelter> entities, List<String> fields)
+        public ShelterBuilder Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
+
+
+        // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
+        public override async Task<List<ShelterDto>> BuildDto(List<Shelter> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
@@ -96,22 +95,22 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = shelters.Select(x => x.UserId).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_userLookup.Offset = LookupParams.Offset;
-			// Γενική τιμή για τη λήψη των dtos
-			_userLookup.PageSize = LookupParams.PageSize;
-			_userLookup.SortDescending = LookupParams.SortDescending;
-			_userLookup.Query = null;
-			_userLookup.Ids = userIds;
-			_userLookup.Fields = userFields;
+            UserLookup userLookup = new UserLookup();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            userLookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            userLookup.PageSize = 1000;
+            userLookup.Ids = userIds;
+            userLookup.Fields = userFields;
 
-			// Κατασκευή των dtos
-			List<UserDto> userDtos = (await _userService.Value.QueryUsersAsync(_userLookup)).ToList();
+            List<Data.Entities.User> users = await userLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-			if (userDtos == null || !userDtos.Any()) return null;
+            List<UserDto> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).BuildDto(users, userFields);
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
-			Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
+            if (userDtos == null || !userDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
+            Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> UserId ] 
 			return shelters.ToDictionary(x => x.Id, x => userDtoMap[x.UserId]);
@@ -122,24 +121,23 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> shelterIds = shelters.Select(x => x.Id).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_animalLookup.Offset = LookupParams.Offset;
-			// Γενική τιμή για τη λήψη των dtos
-			_animalLookup.PageSize = LookupParams.PageSize;
-			_animalLookup.SortDescending = LookupParams.SortDescending;
-			_animalLookup.Query = null;
-			_animalLookup.ShelterIds = shelterIds;
-			// Ensure ShelterId will come back from the build
-			if (!animalFields.Contains(nameof(Shelter) + "." + nameof(Shelter.Id))) animalFields.Add(nameof(Shelter) + "." + nameof(Shelter.Id));
-			_animalLookup.Fields = animalFields;
+            AnimalLookup animalLookup = new AnimalLookup();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            animalLookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            animalLookup.PageSize = 1000;
+            animalLookup.ShelterIds = shelterIds;
+            animalLookup.Fields = animalFields;
 
-			// Κατασκευή των dtos
-			List<AnimalDto> animalDtos = (await _animalService.Value.QueryAnimalsAsync(_animalLookup)).ToList();
+            List<Data.Entities.Animal> animals = await animalLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-			if (animalDtos == null || !animalDtos.Any()) return null;
+            // Κατασκευή των dtos
+            List<AnimalDto> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).BuildDto(animals, animalFields);
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
-			Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
+            if (animalDtos == null || !animalDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
+            Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> List<AnimalId> ] 
 			return animalDtos.GroupBy(a => a.Shelter!.Id).ToDictionary(g => g.Key, g => g.ToList());

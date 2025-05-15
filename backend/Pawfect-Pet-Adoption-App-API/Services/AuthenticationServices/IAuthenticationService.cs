@@ -2,7 +2,7 @@
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 {
-	public interface IAuthService
+	public interface IAuthenticationService
 	{
 		/// <summary>
 		/// Ανταλλάσσει έναν κωδικό εξουσιοδότησης με έναν access token από το Google.

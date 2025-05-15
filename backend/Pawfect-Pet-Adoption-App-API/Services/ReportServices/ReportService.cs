@@ -5,6 +5,7 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
@@ -14,50 +15,26 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 {
 	public class ReportService : IReportService
 	{
-		private readonly ReportQuery _reportQuery;
-		private readonly ReportBuilder _reportBuilder;
-		private readonly IReportRepository _reportRepository;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
+        private readonly IReportRepository _reportRepository;
 		private readonly IMapper _mapper;
 		private readonly IConventionService _conventionService;
 
 		public ReportService
 			(
-				ReportQuery reportQuery,
-				ReportBuilder reportBuilder,
-				IReportRepository reportRepository,
+				IQueryFactory queryFactory,
+                IBuilderFactory builderFactory,
+                IReportRepository reportRepository,
 				IMapper mapper,
 				IConventionService conventionService
 			)
 		{
-			_reportQuery = reportQuery;
-			_reportBuilder = reportBuilder;
-			_reportRepository = reportRepository;
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+            _reportRepository = reportRepository;
 			_mapper = mapper;
 			_conventionService = conventionService;
-		}
-
-		public async Task<IEnumerable<ReportDto>> QueryReportsAsync(ReportLookup reportLookup)
-		{
-			List<Report> queriedReports = await reportLookup.EnrichLookup(_reportQuery).CollectAsync();
-			return await _reportBuilder.SetLookup(reportLookup).BuildDto(queriedReports, reportLookup.Fields.ToList());
-		}
-
-		public async Task<ReportDto?> Get(String id, List<String> fields)
-		{
-			ReportLookup lookup = new ReportLookup(_reportQuery);
-			lookup.Ids = new List<String> { id };
-			lookup.Fields = fields;
-			lookup.PageSize = 1;
-			lookup.Offset = 0;
-
-			List<Report> report = await lookup.EnrichLookup().CollectAsync();
-
-			if (report == null)
-			{
-				throw new InvalidDataException("Δεν βρέθηκε αναφορά με αυτό το ID");
-			}
-
-			return (await _reportBuilder.SetLookup(lookup).BuildDto(report, fields)).FirstOrDefault();
 		}
 
 		public async Task<ReportDto?> Persist(ReportPersist persist, List<String> fields)
@@ -91,17 +68,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
 			}
 
 			// Return dto model
-			ReportLookup lookup = new ReportLookup(_reportQuery);
+			ReportLookup lookup = new ReportLookup();
 			lookup.Ids = new List<String> { dataId };
 			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			return (
-					 await _reportBuilder.SetLookup(lookup)
-					.BuildDto(await lookup.EnrichLookup().CollectAsync(), lookup.Fields.ToList())
-					).FirstOrDefault();
-		}
+            return (await _builderFactory.Builder<ReportBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+        }
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 

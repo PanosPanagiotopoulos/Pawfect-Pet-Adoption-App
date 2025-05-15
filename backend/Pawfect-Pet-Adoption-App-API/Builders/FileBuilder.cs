@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
@@ -24,20 +26,20 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 	public class FileBuilder : BaseBuilder<FileDto, Data.Entities.File>
 	{
-		private readonly UserLookup _userLookup;
-		private readonly Lazy<IUserService> _userService;
-
-		public FileBuilder(UserLookup userLookup, Lazy<IUserService> userService)
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
+        public FileBuilder(IQueryFactory queryFactory, IBuilderFactory builderFactory)
 		{
-			_userLookup = userLookup;
-			_userService = userService;
-		}
+            this._queryFactory = queryFactory;
+            this._builderFactory = builderFactory;
+        }
 
-		// Ορίστε τις παραμέτρους αναζήτησης για τον κατασκευαστή
-		public override BaseBuilder<FileDto, Data.Entities.File> SetLookup(Lookup lookup) { base.LookupParams = lookup; return this; }
+        public AuthorizationFlags _authorise = AuthorizationFlags.None;
+        
+        public FileBuilder Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
 
-		// Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-		public override async Task<List<FileDto>> BuildDto(List<Data.Entities.File> entities, List<String> fields)
+        // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
+        public override async Task<List<FileDto>> BuildDto(List<Data.Entities.File> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
@@ -75,22 +77,23 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = files.Select(x => x.OwnerId).Distinct().ToList();
 
-			// Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-			_userLookup.Offset = LookupParams.Offset;
-			// Γενική τιμή για τη λήψη των dtos
-			_userLookup.PageSize = LookupParams.PageSize;
-			_userLookup.SortDescending = LookupParams.SortDescending;
-			_userLookup.Query = null;
-			_userLookup.Ids = userIds;
-			_userLookup.Fields = userFields;
+            UserLookup userLookup = new UserLookup();
 
-			// Κατασκευή των dtos
-			List<UserDto> userDtos = (await _userService.Value.QueryUsersAsync(_userLookup)).ToList();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            userLookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            userLookup.PageSize = 1000;
+            userLookup.Ids = userIds;
+            userLookup.Fields = userFields;
 
-			if (userDtos == null || !userDtos.Any()) return null;
+            List<Data.Entities.User> users = await userLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
-			Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
+            List<UserDto> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).BuildDto(users, userFields);
+
+            if (userDtos == null || !userDtos.Any()) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
+            Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> UserId ] 
 			return files.ToDictionary(x => x.Id, x => userDtoMap[x.OwnerId]);

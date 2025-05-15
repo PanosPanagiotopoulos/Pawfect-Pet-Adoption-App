@@ -2,6 +2,7 @@
 using MongoDB.Driver;
 
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.Conversation;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
@@ -35,9 +36,12 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		// Ημερομηνία λήξης για φιλτράρισμα (δημιουργήθηκε μέχρι)
 		public DateTime? CreatedTill { get; set; }
 
-		// Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
-		// Έξοδος: FilterDefinition<Conversation> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-		protected override Task<FilterDefinition<Conversation>> ApplyFilters()
+        private AuthorizationFlags _authorise = AuthorizationFlags.None;
+
+        public ConversationQuery Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
+        // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
+        // Έξοδος: FilterDefinition<Conversation> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
+        public override Task<FilterDefinition<Conversation>> ApplyFilters()
 		{
 			FilterDefinitionBuilder<Conversation> builder = Builders<Conversation>.Filter;
 			FilterDefinition<Conversation> filter = builder.Empty;

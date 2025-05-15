@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Pawfect_Pet_Adoption_App_API.Builders;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -10,20 +12,28 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 	[Route("api/files")]
 	public class FileController: ControllerBase
 	{
-		private readonly IFileService _fileService;
-		private readonly ILogger<FileController> _logger;
+        private readonly IFileService _fileService;
+        private readonly ILogger<FileController> _logger;
+        private readonly IBuilderFactory _builderFactory;
+        private readonly IQueryFactory _queryFactory;
 
-		public FileController(IFileService fileService, ILogger<FileController> logger)
-		{
-			_fileService = fileService;
-			_logger = logger;
-		}
+        public FileController(
+            IFileService fileService,
+            ILogger<FileController> logger,
+            IBuilderFactory builderFactory,
+            IQueryFactory queryFactory)
+        {
+            _fileService = fileService;
+            _logger = logger;
+            _builderFactory = builderFactory;
+            _queryFactory = queryFactory;
+        }
 
-		/// <summary>
-		/// Query ζώων.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
-		[HttpPost("query")]
+        /// <summary>
+        /// Query ζώων.
+        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
+        /// </summary>
+        [HttpPost("query")]
 		[ProducesResponseType(200, Type = typeof(IEnumerable<FileDto>))]
 		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
 		[ProducesResponseType(404)]
@@ -37,15 +47,19 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				IEnumerable<FileDto>? models = await _fileService.QueryFilesAsync(fileLookup);
+                List<Data.Entities.File> datas = await fileLookup
+                    .EnrichLookup(_queryFactory)
+                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                    .CollectAsync();
 
-				if (models == null)
-				{
-					return NotFound();
-				}
+                List<FileDto> models = await _builderFactory.Builder<FileBuilder>()
+                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                    .BuildDto(datas, fileLookup.Fields.ToList());
 
-				return Ok(models);
-			}
+                if (models == null) return NotFound();
+
+                return Ok(models);
+            }
 			catch (Exception e)
 			{
 				_logger.LogError(e, "Error καθώς κάναμε query files");
@@ -71,15 +85,22 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
 			try
 			{
-				FileDto? model = await _fileService.Get(id, fields);
+                FileLookup lookup = new FileLookup
+                {
+                    Offset = 1,
+                    PageSize = 1,
+                    Ids = new List<String> { id },
+                    Fields = fields
+                };
 
-				if (model == null)
-				{
-					return NotFound();
-				}
+                FileDto model = (await _builderFactory.Builder<FileBuilder>()
+                    .BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields))
+                    .FirstOrDefault();
 
-				return Ok(model);
-			}
+                if (model == null) return NotFound();
+
+                return Ok(model);
+            }
 			catch (InvalidDataException e)
 			{
 				_logger.LogError(e, "Δεν βρέθηκε file");

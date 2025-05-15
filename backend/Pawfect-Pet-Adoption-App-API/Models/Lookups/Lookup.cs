@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 {
@@ -42,9 +44,9 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 		// Παράδειγμα AssetLookup -> typeof(Asset)
 		public abstract Type GetEntityType();
 
-		// Μέθοδος για τον έλεγχο ενός πεδίου και όλων των ενσωματωμένων πεδίων μέσα σε αυτό με βάση τα δεδομένα του τύπου του
-		// Αν δεν συμβεί τίποτα, σημαίνει true, σε περίπτωση εξαίρεσης σημαίνει false
-		public virtual void ValidateField(Type entityType, String field)
+        // Μέθοδος για τον έλεγχο ενός πεδίου και όλων των ενσωματωμένων πεδίων μέσα σε αυτό με βάση τα δεδομένα του τύπου του
+        // Αν δεν συμβεί τίποτα, σημαίνει true, σε περίπτωση εξαίρεσης σημαίνει false
+        public virtual void ValidateField(Type entityType, String field)
 		{
 			// Τα μέρη των ιδιοτήτων για ένα συγκεκριμένο πεδίο
 			String[] parts = field.Split('.');
