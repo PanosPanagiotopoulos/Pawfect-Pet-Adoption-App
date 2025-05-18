@@ -13,6 +13,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 
         Task<Boolean> AuthorizeOrOwnedAsync(OwnedResource resource, params String[] permissions);
 
+        Task<Boolean> AuthorizeOrOwnedOrAffiliated(AuthContext context, params String[] permissions);
         Task<Boolean> AuthorizeOrOwnedOrAffiliated(
             OwnedResource ownedResource,
             AffiliatedResource affiliatedResource,

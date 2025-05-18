@@ -30,7 +30,7 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
 	public class FileSaveResult
 	{
 		public String FileName { get; set; }
-		public FileDto File { get; set; }
+		public Models.File.File File { get; set; }
 		public Boolean Success { get; set; }
 		public String ErrorMessage { get; set; }
 	}

@@ -15,7 +15,7 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
         public String Name { get; set; }
 
         [BsonRepresentation(BsonType.ObjectId)]
-        public String TypeId { get; set; }
+        public String AnimalTypeId { get; set; }
         public String Description { get; set; }
 
         public DateTime CreatedAt { get; set; }

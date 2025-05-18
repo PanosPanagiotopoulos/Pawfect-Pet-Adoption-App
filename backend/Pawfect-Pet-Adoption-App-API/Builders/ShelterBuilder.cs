@@ -24,16 +24,16 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Mapping για nested object : SocialMedia
 			CreateMap<SocialMedia, SocialMedia>();
 
-			// Mapping για το Entity : Shelter σε Shelter για χρήση του σε αντιγραφή αντικειμένων
-			CreateMap<Shelter, Shelter>();
+            // Mapping για το Entity : Shelter σε Shelter για χρήση του σε αντιγραφή αντικειμένων
+            CreateMap<Data.Entities.Shelter, Data.Entities.Shelter>();
 
-			// POST Request Dto Μοντέλα
-			CreateMap<Shelter, ShelterPersist>();
-			CreateMap<ShelterPersist, Shelter>();
+            // POST Request Dto Μοντέλα
+            CreateMap<Data.Entities.Shelter, ShelterPersist>();
+            CreateMap<ShelterPersist, Data.Entities.Shelter>();
 		}
 	}
 
-	public class ShelterBuilder : BaseBuilder<ShelterDto, Shelter>
+	public class ShelterBuilder : BaseBuilder<Models.Shelter.Shelter, Data.Entities.Shelter>
 	{
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
@@ -55,32 +55,32 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 
         // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-        public override async Task<List<ShelterDto>> BuildDto(List<Shelter> entities, List<String> fields)
+        public override async Task<List<Models.Shelter.Shelter>> Build(List<Data.Entities.Shelter> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-			Dictionary<String, UserDto>? userMap = foreignEntitiesFields.ContainsKey(nameof(User))
-				? (await CollectUsers(entities, foreignEntitiesFields[nameof(User)]))
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
+            Dictionary<String, Models.User.User>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User))
+				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.User.User)]))
 				: null;
 
-			Dictionary<String, List<AnimalDto>>? animalsMap = foreignEntitiesFields.ContainsKey(nameof(Animal))
-				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Animal)]))
+            Dictionary<String, List<Models.Animal.Animal>>? animalsMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal))
+				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Models.Animal.Animal)]))
 				: null;
 
-			List<ShelterDto> result = new List<ShelterDto>();
-			foreach (Shelter e in entities)
+            List<Models.Shelter.Shelter> result = new List<Models.Shelter.Shelter>();
+			foreach (Data.Entities.Shelter e in entities)
 			{
-				ShelterDto dto = new ShelterDto();
+                Models.Shelter.Shelter dto = new Models.Shelter.Shelter();
 				dto.Id = e.Id;
-				if (nativeFields.Contains(nameof(Shelter.ShelterName))) dto.ShelterName = e.ShelterName;
-				if (nativeFields.Contains(nameof(Shelter.Description))) dto.Description = e.Description;
-				if (nativeFields.Contains(nameof(Shelter.Website))) dto.Website = e.Website;
-				if (nativeFields.Contains(nameof(Shelter.SocialMedia))) dto.SocialMedia = e.SocialMedia;
-				if (nativeFields.Contains(nameof(Shelter.OperatingHours))) dto.OperatingHours = e.OperatingHours;
-				if (nativeFields.Contains(nameof(Shelter.VerificationStatus))) dto.VerificationStatus = e.VerificationStatus;
-				if (nativeFields.Contains(nameof(Shelter.VerifiedBy))) dto.VerifiedBy = e.VerifiedBy;
+				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.ShelterName))) dto.ShelterName = e.ShelterName;
+				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.Description))) dto.Description = e.Description;
+				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.Website))) dto.Website = e.Website;
+				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.SocialMedia))) dto.SocialMedia = e.SocialMedia;
+				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.OperatingHours))) dto.OperatingHours = e.OperatingHours;
+				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.VerificationStatus))) dto.VerificationStatus = e.VerificationStatus;
+				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.VerifiedBy))) dto.VerifiedBy = e.VerifiedById;
 				if (userMap != null && userMap.ContainsKey(e.Id)) dto.User = userMap[e.Id];
 				if (animalsMap != null && animalsMap.ContainsKey(e.Id)) dto.Animals = animalsMap[e.Id];
 
@@ -90,7 +90,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			return await Task.FromResult(result);
 		}
 
-		private async Task<Dictionary<String, UserDto>?> CollectUsers(List<Shelter> shelters, List<String> userFields)
+		private async Task<Dictionary<String, Models.User.User>?> CollectUsers(List<Data.Entities.Shelter> shelters, List<String> userFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = shelters.Select(x => x.UserId).Distinct().ToList();
@@ -105,18 +105,18 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
             List<Data.Entities.User> users = await userLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-            List<UserDto> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).BuildDto(users, userFields);
+            List<Models.User.User> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).Build(users, userFields);
 
             if (userDtos == null || !userDtos.Any()) { return null; }
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
-            Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.User.User> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> UserId ] 
 			return shelters.ToDictionary(x => x.Id, x => userDtoMap[x.UserId]);
 		}
 
-		private async Task<Dictionary<String, List<AnimalDto>>?> CollectAnimals(List<Shelter> shelters, List<String> animalFields)
+		private async Task<Dictionary<String, List<Models.Animal.Animal>>?> CollectAnimals(List<Data.Entities.Shelter> shelters, List<String> animalFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> shelterIds = shelters.Select(x => x.Id).Distinct().ToList();
@@ -132,12 +132,12 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
             List<Data.Entities.Animal> animals = await animalLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
             // Κατασκευή των dtos
-            List<AnimalDto> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).BuildDto(animals, animalFields);
+            List<Models.Animal.Animal> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).Build(animals, animalFields);
 
             if (animalDtos == null || !animalDtos.Any()) { return null; }
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
-            Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.Animal.Animal> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> List<AnimalId> ] 
 			return animalDtos.GroupBy(a => a.Shelter!.Id).ToDictionary(g => g.Key, g => g.ToList());

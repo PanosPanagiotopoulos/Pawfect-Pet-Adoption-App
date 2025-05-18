@@ -9,6 +9,7 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Middleware;
+using Pawfect_Pet_Adoption_App_API.Middlewares;
 using Pawfect_Pet_Adoption_App_API.Models;
 using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices.Extention;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalServices.Extention;
@@ -196,7 +197,7 @@ public class Program
 
             // Owned and Affiliated policies
             options.AddPolicy("OwnedPolicy", policy =>
-                policy.AddRequirements(new OwnedRequirement(new OwnedResource(String.Empty))));
+                policy.AddRequirements(new OwnedRequirement(new OwnedResource())));
             options.AddPolicy("AffiliatedPolicy", policy =>
                 policy.AddRequirements(new AffiliatedRequirement(new AffiliatedResource())));
         });
@@ -275,11 +276,16 @@ public class Program
 
 		app.UseCors("Cors");
 
+		// Authentication
 		app.UseAuthentication();
 
-		app.UseJwtRevocation();
 
-		app.UseAuthorization();
+		// MIDDLEWARES
+		app.UseJwtRevocation();
+		app.UseErrorHandlingMiddleware();
+
+        // Authorisation
+        app.UseAuthorization();
 
 		app.MapControllers();
 	}

@@ -1,6 +1,6 @@
 ﻿namespace Pawfect_Pet_Adoption_App_API.Models.AnimalType
 {
-	public class AnimalTypeDto
+	public class AnimalType
 	{
 		public String? Id { get; set; }
 		public String? Name { get; set; }

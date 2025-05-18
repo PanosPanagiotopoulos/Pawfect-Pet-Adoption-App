@@ -1,31 +1,36 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public class AdoptionApplicationQuery : BaseQuery<AdoptionApplication>
+	public class AdoptionApplicationQuery : BaseQuery<Data.Entities.AdoptionApplication>
 	{
+        private readonly IFilterBuilder<Data.Entities.AdoptionApplication, AdoptionApplicationLookup> _filterBuilder;
 
-		// Κατασκευαστής για την κλάση AdoptionApplicationQuery
-		// Είσοδος: mongoDbService - μια έκδοση της κλάσης MongoDbService
-		public AdoptionApplicationQuery
+        public AdoptionApplicationQuery
 		(
-			MongoDbService mongoDbService
-		)
-		{
-			base._collection = mongoDbService.GetCollection<AdoptionApplication>();
-		}
+			MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+			ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+			IFilterBuilder<Data.Entities.AdoptionApplication, Models.Lookups.AdoptionApplicationLookup> filterBuilder
 
-		// Λίστα με τα IDs των αιτήσεων υιοθεσίας για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα με τα IDs των αιτήσεων υιοθεσίας για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
 
@@ -49,14 +54,14 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         private AuthorizationFlags _authorise = AuthorizationFlags.None;
 
-		public AdoptionApplicationQuery Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
+        public AdoptionApplicationQuery Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<AdoptionApplication> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<AdoptionApplication>> ApplyFilters()
+        public override Task<FilterDefinition<Data.Entities.AdoptionApplication>> ApplyFilters()
 		{
-			FilterDefinitionBuilder<AdoptionApplication> builder = Builders<AdoptionApplication>.Filter;
-			FilterDefinition<AdoptionApplication> filter = builder.Empty;
+            FilterDefinitionBuilder<Data.Entities.AdoptionApplication> builder = Builders<Data.Entities.AdoptionApplication>.Filter;
+            FilterDefinition<Data.Entities.AdoptionApplication> filter = builder.Empty;
 
 			// Εφαρμόζει φίλτρο για τα IDs των αιτήσεων υιοθεσίας
 			if (Ids != null && Ids.Any())
@@ -110,7 +115,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			// Εφαρμόζει φίλτρο για τα καταστήματα υιοθεσίας
 			if (Status != null && Status.Any())
 			{
-				filter &= builder.In(nameof(AdoptionApplication.Status), Status);
+				filter &= builder.In(nameof(Data.Entities.AdoptionApplication.Status), Status);
 			}
 
 			// Εφαρμόζει φίλτρο για την ημερομηνία έναρξης
@@ -126,29 +131,56 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			}
 
 			return Task.FromResult(filter);
-		}
+        }
 
-		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.AdoptionApplication>> ApplyAuthorisation(FilterDefinition<Data.Entities.AdoptionApplication> filter)
+        {
+			if (_authorise.HasFlag(AuthorizationFlags.None)) return filter;
+
+			if (_authorise.HasFlag(AuthorizationFlags.Permission))
+				if (await _authorisationService.AuthorizeAsync(Permission.BrowseAdoptionApplications))
+					return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
+			{
+				FilterDefinition<Data.Entities.AdoptionApplication> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.AdoptionApplication>();
+
+                filter = Builders<Data.Entities.AdoptionApplication>.Filter.And(filter, requiredFilter);
+            }
+
+            if (_authorise.HasFlag(AuthorizationFlags.Owner))
+            {
+                FilterDefinition<Data.Entities.AdoptionApplication> requiredFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.AdoptionApplication>();
+
+                filter = Builders<Data.Entities.AdoptionApplication>.Filter.And(filter, requiredFilter);
+            }
+
+			return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(AdoptionApplicationDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(Data.Entities.AdoptionApplication)).ToList();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων AdoptionApplicationDto στα ονόματα πεδίων AdoptionApplication
-				projectionFields.Add(nameof(AdoptionApplication.Id));
-				if (item.Equals(nameof(AdoptionApplicationDto.Status))) projectionFields.Add(nameof(AdoptionApplication.Status));
-				if (item.Equals(nameof(AdoptionApplicationDto.ApplicationDetails))) projectionFields.Add(nameof(AdoptionApplication.ApplicationDetails));
-				if (item.Equals(nameof(AdoptionApplicationDto.CreatedAt))) projectionFields.Add(nameof(AdoptionApplication.CreatedAt));
-				if (item.Equals(nameof(AdoptionApplicationDto.UpdatedAt))) projectionFields.Add(nameof(AdoptionApplication.UpdatedAt));
-				if (item.StartsWith(nameof(AdoptionApplicationDto.User))) projectionFields.Add(nameof(AdoptionApplication.UserId));
-				if (item.StartsWith(nameof(AdoptionApplicationDto.Animal))) projectionFields.Add(nameof(AdoptionApplication.AnimalId));
-				if (item.StartsWith(nameof(AdoptionApplicationDto.Shelter))) projectionFields.Add(nameof(AdoptionApplication.ShelterId));
+				projectionFields.Add(nameof(Data.Entities.AdoptionApplication.Id));
+				if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.Status))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.Status));
+				if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.ApplicationDetails))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.ApplicationDetails));
+				if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.CreatedAt))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.CreatedAt));
+				if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.UpdatedAt));
+				if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.User))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.UserId));
+				if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.Animal))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.AnimalId));
+				if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.Shelter))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.ShelterId));
 			}
-			return projectionFields.ToList();
+			return [.. projectionFields];
 		}
-	}
+
+        
+    }
 }

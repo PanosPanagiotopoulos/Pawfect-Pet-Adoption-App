@@ -49,7 +49,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
             adoptionApplicationQuery.PageSize = this.PageSize;
             adoptionApplicationQuery.Offset = this.Offset;
             adoptionApplicationQuery.SortDescending = this.SortDescending;
-            adoptionApplicationQuery.Fields = adoptionApplicationQuery.FieldNamesOf(this.Fields.ToList());
+            adoptionApplicationQuery.Fields = adoptionApplicationQuery.FieldNamesOf([.. this.Fields]);
             adoptionApplicationQuery.SortBy = this.SortBy;
             adoptionApplicationQuery.ExcludedIds = this.ExcludeIds;
 

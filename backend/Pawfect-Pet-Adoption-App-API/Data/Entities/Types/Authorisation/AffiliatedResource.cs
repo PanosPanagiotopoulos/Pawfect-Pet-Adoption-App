@@ -2,56 +2,39 @@
 {
     public class AffiliatedResource
     {
-        public IEnumerable<String> UserIds { get; set; }
         public IEnumerable<String> AffiliatedRoles { get; set; }
         public AffiliatedFilterParams AffiliatedFilterParams { get; set; }
-
-        public AffiliatedResource(String userId) : this(new[] { userId }) { }
+        
+        public String AffiliatedId { get; set; }
 
         public AffiliatedResource() {}
-        public AffiliatedResource(IEnumerable<String> userIds)
+
+        public AffiliatedResource(AffiliatedFilterParams affiliatedFilterParams) 
         {
-            UserIds = userIds;
+            this.AffiliatedFilterParams = affiliatedFilterParams;
+        }
+        public AffiliatedResource(AffiliatedFilterParams affiliatedFilterParams, String affiliatedId) : this(affiliatedFilterParams)
+        {
+            this.AffiliatedId = affiliatedId;
         }
 
-        public AffiliatedResource(String userId, IEnumerable<String> affiliatedRoles) : this(new[] { userId }, affiliatedRoles) { }
-
-        public AffiliatedResource(IEnumerable<String> userIds, IEnumerable<String> affiliatedRoles)
+        public AffiliatedResource(IEnumerable<String> affiliatedRoles, AffiliatedFilterParams affiliatedFilterParams): this(affiliatedFilterParams)
         {
-            UserIds = userIds;
             AffiliatedRoles = affiliatedRoles;
         }
 
-        public AffiliatedResource(String userId, AffiliatedFilterParams affiliatedFilterParams) : this(new[] { userId }, affiliatedFilterParams) { }
-
-        public AffiliatedResource(IEnumerable<String> userIds, AffiliatedFilterParams affiliatedFilterParams)
+        public AffiliatedResource(IEnumerable<String> affiliatedRoles, AffiliatedFilterParams affiliatedFilterParams, String affiliatedId) : this(affiliatedRoles, affiliatedFilterParams)
         {
-            UserIds = userIds;
-            AffiliatedFilterParams = affiliatedFilterParams;
+            this.AffiliatedId = affiliatedId;
         }
-
-        public AffiliatedResource(String userId, IEnumerable<String> affiliatedRoles, AffiliatedFilterParams affiliatedFilterParams) : this(new[] { userId }, affiliatedRoles, affiliatedFilterParams) { }
-
-        public AffiliatedResource(IEnumerable<String> userIds, IEnumerable<String> affiliatedRoles, AffiliatedFilterParams affiliatedFilterParams)
-        {
-            UserIds = userIds;
-            AffiliatedRoles = affiliatedRoles;
-            AffiliatedFilterParams = affiliatedFilterParams;
-        }
-
-        public AffiliatedResource(AffiliatedFilterParams affiliatedFilterParams)
-        {
-            AffiliatedFilterParams = affiliatedFilterParams;
-        }
-
     }
     public class AffiliatedFilterParams
     {
-        public Models.Lookups.Lookup Lookup { get; set; }
+        public Models.Lookups.Lookup RequestedFilters { get; set; }
 
         public AffiliatedFilterParams(Models.Lookups.Lookup lookup)
         {
-            Lookup = lookup;
+            RequestedFilters = lookup;
         }
     }
   }

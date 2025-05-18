@@ -14,7 +14,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
             _constructorCache = new ConcurrentDictionary<Type, Type>();
         }
 
-        public T Builder<T>() where T : class
+        public T Builder<T>() where T : IBuilder
         {
             Type builderType = typeof(T);
 

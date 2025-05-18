@@ -6,21 +6,31 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public class ReportQuery : BaseQuery<Report>
+	public class ReportQuery : BaseQuery<Data.Entities.Report>
 	{
-		// Κατασκευαστής για την κλάση ReportQuery
-		// Είσοδος: mongoDbService - μια έκδοση της κλάσης MongoDbService
-		public ReportQuery(MongoDbService mongoDbService)
-		{
-			base._collection = mongoDbService.GetCollection<Report>();
-		}
+        private readonly IFilterBuilder<Data.Entities.Report, Models.Lookups.ReportLookup> _filterBuilder;
 
-		// Λίστα με τα IDs των αναφορών για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        public ReportQuery
+        (
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+            IFilterBuilder<Data.Entities.Report, Models.Lookups.ReportLookup> filterBuilder
+
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα με τα IDs των αναφορών για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
 
@@ -49,10 +59,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<Report> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<Report>> ApplyFilters()
+        public override Task<FilterDefinition<Data.Entities.Report>> ApplyFilters()
 		{
-			FilterDefinitionBuilder<Report> builder = Builders<Report>.Filter;
-			FilterDefinition<Report> filter = builder.Empty;
+            FilterDefinitionBuilder<Data.Entities.Report> builder = Builders<Data.Entities.Report>.Filter;
+            FilterDefinition<Data.Entities.Report> filter = builder.Empty;
 
 			// Εφαρμόζει φίλτρο για τα IDs των αναφορών
 			if (Ids != null && Ids.Any())
@@ -120,24 +130,42 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return Task.FromResult(filter);
 		}
 
-		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.Report>> ApplyAuthorisation(FilterDefinition<Data.Entities.Report> filter)
+        {
+            if (_authorise.HasFlag(AuthorizationFlags.None)) return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Permission))
+                if (await _authorisationService.AuthorizeAsync(Permission.BrowseReports))
+                    return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
+            {
+                FilterDefinition<Data.Entities.Report> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.Report>();
+
+                filter = Builders<Data.Entities.Report>.Filter.And(filter, requiredFilter);
+            }
+
+            return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(ReportDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(Data.Entities.Report)).ToList();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων ReportDto στα ονόματα πεδίων Report
-				projectionFields.Add(nameof(Report.Id));
-				if (item.Equals(nameof(ReportDto.Reason))) projectionFields.Add(nameof(Report.Reason));
-				if (item.Equals(nameof(ReportDto.Type))) projectionFields.Add(nameof(Report.Type));
-				if (item.Equals(nameof(ReportDto.CreatedAt))) projectionFields.Add(nameof(Report.CreatedAt));
-				if (item.Equals(nameof(ReportDto.UpdatedAt))) projectionFields.Add(nameof(Report.UpdatedAt));
-				if (item.StartsWith(nameof(ReportDto.Reported))) projectionFields.Add(nameof(Report.ReportedId));
-				if (item.StartsWith(nameof(ReportDto.Reporter))) projectionFields.Add(nameof(Report.ReporterId));
+				projectionFields.Add(nameof(Data.Entities.Report.Id));
+				if (item.Equals(nameof(Models.Report.Report.Reason))) projectionFields.Add(nameof(Data.Entities.Report.Reason));
+				if (item.Equals(nameof(Models.Report.Report.Type))) projectionFields.Add(nameof(Data.Entities.Report.Type));
+				if (item.Equals(nameof(Models.Report.Report.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Report.CreatedAt));
+				if (item.Equals(nameof(Models.Report.Report.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.Report.UpdatedAt));
+				if (item.StartsWith(nameof(Models.Report.Report.Reported))) projectionFields.Add(nameof(Data.Entities.Report.ReportedId));
+				if (item.StartsWith(nameof(Models.Report.Report.Reporter))) projectionFields.Add(nameof(Data.Entities.Report.ReporterId));
 			}
 			return projectionFields.ToList();
 		}

@@ -1,18 +1,17 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels;
-using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
 {
-	public class ShelterDto
+	public class Shelter
 	{
 		public String? Id { get; set; }
 
 		/// <value>
 		/// Τα δεδομένα του αντίστοιχου χρήστη για το καταφύγιο
 		/// </value>
-		public UserDto? User { get; set; }
+		public User.User? User { get; set; }
 
 		public String? ShelterName { get; set; }
 
@@ -50,6 +49,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
 		/// </value>
 		public String? VerifiedBy { get; set; }
 
-		public List<AnimalDto>? Animals { get; set; }
+		public List<Animal.Animal>? Animals { get; set; }
 	}
 }

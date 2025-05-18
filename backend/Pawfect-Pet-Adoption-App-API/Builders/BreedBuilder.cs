@@ -16,16 +16,16 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		// Builder για Entity : Breed
 		public AutoBreedBuilder()
 		{
-			// Mapping για το Entity : Breed σε Breed για χρήση του σε αντιγραφή αντικειμένων
-			CreateMap<Breed, Breed>();
+            // Mapping για το Entity : Breed σε Breed για χρήση του σε αντιγραφή αντικειμένων
+            CreateMap<Data.Entities.Breed, Data.Entities.Breed>();
 
-			// POST Request Dto Μοντέλα
-			CreateMap<Breed, BreedPersist>();
-			CreateMap<BreedPersist, Breed>();
+            // POST Request Dto Μοντέλα
+            CreateMap<Data.Entities.Breed, BreedPersist>();
+            CreateMap<BreedPersist, Data.Entities.Breed>();
 		}
 	}
 
-	public class BreedBuilder : BaseBuilder<BreedDto, Breed>
+	public class BreedBuilder : BaseBuilder<Models.Breed.Breed, Data.Entities.Breed>
 	{
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
@@ -40,27 +40,27 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
         public BreedBuilder Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
 
         // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-        public override async Task<List<BreedDto>> BuildDto(List<Breed> entities, List<String> fields)
+        public override async Task<List<Models.Breed.Breed>> Build(List<Data.Entities.Breed> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-			Dictionary<String, AnimalTypeDto>? animalTypeMap = foreignEntitiesFields.ContainsKey(nameof(AnimalType))
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
+            Dictionary<String, Models.AnimalType.AnimalType>? animalTypeMap = foreignEntitiesFields.ContainsKey(nameof(Models.AnimalType.AnimalType))
 				? (await CollectAnimalTypes(entities,
-									foreignEntitiesFields[nameof(AnimalType)]))
+									foreignEntitiesFields[nameof(Models.AnimalType.AnimalType)]))
 				: null;
 
-			List<BreedDto> result = new List<BreedDto>();
-			foreach (Breed e in entities)
+            List<Models.Breed.Breed> result = new List<Models.Breed.Breed>();
+			foreach (Data.Entities.Breed e in entities)
 			{
-				BreedDto dto = new BreedDto();
+                Models.Breed.Breed dto = new Models.Breed.Breed();
 				dto.Id = e.Id;
-				if (nativeFields.Contains(nameof(Breed.Name))) dto.Name = e.Name;
-				if (nativeFields.Contains(nameof(Breed.Description))) dto.Description = e.Description;
-				if (nativeFields.Contains(nameof(Breed.CreatedAt))) dto.CreatedAt = e.CreatedAt;
-				if (nativeFields.Contains(nameof(Breed.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
-				if (nativeFields.Contains(nameof(Breed.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
+				if (nativeFields.Contains(nameof(Models.Breed.Breed.Name))) dto.Name = e.Name;
+				if (nativeFields.Contains(nameof(Models.Breed.Breed.Description))) dto.Description = e.Description;
+				if (nativeFields.Contains(nameof(Models.Breed.Breed.CreatedAt))) dto.CreatedAt = e.CreatedAt;
+				if (nativeFields.Contains(nameof(Models.Breed.Breed.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
+				if (nativeFields.Contains(nameof(Models.Breed.Breed.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 				if (animalTypeMap != null && animalTypeMap.ContainsKey(e.Id)) dto.AnimalType = animalTypeMap[e.Id];
 
 
@@ -70,10 +70,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			return await Task.FromResult(result);
 		}
 
-		private async Task<Dictionary<String, AnimalTypeDto>> CollectAnimalTypes(List<Breed> breeds, List<String> animalTypeFields)
+		private async Task<Dictionary<String, Models.AnimalType.AnimalType>> CollectAnimalTypes(List<Data.Entities.Breed> breeds, List<String> animalTypeFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
-			List<String> animalTypeIds = breeds.Select(x => x.TypeId).Distinct().ToList();
+			List<String> animalTypeIds = breeds.Select(x => x.AnimalTypeId).Distinct().ToList();
 
             AnimalTypeLookup animalTypeLookup = new AnimalTypeLookup();
 
@@ -86,15 +86,15 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
             List<Data.Entities.AnimalType> animalTypes = await animalTypeLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-            List<AnimalTypeDto> animalTypeDtos = await _builderFactory.Builder<AnimalTypeBuilder>().Authorise(this._authorise).BuildDto(animalTypes, animalTypeFields);
+            List<Models.AnimalType.AnimalType> animalTypeDtos = await _builderFactory.Builder<AnimalTypeBuilder>().Authorise(this._authorise).Build(animalTypes, animalTypeFields);
 
             if (animalTypeDtos == null || !animalTypeDtos.Any()) { return null; }
 
             // Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ AssetTypeId -> AssetTypeDto ]
-            Dictionary<String, AnimalTypeDto> animalTypeDtoMap = animalTypeDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.AnimalType.AnimalType> animalTypeDtoMap = animalTypeDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα assets δημιουργώντας ένα Dictionary : [ AssetId -> AssetTypeId ] 
-			return breeds.ToDictionary(x => x.Id, x => animalTypeDtoMap[x.TypeId]);
+			return breeds.ToDictionary(x => x.Id, x => animalTypeDtoMap[x.AnimalTypeId]);
 		}
 	}
 }

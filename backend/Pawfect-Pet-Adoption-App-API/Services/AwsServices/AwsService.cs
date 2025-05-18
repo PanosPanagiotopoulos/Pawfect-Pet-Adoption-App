@@ -85,47 +85,40 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AwsServices
 			if (keys == null || !keys.Any())
 				throw new ArgumentException("No keys provided for deletion.");
 
-			try
+			DeleteObjectsRequest deleteRequest = new DeleteObjectsRequest
 			{
-				DeleteObjectsRequest deleteRequest = new DeleteObjectsRequest
+				BucketName = _awsConfig.BucketName,
+				Objects = keys.Select(key => new KeyVersion { Key = key }).ToList(),
+				Quiet = false // Set to false to get detailed response
+			};
+
+			DeleteObjectsResponse response = await _s3Client.DeleteObjectsAsync(deleteRequest);
+
+			// Create a set of successfully deleted keys
+			HashSet<String> deletedKeys = new HashSet<String>(response.DeletedObjects.Select(o => o.Key));
+
+			// Create a set of keys with errors
+			HashSet<String> errorKeys = new HashSet<String>(response.DeleteErrors.Select(e => e.Key));
+
+			// Build the result dictionary
+			Dictionary<String, Boolean> result = new Dictionary<String, Boolean>();
+            foreach (String key in keys)
+			{
+				if (deletedKeys.Contains(key))
 				{
-					BucketName = _awsConfig.BucketName,
-					Objects = keys.Select(key => new KeyVersion { Key = key }).ToList(),
-					Quiet = false // Set to false to get detailed response
-				};
-
-				DeleteObjectsResponse response = await _s3Client.DeleteObjectsAsync(deleteRequest);
-
-				// Create a set of successfully deleted keys
-				HashSet<String> deletedKeys = new HashSet<String>(response.DeletedObjects.Select(o => o.Key));
-
-				// Create a set of keys with errors
-				HashSet<String> errorKeys = new HashSet<String>(response.DeleteErrors.Select(e => e.Key));
-
-				// Build the result dictionary
-				Dictionary<String, Boolean> result = new Dictionary<String, Boolean>();
-				foreach (var key in keys)
-				{
-					if (deletedKeys.Contains(key))
-					{
-						result[key] = true; // Deleted successfully
-					}
-					else if (errorKeys.Contains(key))
-					{
-						result[key] = false; // Failed to delete
-					}
-					else
-					{
-						result[key] = true; // Assume it didn't exist, so "deleted"
-					}
+					result[key] = true; // Deleted successfully
 				}
+				else if (errorKeys.Contains(key))
+				{
+					result[key] = false; // Failed to delete
+				}
+				else
+				{
+					result[key] = true; // Assume it didn't exist, so "deleted"
+				}
+			}
 
-				return result;
-			}
-			catch (Exception ex)
-			{
-				throw new InvalidOperationException($"Failed to delete files from S3: {ex.Message}", ex);
-			}
+			return result;
 		}
 
 		public String ConstructAwsKey(params String[] keyParts)

@@ -3,11 +3,11 @@ using Pawfect_Pet_Adoption_App_API.Models.User;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.Conversation
 {
-	public class ConversationDto
+	public class Conversation
 	{
 		public String? Id { get; set; }
-		public List<UserDto>? Users { get; set; }
-		public AnimalDto? Animal { get; set; }
+		public List<User.User>? Users { get; set; }
+		public Animal.Animal? Animal { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
 	}

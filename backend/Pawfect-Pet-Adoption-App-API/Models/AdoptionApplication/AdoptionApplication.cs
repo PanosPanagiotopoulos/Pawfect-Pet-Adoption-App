@@ -6,15 +6,15 @@ using Pawfect_Pet_Adoption_App_API.Models.User;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication
 {
-	public class AdoptionApplicationDto
+	public class AdoptionApplication
 	{
 		public String? Id { get; set; }
-		public UserDto? User { get; set; }
-		public AnimalDto? Animal { get; set; }
-		public ShelterDto? Shelter { get; set; }
+		public User.User? User { get; set; }
+		public Animal.Animal? Animal { get; set; }
+		public Shelter.Shelter? Shelter { get; set; }
 		public ApplicationStatus? Status { get; set; }
 		public String? ApplicationDetails { get; set; }
-		public List<FileDto>? AttachedFiles { get; set; }
+		public List<File.File>? AttachedFiles { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
 	}

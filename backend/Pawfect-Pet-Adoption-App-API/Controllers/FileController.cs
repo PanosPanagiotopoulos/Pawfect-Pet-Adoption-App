@@ -1,10 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Pawfect_Pet_Adoption_App_API.Builders;
+using Pawfect_Pet_Adoption_App_API.Censors;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices;
+using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
@@ -15,17 +20,23 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         private readonly IFileService _fileService;
         private readonly ILogger<FileController> _logger;
         private readonly IBuilderFactory _builderFactory;
+        private readonly ICensorFactory _censorFactory;
+        private readonly AuthContextBuilder _contextBuilder;
         private readonly IQueryFactory _queryFactory;
 
         public FileController(
             IFileService fileService,
             ILogger<FileController> logger,
             IBuilderFactory builderFactory,
+			ICensorFactory censorFactory,
+            AuthContextBuilder contextBuilder,
             IQueryFactory queryFactory)
         {
             _fileService = fileService;
             _logger = logger;
             _builderFactory = builderFactory;
+            _censorFactory = censorFactory;
+            _contextBuilder = contextBuilder;
             _queryFactory = queryFactory;
         }
 
@@ -34,37 +45,28 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
         /// </summary>
         [HttpPost("query")]
-		[ProducesResponseType(200, Type = typeof(IEnumerable<FileDto>))]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(404)]
-		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> QueryAnimals([FromBody] FileLookup fileLookup)
+		[Authorize]
+		public async Task<IActionResult> QueryFiles([FromBody] FileLookup fileLookup)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
+			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			try
-			{
-                List<Data.Entities.File> datas = await fileLookup
-                    .EnrichLookup(_queryFactory)
-                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                    .CollectAsync();
+            AuthContext context = _contextBuilder.OwnedFrom(fileLookup).AffiliatedWith(fileLookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<FileCensor>().Censor([.. fileLookup.Fields], context);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying files");
 
-                List<FileDto> models = await _builderFactory.Builder<FileBuilder>()
-                    .Authorise(Data.Entities.Types.Authorisation.AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                    .BuildDto(datas, fileLookup.Fields.ToList());
+            fileLookup.Fields = censoredFields;
+            List<Data.Entities.File> datas = await fileLookup
+                .EnrichLookup(_queryFactory)
+                .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                .CollectAsync();
 
-                if (models == null) return NotFound();
+            List<Models.File.File> models = await _builderFactory.Builder<FileBuilder>()
+                .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                .Build(datas, [.. fileLookup.Fields]);
 
-                return Ok(models);
-            }
-			catch (Exception e)
-			{
-				_logger.LogError(e, "Error καθώς κάναμε query files");
-				return RequestHandlerTool.HandleInternalServerError(e, "GET");
-			}
+            if (models == null) throw new NotFoundException("Files not found", JsonHelper.SerializeObjectFormatted(fileLookup), typeof(Data.Entities.File));
+
+            return Ok(models);
 		}
 
 		/// <summary>
@@ -72,125 +74,63 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
 		[HttpGet("{id}")]
-		[ProducesResponseType(200, Type = typeof(FileDto))]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(404)]
-		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> GetAnimal(String id, [FromQuery] List<String> fields)
+		[Authorize]
+		public async Task<IActionResult> GetFile(String id, [FromQuery] List<String> fields)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
+			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			try
-			{
-                FileLookup lookup = new FileLookup
-                {
-                    Offset = 1,
-                    PageSize = 1,
-                    Ids = new List<String> { id },
-                    Fields = fields
-                };
+            FileLookup lookup = new FileLookup
+            {
+                Offset = 1,
+                PageSize = 1,
+                Ids = new List<String> { id },
+                Fields = fields
+            };
 
-                FileDto model = (await _builderFactory.Builder<FileBuilder>()
-                    .BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields))
-                    .FirstOrDefault();
+            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<FileCensor>().Censor([.. lookup.Fields], context);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying files");
 
-                if (model == null) return NotFound();
+            lookup.Fields = censoredFields;
+            Models.File.File model = (await _builderFactory.Builder<FileBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+            .FirstOrDefault();
 
-                return Ok(model);
-            }
-			catch (InvalidDataException e)
-			{
-				_logger.LogError(e, "Δεν βρέθηκε file");
-				return NotFound();
-			}
-			catch (Exception e)
-			{
-				_logger.LogError(e, "Error καθώς κάναμε query files");
-				return RequestHandlerTool.HandleInternalServerError(e, "GET");
-			}
+            if (model == null) throw new NotFoundException("Files not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.File));
+
+            return Ok(model);
 		}
 
 		/// <summary>
 		/// Persist an animal.
 		/// </summary>
 		[HttpPost("persist/temporary")]
-		[ProducesResponseType(200, Type = typeof(List<FileDto>))]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(500, Type = typeof(String))]
+		[Authorize]
 		public async Task<IActionResult> PersistBatchTemporarily([FromForm] List<TempMediaFile> models)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
+			if (!ModelState.IsValid) return BadRequest(ModelState);
 
 			// Early validation for empty or null input
-			if (models == null || !models.Any())
-			{
-				return BadRequest("No files provided for upload.");
-			}
+			if (models == null || models.Count == 0) return BadRequest("No files provided for upload.");
 
-			try
-			{
-				IEnumerable<FileDto>? files = await _fileService.SaveTemporarily(models);
+            IEnumerable<Models.File.File>? files = await _fileService.SaveTemporarily(models);
 
-				if (files == null)
-				{
-					return RequestHandlerTool.HandleInternalServerError(new Exception("Failed to save model. Null return"), "POST");
-				}
-
-				return Ok(files);
-			}
-			catch (InvalidOperationException e)
-			{
-				_logger.LogError(e, "Αποτυχία αποθήκευσης files");
-				return NotFound();
-			}
-			catch (Exception e)
-			{
-				_logger.LogError(e, "Error ενώ κάναμε persist files");
-				return RequestHandlerTool.HandleInternalServerError(e, "POST");
-			}
+			return Ok(files);
 		}
+			
 
 		/// <summary>
 		/// Persist an animal.
 		/// </summary>
 		[HttpPost("persist")]
-		[ProducesResponseType(200, Type = typeof(List<FileDto>))]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> PersistBatch([FromBody] List<FilePersist> models, [FromQuery] List<String> fields)
+		[Authorize]
+        public async Task<IActionResult> PersistBatch([FromBody] List<FilePersist> models, [FromQuery] List<String> fields)
 		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
+			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			try
-			{
-				List<FileDto>? files = await _fileService.Persist(models, fields);
+            List<Models.File.File>? files = await _fileService.Persist(models, fields);
 
-				if (files == null)
-				{
-					return RequestHandlerTool.HandleInternalServerError(new Exception("Failed to save model. Null return"), "POST");
-				}
-
-				return Ok(files);
-			}
-			catch (InvalidOperationException e)
-			{
-				_logger.LogError(e, "Αποτυχία αποθήκευσης files");
-				return NotFound();
-			}
-			catch (Exception e)
-			{
-				_logger.LogError(e, "Error ενώ κάναμε persist files");
-				return RequestHandlerTool.HandleInternalServerError(e, "POST");
-			}
+			return Ok(files);
 		}
 
 		/// <summary>
@@ -198,33 +138,14 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
 		/// </summary>
 		[HttpPost("delete")]
-		[ProducesResponseType(200)]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(404)]
-		[ProducesResponseType(500, Type = typeof(String))]
+		[Authorize]
 		public async Task<IActionResult> Delete([FromBody] String id)
 		{
-			// TODO: Add authorization
-			if (String.IsNullOrEmpty(id) || !ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
+			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
-			try
-			{
-				await _fileService.Delete(id);
-				return Ok();
-			}
-			catch (InvalidOperationException e)
-			{
-				_logger.LogError(e, "Αποτυχία διαγραφής αρχείου με ID {Id}", id);
-				return NotFound();
-			}
-			catch (Exception e)
-			{
-				_logger.LogError(e, "Error ενώ κάναμε delete αρχείου με ID {Id}", id);
-				return RequestHandlerTool.HandleInternalServerError(e, "POST");
-			}
+			await _fileService.Delete(id);
+
+			return Ok();
 		}
 
 		/// <summary>
@@ -239,26 +160,11 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
 		{
 			// TODO: Add authorization
-			if (ids == null || !ids.Any() || !ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
+			if (ids == null || ids.Count == 0 || !ModelState.IsValid) return BadRequest(ModelState);
 
-			try
-			{
-				await _fileService.Delete(ids);
-				return Ok();
-			}
-			catch (InvalidOperationException e)
-			{
-				_logger.LogError(e, "Αποτυχία διαγραφής αρχείων με IDs {Ids}", String.Join(", ", ids));
-				return NotFound();
-			}
-			catch (Exception e)
-			{
-				_logger.LogError(e, "Error ενώ κάναμε delete πολλαπλών αρχείων με IDs {Ids}", String.Join(", ", ids));
-				return RequestHandlerTool.HandleInternalServerError(e, "POST");
-			}
+			await _fileService.Delete(ids);
+
+			return Ok();
 		}
 	}
 }

@@ -19,16 +19,16 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		// Builder για Entity : Conversation
 		public AutoConversationBuilder()
 		{
-			// Mapping για το Entity : Conversation σε Conversation για χρήση του σε αντιγραφή αντικειμένων
-			CreateMap<Conversation, Conversation>();
+            // Mapping για το Entity : Conversation σε Conversation για χρήση του σε αντιγραφή αντικειμένων
+            CreateMap<Data.Entities.Conversation, Data.Entities.Conversation>();
 
-			// POST Request Dto Μοντέλα
-			CreateMap<Conversation, ConversationPersist>();
-			CreateMap<ConversationPersist, Conversation>();
+            // POST Request Dto Μοντέλα
+            CreateMap<Data.Entities.Conversation, ConversationPersist>();
+            CreateMap<ConversationPersist, Data.Entities.Conversation>();
 		}
 	}
 
-	public class ConversationBuilder : BaseBuilder<ConversationDto, Conversation>
+	public class ConversationBuilder : BaseBuilder<Models.Conversation.Conversation, Data.Entities.Conversation>
 	{
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
@@ -45,27 +45,27 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
 
 		// Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-		public override async Task<List<ConversationDto>> BuildDto(List<Conversation> entities, List<String> fields)
+		public override async Task<List<Models.Conversation.Conversation>> Build(List<Data.Entities.Conversation> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-			Dictionary<String, List<UserDto>>? userMap = foreignEntitiesFields.ContainsKey(nameof(User))
-				? (await CollectUsers(entities, foreignEntitiesFields[nameof(User)]))
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
+            Dictionary<String, List<Models.User.User>>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User))
+				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.User.User)]))
 				: null;
 
-			Dictionary<String, AnimalDto>? animalMap = foreignEntitiesFields.ContainsKey(nameof(Animal))
-				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Animal)]))
+            Dictionary<String, Models.Animal.Animal>? animalMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal))
+				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Models.Animal.Animal)]))
 				: null;
 
-			List<ConversationDto> result = new List<ConversationDto>();
-			foreach (Conversation e in entities)
+            List<Models.Conversation.Conversation> result = new List<Models.Conversation.Conversation>();
+			foreach (Data.Entities.Conversation e in entities)
 			{
-				ConversationDto dto = new ConversationDto();
+                Models.Conversation.Conversation dto = new Models.Conversation.Conversation();
 				dto.Id = e.Id;
-				if (nativeFields.Contains(nameof(Conversation.CreatedAt))) dto.CreatedAt = e.CreatedAt;
-				if (nativeFields.Contains(nameof(Conversation.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
+				if (nativeFields.Contains(nameof(Models.Conversation.Conversation.CreatedAt))) dto.CreatedAt = e.CreatedAt;
+				if (nativeFields.Contains(nameof(Models.Conversation.Conversation.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 				if (userMap != null && userMap.ContainsKey(e.Id)) dto.Users = userMap[e.Id];
 				if (animalMap != null && animalMap.ContainsKey(e.Id)) dto.Animal = animalMap[e.Id];
 
@@ -75,7 +75,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			return await Task.FromResult(result);
 		}
 
-		private async Task<Dictionary<String, List<UserDto>>?> CollectUsers(List<Conversation> conversations, List<String> userFields)
+		private async Task<Dictionary<String, List<Models.User.User>>> CollectUsers(List<Data.Entities.Conversation> conversations, List<String> userFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = conversations.SelectMany(x => x.UserIds).Distinct().ToList();
@@ -91,18 +91,18 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 
             List<Data.Entities.User> users = await userLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
-            List<UserDto> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).BuildDto(users, userFields);
+            List<Models.User.User> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).Build(users, userFields);
 
             if (userDtos == null || !userDtos.Any()) { return null; }
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
-            Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.User.User> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τις conversations δημιουργώντας ένα Dictionary : [ ConversationId -> List<UserDto> ] 
 			return conversations.ToDictionary(x => x.Id, x => x.UserIds.Select(id => userDtoMap[id]).ToList());
 		}
 
-		private async Task<Dictionary<String, AnimalDto>> CollectAnimals(List<Conversation> conversations, List<String> animalFields)
+		private async Task<Dictionary<String, Models.Animal.Animal>> CollectAnimals(List<Data.Entities.Conversation> conversations, List<String> animalFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> animalIds = conversations.Select(x => x.AnimalId).Distinct().ToList();
@@ -119,12 +119,12 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
             List<Data.Entities.Animal> animals = await animalLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
             // Κατασκευή των dtos
-            List<AnimalDto> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).BuildDto(animals, animalFields);
+            List<Models.Animal.Animal> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).Build(animals, animalFields);
 
             if (animalDtos == null || !animalDtos.Any()) { return null; }
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
-            Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.Animal.Animal> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τις conversations δημιουργώντας ένα Dictionary : [ ConversationId -> AnimalId ] 
 			return conversations.ToDictionary(x => x.Id, x => animalDtoMap[x.AnimalId]);

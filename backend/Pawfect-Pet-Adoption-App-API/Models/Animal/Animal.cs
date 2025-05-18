@@ -6,7 +6,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.Animal
 {
-	public class AnimalDto
+	public class Animal
 	{
 		public String? Id { get; set; }
 		public String? Name { get; set; }
@@ -15,10 +15,10 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Animal
 		public String? Description { get; set; }
 		public double? Weight { get; set; }
 		public String? HealthStatus { get; set; }
-		public ShelterDto? Shelter { get; set; }
-		public BreedDto? Breed { get; set; }
-		public AnimalTypeDto? AnimalType { get; set; }
-		public List<FileDto>? Photos { get; set; }
+		public Shelter.Shelter? Shelter { get; set; }
+		public Breed.Breed? Breed { get; set; }
+		public AnimalType.AnimalType? AnimalType { get; set; }
+		public List<File.File>? Photos { get; set; }
 		public AdoptionStatus? AdoptionStatus { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }

@@ -44,11 +44,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 				{
 					String errorContent = await response.Content.ReadAsStringAsync();
 					_logger.LogError(errorContent);
-					throw new InvalidOperationException("Αποτυχία στο exchange google code για access token.");
+					throw new InvalidOperationException("Failed to exchange google access code for token");
 				}
 
 				String responseContent = await response.Content.ReadAsStringAsync();
-				_logger.LogInformation("Granted Google Authorisations: \n" + responseContent);
 				return JsonConvert.DeserializeObject<GoogleTokenResponse>(responseContent);
 			}
 		}

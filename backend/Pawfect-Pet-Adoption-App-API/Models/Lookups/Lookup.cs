@@ -1,10 +1,10 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using System.Collections;
 using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 {
-	// Μοντέλο Lookup για τη διαχείριση των επιλογών των GET αιτημάτων
 	public abstract class Lookup
 	{
 		// Φιλτράρισμα
@@ -40,10 +40,16 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 		}
 		public Boolean? SortDescending { get; set; } = false; // Κατεύθυνση ταξινόμησης
 
-		// Μέθοδος για να πάρετε τον τύπο του στοιχείου lookup από τον οποίο καλείται
-		// Παράδειγμα AssetLookup -> typeof(Asset)
-		public abstract Type GetEntityType();
+        // Μέθοδος για τον έλεγχο όλων των πεδίων για έναν συγκεκριμένο τύπο στοιχείου
+        public void ValidateFieldsForEntity(Type entityType)
+        {
+            foreach (String field in Fields)
+            {
+                this.ValidateField(entityType, field);
+            }
 
+
+        }
         // Μέθοδος για τον έλεγχο ενός πεδίου και όλων των ενσωματωμένων πεδίων μέσα σε αυτό με βάση τα δεδομένα του τύπου του
         // Αν δεν συμβεί τίποτα, σημαίνει true, σε περίπτωση εξαίρεσης σημαίνει false
         public virtual void ValidateField(Type entityType, String field)
@@ -54,7 +60,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 			// Ο τρέχων τύπος που ελέγχουμε αναδρομικά
 			Type currentType = entityType;
 
-			foreach (var part in parts)
+			foreach (String part in parts)
 			{
 				PropertyInfo? property = currentType.GetProperty(part);
 				// Έλεγχος αν η ιδιότητα δεν είναι ενσωματωμένη
@@ -95,13 +101,87 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 			}
 		}
 
-		// Μέθοδος για τον έλεγχο όλων των πεδίων για έναν συγκεκριμένο τύπο στοιχείου
-		public void ValidateFieldsForEntity(Type entityType)
-		{
-			foreach (var field in Fields)
-			{
-				ValidateField(entityType, field);
-			}
-		}
-	}
+        // Μέθοδος για να πάρετε τον τύπο του στοιχείου lookup από τον οποίο καλείται
+        // Παράδειγμα AssetLookup -> typeof(Asset)
+        public abstract Type GetEntityType();
+
+        // Hash methods
+
+        protected virtual int GetDerivedHashCode()
+        {
+            int hash = 23;
+            var derivedType = this.GetType();
+            var derivedProperties = derivedType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.DeclaringType == derivedType)
+                .OrderBy(p => p.Name);
+
+            foreach (var property in derivedProperties)
+            {
+                object value = property.GetValue(this);
+                int propertyHash = this.GetPropertyHashCode(value);
+                hash = this.CombineHash(hash, propertyHash);
+            }
+
+            return hash;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 17; // Initial prime number
+
+            // Get all public instance properties of the base class
+            IOrderedEnumerable<PropertyInfo> baseProperties = typeof(Lookup).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .OrderBy(p => p.Name);
+
+            // Process each base property
+            foreach (PropertyInfo property in baseProperties)
+            {
+                object value = property.GetValue(this);
+                int propertyHash = GetPropertyHashCode(value);
+                hash = CombineHash(hash, propertyHash);
+            }
+
+            // Combine with the derived class's hash code
+            int derivedHash = this.GetDerivedHashCode();
+            hash = this.CombineHash(hash, derivedHash);
+
+            return hash;
+        }
+
+        protected int GetPropertyHashCode(object value)
+        {
+            if (value == null)
+                return 0;
+
+            if (value is IEnumerable enumerable && !(value is String))
+                return this.GetCollectionHashCode(enumerable);
+
+            return value.GetHashCode();
+        }
+
+        // Compute hash code for collections, ensuring order independence
+        protected int GetCollectionHashCode(IEnumerable collection)
+        {
+            int hash = 19; // Different initial prime for collections
+
+            var sortedItems = collection.Cast<object>()
+                .OrderBy(item => item?.GetHashCode() ?? 0);
+
+            foreach (object item in sortedItems)
+            {
+                int itemHash = item?.GetHashCode() ?? 0;
+                hash = CombineHash(hash, itemHash);
+            }
+
+            return hash;
+        }
+
+        // Combine two hash codes using bit manipulation to avoid overflow
+        protected int CombineHash(int h1, int h2)
+        {
+            // Rotate left by 5 bits and XOR with h2
+            int rol5 = (h1 << 5) | (h1 >> 27);
+            return rol5 ^ h2;
+        }
+    }
 }

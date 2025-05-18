@@ -6,21 +6,31 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public class UserQuery : BaseQuery<User>
+	public class UserQuery : BaseQuery<Data.Entities.User>
 	{
-		// Κατασκευαστής για την κλάση UserQuery
-		// Είσοδος: mongoDbService - μια έκδοση της κλάσης MongoDbService
-		public UserQuery(MongoDbService mongoDbService)
-		{
-			base._collection = mongoDbService.GetCollection<User>();
-		}
+        private readonly IFilterBuilder<Data.Entities.User, Models.Lookups.UserLookup> _filterBuilder;
 
-		// Λίστα με τα IDs των χρηστών για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        public UserQuery
+        (
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+            IFilterBuilder<Data.Entities.User, Models.Lookups.UserLookup> filterBuilder
+
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα με τα IDs των χρηστών για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
 
@@ -49,10 +59,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<User> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<User>> ApplyFilters()
+        public override Task<FilterDefinition<Data.Entities.User>> ApplyFilters()
 		{
-			FilterDefinitionBuilder<User> builder = Builders<User>.Filter;
-			FilterDefinition<User> filter = builder.Empty;
+            FilterDefinitionBuilder<Data.Entities.User> builder = Builders<Data.Entities.User>.Filter;
+            FilterDefinition<Data.Entities.User> filter = builder.Empty;
 
 			// Εφαρμόζει φίλτρο για τα IDs των χρηστών
 			if (Ids != null && Ids.Any())
@@ -133,30 +143,35 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return Task.FromResult(filter);
 		}
 
-		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.User>> ApplyAuthorisation(FilterDefinition<Data.Entities.User> filter)
+        {
+            return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(UserDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(Data.Entities.User)).ToList();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων UserDto στα ονόματα πεδίων User
-				projectionFields.Add(nameof(User.Id));
-				if (item.Equals(nameof(UserDto.Email))) projectionFields.Add(nameof(User.Email));
-				if (item.Equals(nameof(UserDto.FullName))) projectionFields.Add(nameof(User.FullName));
-				if (item.Equals(nameof(UserDto.Role))) projectionFields.Add(nameof(User.Role));
-				if (item.Equals(nameof(UserDto.Phone))) projectionFields.Add(nameof(User.Phone));
-				if (item.Equals(nameof(UserDto.Location))) projectionFields.Add(nameof(User.Location));
-				if (item.Equals(nameof(UserDto.AuthProvider))) projectionFields.Add(nameof(User.AuthProvider));
-				if (item.Equals(nameof(UserDto.AuthProviderId))) projectionFields.Add(nameof(User.AuthProviderId));
-				if (item.StartsWith(nameof(UserDto.ProfilePhoto))) projectionFields.Add(nameof(User.ProfilePhotoId));
-				if (item.Equals(nameof(UserDto.IsVerified))) projectionFields.Add(nameof(User.IsVerified));
-				if (item.Equals(nameof(UserDto.CreatedAt))) projectionFields.Add(nameof(User.CreatedAt));
-				if (item.Equals(nameof(UserDto.UpdatedAt))) projectionFields.Add(nameof(User.UpdatedAt));
-				if (item.StartsWith(nameof(UserDto.Shelter))) projectionFields.Add(nameof(User.ShelterId));
+				projectionFields.Add(nameof(Data.Entities.User.Id));
+				if (item.Equals(nameof(Models.User.User.Email))) projectionFields.Add(nameof(Data.Entities.User.Email));
+				if (item.Equals(nameof(Models.User.User.FullName))) projectionFields.Add(nameof(Data.Entities.User.FullName));
+				if (item.Equals(nameof(Models.User.User.Role))) projectionFields.Add(nameof(Data.Entities.User.Role));
+				if (item.Equals(nameof(Models.User.User.Phone))) projectionFields.Add(nameof(Data.Entities.User.Phone));
+				if (item.Equals(nameof(Models.User.User.Location))) projectionFields.Add(nameof(Data.Entities.User.Location));
+				if (item.Equals(nameof(Models.User.User.AuthProvider))) projectionFields.Add(nameof(Data.Entities.User.AuthProvider));
+				if (item.Equals(nameof(Models.User.User.AuthProviderId))) projectionFields.Add(nameof(Data.Entities.User.AuthProviderId));
+				if (item.StartsWith(nameof(Models.User.User.ProfilePhoto))) projectionFields.Add(nameof(Data.Entities.User.ProfilePhotoId));
+				if (item.Equals(nameof(Models.User.User.IsVerified))) projectionFields.Add(nameof(Data.Entities.User.IsVerified));
+				if (item.Equals(nameof(Models.User.User.CreatedAt))) projectionFields.Add(nameof(Data.Entities.User.CreatedAt));
+				if (item.Equals(nameof(Models.User.User.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.User.UpdatedAt));
+				if (item.StartsWith(nameof(Models.User.User.Shelter))) projectionFields.Add(nameof(Data.Entities.User.ShelterId));
 			}
 
 			return projectionFields.ToList();

@@ -1,13 +1,14 @@
 ﻿using AutoMapper;
 
 using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
+using Pawfect_Pet_Adoption_App_API.Censors;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Models.Conversation;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.Message;
 using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 using Pawfect_Pet_Adoption_App_API.Services.MessageServices;
 
@@ -21,6 +22,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 		private readonly Lazy<IMessageService> _messageService;
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
+        private readonly AuthContextBuilder _contextBuilder;
+        private readonly IAuthorisationService _authorisationService;
+        private readonly ICensorFactory _censorFactory;
+        private readonly IAuthorisationContentResolver _authorisationContentResolver;
 
         public ConversationService
 		(
@@ -29,8 +34,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 			IConventionService conventionService,
 			Lazy<IMessageService> messageService,
             IQueryFactory queryFactory,
-            IBuilderFactory builderFactory
-
+            IBuilderFactory builderFactory,
+			AuthContextBuilder contextBuilder,
+            IAuthorisationService authorisationService,
+			ICensorFactory censorFactory,
+            IAuthorisationContentResolver authorisationContentResolver
         )
 		{
 			_conversationRepository = conversationRepository;
@@ -39,18 +47,29 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 			_messageService = messageService;
             _queryFactory = queryFactory;
             _builderFactory = builderFactory;
+            _contextBuilder = contextBuilder;
+            _authorisationService = authorisationService;
+            _censorFactory = censorFactory;
+            _authorisationContentResolver = authorisationContentResolver;
         }
 
-		public async Task<ConversationDto?> Persist(ConversationPersist persist, List<String> fields)
+		public async Task<Models.Conversation.Conversation?> Persist(ConversationPersist persist, List<String> fields)
 		{
-			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
-			Conversation data = new Conversation();
+			if (!await _authorisationService.AuthorizeAsync(Permission.CreateConversations))
+                throw new ForbiddenException("Unauthorised access when persisting conversations", typeof(Data.Entities.AdoptionApplication), Permission.CreateConversations);
+
+            Boolean isUpdate = _conventionService.IsValidId(persist.Id);
+            Data.Entities.Conversation data = new Data.Entities.Conversation();
 			String dataId = String.Empty;
 			if (isUpdate)
 			{
-				// TODO : Correct logic?
-				throw new InvalidOperationException("Cannot update a conversation");
-			}
+				data = await _conversationRepository.FindAsync(conv => conv.Id == persist.Id);
+				if (data == null) throw new NotFoundException("Conversation not found", persist.Id, typeof(Data.Entities.Conversation));
+
+				if (persist.UserIds.Except(data.UserIds).ToList().Count == 0) throw new InvalidOperationException("Cannot change who are in the conversation");
+
+				_mapper.Map(persist, data);
+            }
 			else
 			{
 				_mapper.Map(persist, data);
@@ -74,22 +93,41 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-            return (await _builderFactory.Builder<ConversationBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<ConversationCensor>().Censor([.. lookup.Fields], context);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying conversations");
+
+            lookup.Fields = censoredFields;
+            return (await _builderFactory.Builder<ConversationBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+										 .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+										 .FirstOrDefault();
         }
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 
 		public async Task Delete(List<String> ids)
 		{
-			// TODO : Authorization
-			MessageLookup lookup = new MessageLookup();
-			lookup.ConversationIds = ids;
-			lookup.Fields = new List<String> { nameof(MessageDto.Id) };
-			lookup.Offset = 0;
-			lookup.PageSize = 50;
+            ConversationLookup lookup = new ConversationLookup();
+            lookup.Ids = ids;
+            lookup.Fields = new List<String> { nameof(Models.Conversation.Conversation.Id), nameof(Models.Conversation.Conversation.Users) + "." + nameof(Models.User.User.Id) };
+            lookup.Offset = 0;
+            lookup.PageSize = 1000;
 
-			List<Message> messages = await lookup.EnrichLookup(_queryFactory).CollectAsync();
-			await _messageService.Value.Delete(messages?.Select(x => x.Id).ToList());
+            List<Data.Entities.Conversation> conversations = await lookup.EnrichLookup(_queryFactory).CollectAsync();
+
+            OwnedResource ownedResource = _authorisationContentResolver.BuildOwnedResource(new ConversationLookup(), [.. conversations.SelectMany(x => x.UserIds)]);
+            if (!await _authorisationService.AuthorizeOrOwnedAsync(ownedResource, Permission.DeleteConversations))
+                throw new ForbiddenException("You do not have permission to delete files.", typeof(Data.Entities.Conversation), Permission.DeleteConversations);
+
+            // TODO : Authorization
+            MessageLookup mLookup = new MessageLookup();
+            mLookup.ConversationIds = ids;
+            mLookup.Fields = new List<String> { nameof(Models.Message.Message.Id) };
+            mLookup.Offset = 0;
+            mLookup.PageSize = 50;
+
+			List<Data.Entities.Message> messages = await mLookup.EnrichLookup(_queryFactory).CollectAsync();
+			await _messageService.Value.Delete([..messages?.Select(x => x.Id)]);
 
 			await _conversationRepository.DeleteAsync(ids);
 		}

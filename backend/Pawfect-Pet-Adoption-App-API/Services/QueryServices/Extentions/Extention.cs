@@ -1,4 +1,5 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Builders;
+using Pawfect_Pet_Adoption_App_API.Censors;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Implementations;
@@ -15,6 +16,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 		{ 
 			services.AddScoped<IQueryFactory, QueryFactory>();
             services.AddScoped<IBuilderFactory, BuilderFactory>();
+            services.AddScoped<ICensorFactory, CensorFactory>();
+
 
             services.AddAutoMapper(
 				typeof(AutoUserBuilder),

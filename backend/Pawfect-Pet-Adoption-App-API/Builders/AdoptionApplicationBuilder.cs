@@ -17,16 +17,16 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		// Builder για Entity : AdoptionApplication
 		public AutoAdoptionApplicationBuilder()
 		{
-			// Mapping για το Entity : AdoptionApplication σε AdoptionApplication για χρήση του σε αντιγραφή αντικειμένων
-			CreateMap<AdoptionApplication, AdoptionApplication>();
+            // Mapping για το Entity : AdoptionApplication σε AdoptionApplication για χρήση του σε αντιγραφή αντικειμένων
+            CreateMap<Data.Entities.AdoptionApplication, Data.Entities.AdoptionApplication>();
 
-			// POST Request Dto Μοντέλα
-			CreateMap<AdoptionApplication, AdoptionApplicationPersist>();
-			CreateMap<AdoptionApplicationPersist, AdoptionApplication>();
+            // POST Request Dto Μοντέλα
+            CreateMap<Data.Entities.AdoptionApplication, AdoptionApplicationPersist>();
+            CreateMap<AdoptionApplicationPersist, Data.Entities.AdoptionApplication>();
 		}
 	}
 
-	public class AdoptionApplicationBuilder : BaseBuilder<AdoptionApplicationDto, AdoptionApplication>
+	public class AdoptionApplicationBuilder : BaseBuilder<Models.AdoptionApplication.AdoptionApplication, Data.Entities.AdoptionApplication>
 	{
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory; 
@@ -44,37 +44,37 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		public AdoptionApplicationBuilder Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
 
         // Κατασκευή των μοντέλων Dto βάσει των παρεχόμενων entities και πεδίων
-        public override async Task<List<AdoptionApplicationDto>> BuildDto(List<AdoptionApplication> entities, List<String> fields)
+        public override async Task<List<Models.AdoptionApplication.AdoptionApplication>> Build(List<Data.Entities.AdoptionApplication> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
-			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
+			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = base.ExtractBuildFields(fields);
 
-			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-			Dictionary<String, AnimalDto>? animalMap = foreignEntitiesFields.ContainsKey(nameof(Animal))
-				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Animal)]))
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
+            Dictionary<String, Models.Animal.Animal>? animalMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal))
+				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Models.Animal.Animal)]))
 				: null;
 
-			Dictionary<String, UserDto>? userMap = foreignEntitiesFields.ContainsKey(nameof(User))
-				? (await CollectUsers(entities, foreignEntitiesFields[nameof(User)]))
+            Dictionary<String, Models.User.User>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User))
+				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.User.User)]))
 				: null;
 
-			Dictionary<String, ShelterDto>? shelterMap = foreignEntitiesFields.ContainsKey(nameof(Shelter))
-				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Shelter)]))
+            Dictionary<String, Models.Shelter.Shelter>? shelterMap = foreignEntitiesFields.ContainsKey(nameof(Models.Shelter.Shelter))
+				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Models.Shelter.Shelter)]))
 				: null;
 
-			Dictionary<String, List<FileDto>>? filesMap = foreignEntitiesFields.ContainsKey(nameof(Data.Entities.File))
-				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Data.Entities.File)]))
+            Dictionary<String, List<Models.File.File>>? filesMap = foreignEntitiesFields.ContainsKey(nameof(Models.File.File))
+				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Models.File.File)]))
 				: null;
 
-			List<AdoptionApplicationDto> result = new List<AdoptionApplicationDto>();
-			foreach (AdoptionApplication e in entities)
+            List<Models.AdoptionApplication.AdoptionApplication> result = new List<Models.AdoptionApplication.AdoptionApplication>();
+			foreach (Data.Entities.AdoptionApplication e in entities)
 			{
-				AdoptionApplicationDto dto = new AdoptionApplicationDto();
+                Models.AdoptionApplication.AdoptionApplication dto = new Models.AdoptionApplication.AdoptionApplication();
 				dto.Id = e.Id;
-				if (nativeFields.Contains(nameof(AdoptionApplication.ApplicationDetails))) dto.ApplicationDetails = e.ApplicationDetails;
-				if (nativeFields.Contains(nameof(AdoptionApplication.Status))) dto.Status = e.Status;
-				if (nativeFields.Contains(nameof(AdoptionApplication.CreatedAt))) dto.CreatedAt = e.CreatedAt;
-				if (nativeFields.Contains(nameof(AdoptionApplication.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
+				if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.ApplicationDetails))) dto.ApplicationDetails = e.ApplicationDetails;
+				if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.Status))) dto.Status = e.Status;
+				if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.CreatedAt))) dto.CreatedAt = e.CreatedAt;
+				if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 				if (animalMap != null && animalMap.ContainsKey(e.Id)) dto.Animal = animalMap[e.Id];
 				if (userMap != null && userMap.ContainsKey(e.Id)) dto.User = userMap[e.Id];
 				if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
@@ -87,7 +87,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			return await Task.FromResult(result);
 		}
 
-		private async Task<Dictionary<String, AnimalDto>> CollectAnimals(List<AdoptionApplication> applications, List<String> animalFields)
+		private async Task<Dictionary<String, Models.Animal.Animal>> CollectAnimals(List<Data.Entities.AdoptionApplication> applications, List<String> animalFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> animalIds = applications.Select(x => x.AnimalId).Distinct().ToList();
@@ -104,18 +104,18 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			List<Data.Entities.Animal> animals = await animalLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
             // Κατασκευή των dtos
-            List<AnimalDto> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).BuildDto(animals, animalFields);
+            List<Models.Animal.Animal> animalDtos = await _builderFactory.Builder<AnimalBuilder>().Authorise(this._authorise).Build(animals, animalFields);
 
 			if (animalDtos == null || !animalDtos.Any()) { return null; }
 
             // Δημιουργία ενός Dictionary με τον τύπο Guid ως κλειδί και το "Dto model" ως τιμή : [ AnimalId -> AnimalDto ]
-            Dictionary<String, AnimalDto> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.Animal.Animal> animalDtoMap = animalDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα applications δημιουργώντας ένα Dictionary : [ ApplicationId -> AnimalId ] 
 			return applications.ToDictionary(x => x.Id, x => animalDtoMap[x.AnimalId]);
 		}
 
-		private async Task<Dictionary<String, UserDto>> CollectUsers(List<AdoptionApplication> applications, List<String> userFields)
+		private async Task<Dictionary<String, Models.User.User>> CollectUsers(List<Data.Entities.AdoptionApplication> applications, List<String> userFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
 			List<String> userIds = applications.Select(x => x.UserId).Distinct().ToList();
@@ -131,21 +131,21 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
             List<Data.Entities.User> users = await userLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
             // Κατασκευή των dtos
-            List<UserDto> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).BuildDto(users, userFields);
+            List<Models.User.User> userDtos = await _builderFactory.Builder<UserBuilder>().Authorise(this._authorise).Build(users, userFields);
 
             if (userDtos == null || !userDtos.Any()) { return null; }
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
-            Dictionary<String, UserDto> userDtoMap = userDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.User.User> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα applications δημιουργώντας ένα Dictionary : [ ApplicationId -> UserId ] 
 			return applications.ToDictionary(x => x.Id, x => userDtoMap[x.UserId]);
 		}
 
-		private async Task<Dictionary<String, ShelterDto>> CollectShelters(List<AdoptionApplication> applications, List<String> shelterFields)
+		private async Task<Dictionary<String, Models.Shelter.Shelter>> CollectShelters(List<Data.Entities.AdoptionApplication> applications, List<String> shelterFields)
 		{
 			// Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
-			List<String> shelterIds = applications.Select(x => x.ShelterId).Distinct().ToList();
+			List<String> shelterIds = [.. applications.Select(x => x.ShelterId).Distinct()];
 
             ShelterLookup shelterLookup = new ShelterLookup();
 
@@ -159,18 +159,18 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
             List<Data.Entities.Shelter> shelters = await shelterLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
             // Κατασκευή των dtos
-            List<ShelterDto> shelterDtos = await _builderFactory.Builder<ShelterBuilder>().Authorise(this._authorise).BuildDto(shelters, shelterFields);
+            List<Models.Shelter.Shelter> shelterDtos = await _builderFactory.Builder<ShelterBuilder>().Authorise(this._authorise).Build(shelters, shelterFields);
 
             if (shelterDtos == null || !shelterDtos.Any()) { return null; }
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ ShelterId -> ShelterDto ]
-            Dictionary<String, ShelterDto> shelterDtoMap = shelterDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.Shelter.Shelter> shelterDtoMap = shelterDtos.ToDictionary(x => x.Id);
 
 			// Ταίριασμα του προηγούμενου Dictionary με τα applications δημιουργώντας ένα Dictionary : [ ApplicationId -> ShelterId ] 
 			return applications.ToDictionary(x => x.Id, x => shelterDtoMap[x.ShelterId]);
 		}
 
-		private async Task<Dictionary<String, List<FileDto>>> CollectFiles(List<AdoptionApplication> adoptionApplications, List<String> fileFields)
+		private async Task<Dictionary<String, List<Models.File.File>>> CollectFiles(List<Data.Entities.AdoptionApplication> adoptionApplications, List<String> fileFields)
 		{
 			List<String> fileIds = adoptionApplications
 				.Where(x => x.AttachedFilesIds != null)
@@ -188,16 +188,16 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
             List<Data.Entities.File> files = await fileLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
 
             // Κατασκευή των dtos
-            List<FileDto> fileDtos = await _builderFactory.Builder<FileBuilder>().Authorise(this._authorise).BuildDto(files, fileFields);
+            List<Models.File.File> fileDtos = await _builderFactory.Builder<FileBuilder>().Authorise(this._authorise).Build(files, fileFields);
 
 
             if (fileDtos == null || !fileDtos.Any()) return null;
 
-			Dictionary<String, FileDto> fileDtoMap = fileDtos.ToDictionary(x => x.Id);
+            Dictionary<String, Models.File.File> fileDtoMap = fileDtos.ToDictionary(x => x.Id);
 
 			return adoptionApplications.ToDictionary(
 				app => app.Id,
-				app => app.AttachedFilesIds?.Select(fileId => fileDtoMap.TryGetValue(fileId, out FileDto fileDto) ? fileDto : null)
+				app => app.AttachedFilesIds?.Select(fileId => fileDtoMap.TryGetValue(fileId, out Models.File.File fileDto) ? fileDto : null)
 					.Where(fileDto => fileDto != null)
 					.ToList() ?? null
 			);

@@ -117,49 +117,21 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 			return await DeleteAsync(ids);
 		}
 
-		public async Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate)
-		{
-			try
-			{
-				return await _collection.Find(predicate).AnyAsync();
-			}
-			catch (FormatException)
-			{
-				return false;
-			}
+		public async Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate) => await _collection.Find(predicate).AnyAsync();
 
-		}
-
-		public async Task<T> FindAsync(Expression<Func<T, Boolean>> predicate)
-		{
-			try
-			{
-				return await _collection.Find(predicate).FirstOrDefaultAsync();
-			}
-			catch (FormatException)
-			{
-				return null;
-			}
-		}
+		public async Task<T> FindAsync(Expression<Func<T, Boolean>> predicate) => await _collection.Find(predicate).FirstOrDefaultAsync();
 
 		public async Task<T> FindAsync(Expression<Func<T, Boolean>> predicate, List<String> fields)
 		{
-			try
+			ProjectionDefinition<T> projection = Builders<T>.Projection.Include(fields.First());
+			foreach (String field in fields.Skip(1))
 			{
-				ProjectionDefinition<T> projection = Builders<T>.Projection.Include(fields.First());
-				foreach (String field in fields.Skip(1))
-				{
-					projection = projection.Include(field);
-				}
+				projection = projection.Include(field);
+			}
 
-				return await _collection.Find(predicate)
-					.Project<T>(projection)
-					.FirstOrDefaultAsync();
-			}
-			catch (FormatException)
-			{
-				return null;
-			}
+			return await _collection.Find(predicate)
+				.Project<T>(projection)
+				.FirstOrDefaultAsync();
 		}
 	}
 }

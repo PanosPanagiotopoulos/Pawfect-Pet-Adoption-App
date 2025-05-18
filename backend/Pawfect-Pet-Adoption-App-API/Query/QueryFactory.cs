@@ -22,7 +22,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query
         /// </summary>
         /// <typeparam name="T">Type of query to create</typeparam>
         /// <returns>Instance of the query</returns>
-        public T Query<T>() where T : class
+        public T Query<T>() where T : IQuery
         {
             Type queryType = typeof(T);
 

@@ -58,9 +58,9 @@ public class Seeder
 		{
 			var breeds = new List<Breed>
 			{
-				new Breed { Name = "Labrador", TypeId = animalTypes[0].Id, Description = "Friendly and outgoing", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-				new Breed { Name = "Persian", TypeId = animalTypes[1].Id, Description = "Long-haired breed", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
-				new Breed { Name = "Holland Lop", TypeId = animalTypes[2].Id, Description = "Popular rabbit breed", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+				new Breed { Name = "Labrador", AnimalTypeId = animalTypes[0].Id, Description = "Friendly and outgoing", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new Breed { Name = "Persian", AnimalTypeId = animalTypes[1].Id, Description = "Long-haired breed", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+				new Breed { Name = "Holland Lop", AnimalTypeId = animalTypes[2].Id, Description = "Popular rabbit breed", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
 			};
 			breedsCollection.InsertMany(breeds);
 		}

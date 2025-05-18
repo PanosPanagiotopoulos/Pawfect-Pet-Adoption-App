@@ -6,21 +6,31 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.Notification;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public class NotificationQuery : BaseQuery<Notification>
+	public class NotificationQuery : BaseQuery<Data.Entities.Notification>
 	{
-		// Κατασκευαστής για την κλάση NotificationQuery
-		// Είσοδος: mongoDbService - μια έκδοση της κλάσης MongoDbService
-		public NotificationQuery(MongoDbService mongoDbService)
-		{
-			base._collection = mongoDbService.GetCollection<Notification>();
-		}
+        private readonly IFilterBuilder<Data.Entities.Notification, Models.Lookups.NotificationLookup> _filterBuilder;
 
-		// Λίστα με τα IDs των ειδοποιήσεων για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        public NotificationQuery
+        (
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+            IFilterBuilder<Data.Entities.Notification, Models.Lookups.NotificationLookup> filterBuilder
+
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα με τα IDs των ειδοποιήσεων για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
 
@@ -43,10 +53,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<Notification> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<Notification>> ApplyFilters()
+        public override Task<FilterDefinition<Data.Entities.Notification>> ApplyFilters()
 		{
-			FilterDefinitionBuilder<Notification> builder = Builders<Notification>.Filter;
-			FilterDefinition<Notification> filter = builder.Empty;
+            FilterDefinitionBuilder<Data.Entities.Notification> builder = Builders<Data.Entities.Notification>.Filter;
+            FilterDefinition<Data.Entities.Notification> filter = builder.Empty;
 
 			// Εφαρμόζει φίλτρο για τα IDs των ειδοποιήσεων
 			if (Ids != null && Ids.Any())
@@ -97,23 +107,41 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
 			return Task.FromResult(filter);
 		}
-		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.Notification>> ApplyAuthorisation(FilterDefinition<Data.Entities.Notification> filter)
+        {
+            if (_authorise.HasFlag(AuthorizationFlags.None)) return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Permission))
+                if (await _authorisationService.AuthorizeAsync(Permission.BrowseNotifications))
+                    return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Owner))
+            {
+                FilterDefinition<Data.Entities.Notification> requiredFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.Notification>();
+
+                filter = Builders<Data.Entities.Notification>.Filter.And(filter, requiredFilter);
+            }
+
+            return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(NotificationDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(Data.Entities.Notification)).ToList();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων NotificationDto στα ονόματα πεδίων Notification
-				projectionFields.Add(nameof(Notification.Id));
-				if (item.Equals(nameof(NotificationDto.Type))) projectionFields.Add(nameof(Notification.Type));
-				if (item.Equals(nameof(NotificationDto.Content))) projectionFields.Add(nameof(Notification.Content));
-				if (item.Equals(nameof(NotificationDto.IsRead))) projectionFields.Add(nameof(Notification.IsRead));
-				if (item.Equals(nameof(NotificationDto.CreatedAt))) projectionFields.Add(nameof(Notification.CreatedAt));
-				if (item.StartsWith(nameof(NotificationDto.User))) projectionFields.Add(nameof(Notification.UserId));
+				projectionFields.Add(nameof(Data.Entities.Notification.Id));
+				if (item.Equals(nameof(Models.Notification.Notification.Type))) projectionFields.Add(nameof(Data.Entities.Notification.Type));
+				if (item.Equals(nameof(Models.Notification.Notification.Content))) projectionFields.Add(nameof(Data.Entities.Notification.Content));
+				if (item.Equals(nameof(Models.Notification.Notification.IsRead))) projectionFields.Add(nameof(Data.Entities.Notification.IsRead));
+				if (item.Equals(nameof(Models.Notification.Notification.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Notification.CreatedAt));
+				if (item.StartsWith(nameof(Models.Notification.Notification.User))) projectionFields.Add(nameof(Data.Entities.Notification.UserId));
 			}
 			return projectionFields.ToList();
 		}

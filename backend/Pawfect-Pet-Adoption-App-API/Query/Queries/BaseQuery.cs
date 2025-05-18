@@ -1,13 +1,40 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.Linq;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public abstract class BaseQuery<T> where T : class
+	public interface IQuery { }
+
+	public abstract class BaseQuery<T> : IQuery where T : class
 	{
 		// Η συλλογή στην οποία αναφέρεται η ερώτηση
-		public IMongoCollection<T>? _collection { get; set; }
-		public int Offset { get; set; } = 1;
+		protected IMongoCollection<T>? _collection { get; set; }
+
+        protected readonly IAuthorisationService _authorisationService;
+
+        protected readonly IAuthorisationContentResolver _authorisationContentResolver;
+
+        protected readonly ClaimsExtractor _claimsExtractor;
+
+        protected BaseQuery
+		(
+             MongoDbService mongoDbService,
+             IAuthorisationService authorisationService,
+             IAuthorisationContentResolver authorisationContentResolver,
+             ClaimsExtractor claimsExtractor
+        )
+        {
+            this._collection = mongoDbService.GetCollection<T>();
+            this._authorisationService = authorisationService;
+            this._authorisationContentResolver = authorisationContentResolver;
+            this._claimsExtractor = claimsExtractor;
+        }
+
+
+        // Base Query fields
+        public int Offset { get; set; } = 1;
 		public int PageSize { get; set; } = 10;
 		public ICollection<String>? Fields { get; set; }
 		public ICollection<String>? SortBy { get; set; }
@@ -20,8 +47,11 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		// Επιστρέφει τα ονόματα των πεδίων που περιέχονται στη λίστα fields
 		public abstract List<String> FieldNamesOf(List<String> fields);
 
+		// Εφαρμόζει την σελιδοποίηση στην ερώτηση
+		public abstract Task<FilterDefinition<T>> ApplyAuthorisation(FilterDefinition<T> filter);
+        
 		// Εφαρμόζει την προβολή για δυναμικά πεδία
-		private IFindFluent<T, T> ApplyProjection(IFindFluent<T, T> finder)
+        private IFindFluent<T, T> ApplyProjection(IFindFluent<T, T> finder)
 		{
 			if (Fields == null || !Fields.Any())
 			{
@@ -79,33 +109,26 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return finder;
 		}
 
-		// Εφαρμόζει την σελιδοποίηση στην ερώτηση
-		private IFindFluent<T, T> ApplyAuthorisation(IFindFluent<T, T> finder)
-		{
-			// TOOD : Κατασκευή λογικής authorisation στο querying
-			return finder;
-		}
-
 		// Συλλέγει τα αποτελέσματα της ερώτησης
 		public virtual async Task<List<T>> CollectAsync()
 		{
 			// Βήμα 1: Εφαρμογή φίλτρων στην ερώτηση
 			FilterDefinition<T> filter = await ApplyFilters();
 
-			// Αρχικοποίηση της λειτουργίας αναζήτησης
-			IFindFluent<T, T> finder = _collection.Find(filter);
+            // Βήμα 2: Εφαρμογή authorisation στα δεδομένα που ζητούντε
+            filter = await this.ApplyAuthorisation(filter);
 
-			// Βήμα 2: Εφαρμογή ταξινόμησης αν απαιτείται
-			finder = ApplySorting(finder);
+            // Αρχικοποίηση της λειτουργίας αναζήτησης
+            IFindFluent<T, T> finder = _collection.Find(filter);
 
-			// Βήμα 3: Εφαρμογή σελιδοποίησης
-			finder = ApplyPagination(finder);
+			// Βήμα 3: Εφαρμογή ταξινόμησης αν απαιτείται
+			finder = this.ApplySorting(finder);
 
-			// Βήμα 4: Εφαρμογή προβολής για δυναμικά πεδία
-			finder = ApplyProjection(finder);
-			
-			// Βήμα 5: Εφαρμογή authorisation στα δεδομένα που ζητούντε
-			finder = ApplyAuthorisation(finder);
+			// Βήμα 4: Εφαρμογή σελιδοποίησης
+			finder = this.ApplyPagination(finder);
+
+			// Βήμα 5: Εφαρμογή προβολής για δυναμικά πεδία
+			finder = this.ApplyProjection(finder);
 
 			// Εκτέλεση της ερώτησης και επιστροφή του αποτελέσματος
 			return (await finder.ToListAsync()) ?? new List<T>();

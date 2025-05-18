@@ -5,21 +5,31 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.Breed;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public class BreedQuery : BaseQuery<Breed>
+	public class BreedQuery : BaseQuery<Data.Entities.Breed>
 	{
-		// Constructor for the BreedQuery class
-		// Input: mongoDbService - μια έκδοση της κλάσης MongoDbService
-		public BreedQuery(MongoDbService mongoDbService)
-		{
-			base._collection = mongoDbService.GetCollection<Breed>();
-		}
+        private readonly IFilterBuilder<Data.Entities.Breed, Models.Lookups.BreedLookup> _filterBuilder;
 
-		// Λίστα με τα αναγνωριστικά των φυλών για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        public BreedQuery
+        (
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+            IFilterBuilder<Data.Entities.Breed, Models.Lookups.BreedLookup> filterBuilder
+
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα με τα αναγνωριστικά των φυλών για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
 
@@ -39,10 +49,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<Breed> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<Breed>> ApplyFilters()
+        public override Task<FilterDefinition<Data.Entities.Breed>> ApplyFilters()
 		{
-			FilterDefinitionBuilder<Breed> builder = Builders<Breed>.Filter;
-			FilterDefinition<Breed> filter = builder.Empty;
+            FilterDefinitionBuilder<Data.Entities.Breed> builder = Builders<Data.Entities.Breed>.Filter;
+            FilterDefinition<Data.Entities.Breed> filter = builder.Empty;
 
 			// Εφαρμόζει φίλτρο για τα αναγνωριστικά των φυλών
 			if (Ids != null && Ids.Any())
@@ -94,22 +104,27 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return Task.FromResult(filter);
 		}
 
-		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.Breed>> ApplyAuthorisation(FilterDefinition<Data.Entities.Breed> filter)
+        {
+            return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(BreedDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(Data.Entities.Breed)).ToList();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
-				projectionFields.Add(nameof(Breed.Id));
-				if (item.Equals(nameof(BreedDto.Name))) projectionFields.Add(nameof(Breed.Name));
-				if (item.Equals(nameof(BreedDto.Description))) projectionFields.Add(nameof(Breed.Description));
-				if (item.Equals(nameof(BreedDto.CreatedAt))) projectionFields.Add(nameof(Breed.CreatedAt));
-				if (item.Equals(nameof(BreedDto.UpdatedAt))) projectionFields.Add(nameof(Breed.UpdatedAt));
-				if (item.StartsWith(nameof(BreedDto.AnimalType))) projectionFields.Add(nameof(Breed.TypeId));
+				projectionFields.Add(nameof(Data.Entities.Breed.Id));
+				if (item.Equals(nameof(Models.Breed.Breed.Name))) projectionFields.Add(nameof(Data.Entities.Breed.Name));
+				if (item.Equals(nameof(Models.Breed.Breed.Description))) projectionFields.Add(nameof(Data.Entities.Breed.Description));
+				if (item.Equals(nameof(Models.Breed.Breed.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Breed.CreatedAt));
+				if (item.Equals(nameof(Models.Breed.Breed.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.Breed.UpdatedAt));
+				if (item.StartsWith(nameof(Models.Breed.Breed.AnimalType))) projectionFields.Add(nameof(Data.Entities.Breed.AnimalTypeId));
 			}
 			return projectionFields.ToList();
 		}

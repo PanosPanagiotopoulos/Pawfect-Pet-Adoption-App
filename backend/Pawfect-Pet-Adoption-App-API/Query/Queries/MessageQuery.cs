@@ -5,21 +5,31 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.Message;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public class MessageQuery : BaseQuery<Message>
+	public class MessageQuery : BaseQuery<Data.Entities.Message>
 	{
-		// Constructor για την κλάση MessageQuery
-		// Είσοδος: mongoDbService - μια παρουσία της κλάσης MongoDbService
-		public MessageQuery(MongoDbService mongoDbService)
-		{
-			base._collection = mongoDbService.GetCollection<Message>();
-		}
+        private readonly IFilterBuilder<Data.Entities.Message, Models.Lookups.MessageLookup> _filterBuilder;
 
-		// Λίστα από IDs μηνυμάτων για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        public MessageQuery
+        (
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+            IFilterBuilder<Data.Entities.Message, Models.Lookups.MessageLookup> filterBuilder
+
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα από IDs μηνυμάτων για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
 
@@ -45,10 +55,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<Message> - ο ορισμός του φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<Message>> ApplyFilters()
+        public override Task<FilterDefinition<Data.Entities.Message>> ApplyFilters()
 		{
-			FilterDefinitionBuilder<Message> builder = Builders<Message>.Filter;
-			FilterDefinition<Message> filter = builder.Empty;
+            FilterDefinitionBuilder<Data.Entities.Message> builder = Builders<Data.Entities.Message>.Filter;
+            FilterDefinition<Data.Entities.Message> filter = builder.Empty;
 
 			// Εφαρμόζει φίλτρο για IDs μηνυμάτων
 			if (Ids != null && Ids.Any())
@@ -114,24 +124,42 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return Task.FromResult(filter);
 		}
 
-		// Επιστρέφει τα ονόματα των πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.Message>> ApplyAuthorisation(FilterDefinition<Data.Entities.Message> filter)
+        {
+            if (_authorise.HasFlag(AuthorizationFlags.None)) return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Permission))
+                if (await _authorisationService.AuthorizeAsync(Permission.BrowseMessages))
+                    return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
+            {
+                FilterDefinition<Data.Entities.Message> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.Message>();
+
+                filter = Builders<Data.Entities.Message>.Filter.And(filter, requiredFilter);
+            }
+
+            return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα των πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(MessageDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) fields = [.. EntityHelper.GetAllPropertyNames(typeof(Data.Entities.Message))];
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Χαρτογραφεί τα ονόματα των πεδίων του MessageDto στα ονόματα των πεδίων του Message
-				projectionFields.Add(nameof(Message.Id));
-				if (item.Equals(nameof(MessageDto.Content))) projectionFields.Add(nameof(Message.Content));
-				if (item.Equals(nameof(MessageDto.IsRead))) projectionFields.Add(nameof(Message.IsRead));
-				if (item.Equals(nameof(MessageDto.CreatedAt))) projectionFields.Add(nameof(Message.CreatedAt));
-				if (item.StartsWith(nameof(MessageDto.Conversation))) projectionFields.Add(nameof(Message.ConversationId));
-				if (item.StartsWith(nameof(MessageDto.Sender))) projectionFields.Add(nameof(Message.SenderId));
-				if (item.StartsWith(nameof(MessageDto.Recipient))) projectionFields.Add(nameof(Message.RecipientId));
+				projectionFields.Add(nameof(Data.Entities.Message.Id));
+				if (item.Equals(nameof(Models.Message.Message.Content))) projectionFields.Add(nameof(Data.Entities.Message.Content));
+				if (item.Equals(nameof(Models.Message.Message.IsRead))) projectionFields.Add(nameof(Data.Entities.Message.IsRead));
+				if (item.Equals(nameof(Models.Message.Message.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Message.CreatedAt));
+				if (item.StartsWith(nameof(Models.Message.Message.Conversation))) projectionFields.Add(nameof(Data.Entities.Message.ConversationId));
+				if (item.StartsWith(nameof(Models.Message.Message.Sender))) projectionFields.Add(nameof(Data.Entities.Message.SenderId));
+				if (item.StartsWith(nameof(Models.Message.Message.Recipient))) projectionFields.Add(nameof(Data.Entities.Message.RecipientId));
 			}
 			return projectionFields.ToList();
 		}

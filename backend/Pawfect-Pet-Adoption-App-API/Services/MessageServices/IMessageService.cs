@@ -5,7 +5,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
 {
 	public interface IMessageService
 	{
-		Task<MessageDto?> Persist(MessagePersist persist, List<String> fields);
+		Task<Message?> Persist(MessagePersist persist, List<String> fields);
 		Task Delete(String id);
 		Task Delete(List<String> ids);
 	}

@@ -7,7 +7,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Collections.Generic;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 {
@@ -100,7 +99,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
             JwtSecurityToken token = new JwtSecurityToken(
                 issuer: issuer,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_cacheConfiguration.TokensCacheTime),
+                expires: DateTime.UtcNow.AddMinutes(_cacheConfiguration.JWTTokensCacheTime),
                 signingCredentials: creds
             );
 
@@ -161,19 +160,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
             JwtConfig? jwtSettings = configuration.GetSection("Jwt").Get<JwtConfig>();
 
             if (String.IsNullOrEmpty(jwtSettings.Key))
-            {
                 throw new ArgumentException("JWT Key δεν βρέθηκε.");
-            }
 
             if (String.IsNullOrEmpty(jwtSettings.Issuer))
-            {
                 throw new ArgumentException("JWT Issuer δεν βρέθηκε.");
-            }
 
             if (jwtSettings.Audiences == null || !jwtSettings.Audiences.Any())
-            {
                 throw new ArgumentException("JWT audiences δεν βρέθηκαν.");
-            }
 
             return jwtSettings;
         }

@@ -58,7 +58,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 		/// </summary>
 		/// <param name="phoneNumber">Ο αριθμός τηλεφώνου του χρήστη.</param>
 		/// <param name="message">Το μήνυμα του SMS.</param>
-		/// <exception cref="InvalidDataException">Ρίχνεται όταν οι παράμετροι για το configuration δεν βρέθηκαν.</exception>
 		/// <exception cref="InvalidOperationException">Ρίχνεται όταν αποτυγχάνει η αποστολή του SMS.</exception>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποστολή του SMS με συγκεκριμένο status code και response.</exception>
 		Task SendSmsAsync(String phoneNumber, String message);

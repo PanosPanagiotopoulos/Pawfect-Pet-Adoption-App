@@ -3,16 +3,16 @@ using Pawfect_Pet_Adoption_App_API.Models.User;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.Report
 {
-	public class ReportDto
+	public class Report
 	{
 		public String? Id { get; set; }
 
 		/// <value>
 		/// Το Id του χρήστη που έκανε το report.
 		/// </value>
-		public UserDto? Reporter { get; set; }
+		public User.User? Reporter { get; set; }
 
-		public UserDto? Reported { get; set; }
+		public User.User? Reported { get; set; }
 
 		/// <value>Ο τύπος αναφοράς βάση του συστήματος.</value>
 		public ReportType? Type { get; set; }

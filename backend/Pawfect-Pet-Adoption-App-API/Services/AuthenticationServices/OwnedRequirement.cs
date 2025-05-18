@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
@@ -45,57 +46,43 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, OwnedRequirement requirement)
         {
             String userId = _claimsExtractor.CurrentUserId(context.User);
-            // Basic ownership check
-            if (!_conventionService.IsValidId(userId) || !requirement.Resource.UserIds.Contains(userId))
+            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+
+            OwnedResource ownedResource = requirement.Resource;
+            if (ownedResource == null)
+                throw new ArgumentException("No resource provided.");
+
+            // Check if user ids where added (means we check via owner instantly)
+            if (requirement.Resource.UserIds != null && requirement.Resource.UserIds.Count() > 0 && requirement.Resource.UserIds.Contains(userId))
             {
-                context.Fail();
+                context.Succeed(requirement);
                 return;
             }
 
-            OwnedResource ownedResource = requirement.Resource;
-            if (ownedResource == null ||
-                ownedResource.OwnedFilterParams == null)
-            {
-                context.Fail();
-                return;
-            }
+            if (ownedResource.OwnedFilterParams == null)
+                throw new ArgumentException("No filter params provided.");
 
             // * Intenral affiliation lookup *
 
             // Validate that the lookup type matches TLookup
-            if (ownedResource.OwnedFilterParams.Lookup is not TLookup lookup)
-            {
-                context.Fail();
-                return;
-            }
+            if (ownedResource.OwnedFilterParams.RequestedFilters is not TLookup lookup)
+                throw new ArgumentException("Invalid lookup type");
 
-            // Validate that the entity type matches
-            Type entityType = ownedResource.OwnedFilterParams.Lookup.GetEntityType();
-            if (entityType != typeof(TEntity))
-            {
-                context.Fail();
-                return;
-            }
+            // The requested filter from the user
+            FilterDefinition<TEntity> filter = await _filterBuilder.Build((TLookup)lookup);
 
-            // Build the filter using the strongly typed IFilterBuilder
-            FilterDefinition<TEntity> filter = await _filterBuilder.Build(lookup);
-            if (filter == null)
-            {
-                throw new Exception("Failed to build filters from lookup");
-            }
+            if (filter == null) throw new InvalidOperationException("Failed to build filters from lookup");
 
-            FilterDefinition<TEntity> requiredFilter = _authorisationContentResolver.BuildOwnedFilterParams<TEntity>();
+            FilterDefinition<TEntity> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<TEntity>();
 
             FilterDefinition<TEntity> combinedFilter = Builders<TEntity>.Filter.And(filter, requiredFilter);
 
             // Count matching documents asynchronously
             long count = await _mongoDbService.GetCollection<TEntity>().CountDocumentsAsync(combinedFilter);
 
-            // Succeed if count > 1, otherwise fail
-            if (count > 1) context.Succeed(requirement);
+            // Succeed if count > 0, otherwise fail
+            if (count > 0) context.Succeed(requirement);
             else context.Fail();
-
-
         }
     }
 

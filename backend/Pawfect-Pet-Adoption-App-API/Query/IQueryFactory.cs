@@ -7,6 +7,6 @@ namespace Pawfect_Pet_Adoption_App_API.Query
     /// </summary>
     public interface IQueryFactory
     {
-        T Query<T>() where T : class;
+        T Query<T>() where T : IQuery;
     }
 }

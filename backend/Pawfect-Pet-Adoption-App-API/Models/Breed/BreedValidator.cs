@@ -13,7 +13,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Breed
                 .WithMessage("Το όνομα της ράτσας πρέπει να είναι μεταξύ 1-100 χαρακτήρες.");
 
             // Το ID του τύπου ζώου είναι απαραίτητο
-            RuleFor(breed => breed.TypeId)
+            RuleFor(breed => breed.AnimalTypeId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
                 .WithMessage("Το ID του τύπου ζώου δεν είναι σε σωστή μορφή.");

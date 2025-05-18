@@ -27,11 +27,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmailServices
 			String? fromEmail = _configuration.FromEmail;
 
 			if (String.IsNullOrEmpty(apiKey) || String.IsNullOrEmpty(fromName) || String.IsNullOrEmpty(fromEmail))
-			{
-				throw new InvalidDataException("Οι παραμέτροι για το configuration δεν βρέθηκαν");
-			}
-
-			Log.Information("Email Message = " + message);
+				throw new Exception("Not correct config files for email service");
 
 			SendGridClient client = new SendGridClient(apiKey);
 			EmailAddress from = new EmailAddress(fromEmail, fromName);
@@ -42,9 +38,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmailServices
 			Response response = await client.SendEmailAsync(msg);
 
 			if (!response.IsSuccessStatusCode)
-			{
-				throw new InvalidOperationException($"Αποτυχία αποστολής verification email\nBody : {JsonConvert.SerializeObject(await response.Body.ReadAsStringAsync(), formatting: Formatting.Indented)}");
-			}
+				throw new InvalidOperationException($"Failed to send email\nBody : {JsonConvert.SerializeObject(await response.Body.ReadAsStringAsync(), formatting: Formatting.Indented)}");
 		}
 	}
 }

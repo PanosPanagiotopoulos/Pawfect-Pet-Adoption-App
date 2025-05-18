@@ -5,10 +5,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 {
 	public interface IFileService
 	{
-		Task<FileDto> Persist(FilePersist persist, List<String> fields);
-		Task<List<FileDto>> Persist(List<FilePersist> persist, List<String> fields);
-		Task<FileDto> SaveTemporarily(TempMediaFile tempMediaFile);
-		Task<IEnumerable<FileDto>> SaveTemporarily(List<TempMediaFile> tempMediaFiles);
+		Task<Models.File.File> Persist(FilePersist persist, List<String> fields);
+		Task<List<Models.File.File>> Persist(List<FilePersist> persist, List<String> fields);
+		Task<Models.File.File> SaveTemporarily(TempMediaFile tempMediaFile);
+		Task<IEnumerable<Models.File.File>> SaveTemporarily(List<TempMediaFile> tempMediaFiles);
 		Task Delete(String id);
 		Task Delete(List<String> ids);
 	}

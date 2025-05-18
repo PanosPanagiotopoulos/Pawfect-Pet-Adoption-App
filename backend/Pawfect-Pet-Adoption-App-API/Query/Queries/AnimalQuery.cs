@@ -1,32 +1,35 @@
-﻿// FILE: Query/Queries/AnimalQuery.cs
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Driver;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Models.Animal;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
-using Pawfect_Pet_Adoption_App_API.Services.SearchServices;
-using Serilog;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public class AnimalQuery : BaseQuery<Animal>
+	public class AnimalQuery : BaseQuery<Data.Entities.Animal>
 	{
-		private readonly SearchService _searchService;
+        private readonly IFilterBuilder<Data.Entities.Animal, AnimalLookup> _filterBuilder;
 
-		// Κατασκευαστής για την κλάση AnimalQuery
-		// Είσοδος: mongoDbService - μια έκδοση της κλάσης MongoDbService
-		public AnimalQuery(MongoDbService mongoDbService, SearchService searchService)
-		{
-			base._collection = mongoDbService.GetCollection<Animal>();
-			this._searchService = searchService;
-		}
+        public AnimalQuery
+        (
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+            IFilterBuilder<Data.Entities.Animal, Models.Lookups.AnimalLookup> filterBuilder
 
-		// Λίστα από IDs ζώων για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα από IDs ζώων για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
 
@@ -55,10 +58,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<Animal> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override async Task<FilterDefinition<Animal>> ApplyFilters()
+        public override async Task<FilterDefinition<Data.Entities.Animal>> ApplyFilters()
 		{
-			FilterDefinitionBuilder<Animal> builder = Builders<Animal>.Filter;
-			FilterDefinition<Animal> filter = builder.Empty;
+            FilterDefinitionBuilder<Data.Entities.Animal> builder = Builders<Data.Entities.Animal>.Filter;
+            FilterDefinition<Data.Entities.Animal> filter = builder.Empty;
 
 			// Εφαρμόζει φίλτρο για τα IDs των ζώων
 			if (Ids != null && Ids.Any())
@@ -145,31 +148,37 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return await Task.FromResult(filter);
 		}
 
-		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.Animal>> ApplyAuthorisation(FilterDefinition<Data.Entities.Animal> filter)
+        {
+			return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(AnimalDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(Data.Entities.Animal)).ToList();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων AnimalDto στα ονόματα πεδίων Animal
-				projectionFields.Add(nameof(Animal.Id));
-				if (item.Equals(nameof(AnimalDto.Name))) projectionFields.Add(nameof(Animal.Name));
-				if (item.Equals(nameof(AnimalDto.Description))) projectionFields.Add(nameof(Animal.Description));
-				if (item.Equals(nameof(AnimalDto.Gender))) projectionFields.Add(nameof(Animal.Gender));
-				if (item.Equals(nameof(AnimalDto.Age))) projectionFields.Add(nameof(Animal.Age));
-				if (item.Equals(nameof(AnimalDto.Weight))) projectionFields.Add(nameof(Animal.Weight));
-				if (item.Equals(nameof(AnimalDto.AdoptionStatus))) projectionFields.Add(nameof(Animal.AdoptionStatus));
-				if (item.Equals(nameof(AnimalDto.HealthStatus))) projectionFields.Add(nameof(Animal.HealthStatus));
-				if (item.StartsWith(nameof(AnimalDto.Photos))) projectionFields.Add(nameof(Animal.PhotosIds));
-				if (item.Equals(nameof(AnimalDto.CreatedAt))) projectionFields.Add(nameof(Animal.CreatedAt));
-				if (item.Equals(nameof(AnimalDto.UpdatedAt))) projectionFields.Add(nameof(Animal.UpdatedAt));
-				if (item.StartsWith(nameof(AnimalDto.Shelter))) projectionFields.Add(nameof(Animal.ShelterId));
-				if (item.StartsWith(nameof(AnimalDto.Breed))) projectionFields.Add(nameof(Animal.BreedId));
-				if (item.StartsWith(nameof(AnimalDto.AnimalType))) projectionFields.Add(nameof(Animal.AnimalTypeId));
+				projectionFields.Add(nameof(Data.Entities.Animal.Id));
+				if (item.Equals(nameof(Models.Animal.Animal.Name))) projectionFields.Add(nameof(Data.Entities.Animal.Name));
+				if (item.Equals(nameof(Models.Animal.Animal.Description))) projectionFields.Add(nameof(Data.Entities.Animal.Description));
+				if (item.Equals(nameof(Models.Animal.Animal.Gender))) projectionFields.Add(nameof(Data.Entities.Animal.Gender));
+				if (item.Equals(nameof(Models.Animal.Animal.Age))) projectionFields.Add(nameof(Data.Entities.Animal.Age));
+				if (item.Equals(nameof(Models.Animal.Animal.Weight))) projectionFields.Add(nameof(Data.Entities.Animal.Weight));
+				if (item.Equals(nameof(Models.Animal.Animal.AdoptionStatus))) projectionFields.Add(nameof(Data.Entities.Animal.AdoptionStatus));
+				if (item.Equals(nameof(Models.Animal.Animal.HealthStatus))) projectionFields.Add(nameof(Data.Entities.Animal.HealthStatus));
+				if (item.Equals(nameof(Models.Animal.Animal.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Animal.CreatedAt));
+				if (item.Equals(nameof(Models.Animal.Animal.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.Animal.UpdatedAt));
+                
+				if (item.StartsWith(nameof(Models.Animal.Animal.Photos))) projectionFields.Add(nameof(Data.Entities.Animal.PhotosIds));
+                if (item.StartsWith(nameof(Models.Animal.Animal.Shelter))) projectionFields.Add(nameof(Data.Entities.Animal.ShelterId));
+				if (item.StartsWith(nameof(Models.Animal.Animal.Breed))) projectionFields.Add(nameof(Data.Entities.Animal.BreedId));
+				if (item.StartsWith(nameof(Models.Animal.Animal.AnimalType))) projectionFields.Add(nameof(Data.Entities.Animal.AnimalTypeId));
 			}
 
 			return projectionFields.ToList();

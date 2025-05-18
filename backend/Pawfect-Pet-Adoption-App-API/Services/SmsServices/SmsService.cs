@@ -29,9 +29,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 			String? apiKey = _configuration.ApiKey;
 
 			if (String.IsNullOrWhiteSpace(smsServiceUrl) || String.IsNullOrEmpty(apiKey))
-			{
-				throw new InvalidDataException("Wrong configuration data found");
-			}
+				throw new Exception("Wrong configuration data found");
 
 
 			// Κατασκευάζουμε τον αριθμό τηλεφώνου μόνο με με τα νούμερα του και στην αρχή τον κωδικό της χώρας για την υπηρεσία
@@ -39,11 +37,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 
 			String? fromPhonenumber = _configuration.From;
 			if (String.IsNullOrEmpty(fromPhonenumber))
-			{
-				// LOGS //
-				_logger.LogError("From phone number to send SMS not found.");
-				throw new InvalidOperationException("From phone configuration not found at SMS Service");
-			}
+				throw new ArgumentException("From phone configuration not found at SMS Service");
 
 			// Κατασκευή payload για το SMS API
 			var payload = new
@@ -78,7 +72,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 				if (!response.IsSuccessStatusCode)
 				{
 					String errorContent = await response.Content.ReadAsStringAsync();
-					throw new Exception($"Αποτυχία αποστολής SMS. Status Code: {response.StatusCode}, Response: {errorContent}");
+					throw new InvalidOperationException("$Failed to send SMS. Status Code: {response.StatusCode}, Response: {errorContent}");
 				}
 			}
 		}

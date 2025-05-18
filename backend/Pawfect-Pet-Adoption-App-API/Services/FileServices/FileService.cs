@@ -3,13 +3,17 @@ using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Builders;
+using Pawfect_Pet_Adoption_App_API.Censors;
 using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Files;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.AwsServices;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 using System.Linq;
@@ -25,6 +29,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		private readonly IConventionService _conventionService;
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
+        private readonly AuthContextBuilder _contextBuilder;
+        private readonly ICensorFactory _censorFactory;
+        private readonly IAuthorisationService _authorisationService;
+        private readonly IAuthorisationContentResolver _authorisationContentResolver;
         private readonly FilesConfig _filesConfig;
 
 		public FileService
@@ -36,8 +44,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			IConventionService conventionService,
 			IOptions<FilesConfig> filesConfig,
 			IQueryFactory queryFactory,
-            IBuilderFactory builderFactory
-
+            IBuilderFactory builderFactory,
+            AuthContextBuilder contextBuilder,
+            ICensorFactory censorFactory,
+			IAuthorisationService authorisationService,
+            IAuthorisationContentResolver authorisationContentResolver
         )
 		{
 			_logger = logger;
@@ -47,6 +58,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			_conventionService = conventionService;
             _queryFactory = queryFactory;
             _builderFactory = builderFactory;
+            _contextBuilder = contextBuilder;
+            _censorFactory = censorFactory;
+            _authorisationService = authorisationService;
+            _authorisationContentResolver = authorisationContentResolver;
             _filesConfig = filesConfig.Value;
 		}
 
@@ -63,33 +78,30 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		//	return await _fileBuilder.SetLookup(fileLookup).BuildDto(queriedFiles, fileLookup.Fields.ToList());
 		//}
 
-		public async Task<FileDto> Persist(FilePersist persist, List<String> fields)
+		public async Task<Models.File.File> Persist(FilePersist persist, List<String> fields)
 		{
 			return (await this.Persist(new List<FilePersist>() { persist }, fields)).FirstOrDefault();
 		}
-		public async Task<List<FileDto>> Persist(List<FilePersist> persists, List<String> fields)
+		public async Task<List<Models.File.File>> Persist(List<FilePersist> persists, List<String> fields)
 		{
-			// TODO : Authorization
+			OwnedResource ownedResource = _authorisationContentResolver.BuildOwnedResource(new FileLookup(), [.. persists.Select(x => x.OwnerId)]);
+			if (!await _authorisationService.AuthorizeOrOwnedAsync(ownedResource, Permission.CreateFiles))
+                throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
 
-			Boolean isUpdate = persists.Select(f => f.Id).Any(_conventionService.IsValidId);
+            Boolean isUpdate = persists.Select(f => f.Id).Any(_conventionService.IsValidId);
 			List<Data.Entities.File> persistData = new List<Data.Entities.File>();
 			foreach (FilePersist persist in persists)
 			{
 				Data.Entities.File data = new Data.Entities.File();
-
 				if (isUpdate)
 				{
 					data = await _fileRepository.FindAsync(f => f.Id == persist.Id);
 
-					if (!data.SourceUrl.Equals(persist.SourceUrl))
-					{
-						throw new ArgumentException("Cannot change source url");
-					}
+					if (data == null) throw new NotFoundException("File not found", persist.Id, typeof(Data.Entities.File));
 
-					if (!persist.FileSaveStatus.HasValue || !(persist.FileSaveStatus.Value == FileSaveStatus.Permanent))
-					{
-						throw new ArgumentException("FileSaveStatus is required");
-					}
+                    if (!data.SourceUrl.Equals(persist.SourceUrl)) throw new InvalidOperationException("Cannot change source url");
+
+					if (!persist.FileSaveStatus.HasValue || !(persist.FileSaveStatus.Value == FileSaveStatus.Permanent)) throw new ArgumentException("FileSaveStatus is required");
 
 					_mapper.Map(persist, data);
 
@@ -115,9 +127,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			else persistedIds = await _fileRepository.AddManyAsync(persistData);
 
 			if (persistedIds == null || (persistedIds.Count != persistData.Count))
-			{
 				throw new InvalidOperationException("Failed to persist all files");
-			}
 
 			// Return dto model
 			FileLookup lookup = new FileLookup();
@@ -126,38 +136,47 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-            return await _builderFactory.Builder<FileBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields);
+            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<FileCensor>().Censor([.. lookup.Fields], context);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying files");
+
+            lookup.Fields = censoredFields;
+            return await _builderFactory.Builder<FileBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+										.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields);
         }
 
-		public async Task<FileDto> SaveTemporarily(TempMediaFile tempMediaFile)
-		{
-			return (await this.SaveTemporarily(new List<TempMediaFile>() { tempMediaFile })).FirstOrDefault();
-		}
+		public async Task<Models.File.File> SaveTemporarily(TempMediaFile tempMediaFile) => (await this.SaveTemporarily(new List<TempMediaFile>() { tempMediaFile })).FirstOrDefault();
 
-		public async Task<IEnumerable<FileDto>> SaveTemporarily(List<TempMediaFile> tempMediaFiles)
+		public async Task<IEnumerable<Models.File.File>> SaveTemporarily(List<TempMediaFile> tempMediaFiles)
 		{
-			if (tempMediaFiles == null || !tempMediaFiles.Any())
+			if (!await _authorisationService.AuthorizeAsync(Permission.CreateFiles))
+                throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
+
+            if (tempMediaFiles == null || !tempMediaFiles.Any())
 				throw new ArgumentException("No files provided for upload.");
 
 			// Step 1: Pre-generate unique IDs and validate files
-			List<Data.Entities.FileInfo> fileInfos = tempMediaFiles.Select(tmf =>
-			{
-				String fileId = ObjectId.GenerateNewId().ToString();
-				String key = _awsService.ConstructAwsKey(fileId, tmf.OwnerId);
-				(Boolean IsValid, String ErrorMessage) validationResult = _conventionService.IsValidFile(tmf.File, _filesConfig);
-				return new Data.Entities.FileInfo
+			List<Data.Entities.FileInfo> fileInfos = 
+			[..
+				tempMediaFiles.Select(tmf =>
 				{
-					FileId = fileId,
-					Key = key,
-					TempMediaFile = tmf,
-					IsValid = validationResult.IsValid,
-					ErrorMessage = validationResult.ErrorMessage
-				};
-			}).ToList();
+					String fileId = ObjectId.GenerateNewId().ToString();
+					String key = _awsService.ConstructAwsKey(fileId, tmf.OwnerId);
+					(Boolean IsValid, String ErrorMessage) validationResult = _conventionService.IsValidFile(tmf.File, _filesConfig);
+					return new Data.Entities.FileInfo
+					{
+						FileId = fileId,
+						Key = key,
+						TempMediaFile = tmf,
+						IsValid = validationResult.IsValid,
+						ErrorMessage = validationResult.ErrorMessage
+					};
+				})
+			];
 
 			// Step 2: Process files in batches
 			List<FileSaveResult> saveResults = new List<FileSaveResult>();
-			IEnumerable<FileDto> dtos = null;
+            IEnumerable<Models.File.File> dtos = null;
 
 			List<Data.Entities.FileInfo> validFiles = fileInfos.Where(fi => fi.IsValid).ToList();
 			for (int i = 0; i < validFiles.Count; i += _filesConfig.BatchSize)
@@ -223,7 +242,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 						PageSize = fileIds.Count
 					};
 
-					dtos = await _builderFactory.Builder<FileBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [..lookup.Fields]);
+                    AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+                    List<String> censoredFields = await _censorFactory.Censor<FileCensor>().Censor([.. lookup.Fields], context);
+                    if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying files");
+
+                    lookup.Fields = censoredFields;
+                    dtos = await _builderFactory.Builder<FileBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+								. Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), [..lookup.Fields]);
 
                     saveResults.AddRange((await Task.WhenAll(uploadTasks)).Where(r => r.Persist != null).ToList().Select((su, index) => new FileSaveResult
 					{
@@ -260,7 +285,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		private void LogUploadPerformance(List<FileSaveResult> results, int totalFiles)
 		{
 			// Placeholder for logging logic, e.g., using ILogger
-			_logger.LogInformation($"Uploaded {results.Count(r => r.Success)}/{totalFiles} files successfully.");
+			_logger.LogInformation($"Uploaded {((results.Count(r => r.Success))/totalFiles) * 100}% of the files successfully.");
 		}
 
 
@@ -268,16 +293,20 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 
 		public async Task Delete(List<String> ids)
 		{
-			// TODO : Authorization
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = ids;
-			lookup.Fields = new List<String> { nameof(FileDto.Id), nameof(FileDto.Owner) };
+			lookup.Fields = new List<String> { nameof(Models.File.File.Id), nameof(Models.File.File.Owner) + "." + nameof(Models.User.User.Id) };
 			lookup.Offset = 0;
 			lookup.PageSize = 1000;
 
 			List<Data.Entities.File> files = await lookup.EnrichLookup(_queryFactory).CollectAsync();
 
-			List<String> keys = files.Select(file => { return _awsService.ConstructAwsKey(file.Id, file.OwnerId); } ).ToList();
+			OwnedResource ownedResource = _authorisationContentResolver.BuildOwnedResource(new FileLookup(), [.. files.Select(x => x.OwnerId)]);
+			if (!await _authorisationService.AuthorizeOrOwnedAsync(ownedResource, Permission.DeleteFiles))
+                throw new ForbiddenException("You do not have permission to delete files.", typeof(Data.Entities.File), Permission.DeleteFiles);
+
+
+            List<String> keys = files.Select(file => { return _awsService.ConstructAwsKey(file.Id, file.OwnerId); } ).ToList();
 
 			Dictionary<String, Boolean> results = await _awsService.DeleteAsync(keys);
 
@@ -288,7 +317,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 				_logger.LogError("Not all objects where deleted from AWS. Removing them from file deleting pipeline");
 
 				// Remove failed file IDs from the original ids list
-				ids = ids.Except(failedIds).ToList();
+				ids = [.. ids.Except(failedIds)];
 			}
 
 			await _fileRepository.DeleteAsync(ids);

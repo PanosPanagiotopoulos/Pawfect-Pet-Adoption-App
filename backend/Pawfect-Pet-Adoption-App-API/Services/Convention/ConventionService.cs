@@ -12,10 +12,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.Convention
 		/// </summary>
 		/// <param name="id">The String to validate.</param>
 		/// <returns>True if the String is a valid ObjectId, otherwise false.</returns>
-		public Boolean IsValidId(String id)
-		{
-			return !String.IsNullOrEmpty(id) && RuleFluentValidation.IsObjectId(id);
-		}
+		public Boolean IsValidId(String id) => !String.IsNullOrEmpty(id) && RuleFluentValidation.IsObjectId(id);
 
 		/// <summary>
 		/// Maps a FileType enum value to its corresponding file extension.
@@ -90,10 +87,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services.Convention
 				return (false, "Unsupported file type.");
 
 			// Validate FileType against static FileType class constants
-			List<String> validFileTypes = typeof(FileType).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
-				.Where(f => f.IsLiteral && !f.IsInitOnly)
-				.Select(f => f.GetValue(null).ToString())
-				.ToList();
+			List<String> validFileTypes = 
+				[..
+					typeof(FileType).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+					.Where(f => f.IsLiteral && !f.IsInitOnly)
+					.Select(f => f.GetValue(null).ToString())
+				];
 
 			if (!validFileTypes.Contains(fileTypeConfig.FileType.ToString()))
 				return (false, $"File type {fileTypeConfig.FileType} is not a valid FileType value.");

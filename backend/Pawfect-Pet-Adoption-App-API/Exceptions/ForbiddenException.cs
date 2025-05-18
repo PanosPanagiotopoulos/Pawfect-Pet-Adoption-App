@@ -17,12 +17,12 @@ namespace Pawfect_Pet_Adoption_App_API.Exceptions
         /// <summary>
         /// Gets the permission that was denied, if applicable.
         /// </summary>
-        public String[] Permissions { get; }
+        public String[] Permissions { get; private set; }
 
         /// <summary>
         /// Gets the resource involved in the forbidden action, if applicable.
         /// </summary>
-        public Type ResourceType { get; }
+        public Type ResourceType { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ForbiddenException"/> class.

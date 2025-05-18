@@ -4,20 +4,31 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
 	public class FileQuery : BaseQuery<Data.Entities.File>
 	{
-		// Είσοδος: mongoDbService - μια έκδοση της κλάσης MongoDbService
-		public FileQuery(MongoDbService mongoDbService)
-		{
-			base._collection = mongoDbService.GetCollection<Data.Entities.File>();
-		}
+        private readonly IFilterBuilder<Data.Entities.File, Models.Lookups.FileLookup> _filterBuilder;
 
-		// Λίστα από IDs τύπων ζώων για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        public FileQuery
+        (
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+            IFilterBuilder<Data.Entities.File, Models.Lookups.FileLookup> filterBuilder
+
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα από IDs τύπων ζώων για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
 		public List<String>? ExcludedIds { get; set; }
 
@@ -79,27 +90,52 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return Task.FromResult(filter);
 		}
 
-		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.File>> ApplyAuthorisation(FilterDefinition<Data.Entities.File> filter)
+        {
+            if (_authorise.HasFlag(AuthorizationFlags.None)) return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Permission))
+                if (await _authorisationService.AuthorizeAsync(Permission.BrowseFiles))
+                    return filter;
+
+            if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
+            {
+                FilterDefinition<Data.Entities.File> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.File>();
+
+                filter = Builders<Data.Entities.File>.Filter.And(filter, requiredFilter);
+            }
+
+            if (_authorise.HasFlag(AuthorizationFlags.Owner))
+            {
+                FilterDefinition<Data.Entities.File> requiredFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.File>();
+
+                filter = Builders<Data.Entities.File>.Filter.And(filter, requiredFilter);
+            }
+
+            return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) return fields = EntityHelper.GetAllPropertyNames(typeof(AnimalTypeDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) return fields = EntityHelper.GetAllPropertyNames(typeof(AnimalType)).ToList();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων AnimalTypeDto στα ονόματα πεδίων AnimalType
 				projectionFields.Add(nameof(Data.Entities.File.Id));
-				if (item.Equals(nameof(Models.File.FileDto.Filename))) projectionFields.Add(nameof(Data.Entities.File.Filename));
-				if (item.Equals(nameof(Models.File.FileDto.FileType))) projectionFields.Add(nameof(Data.Entities.File.FileType));
-				if (item.Equals(nameof(Models.File.FileDto.MimeType))) projectionFields.Add(nameof(Data.Entities.File.MimeType));
-				if (item.Equals(nameof(Models.File.FileDto.Size))) projectionFields.Add(nameof(Data.Entities.File.Size));
-				if (item.Equals(nameof(Models.File.FileDto.FileSaveStatus))) projectionFields.Add(nameof(Data.Entities.File.FileSaveStatus));
-				if (item.Equals(nameof(Models.File.FileDto.SourceUrl))) projectionFields.Add(nameof(Data.Entities.File.SourceUrl));
-				if (item.Equals(nameof(Models.File.FileDto.CreatedAt))) projectionFields.Add(nameof(Data.Entities.File.CreatedAt));
-				if (item.Equals(nameof(Models.File.FileDto.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.File.UpdatedAt));
-				if (item.StartsWith(nameof(Models.File.FileDto.Owner))) projectionFields.Add(nameof(Data.Entities.File.OwnerId));
+				if (item.Equals(nameof(Models.File.File.Filename))) projectionFields.Add(nameof(Data.Entities.File.Filename));
+				if (item.Equals(nameof(Models.File.File.FileType))) projectionFields.Add(nameof(Data.Entities.File.FileType));
+				if (item.Equals(nameof(Models.File.File.MimeType))) projectionFields.Add(nameof(Data.Entities.File.MimeType));
+				if (item.Equals(nameof(Models.File.File.Size))) projectionFields.Add(nameof(Data.Entities.File.Size));
+				if (item.Equals(nameof(Models.File.File.FileSaveStatus))) projectionFields.Add(nameof(Data.Entities.File.FileSaveStatus));
+				if (item.Equals(nameof(Models.File.File.SourceUrl))) projectionFields.Add(nameof(Data.Entities.File.SourceUrl));
+				if (item.Equals(nameof(Models.File.File.CreatedAt))) projectionFields.Add(nameof(Data.Entities.File.CreatedAt));
+				if (item.Equals(nameof(Models.File.File.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.File.UpdatedAt));
+				if (item.StartsWith(nameof(Models.File.File.Owner))) projectionFields.Add(nameof(Data.Entities.File.OwnerId));
 
 			}
 

@@ -54,7 +54,7 @@
 			Log.Information("Entered Value = " + enteredValue + " Hashed Value = " + existingValue);
 			if (String.IsNullOrEmpty(enteredValue) || String.IsNullOrEmpty(existingValue))
 			{
-				throw new InvalidDataException("Null or Empty reference σε value προς Hash Validation");
+				throw new ArgumentException("Null or Empty reference σε value προς Hash Validation");
 			}
 
 			String hashedEnteredValue = HashValue(enteredValue);

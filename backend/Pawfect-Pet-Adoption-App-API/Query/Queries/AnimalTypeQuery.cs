@@ -6,21 +6,32 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
-	public class AnimalTypeQuery : BaseQuery<AnimalType>
+	public class AnimalTypeQuery : BaseQuery<Data.Entities.AnimalType>
 	{
-		// Κατασκευαστής για την κλάση AnimalTypeQuery
-		// Είσοδος: mongoDbService - μια έκδοση της κλάσης MongoDbService
-		public AnimalTypeQuery(MongoDbService mongoDbService)
-		{
-			base._collection = mongoDbService.GetCollection<AnimalType>();
-		}
+        private readonly IFilterBuilder<Data.Entities.AnimalType, Models.Lookups.AnimalTypeLookup> _filterBuilder;
 
-		// Λίστα από IDs τύπων ζώων για φιλτράρισμα
-		public List<String>? Ids { get; set; }
+        public AnimalTypeQuery
+        (
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            ClaimsExtractor claimsExtractor,
+            IAuthorisationContentResolver authorisationContentResolver,
+            IFilterBuilder<Data.Entities.AnimalType, Models.Lookups.AnimalTypeLookup> filterBuilder
+
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        {
+            _filterBuilder = filterBuilder;
+        }
+
+        // Λίστα από IDs τύπων ζώων για φιλτράρισμα
+        public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
 
@@ -33,10 +44,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<AnimalType> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<AnimalType>> ApplyFilters()
+        public override Task<FilterDefinition<Data.Entities.AnimalType>> ApplyFilters()
 		{
-			FilterDefinitionBuilder<AnimalType> builder = Builders<AnimalType>.Filter;
-			FilterDefinition<AnimalType> filter = builder.Empty;
+            FilterDefinitionBuilder<Data.Entities.AnimalType> builder = Builders<Data.Entities.AnimalType>.Filter;
+            FilterDefinition<Data.Entities.AnimalType> filter = builder.Empty;
 
 			// Εφαρμόζει φίλτρο για τα IDs των τύπων ζώων
 			if (Ids != null && Ids.Any())
@@ -72,22 +83,27 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return Task.FromResult(filter);
 		}
 
-		// Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-		// Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-		// Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
-		public override List<String> FieldNamesOf(List<String> fields)
+        public override async Task<FilterDefinition<Data.Entities.AnimalType>> ApplyAuthorisation(FilterDefinition<Data.Entities.AnimalType> filter)
+        {
+            return await Task.FromResult(filter);
+        }
+
+        // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
+        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
+        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
+        public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) return fields = EntityHelper.GetAllPropertyNames(typeof(AnimalTypeDto)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) return fields = EntityHelper.GetAllPropertyNames(typeof(Data.Entities.AnimalType)).ToList();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων AnimalTypeDto στα ονόματα πεδίων AnimalType
-				projectionFields.Add(nameof(AnimalType.Id));
-				if (item.Equals(nameof(AnimalTypeDto.Name))) projectionFields.Add(nameof(AnimalType.Name));
-				if (item.Equals(nameof(AnimalTypeDto.Description))) projectionFields.Add(nameof(AnimalType.Description));
-				if (item.Equals(nameof(AnimalTypeDto.CreatedAt))) projectionFields.Add(nameof(AnimalType.CreatedAt));
-				if (item.Equals(nameof(AnimalTypeDto.UpdatedAt))) projectionFields.Add(nameof(AnimalType.UpdatedAt));
+				projectionFields.Add(nameof(Data.Entities.AnimalType.Id));
+				if (item.Equals(nameof(Models.AnimalType.AnimalType.Name))) projectionFields.Add(nameof(Data.Entities.AnimalType.Name));
+				if (item.Equals(nameof(Models.AnimalType.AnimalType.Description))) projectionFields.Add(nameof(Data.Entities.AnimalType.Description));
+				if (item.Equals(nameof(Models.AnimalType.AnimalType.CreatedAt))) projectionFields.Add(nameof(Data.Entities.AnimalType.CreatedAt));
+				if (item.Equals(nameof(Models.AnimalType.AnimalType.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.AnimalType.UpdatedAt));
 			}
 
 			return projectionFields.ToList();

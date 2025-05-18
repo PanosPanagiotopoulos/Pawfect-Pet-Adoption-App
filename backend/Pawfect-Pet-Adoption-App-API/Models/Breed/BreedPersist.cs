@@ -6,7 +6,7 @@
 
         public String Name { get; set; }
 
-        public String TypeId { get; set; }
+        public String AnimalTypeId { get; set; }
 
         public String Description { get; set; }
     }

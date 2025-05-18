@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
 
 using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
+using Pawfect_Pet_Adoption_App_API.Censors;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.BreedServices;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
@@ -22,14 +23,22 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
         private readonly ILogger<AnimalTypeService> _logger;
-		public AnimalTypeService
+        private readonly IAuthorisationService _authorisationService;
+        private readonly AuthContextBuilder _contextBuilder;
+        private readonly Lazy<IBreedService> _breedService;
+        private readonly ICensorFactory _censorFactory;
+        public AnimalTypeService
 		(
 			ILogger<AnimalTypeService> logger,
 			IAnimalTypeRepository animalTypeRepository,
 			IConventionService conventionService,
 			IMapper mapper,
 			IQueryFactory queryFactory,
-            IBuilderFactory builderFactory
+            IBuilderFactory builderFactory,
+            IAuthorisationService authorisationService,
+            AuthContextBuilder contextBuilder,
+			Lazy<IBreedService> breedService,
+            ICensorFactory censorFactory
         )
 		{
 			_logger = logger;
@@ -38,18 +47,25 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 			_mapper = mapper;
             _queryFactory = queryFactory;
             _builderFactory = builderFactory;
+            _authorisationService = authorisationService;
+            _contextBuilder = contextBuilder;
+            _breedService = breedService;
+            _censorFactory = censorFactory;
         }
 
-		public async Task<AnimalTypeDto?> Persist(AnimalTypePersist persist, List<String> fields)
+		public async Task<Models.AnimalType.AnimalType?> Persist(AnimalTypePersist persist, List<String> fields)
 		{
-			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
-			AnimalType data = new AnimalType();
+            if (!await _authorisationService.AuthorizeAsync(Permission.EditAnimalTypes))
+                throw new ForbiddenException("You are not authorized to edit animal types", typeof(Data.Entities.AnimalType), Permission.EditAnimalTypes);
+
+            Boolean isUpdate = _conventionService.IsValidId(persist.Id);
+            Data.Entities.AnimalType data = new Data.Entities.AnimalType();
 			String dataId = String.Empty;
 			if (isUpdate)
 			{
 				data = await _animalTypeRepository.FindAsync(x => x.Id == persist.Id);
 
-				if (data == null) throw new InvalidDataException("No entity found with id given");
+				if (data == null) throw new NotFoundException("No animal type found with id given", persist.Id, typeof(Data.Entities.AnimalType));
 
 				_mapper.Map(persist, data);
 				data.UpdatedAt = DateTime.UtcNow;
@@ -66,9 +82,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 			else dataId = await _animalTypeRepository.AddAsync(data);
 
 			if (String.IsNullOrEmpty(dataId))
-			{
-				throw new InvalidOperationException("Αποτυχία κατά το persist του τύπου ζώου");
-			}
+				throw new InvalidOperationException("Failed to persist animal type");
 
 			// Return dto model
 			AnimalTypeLookup lookup = new AnimalTypeLookup();
@@ -77,15 +91,33 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
 
-			return (await _builderFactory.Builder<AnimalTypeBuilder>().BuildDto(await lookup.EnrichLookup(_queryFactory).CollectAsync(), fields)).FirstOrDefault();
+            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<AnimalTypeCensor>().Censor([.. lookup.Fields], context);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying animal types");
+
+            lookup.Fields = censoredFields;
+            return (await _builderFactory.Builder<AnimalTypeBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+										 .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+										 .FirstOrDefault();
 		}
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 
 		public async Task Delete(List<String> ids)
 		{
-			// TODO : Authorization
-			await _animalTypeRepository.DeleteAsync(ids);
+            if (!await _authorisationService.AuthorizeAsync(Permission.DeleteAnimalTypes))
+                throw new ForbiddenException("You are not authorized to delete animal types", typeof(Data.Entities.AnimalType), Permission.DeleteAnimalTypes);
+
+            BreedLookup breedsLookup = new BreedLookup();
+            breedsLookup.TypeIds = ids;
+            breedsLookup.Fields = new List<String> { nameof(Models.Breed.Breed.Id) };
+            breedsLookup.Offset = 1;
+            breedsLookup.PageSize = 10000;
+
+            List<Data.Entities.Breed> breeds = await breedsLookup.EnrichLookup(_queryFactory).CollectAsync();
+            await _breedService.Value.Delete([.. breeds?.Select(x => x.Id)]);
+
+            await _animalTypeRepository.DeleteAsync(ids);
 		}
 	}
 }

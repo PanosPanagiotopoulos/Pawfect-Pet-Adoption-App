@@ -41,7 +41,7 @@
             shelterQuery.PageSize = this.PageSize;
             shelterQuery.Offset = this.Offset;
             shelterQuery.SortDescending = this.SortDescending;
-            shelterQuery.Fields = shelterQuery.FieldNamesOf(this.Fields.ToList());
+            shelterQuery.Fields = shelterQuery.FieldNamesOf([.. this.Fields]);
             shelterQuery.SortBy = this.SortBy;
             shelterQuery.ExcludedIds = this.ExcludedIds;
 

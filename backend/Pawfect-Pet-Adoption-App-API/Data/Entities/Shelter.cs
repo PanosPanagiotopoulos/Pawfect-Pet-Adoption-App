@@ -60,6 +60,6 @@
 		[BsonRepresentation(BsonType.ObjectId)]
 		[BsonIgnoreIfNull]
 		[BsonIgnoreIfDefault]
-		public String? VerifiedBy { get; set; }
+		public String? VerifiedById { get; set; }
 	}
 }

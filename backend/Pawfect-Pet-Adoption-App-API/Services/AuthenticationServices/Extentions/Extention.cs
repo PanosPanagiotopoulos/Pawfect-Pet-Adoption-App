@@ -30,6 +30,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices.Extention
             // Direct Authorisation And Resolver services
             services.AddScoped<IAuthorisationService, AuthorisationService>();
             services.AddScoped<IAuthorisationContentResolver, AuthorisationContentResolver>();
+            services.AddScoped<AuthContextBuilder>();
             // Providers
             services.AddScoped<PermissionPolicyProvider>();
             services.AddScoped<ClaimsExtractor>();

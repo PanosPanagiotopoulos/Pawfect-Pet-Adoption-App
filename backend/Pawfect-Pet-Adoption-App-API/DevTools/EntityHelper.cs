@@ -11,7 +11,22 @@ namespace Pawfect_Pet_Adoption_App_API.DevTools
         /// <returns>A collection of column names.</returns>
         public static ICollection<String> GetAllPropertyNames(Type type)
         {
-            return type.GetProperties().Select(p => p.Name).ToList();
+            return [..type.GetProperties().Select(p => p.Name)];
+        }
+        public static ICollection<String> GetAllForeignPropertyNames(Type type)
+        {
+            return [..
+                        type.GetProperties().Select(p => p.Name)
+                            .Where(propertyName =>
+                                propertyName.Length > 2 &&
+                                (propertyName.EndsWith("Id", StringComparison.OrdinalIgnoreCase) ||
+                                 propertyName.EndsWith("Ids", StringComparison.OrdinalIgnoreCase)))
+                            .Select(propertyName =>
+                                propertyName.EndsWith("Ids", StringComparison.OrdinalIgnoreCase)
+                                    ? propertyName[..^3] 
+                                    : propertyName[..^2]
+                            )
+                    ];
         }
 
         /// <summary>

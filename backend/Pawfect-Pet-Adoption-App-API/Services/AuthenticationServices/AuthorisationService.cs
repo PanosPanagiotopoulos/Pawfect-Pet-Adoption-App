@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
+using System.Globalization;
 using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
@@ -31,7 +33,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                 throw new ArgumentException("No permissions provided to check.");
 
             ClaimsPrincipal user = _authorisationContentResolver.CurrentPrincipal();
-            if (user == null) throw new ArgumentException("User is not authenticated.");
+            if (user == null) throw new UnAuthenticatedException("User is not authenticated.");
 
             List<String> userRoles = _claimsExtractor.CurrentUserRoles(user) ?? new List<String>();
 
@@ -40,11 +42,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 
         public async Task<Boolean> AuthorizeAffiliatedAsync(AffiliatedResource resource)
         {
-            if (resource == null || !resource.UserIds.Any() || !resource.AffiliatedRoles.Any() || resource.AffiliatedFilterParams == null)
+            if (resource == null || !resource.AffiliatedRoles.Any() || resource.AffiliatedFilterParams == null)
                 throw new ArgumentException("Invalid affiliated resource provided.");
 
             ClaimsPrincipal user = _authorisationContentResolver.CurrentPrincipal();
-            if (user == null) throw new ArgumentException("User is not authenticated.");
+            if (user == null) throw new UnAuthenticatedException("User is not authenticated.");
 
             AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(user, resource, new AffiliatedRequirement(resource));
             return authorizationResult.Succeeded;
@@ -52,11 +54,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 
         public async Task<Boolean> AuthorizeOwnedAsync(OwnedResource resource)
         {
-            if (resource == null || !resource.UserIds.Any() || resource.OwnedFilterParams == null)
+            if (resource == null || resource.OwnedFilterParams == null)
                 throw new ArgumentException("Invalid affiliated resource provided.");
 
             ClaimsPrincipal user = _authorisationContentResolver.CurrentPrincipal();
-            if (user == null) throw new ArgumentException("User is not authenticated.");
+            if (user == null) throw new UnAuthenticatedException("User is not authenticated.");
 
             AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(user, resource, new OwnedRequirement(resource));
             return authorizationResult.Succeeded;
@@ -64,9 +66,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 
         public async Task<Boolean> AuthorizeOrAffiliatedAsync(AffiliatedResource resource, params String[] permissions)
         {
-            if (permissions == null || permissions.Length == 0)
-                throw new ArgumentException("No permissions provided to check.");
-
             Boolean isAuthorised = await this.AuthorizeAsync(permissions);
             if (isAuthorised) return true;
 
@@ -76,14 +75,31 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
 
         public async Task<Boolean> AuthorizeOrOwnedAsync(OwnedResource resource, params String[] permissions)
         {
-            if (permissions == null || permissions.Length == 0)
-                throw new ArgumentException("No permissions provided to check.");
-
             Boolean isAuthorised = await this.AuthorizeAsync(permissions);
             if (isAuthorised) return true;
 
             Boolean isOwned = await this.AuthorizeOwnedAsync(resource);
             return isOwned;
+        }
+
+        public async Task<Boolean> AuthorizeOrOwnedOrAffiliated(AuthContext context, params String[] permissions)
+        {
+            Boolean isAuthorised = await this.AuthorizeAsync(permissions);
+            if (isAuthorised) return true;
+
+            if (context.AffiliatedResource != null)
+            {
+                Boolean isAffiliated = await this.AuthorizeAffiliatedAsync(context.AffiliatedResource);
+                if (isAffiliated) return isAffiliated;
+            }
+
+            if (context.OwnedResource != null)
+            {
+                Boolean isOwned = await this.AuthorizeOwnedAsync(context.OwnedResource);
+                return isOwned;
+            }
+
+            return false;
         }
 
         public async Task<Boolean> AuthorizeOrOwnedOrAffiliated(
