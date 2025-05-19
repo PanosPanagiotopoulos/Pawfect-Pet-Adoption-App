@@ -8,46 +8,40 @@ namespace Pawfect_Pet_Adoption_App_API.Models.File
 	{
 		public FileValidator()
 		{
-			// Validate Id (must be a valid ObjectId)
-			RuleFor(file => file.Id)
-				.Cascade(CascadeMode.Stop)
-				.Must(id => RuleFluentValidation.IsObjectId(id) || String.IsNullOrEmpty(id))
-				.WithMessage("Το ID του αρχείου δεν είναι σε σωστή μορφή.");
-
 			// Validate Filename (length between 1 and 100 characters)
 			RuleFor(file => file.Filename)
 				.Cascade(CascadeMode.Stop)
 				.NotEmpty()
-				.WithMessage("Το όνομα του αρχείου είναι απαραίτητο.")
+				.WithMessage("Filename is needed")
 				.Length(1, 100)
-				.WithMessage("Το όνομα του αρχείου πρέπει να είναι μεταξύ 1-100 χαρακτήρες.");
+				.WithMessage("File must have length from 1-100 characters");
 
 			// Validate Size (must be greater than 0)
 			RuleFor(file => file.Size)
 				.Cascade(CascadeMode.Stop)
 				.GreaterThan(0)
-				.WithMessage("Το μέγεθος του αρχείου πρέπει να είναι μεγαλύτερο από 0.");
+				.WithMessage("File size must be more than 0");
 
 			// Validate OwnerId (must be a valid ObjectId)
 			RuleFor(file => file.OwnerId)
 				.Cascade(CascadeMode.Stop)
 				.NotEmpty()
-				.WithMessage("Το ID του ιδιοκτήτη είναι απαραίτητο.")
+				.WithMessage("Owner id is required")
 				.Must(RuleFluentValidation.IsObjectId)
-				.WithMessage("Το ID του ιδιοκτήτη δεν είναι σε σωστή μορφή.");
+				.WithMessage("Owner Id must be valid");
 
 			// Validate MimeType (length between 1 and 50 characters)
 			RuleFor(file => file.MimeType)
 				.Cascade(CascadeMode.Stop)
 				.NotEmpty()
-				.WithMessage("Το MimeType του αρχείου είναι απαραίτητο.")
+				.WithMessage("MimeType is required")
 				.Length(1, 50)
-				.WithMessage("Το MimeType του αρχείου πρέπει να είναι μεταξύ 1-50 χαρακτήρες.");
+				.WithMessage("Mime type must be between 1, 50 characters");
 
 			RuleFor(file => file.FileType)
 				.Cascade(CascadeMode.Stop)
 				.Must(fType => !String.IsNullOrEmpty(fType))
-				.WithMessage("Ο τύπος του αρχείου δεν είναι έγκυρος.");
+				.WithMessage("File type must be valid");
 
 			When(file => file.FileSaveStatus.HasValue, () =>
 			{
@@ -55,16 +49,16 @@ namespace Pawfect_Pet_Adoption_App_API.Models.File
 				RuleFor(file => file.FileSaveStatus)
 					.Cascade(CascadeMode.Stop)
 					.IsInEnum()
-					.WithMessage("Ο τύπος αποθηκευσης αρχειου δεν είναι έγκυρος.");
+					.WithMessage("File save status must be valid");
 			});
 
 			// Validate SourceUrl (must be a valid URL)
 			RuleFor(file => file.SourceUrl)
 				.Cascade(CascadeMode.Stop)
 				.NotEmpty()
-				.WithMessage("Το URL της πηγής είναι απαραίτητο.")
+				.WithMessage("Source Url is need")
 				.Must(RuleFluentValidation.IsUrl)
-				.WithMessage("Το URL της πηγής δεν είναι έγκυρο.");
+				.WithMessage("Source url must be valid");
 		}
 	}
 }

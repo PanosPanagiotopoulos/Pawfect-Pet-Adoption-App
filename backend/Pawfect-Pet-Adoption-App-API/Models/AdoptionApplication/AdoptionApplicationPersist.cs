@@ -12,6 +12,5 @@ namespace Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication
 		public ApplicationStatus Status { get; set; }
 		public String ApplicationDetails { get; set; }
 		public List<String> AttachedFilesIds { get; set; }
-
 	}
 }

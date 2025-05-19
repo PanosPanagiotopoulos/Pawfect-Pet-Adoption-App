@@ -118,12 +118,18 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
                 if (await _authorisationService.AuthorizeAsync(Permission.BrowseConversations))
                     return filter;
 
+            List<FilterDefinition<Data.Entities.Conversation>> authorizationFilters = new List<FilterDefinition<Data.Entities.Conversation>>();
             if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
             {
-                FilterDefinition<Data.Entities.Conversation> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.Conversation>();
-
-                filter = Builders<Data.Entities.Conversation>.Filter.And(filter, requiredFilter);
+                FilterDefinition<Data.Entities.Conversation> affiliatedFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.Conversation>();
+                authorizationFilters.Add(affiliatedFilter);
             }
+
+            if (authorizationFilters.Count == 0) return filter;
+
+            FilterDefinition<Data.Entities.Conversation> combinedAuthorizationFilter = Builders<Data.Entities.Conversation>.Filter.Or(authorizationFilters);
+
+            filter = Builders<Data.Entities.Conversation>.Filter.And(filter, combinedAuthorizationFilter);
 
             return await Task.FromResult(filter);
         }

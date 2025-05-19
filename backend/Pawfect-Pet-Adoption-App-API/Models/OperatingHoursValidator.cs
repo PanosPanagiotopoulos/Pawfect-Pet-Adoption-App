@@ -17,43 +17,43 @@ namespace Pawfect_Pet_Adoption_App_API.Models
 			{
 				// Validate Monday operating hours
 				RuleFor(hours => hours.Monday)
-					.NotEmpty().WithMessage("Η Δευτέρα απαιτείται.")
+					.NotEmpty().WithMessage("Monday is required")
 					.Must(BeValidOperatingHours)
 					.WithMessage(OperatingHoursErrorMessage);
 
 				// Validate Tuesday operating hours
 				RuleFor(hours => hours.Tuesday)
-					.NotEmpty().WithMessage("Η Τρίτη απαιτείται.")
+					.NotEmpty().WithMessage("Tuesday is required.")
 					.Must(BeValidOperatingHours)
 					.WithMessage(OperatingHoursErrorMessage);
 
 				// Validate Wednesday operating hours
 				RuleFor(hours => hours.Wednesday)
-					.NotEmpty().WithMessage("Η Τετάρτη απαιτείται.")
+					.NotEmpty().WithMessage("Wednesday is required")
 					.Must(BeValidOperatingHours)
 					.WithMessage(OperatingHoursErrorMessage);
 
 				// Validate Thursday operating hours
 				RuleFor(hours => hours.Thursday)
-					.NotEmpty().WithMessage("Η Πέμπτη απαιτείται.")
+					.NotEmpty().WithMessage("Thursday is required")
 					.Must(BeValidOperatingHours)
 					.WithMessage(OperatingHoursErrorMessage);
 
 				// Validate Friday operating hours
 				RuleFor(hours => hours.Friday)
-					.NotEmpty().WithMessage("Η Παρασκευή απαιτείται.")
+					.NotEmpty().WithMessage("Friday is required.")
 					.Must(BeValidOperatingHours)
 					.WithMessage(OperatingHoursErrorMessage);
 
 				// Validate Saturday operating hours
 				RuleFor(hours => hours.Saturday)
-					.NotEmpty().WithMessage("Το Σάββατο απαιτείται.")
+					.NotEmpty().WithMessage("Saturday is required.")
 					.Must(BeValidOperatingHours)
 					.WithMessage(OperatingHoursErrorMessage);
 
 				// Validate Sunday operating hours
 				RuleFor(hours => hours.Sunday)
-					.NotEmpty().WithMessage("Η Κυριακή απαιτείται.")
+					.NotEmpty().WithMessage("Sunday is required.")
 					.Must(BeValidOperatingHours)
 					.WithMessage(OperatingHoursErrorMessage);
 			});

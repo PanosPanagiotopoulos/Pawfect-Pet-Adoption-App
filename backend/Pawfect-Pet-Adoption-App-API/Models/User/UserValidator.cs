@@ -1,85 +1,84 @@
 ﻿using FluentValidation;
-
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 
 namespace Pawfect_Pet_Adoption_App_API.Models.User
 {
-	public class UserValidator : AbstractValidator<UserPersist>
-	{
-		public UserValidator()
-		{
-			// Το email είναι απαραίτητο και πρέπει να είναι έγκυρο
-			RuleFor(user => user.Email)
-				.Cascade(CascadeMode.Stop)
-				.EmailAddress()
-				.WithMessage("Παρακαλώ εισάγετε έναν έγκυρο email.");
+    public class UserValidator : AbstractValidator<UserPersist>
+    {
+        public UserValidator()
+        {
+            // The email is required and must be valid
+            RuleFor(user => user.Email)
+                .Cascade(CascadeMode.Stop)
+                .EmailAddress()
+                .WithMessage("Please enter a valid email address.");
 
-			// Το ονοματεπώνυμο είναι απαραίτητο και πρέπει να έχει τουλάχιστον 5 χαρακτήρες
-			RuleFor(user => user.FullName)
-				.Cascade(CascadeMode.Stop)
-				.MinimumLength(5)
-				.WithMessage("Το ονοματεπώνυμο δεν μπορεί να έχει λιγότερο απο 5 χαρακτήρες.");
+            // The full name is required and must have at least 5 characters
+            RuleFor(user => user.FullName)
+                .Cascade(CascadeMode.Stop)
+                .MinimumLength(5)
+                .WithMessage("The full name cannot have fewer than 5 characters.");
 
-			// Ο ρόλος του χρήστη είναι απαραίτητος και πρέπει να είναι έγκυρος
-			RuleFor(user => user.Role)
-				.Cascade(CascadeMode.Stop)
-				.IsInEnum()
-				.WithMessage("Ο ρόλος του χρήστη πρέπει να είναι μεταξύ: (User : 1, Shelter : 2, Admin : 3).");
+            // The user role is required and must be valid
+            RuleFor(user => user.Role)
+                .Cascade(CascadeMode.Stop)
+                .IsInEnum()
+                .WithMessage("The user role must be one of: [User: 1, Shelter: 2, Admin: 3].");
 
-			// Ο αριθμός τηλεφώνου είναι απαραίτητος και πρέπει να είναι έγκυρος
-			RuleFor(user => user.Phone)
-				.Cascade(CascadeMode.Stop)
-				.Matches(@"^\+?[1-9]\d{1,14}$")
-				.WithMessage("Παρακαλώ εισάγετε έναν έγκυρο αριθμό τηλεφώνου.");
+            // The phone number is required and must be valid
+            RuleFor(user => user.Phone)
+                .Cascade(CascadeMode.Stop)
+                .Matches(@"^\+?[1-9]\d{1,14}$")
+                .WithMessage("Please enter a valid phone number.");
 
-			// Εάν υπάρχει τοποθεσία, πρέπει να είναι έγκυρη σύμφωνα με τους κανόνες δημιουργίας
-			RuleFor(user => user.Location)
-			.SetValidator(new LocationValidator());
+            // If a location is provided, it must be valid according to creation rules
+            RuleFor(user => user.Location)
+                .SetValidator(new LocationValidator());
 
-			When(user => !String.IsNullOrEmpty(user.ProfilePhotoId), () =>
-			{
-				RuleFor(user => user.ProfilePhotoId)
-				.Cascade(CascadeMode.Stop)
-				.Must(RuleFluentValidation.IsObjectId)
-				.WithMessage("Η φωτογραφία προφίλ δεν είναι έγκυρη.");
-			});
+            When(user => !String.IsNullOrEmpty(user.ProfilePhotoId), () =>
+            {
+                RuleFor(user => user.ProfilePhotoId)
+                    .Cascade(CascadeMode.Stop)
+                    .Must(RuleFluentValidation.IsObjectId)
+                    .WithMessage("The profile photo is not valid.");
+            });
 
-			// Ο τρόπος πρόσβασης του χρήστη είναι απαραίτητος και πρέπει να είναι έγκυρος
-			RuleFor(user => user.AuthProvider)
-				.Cascade(CascadeMode.Stop)
-				.IsInEnum()
-				.WithMessage("Ο Provider πρέπει να είναι [ Local : 1, Google: 2 ]");
+            // The user's authentication provider is required and must be valid
+            RuleFor(user => user.AuthProvider)
+                .Cascade(CascadeMode.Stop)
+                .IsInEnum()
+                .WithMessage("The provider must be one of: [Local: 1, Google: 2].");
 
-			// Εάν ο τρόπος πρόσβασης δεν είναι Local, το AuthProviderId είναι απαραίτητο και δεν πρέπει να υπάρχει κωδικός
-			When(user => user.AuthProvider != AuthProvider.Local, () =>
-			{
-				RuleFor(user => user.AuthProviderId)
-				.Cascade(CascadeMode.Stop)
-				.Must(authProviderId => !String.IsNullOrEmpty(authProviderId))
-				.WithMessage("To id του χρήστη στην εξωτερική υπηρεσία που επέλεξε να εγγραφεί/συνδεθεί είναι απαραίτητο.");
+            // If the authentication provider is not Local, AuthProviderId is required and password must not be provided
+            When(user => user.AuthProvider != AuthProvider.Local, () =>
+            {
+                RuleFor(user => user.AuthProviderId)
+                    .Cascade(CascadeMode.Stop)
+                    .Must(authProviderId => !String.IsNullOrEmpty(authProviderId))
+                    .WithMessage("The user ID from the external service used for registration/login is required.");
 
-				RuleFor(user => user.Password)
-					.Cascade(CascadeMode.Stop)
-					.Must(password => String.IsNullOrEmpty(password))
-					.WithMessage("Μην στέλνεται κωδικό εφόσον έχετε ταυτοποιηθεί απο εξωτερική υπηρεσία.");
-			});
+                RuleFor(user => user.Password)
+                    .Cascade(CascadeMode.Stop)
+                    .Must(password => String.IsNullOrEmpty(password))
+                    .WithMessage("Do not send a password if authenticated via an external service.");
+            });
 
-			// Εάν ο τρόπος πρόσβασης είναι Local, ο κωδικός είναι απαραίτητος και πρέπει να πληροί συγκεκριμένες προϋποθέσεις
-			When(user => user.AuthProvider == AuthProvider.Local, () =>
-			{
-				RuleFor(user => user.Password)
-			   .Cascade(CascadeMode.Stop)
-			   .MinimumLength(7)
-			   .WithMessage("Ο κωδικός ενώς χρήστη πρέπει να έχει τουλάχιστον 6 χαρακτήρες.")
-			   .Matches(@"^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{7,}$")
-			   .WithMessage("Ο κωδικός ενώς χρήστη πρέπει να έχει τουλάχιστον 6 χαρακτήρες, τουλάχιστον 1 κεφαλαίο, έναν αριθμό και έναν ειδικό χαρακτήρα.");
+            // If the authentication provider is Local, a password is required and must meet specific requirements
+            When(user => user.AuthProvider == AuthProvider.Local, () =>
+            {
+                RuleFor(user => user.Password)
+                    .Cascade(CascadeMode.Stop)
+                    .MinimumLength(7)
+                    .WithMessage("The user's password must have at least 7 characters.")
+                    .Matches(@"^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{7,}$")
+                    .WithMessage("The user's password must have at least 7 characters, including at least one uppercase letter, one number, and one special character.");
 
-				RuleFor(user => user.AuthProviderId)
-					.Cascade(CascadeMode.Stop)
-					.Must(authProviderId => String.IsNullOrEmpty(authProviderId))
-					.WithMessage("Μην στέλνεται κωδικό id εξωτερικής υπηρεσίας εφόσον έχετε ταυτοποιηθεί απο εσωτερική υπηρεσία.");
-			});
-		}
-	}
+                RuleFor(user => user.AuthProviderId)
+                    .Cascade(CascadeMode.Stop)
+                    .Must(authProviderId => String.IsNullOrEmpty(authProviderId))
+                    .WithMessage("Do not send an external service ID if authenticated via an internal service.");
+            });
+        }
+    }
 }

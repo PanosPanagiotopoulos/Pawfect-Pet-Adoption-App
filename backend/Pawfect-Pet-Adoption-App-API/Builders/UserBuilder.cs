@@ -65,7 +65,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				dto.Id = e.Id;
 				if (nativeFields.Contains(nameof(Models.User.User.Email))) dto.Email = e.Email;
 				if (nativeFields.Contains(nameof(Models.User.User.FullName))) dto.FullName = e.FullName;
-				if (nativeFields.Contains(nameof(Models.User.User.Role))) dto.Role = e.Role;
+				if (nativeFields.Contains(nameof(Models.User.User.Roles))) dto.Roles = e.Roles;
 				if (nativeFields.Contains(nameof(Models.User.User.Phone))) dto.Phone = e.Phone;
 				if (nativeFields.Contains(nameof(Models.User.User.Location))) dto.Location = e.Location;
 				if (nativeFields.Contains(nameof(Models.User.User.AuthProvider))) dto.AuthProvider = e.AuthProvider;

@@ -9,6 +9,7 @@ using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices;
+using Pawfect_Pet_Adoption_App_API.Transactions;
 using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -106,7 +107,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("persist/temporary")]
 		[Authorize]
-		public async Task<IActionResult> PersistBatchTemporarily([FromForm] List<TempMediaFile> models)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> PersistBatchTemporarily([FromForm] List<TempMediaFile> models)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -124,6 +126,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("persist")]
 		[Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> PersistBatch([FromBody] List<FilePersist> models, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -139,7 +142,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("delete")]
 		[Authorize]
-		public async Task<IActionResult> Delete([FromBody] String id)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> Delete([FromBody] String id)
 		{
 			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
@@ -153,11 +157,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
 		/// </summary>
 		[HttpPost("delete/many")]
-		[ProducesResponseType(200)]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(404)]
-		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
 		{
 			// TODO: Add authorization
 			if (ids == null || ids.Count == 0 || !ModelState.IsValid) return BadRequest(ModelState);

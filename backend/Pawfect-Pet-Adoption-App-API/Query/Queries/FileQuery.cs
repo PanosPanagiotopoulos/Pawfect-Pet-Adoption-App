@@ -3,10 +3,12 @@ using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
@@ -98,19 +100,18 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
                 if (await _authorisationService.AuthorizeAsync(Permission.BrowseFiles))
                     return filter;
 
-            if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
-            {
-                FilterDefinition<Data.Entities.File> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.File>();
-
-                filter = Builders<Data.Entities.File>.Filter.And(filter, requiredFilter);
-            }
-
+            List<FilterDefinition<Data.Entities.File>> authorizationFilters = new List<FilterDefinition<Data.Entities.File>>();
             if (_authorise.HasFlag(AuthorizationFlags.Owner))
             {
-                FilterDefinition<Data.Entities.File> requiredFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.File>();
-
-                filter = Builders<Data.Entities.File>.Filter.And(filter, requiredFilter);
+                FilterDefinition<Data.Entities.File> ownedFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.File>();
+                authorizationFilters.Add(ownedFilter);
             }
+
+            if (authorizationFilters.Count == 0) return filter;
+
+            FilterDefinition<Data.Entities.File> combinedAuthorizationFilter = Builders<Data.Entities.File>.Filter.Or(authorizationFilters);
+
+            filter = Builders<Data.Entities.File>.Filter.And(filter, combinedAuthorizationFilter);
 
             return await Task.FromResult(filter);
         }
@@ -120,7 +121,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
         // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
         public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) return fields = EntityHelper.GetAllPropertyNames(typeof(AnimalType)).ToList();
+			if (fields == null || !fields.Any() || fields.Contains("*")) return fields = [.. EntityHelper.GetAllPropertyNames(typeof(Data.Entities.File))];
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)

@@ -7,30 +7,30 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
     {
         public ShelterValidator()
         {
-            // Ελέγξτε αν το όνομα του καταφυγίου δεν είναι κενό
+            // Check if the shelter name is not empty
             RuleFor(shelter => shelter.ShelterName)
-            .MinimumLength(2)
-            .WithMessage("Το όνομα του καταφυγίου πρέπει να έχει τουλάχιστον 2 χαρακτήρες");
+                .MinimumLength(2)
+                .WithMessage("The shelter name must have at least 2 characters.");
 
-            // Ελέγξτε αν η περιγραφή δεν είναι κενή
+            // Check if the description is not empty
             RuleFor(shelter => shelter.Description)
                 .MinimumLength(10)
-                .WithMessage("Η περιγραφή πρέπει να έχει τουλάχιστον 10 χαρακτήρες");
+                .WithMessage("The description must have at least 10 characters.");
 
             When(shelter => !String.IsNullOrEmpty(shelter.Website), () =>
             {
-                // Ελέγξτε αν το link της ιστοσελίδας είναι σωστά διαμορφωμένο
+                // Check if the website link is properly formatted
                 RuleFor(shelter => shelter.Website)
-                .Must(uri => Uri.IsWellFormedUriString(uri, UriKind.Absolute))
-                .WithMessage("Μη έγκυρο link ιστοσελίδας");
+                    .Must(uri => Uri.IsWellFormedUriString(uri, UriKind.Absolute))
+                    .WithMessage("Invalid website link.");
             });
 
             When(x => x.VerificationStatus != default(VerificationStatus), () =>
             {
                 RuleFor(x => x.VerificationStatus)
-                .Cascade(CascadeMode.Stop)
-                .IsInEnum()
-                .WithMessage("Η κατάσταση έγκρισης λογαριασμού πρέπει να είναι έγκυρη τιμή. [ Pending: 1, Resolved: 2, Rejected: 3 ]");
+                    .Cascade(CascadeMode.Stop)
+                    .IsInEnum()
+                    .WithMessage("The account verification status must be a valid value. [Pending: 1, Resolved: 2, Rejected: 3]");
             });
 
             RuleFor(shelter => shelter.SocialMedia)

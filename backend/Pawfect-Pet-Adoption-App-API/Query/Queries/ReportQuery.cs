@@ -5,10 +5,12 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 {
@@ -138,12 +140,24 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
                 if (await _authorisationService.AuthorizeAsync(Permission.BrowseReports))
                     return filter;
 
+            List<FilterDefinition<Data.Entities.Report>> authorizationFilters = new List<FilterDefinition<Data.Entities.Report>>();
             if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
             {
-                FilterDefinition<Data.Entities.Report> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.Report>();
-
-                filter = Builders<Data.Entities.Report>.Filter.And(filter, requiredFilter);
+                FilterDefinition<Data.Entities.Report> affiliatedFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.Report>();
+                authorizationFilters.Add(affiliatedFilter);
             }
+
+            if (_authorise.HasFlag(AuthorizationFlags.Owner))
+            {
+                FilterDefinition<Data.Entities.Report> ownedFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.Report>();
+                authorizationFilters.Add(ownedFilter);
+            }
+
+            if (authorizationFilters.Count == 0) return filter;
+
+            FilterDefinition<Data.Entities.Report> combinedAuthorizationFilter = Builders<Data.Entities.Report>.Filter.Or(authorizationFilters);
+
+            filter = Builders<Data.Entities.Report>.Filter.And(filter, combinedAuthorizationFilter);
 
             return await Task.FromResult(filter);
         }

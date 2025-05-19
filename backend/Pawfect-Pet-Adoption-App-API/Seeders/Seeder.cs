@@ -75,11 +75,11 @@ public class Seeder
 		{
 			var users = new List<User>
 		{
-			new User { Email = "user1@example.com", Password = Security.HashValue("password1"), FullName = "User 1", Role = UserRole.User, Phone = "1234567890", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-			new User { Email = "user2@example.com", Password = Security.HashValue("password2"), FullName = "User 2", Role = UserRole.User, Phone = "2345678901", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-			new User { Email = "user3@example.com", Password = Security.HashValue("password3"), FullName = "User 3", Role = UserRole.User, Phone = "3456789012", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-			new User { Email = "user4@example.com", Password = Security.HashValue("password4"), FullName = "User 4", Role = UserRole.User, Phone = "4567890123", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-			new User { Email = "user5@example.com", Password = Security.HashValue("password5"), FullName = "User 5", Role = UserRole.User, Phone = "5678901234", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
+			new User { Email = "user1@example.com", Password = Security.HashValue("password1"), FullName = "User 1", Roles = [UserRole.User], Phone = "1234567890", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
+			new User { Email = "user2@example.com", Password = Security.HashValue("password2"), FullName = "User 2", Roles = [UserRole.User], Phone = "2345678901", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
+			new User { Email = "user3@example.com", Password = Security.HashValue("password3"), FullName = "User 3", Roles = [UserRole.User], Phone = "3456789012", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
+			new User { Email = "user4@example.com", Password = Security.HashValue("password4"), FullName = "User 4", Roles = [UserRole.User], Phone = "4567890123", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
+			new User { Email = "user5@example.com", Password = Security.HashValue("password5"), FullName = "User 5", Roles = [UserRole.User], Phone = "5678901234", Location = new Location { Address = "123 Main St", City = "CityA", Number = "1", ZipCode = "12345" }, AuthProvider = AuthProvider.Local, IsVerified = true, HasPhoneVerified = true, HasEmailVerified = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
 		};
 			usersCollection.InsertMany(users);
 
@@ -96,10 +96,10 @@ public class Seeder
 				if (i % 2 != 0) // Odd position
 				{
 					var shelter = shelters.First(s => s.UserId == users[i].Id);
-					var update = Builders<User>.Update
-						.Set(u => u.Role, UserRole.Shelter)
-						.Set(u => u.ShelterId, shelter.Id);
-					usersCollection.UpdateOne(u => u.Id == users[i].Id, update);
+					//var update = Builders<User>.Update
+					//	.Set(u => u.Roles, UserRole.Shelter)
+					//	.Set(u => u.ShelterId, shelter.Id);
+					//usersCollection.UpdateOne(u => u.Id == users[i].Id, update);
 				}
 			}
 		}
@@ -303,7 +303,7 @@ public class Seeder
 		var usersCollection = this.dbService.GetCollection<User>();
 		var animalsCollection = this.dbService.GetCollection<Animal>();
 
-		var users = usersCollection.Find(u => u.Role == UserRole.User).ToList();
+		var users = usersCollection.Find(u => u.Roles.Contains(UserRole.User) ).ToList();
 		var animals = animalsCollection.Find(FilterDefinition<Animal>.Empty).ToList();
 
 		if (applicationsCollection.CountDocuments(FilterDefinition<AdoptionApplication>.Empty) == 0)

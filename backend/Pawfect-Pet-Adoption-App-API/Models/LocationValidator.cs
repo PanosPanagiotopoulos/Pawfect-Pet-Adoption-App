@@ -10,40 +10,40 @@ namespace Pawfect_Pet_Adoption_App_API.Models
                 .Cascade(CascadeMode.Stop)
                 // Η διέυθυνση είναι απαραίτητη.
                 .NotEmpty()
-                .WithMessage("Η διεύθυνση απαιτείται.")
+                .WithMessage("Address is required")
                 // Λάθος διέυθυνση.
                 .Length(3, 100)
-                .WithMessage("Μη έγκυρη διεύθυνση.");
+                .WithMessage("Not a valid address");
 
             RuleFor(location => location.Number)
                 .Cascade(CascadeMode.Stop)
                 // Ο αριθμός διέυθυνσης είναι απαραίτητος.
                 .NotEmpty()
-                .WithMessage("Ο αριθμός διεύθυνσης απαιτείται.")
+                .WithMessage("Street number is required")
                 // Λάθος αριθμός διέυθυνσης.
                 .Matches(@"^\d+$")
-                .WithMessage("Μη έγκυρος αριθμός διεύθυνσης.")
+                .WithMessage("Not a valid street number")
                 // Λάθος αριθμός διέυθυνσης.
                 .Length(1, 5)
-                .WithMessage("Μη έγκυρος αριθμός διεύθυνσης.");
+                .WithMessage("Not a valid street number");
 
             RuleFor(location => location.City)
                 .Cascade(CascadeMode.Stop)
                 // Η πόλη είναι απαραίτητη.
                 .NotEmpty()
-                .WithMessage("Η πόλη απαιτείται.")
+                .WithMessage("City is required")
                 // Λάθος όνομα πόλης.
                 .Length(2, 50)
-                .WithMessage("Μη έγκυρο όνομα πόλης.");
+                .WithMessage("Not valid city name");
 
             RuleFor(location => location.ZipCode)
                 .Cascade(CascadeMode.Stop)
                 // Ο ταχυδρομικός κώδικας είναι απαραίτητος.
                 .NotEmpty()
-                .WithMessage("Ο ταχυδρομικός κώδικας απαιτείται.")
+                .WithMessage("Zip code is required")
                 // Λάθος ταχυδρομικός κώδικας.
                 .Matches(@"^\d{5}(-\d{4})?$")
-                .WithMessage("Μη έγκυρος ταχυδρομικός κώδικας.");
+                .WithMessage("Invalid zip code");
         }
     }
 }

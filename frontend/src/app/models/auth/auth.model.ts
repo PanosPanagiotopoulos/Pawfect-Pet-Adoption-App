@@ -1,5 +1,7 @@
+import { UserRole } from 'src/app/common/enum/user-role.enum';
 import { ShelterPersist } from '../shelter/shelter.model';
-import { AuthProvider, UserPersist, UserRole } from '../user/user.model';
+import { UserPersist } from '../user/user.model';
+import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
 
 export interface EmailPayload {
   id?: string;
@@ -18,7 +20,7 @@ export interface LoggedAccount {
   token: string;
   phone: string;
   email: string;
-  role: UserRole;
+  role: UserRole[];
   loggedAt: Date;
   isPhoneVerified: boolean;
   isEmailVerified: boolean;

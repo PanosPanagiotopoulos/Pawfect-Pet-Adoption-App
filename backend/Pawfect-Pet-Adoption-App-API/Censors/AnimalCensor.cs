@@ -49,9 +49,10 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
             List<String> breedFields = this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Breed));
             List<String> photoFields = [..this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Photos))
                                        .Where(field => field.Equals(nameof(Models.File.File.SourceUrl), StringComparison.OrdinalIgnoreCase))];
+            List<String> shelterFields = _censorFactory.Censor<ShelterCensor>().PseudoCensor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Shelter)));
 
 
-            return [..nonPrefixed.Concat(animalTypeFields).Concat(breedFields).Concat(photoFields)];
+            return [..nonPrefixed.Concat(animalTypeFields).Concat(breedFields).Concat(photoFields).Concat(shelterFields)];
         }
     }
 }

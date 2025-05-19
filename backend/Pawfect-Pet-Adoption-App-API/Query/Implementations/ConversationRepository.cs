@@ -6,6 +6,6 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 {
 	public class ConversationRepository : GeneralRepo<Conversation>, IConversationRepository
 	{
-		public ConversationRepository(MongoDbService dbService) : base(dbService) { }
+		public ConversationRepository(MongoDbService dbService, IHttpContextAccessor httpContextAccessor) : base(dbService, httpContextAccessor) { }
 	}
 }

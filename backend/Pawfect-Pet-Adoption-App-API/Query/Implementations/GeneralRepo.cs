@@ -14,12 +14,18 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 	{
 		public IMongoDatabase _db { get; }
 		public IMongoCollection<T> _collection { get; }
+        private IHttpContextAccessor _httpContextAccessor { get; }
 
-		public GeneralRepo(MongoDbService dbService)
+        public GeneralRepo
+		(
+			MongoDbService dbService,
+            IHttpContextAccessor httpContextAccessor
+        )
 		{
-			this._db = dbService.db;
-			this._collection = dbService.GetCollection<T>();
-		}
+			_db = dbService.db;
+			_collection = dbService.GetCollection<T>();
+            _httpContextAccessor = httpContextAccessor;
+        }
 		// Singular AddAsync (reuses AddManyAsync)
 		public async Task<String> AddAsync(T entity)
 		{
@@ -34,47 +40,73 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 			return ids.FirstOrDefault();
 		}
 
-		// Bulk AddManyAsync
-		public async Task<List<String>> AddManyAsync(List<T> entities)
+        public async Task<List<String>> AddManyAsync(List<T> entities)
+        {
+            if (entities == null || entities.Count == 0)
+                throw new ArgumentException("No entities provided for insertion.");
+
+            IClientSessionHandle session = this.Session();
+            try
+            {
+                if (session != null)
+                    await _collection.InsertManyAsync(session, entities);
+                else
+                    await _collection.InsertManyAsync(entities);
+            }
+            catch (MongoException ex)
+            {
+                throw new MongoException($"Failed to insert entities: {ex.Message}", ex);
+            }
+
+            return [.. entities.Select(e => e.GetType().GetProperty("Id")?.GetValue(e)?.ToString()
+                ?? throw new MongoException("Couldn't retrieve ID from entity"))];
+        }
+
+        public async Task<List<String>> UpdateManyAsync(List<T> entities)
+        {
+            if (entities == null || entities.Count == 0)
+                throw new ArgumentException("No entities provided for update.");
+
+            List<WriteModel<T>> updates = new List<WriteModel<T>>();
+            foreach (T entity in entities)
+            {
+                PropertyInfo idProperty = entity.GetType().GetProperty("Id");
+                if (idProperty == null)
+                    throw new MongoException("Entity does not contain an 'Id' property");
+
+                String idValue = idProperty.GetValue(entity)?.ToString();
+                if (String.IsNullOrEmpty(idValue))
+                    throw new MongoException("Id value is missing or null");
+
+                if (!ObjectId.TryParse(idValue, out _))
+                    throw new ArgumentException($"Invalid ObjectId: {idValue}");
+
+                FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", new ObjectId(idValue));
+                updates.Add(new ReplaceOneModel<T>(filter, entity));
+            }
+
+            IClientSessionHandle session = Session();
+            BulkWriteResult<T> result;
+            try
+            {
+                result = session != null
+                    ? await _collection.BulkWriteAsync(session, updates)
+                    : await _collection.BulkWriteAsync(updates);
+            }
+            catch (MongoException ex)
+            {
+                throw new MongoException($"Failed to update entities: {ex.Message}", ex);
+            }
+
+            if (result.ModifiedCount != entities.Count)
+                throw new MongoException("Not all entities were updated successfully.");
+
+            return [.. entities.Select(e => e.GetType().GetProperty("Id").GetValue(e).ToString())];
+        }
+
+        public async Task<Boolean> DeleteAsync(String id)
 		{
-			if (entities == null || !entities.Any())
-				throw new ArgumentException("No entities provided for insertion.");
-
-			await _collection.InsertManyAsync(entities);
-			return entities.Select(e => e.GetType().GetProperty("Id")?.GetValue(e)?.ToString() ?? throw new MongoException("Couldn't retrieve ID from entity")).ToList();
-		}
-
-		// Bulk UpdateManyAsync
-		public async Task<List<String>> UpdateManyAsync(List<T> entities)
-		{
-			if (entities == null || !entities.Any())
-				throw new ArgumentException("No entities provided for update.");
-
-			List<WriteModel<T>> updates = new List<WriteModel<T>>();
-			foreach (T entity in entities)
-			{
-				PropertyInfo idProperty = entity.GetType().GetProperty("Id");
-				if (idProperty == null)
-					throw new MongoException("Entity does not contain an 'Id' property");
-
-				String idValue = idProperty.GetValue(entity)?.ToString();
-				if (String.IsNullOrEmpty(idValue))
-					throw new MongoException("Id value is missing or null");
-
-				FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", new ObjectId(idValue));
-				updates.Add(new ReplaceOneModel<T>(filter, entity));
-			}
-
-			BulkWriteResult<T> result = await _collection.BulkWriteAsync(updates);
-			if (result.ModifiedCount != entities.Count)
-				throw new MongoException("Not all entities were updated successfully.");
-
-			return entities.Select(e => e.GetType().GetProperty("Id").GetValue(e).ToString()).ToList();
-		}
-
-		public async Task<Boolean> DeleteAsync(String id)
-		{
-			List<Boolean> results = await DeleteAsync(new List<String> { id });
+			List<Boolean> results = await this.DeleteAsync(new List<String> { id });
 			return results.FirstOrDefault();
 		}
 		public async Task<Boolean> DeleteAsync(T entity)
@@ -82,41 +114,42 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 			String id = entity.GetType().GetProperty("Id")?.GetValue(entity)?.ToString();
 			if (String.IsNullOrEmpty(id))
 				throw new MongoException("Entity does not contain a valid 'Id' property");
-			return await DeleteAsync(id);
+			return await this.DeleteAsync(id);
 		}
 
-		public async Task<List<Boolean>> DeleteAsync(List<String> ids)
-		{
-			if (ids == null || !ids.Any())
-				throw new ArgumentException("No IDs provided for deletion.");
+        public async Task<List<Boolean>> DeleteAsync(List<String> ids)
+        {
+            if (ids == null || ids.Count == 0)
+                throw new ArgumentException("No IDs provided for deletion.");
 
-			List<String> validIds = ids.Where(id => ObjectId.TryParse(id, out _)).ToList();
-			if (ids.Count != validIds.Count)
-				throw new MongoException("Not all objectIds where valid for deletion.");
+            List<String> validIds = [.. ids.Where(id => ObjectId.TryParse(id, out _))];
+            if (ids.Count != validIds.Count)
+                throw new MongoException("Not all objectIds where valid for deletion.");
 
-			FilterDefinition<T> filter = Builders<T>.Filter.In("_id", validIds.Select(id => new ObjectId(id)));
-			DeleteResult result = await _collection.DeleteManyAsync(filter);
+            FilterDefinition<T> filter = Builders<T>.Filter.In("_id", validIds.Select(id => new ObjectId(id)));
 
-			// Return a list indicating which IDs were deleted
-			return ids.Select(id => validIds.Contains(id) && result.DeletedCount > 0).ToList();
-		}
+            // Use the session if available
+            IClientSessionHandle session = this.Session();
+            DeleteResult result = session != null ? await _collection.DeleteManyAsync(session, filter) : await _collection.DeleteManyAsync(filter);
 
-		public async Task<List<Boolean>> DeleteAsync(List<T> entities)
-		{
-			if (entities == null || !entities.Any())
-				throw new ArgumentException("No entities provided for deletion.");
+            // Return a list indicating which IDs were deleted
+            return [.. ids.Select(id => validIds.Contains(id) && result.DeletedCount > 0)];
+        }
 
-			List<String> ids = entities
-				.Select(e => e.GetType().GetProperty("Id")?.GetValue(e)?.ToString())
-				.Where(id => !String.IsNullOrEmpty(id))
-				.ToList();
+        public async Task<List<Boolean>> DeleteAsync(List<T> entities)
+        {
+            if (entities == null || entities.Count == 0)
+                throw new ArgumentException("No entities provided for deletion.");
 
-			if (ids.Count != entities.Count)
-				throw new MongoException("Not all ids where valid to delete.");
+            List<String> ids = [.. entities
+                .Select(e => e.GetType().GetProperty("Id")?.GetValue(e)?.ToString())
+                .Where(id => !String.IsNullOrEmpty(id))];
 
-			return await DeleteAsync(ids);
-		}
+            if (ids.Count != entities.Count)
+                throw new MongoException("Not all ids where valid to delete.");
 
+            return await DeleteAsync(ids);
+        }
 		public async Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate) => await _collection.Find(predicate).AnyAsync();
 
 		public async Task<T> FindAsync(Expression<Func<T, Boolean>> predicate) => await _collection.Find(predicate).FirstOrDefaultAsync();
@@ -125,13 +158,13 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 		{
 			ProjectionDefinition<T> projection = Builders<T>.Projection.Include(fields.First());
 			foreach (String field in fields.Skip(1))
-			{
 				projection = projection.Include(field);
-			}
 
 			return await _collection.Find(predicate)
 				.Project<T>(projection)
 				.FirstOrDefaultAsync();
 		}
-	}
+
+        private IClientSessionHandle Session() => _httpContextAccessor.HttpContext?.Items["MongoSession"] as IClientSessionHandle;
+    }
 }

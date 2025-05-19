@@ -6,6 +6,6 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 {
 	public class BreedRepository : GeneralRepo<Breed>, IBreedRepository
 	{
-		public BreedRepository(MongoDbService dbService) : base(dbService) { }
+		public BreedRepository(MongoDbService dbService, IHttpContextAccessor httpContextAccessor) : base(dbService, httpContextAccessor) { }
 	}
 }

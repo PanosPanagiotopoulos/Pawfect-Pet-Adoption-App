@@ -7,29 +7,29 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Message
     {
         public MessageValidator()
         {
-            // Το ID της συνομιλίας είναι απαραίτητο
+            // The conversation ID is required
             RuleFor(message => message.ConversationId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
-                .WithMessage("Το ID της συνομιλίας δεν είναι σε σωστή μορφή.");
+                .WithMessage("The conversation ID is not in the correct format.");
 
-            // Το ID του αποστολέα είναι απαραίτητο
+            // The sender ID is required
             RuleFor(message => message.SenderId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
-                .WithMessage("Το ID του αποστολέα δεν είναι σε σωστή μορφή.");
+                .WithMessage("The sender ID is not in the correct format.");
 
-            // Το ID του παραλήπτη είναι απαραίτητο
+            // The recipient ID is required
             RuleFor(message => message.RecipientId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
-                .WithMessage("Το ID του παραλήπτη δεν είναι σε σωστή μορφή.");
+                .WithMessage("The recipient ID is not in the correct format.");
 
-            // Το περιεχόμενο του μηνύματος είναι απαραίτητο
+            // The message content is required
             RuleFor(message => message.Content)
                 .Cascade(CascadeMode.Stop)
                 .Length(1, 1000)
-                .WithMessage("Το περιεχόμενο του μηνύματος πρέπει να είναι μεταξύ 1-1000 χαρακτήρες.");
+                .WithMessage("The message content must be between 1 and 1000 characters.");
         }
     }
 }

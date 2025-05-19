@@ -133,8 +133,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                             builder.Eq(nameof(Message.RecipientId), userId)
                         );
 
-                        builder.Eq(nameof(Message.ConversationId), affiliatedId);
-
                         break;
                     }
 

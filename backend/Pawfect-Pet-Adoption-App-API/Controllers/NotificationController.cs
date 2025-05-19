@@ -9,6 +9,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Notification;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.NotificationServices;
+using Pawfect_Pet_Adoption_App_API.Transactions;
 using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -106,7 +107,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("persist")]
 		[Authorize]
-		public async Task<IActionResult> Persist([FromBody] NotificationPersist model, [FromQuery] List<String> fields)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> Persist([FromBody] NotificationPersist model, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -121,7 +123,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("delete")]
 		[Authorize]
-		public async Task<IActionResult> Delete([FromBody] String id)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> Delete([FromBody] String id)
 		{
 			// TODO: Add authorization
 			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
@@ -137,11 +140,13 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("delete/many")]
 		[Authorize]
-		public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
 		{
 			if (ids == null || !ids.Any() || !ModelState.IsValid) return BadRequest(ModelState);
 
 			await _notificationService.Delete(ids);
+
 			return Ok();
 		}
 	}

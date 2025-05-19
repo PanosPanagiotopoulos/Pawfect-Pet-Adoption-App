@@ -30,7 +30,7 @@
 		/// Ο ρόλος του χρήστη στο σύστημα.
 		/// [ User, Shelter, Admin ]
 		/// </value>
-		public UserRole Role { get; set; }
+		public List<UserRole> Roles { get; set; }
 
 		/// <value>
 		/// Ο αριθμός τηλεφώνου του χρήστη στο σύστημα

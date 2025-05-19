@@ -107,7 +107,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			// Εφαρμόζει φίλτρο για τους ρόλους των χρηστών
 			if (Roles != null && Roles.Any())
 			{
-				filter &= builder.In(user => user.Role, Roles);
+                filter &= builder.AnyIn(user => user.Roles, this.Roles);
 			}
 
 			// Εφαρμόζει φίλτρο για τις πόλεις των χρηστών
@@ -162,7 +162,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				projectionFields.Add(nameof(Data.Entities.User.Id));
 				if (item.Equals(nameof(Models.User.User.Email))) projectionFields.Add(nameof(Data.Entities.User.Email));
 				if (item.Equals(nameof(Models.User.User.FullName))) projectionFields.Add(nameof(Data.Entities.User.FullName));
-				if (item.Equals(nameof(Models.User.User.Role))) projectionFields.Add(nameof(Data.Entities.User.Role));
+				if (item.Equals(nameof(Models.User.User.Roles))) projectionFields.Add(nameof(Data.Entities.User.Roles));
 				if (item.Equals(nameof(Models.User.User.Phone))) projectionFields.Add(nameof(Data.Entities.User.Phone));
 				if (item.Equals(nameof(Models.User.User.Location))) projectionFields.Add(nameof(Data.Entities.User.Location));
 				if (item.Equals(nameof(Models.User.User.AuthProvider))) projectionFields.Add(nameof(Data.Entities.User.AuthProvider));
@@ -174,7 +174,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				if (item.StartsWith(nameof(Models.User.User.Shelter))) projectionFields.Add(nameof(Data.Entities.User.ShelterId));
 			}
 
-			return projectionFields.ToList();
+			return [.. projectionFields];
 		}
 	}
 }

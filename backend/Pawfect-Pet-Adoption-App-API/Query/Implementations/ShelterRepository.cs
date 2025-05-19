@@ -7,6 +7,6 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 {
 	public class ShelterRepository : GeneralRepo<Shelter>, IShelterRepository
 	{
-		public ShelterRepository(MongoDbService dbService) : base(dbService) { }
+		public ShelterRepository(MongoDbService dbService, IHttpContextAccessor httpContextAccessor) : base(dbService, httpContextAccessor) { }
 	}
 }

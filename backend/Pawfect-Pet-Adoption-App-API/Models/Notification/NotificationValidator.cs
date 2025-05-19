@@ -7,23 +7,23 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Notification
     {
         public NotificationValidator()
         {
-            // Το ID του χρήστη είναι απαραίτητο
+            // The user ID is required
             RuleFor(notification => notification.UserId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
-                .WithMessage("Το id δεν είναι σε σωστή μορφή");
+                .WithMessage("The user ID is not in the correct format.");
 
-            // Ο τύπος της ειδοποίησης είναι απαραίτητος και πρέπει να είναι έγκυρος
+            // The notification type is required and must be valid
             RuleFor(notification => notification.Type)
                 .Cascade(CascadeMode.Stop)
                 .IsInEnum()
-                .WithMessage("Ο τύπος της ειδοποίησης πρέπει να είναι έγκυρος. [ Incoming Message: 1, AdoptionApplication: 2, Report: 3 ]");
+                .WithMessage("The notification type must be valid. [Incoming Message: 1, AdoptionApplication: 2, Report: 3]");
 
-            // Το περιεχόμενο της ειδοποίησης είναι απαραίτητο
+            // The notification content is required
             RuleFor(notification => notification.Content)
                 .Cascade(CascadeMode.Stop)
                 .Length(10, 200)
-                .WithMessage("Το περιεχόμενο της ειδοποίησης πρέπει να είναι μεταξύ 10-200 χαρακτήρες.");
+                .WithMessage("The notification content must be between 10 and 200 characters.");
         }
     }
 }

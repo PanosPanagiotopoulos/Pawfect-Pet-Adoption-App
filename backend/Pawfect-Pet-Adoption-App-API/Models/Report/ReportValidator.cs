@@ -7,35 +7,35 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Report
     {
         public ReportValidator()
         {
-            // Το ID του χρήστη που έκανε την αναφορά είναι απαραίτητο
+            // The ID of the user who made the report is required
             RuleFor(report => report.ReporterId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
-                .WithMessage("Το ID του χρήστη που έκανε την αναφορά είναι λάθος.");
+                .WithMessage("The ID of the user who made the report is incorrect.");
 
-            // Το ID του χρήστη που έλαβε την αναφορά είναι απαραίτητο
+            // The ID of the user who received the report is required
             RuleFor(report => report.ReportedId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
-                .WithMessage("Το ID του χρήστη που έλαβε την αναφορά είναι λάθος.");
+                .WithMessage("The ID of the user who received the report is incorrect.");
 
-            // Ο τύπος της αναφοράς είναι απαραίτητος
+            // The report type is required
             RuleFor(report => report.Type)
                 .Cascade(CascadeMode.Stop)
                 .IsInEnum()
-                .WithMessage("Ο τύπος της αναφοράς πρέπει να είναι έγκυρος. [ InAppropriateMessage: 1 , Other: 2 ]");
+                .WithMessage("The report type must be valid. [InAppropriateMessage: 1, Other: 2]");
 
-            // Η περιγραφή της αναφοράς είναι απαραίτητη
+            // The report description is required
             RuleFor(report => report.Reason)
                 .Cascade(CascadeMode.Stop)
                 .Length(10, 200)
-                .WithMessage("Η περιγραφή της αναφοράς πρέπει να είναι μεταξύ 10-200 χαρακτήρες.");
+                .WithMessage("The report description must be between 10 and 200 characters.");
 
-            // Ελέγξτε αν η κατάσταση επαλήθευσης δεν αποστέλλεται κατά τη δημιουργία
+            // Check that the verification status is not sent during creation
             RuleFor(report => report.Status)
-            .Cascade(CascadeMode.Stop)
-            .IsInEnum()
-            .WithMessage("Ο τύπος της αναφοράς πρέπει να είναι έγκυρος. [ Pending: 1, Resolved : 2 ]");
+                .Cascade(CascadeMode.Stop)
+                .IsInEnum()
+                .WithMessage("The report status must be valid. [Pending: 1, Resolved: 2]");
         }
     }
 }

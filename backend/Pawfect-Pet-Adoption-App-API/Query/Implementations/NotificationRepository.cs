@@ -6,6 +6,6 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 {
 	public class NotificationRepository : GeneralRepo<Notification>, INotificationRepository
 	{
-		public NotificationRepository(MongoDbService dbService) : base(dbService) { }
+		public NotificationRepository(MongoDbService dbService, IHttpContextAccessor httpContextAccessor) : base(dbService, httpContextAccessor) { }
 	}
 }

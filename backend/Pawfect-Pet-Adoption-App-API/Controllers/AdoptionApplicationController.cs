@@ -10,6 +10,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Transactions;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
@@ -113,6 +114,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("persist")]
         [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] AdoptionApplicationPersist model, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -128,6 +130,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("delete")]
         [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromBody] String id)
 		{
 			// TODO: Add authorization
@@ -145,6 +148,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("delete/many")]
         [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
 		{
 			// TODO: Add authorization

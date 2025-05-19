@@ -4,10 +4,13 @@ using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
 using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using System.Security.Claims;
 
 
 namespace Pawfect_Pet_Adoption_App_API.Query.Queries
@@ -15,6 +18,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 	public class AdoptionApplicationQuery : BaseQuery<Data.Entities.AdoptionApplication>
 	{
         private readonly IFilterBuilder<Data.Entities.AdoptionApplication, AdoptionApplicationLookup> _filterBuilder;
+        private readonly IConventionService _conventionService;
 
         public AdoptionApplicationQuery
 		(
@@ -22,11 +26,13 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
             IAuthorisationService authorisationService,
 			ClaimsExtractor claimsExtractor,
             IAuthorisationContentResolver authorisationContentResolver,
-			IFilterBuilder<Data.Entities.AdoptionApplication, Models.Lookups.AdoptionApplicationLookup> filterBuilder
+			IFilterBuilder<Data.Entities.AdoptionApplication, Models.Lookups.AdoptionApplicationLookup> filterBuilder,
+			IConventionService conventionService
 
         ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
         {
             _filterBuilder = filterBuilder;
+            _conventionService = conventionService;
         }
 
         // Λίστα με τα IDs των αιτήσεων υιοθεσίας για φιλτράρισμα
@@ -133,29 +139,43 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			return Task.FromResult(filter);
         }
 
-        public override async Task<FilterDefinition<Data.Entities.AdoptionApplication>> ApplyAuthorisation(FilterDefinition<Data.Entities.AdoptionApplication> filter)
+        public override async Task<FilterDefinition<Data.Entities.AdoptionApplication>> ApplyAuthorisation(
+            FilterDefinition<Data.Entities.AdoptionApplication> filter)
         {
-			if (_authorise.HasFlag(AuthorizationFlags.None)) return filter;
+            if (_authorise.HasFlag(AuthorizationFlags.None)) return filter;
 
-			if (_authorise.HasFlag(AuthorizationFlags.Permission))
-				if (await _authorisationService.AuthorizeAsync(Permission.BrowseAdoptionApplications))
-					return filter;
+            if (_authorise.HasFlag(AuthorizationFlags.Permission))
+                if (await _authorisationService.AuthorizeAsync(Permission.BrowseAdoptionApplications))
+                    return filter;
 
+            List<FilterDefinition<Data.Entities.AdoptionApplication>> authorizationFilters = new List<FilterDefinition<Data.Entities.AdoptionApplication>>();
             if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
-			{
-				FilterDefinition<Data.Entities.AdoptionApplication> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.AdoptionApplication>();
+            {
+                ClaimsPrincipal claimsPrincipal = _authorisationContentResolver.CurrentPrincipal();
+                String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+                if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("No authenticated user found");
+                String userShelterId = await _authorisationContentResolver.CurrentPrincipalShelter();
 
-                filter = Builders<Data.Entities.AdoptionApplication>.Filter.And(filter, requiredFilter);
+				if (!_conventionService.IsValidId(userShelterId))
+                    throw new UnAuthenticatedException("No authenticated shelter found");
+
+                FilterDefinition<Data.Entities.AdoptionApplication> affiliatedFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.AdoptionApplication>(userShelterId);
+                authorizationFilters.Add(affiliatedFilter);
             }
 
             if (_authorise.HasFlag(AuthorizationFlags.Owner))
             {
-                FilterDefinition<Data.Entities.AdoptionApplication> requiredFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.AdoptionApplication>();
-
-                filter = Builders<Data.Entities.AdoptionApplication>.Filter.And(filter, requiredFilter);
+                FilterDefinition<Data.Entities.AdoptionApplication> ownedFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.AdoptionApplication>();
+                authorizationFilters.Add(ownedFilter);
             }
 
-			return await Task.FromResult(filter);
+            if (authorizationFilters.Count == 0) return filter;
+
+            FilterDefinition<Data.Entities.AdoptionApplication> combinedAuthorizationFilter = Builders<Data.Entities.AdoptionApplication>.Filter.Or(authorizationFilters);
+
+            filter = Builders<Data.Entities.AdoptionApplication>.Filter.And(filter, combinedAuthorizationFilter);
+
+            return await Task.FromResult(filter);
         }
 
         // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος

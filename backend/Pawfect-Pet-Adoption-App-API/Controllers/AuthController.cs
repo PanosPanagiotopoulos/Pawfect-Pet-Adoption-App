@@ -65,7 +65,7 @@
 							(
 								user.Id, 
 								user.Email, 
-								new List<String>() { user.Role.ToString() }, 
+								[..user.Roles.Select(roleEnum => roleEnum.ToString())], 
 								user.HasEmailVerified.ToString(), 
 								user.IsVerified.ToString()
 							);
@@ -79,7 +79,7 @@
 						{   Token = token, 
 							Email = user.Email, 
 							Phone = user.Phone, 
-							Roles = new List<UserRole>() { user.Role }, 
+							Roles = user.Roles, 
 							LoggedAt = DateTime.UtcNow, 
 							IsEmailVerified = user.HasEmailVerified, 
 							IsPhoneVerified = user.HasPhoneVerified, 
@@ -243,9 +243,9 @@
 
             // ** VERIFY ** //
             verifyEmailUser.HasEmailVerified = true;
-            Models.User.User persisted = await _userService.Persist(verifyEmailUser, false, [nameof(Models.User.User.Id), nameof(Models.User.User.Role)]);
+            Models.User.User persisted = await _userService.Persist(verifyEmailUser, false, [nameof(Models.User.User.Id), nameof(Models.User.User.Roles)]);
 
-			await _userService.VerifyUserAsync(verifyEmailUser.Id, null))
+			await _userService.VerifyUserAsync(verifyEmailUser.Id, null);
 
 			return Ok(persisted);
 		}

@@ -35,5 +35,15 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
 
             return censoredFields;
         }
+
+        public List<String> PseudoCensor(List<String> fields)
+        {
+            if (fields == null || fields.Count == 0) return new List<String>();
+
+            List<String> nonPrefixed = [..this.ExtractNonPrefixed(fields).Where(field => field.Equals(nameof(Models.Shelter.Shelter.ShelterName)))];
+            List<String> userFields = _censorFactory.Censor<UserCensor>().PseudoCensor(this.ExtractPrefixed(fields, nameof(Models.Shelter.Shelter.User)));
+
+            return [.. nonPrefixed.Concat(userFields)];
+        }
     }
 }

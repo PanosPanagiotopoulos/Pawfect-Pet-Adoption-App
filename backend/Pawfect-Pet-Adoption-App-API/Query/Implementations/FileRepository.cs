@@ -6,6 +6,6 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Implementations
 {
 	public class FileRepository : GeneralRepo<Data.Entities.File>, IFileRepository
 	{
-		public FileRepository(MongoDbService dbService) : base(dbService) { }
+		public FileRepository(MongoDbService dbService, IHttpContextAccessor httpContextAccessor) : base(dbService, httpContextAccessor) { }
 	}
 }

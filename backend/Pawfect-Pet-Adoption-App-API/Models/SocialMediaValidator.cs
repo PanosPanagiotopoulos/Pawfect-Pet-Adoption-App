@@ -16,7 +16,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models
                     RuleFor(socialMedia => socialMedia.Facebook)
                     .Cascade(CascadeMode.Stop)
                     .Matches(@"^https?:\/\/(www\.)?facebook\.com\/[A-Za-z0-9._%-]+$")
-                    .WithMessage("Παρακαλώ εισάγετε έγκυρο link Facebook");
+                    .WithMessage("Please add a valid facebook link");
                 });
 
                 When(socialMedia => !String.IsNullOrEmpty(socialMedia.Instagram), () =>
@@ -25,7 +25,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models
                     RuleFor(socialMedia => socialMedia.Instagram)
                     .Cascade(CascadeMode.Stop)
                     .Matches(@"^https?:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._%-]+$")
-                    .WithMessage("Παρακαλώ εισάγετε έγκυρο link Instagram");
+                    .WithMessage("Please add a valid instagram link");
                 });
             });
         }

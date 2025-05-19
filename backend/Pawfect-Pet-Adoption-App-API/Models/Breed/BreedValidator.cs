@@ -10,19 +10,19 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Breed
             RuleFor(breed => breed.Name)
                 .Cascade(CascadeMode.Stop)
                 .Length(1, 100)
-                .WithMessage("Το όνομα της ράτσας πρέπει να είναι μεταξύ 1-100 χαρακτήρες.");
+                .WithMessage("Breed name must be between 1-100 characters.");
 
             // Το ID του τύπου ζώου είναι απαραίτητο
             RuleFor(breed => breed.AnimalTypeId)
                 .Cascade(CascadeMode.Stop)
                 .Must(RuleFluentValidation.IsObjectId)
-                .WithMessage("Το ID του τύπου ζώου δεν είναι σε σωστή μορφή.");
+                .WithMessage("Animal type id must be valid.");
 
             // Η περιγραφή της ράτσας είναι προαιρετική
             RuleFor(breed => breed.Description)
                 .Cascade(CascadeMode.Stop)
                 .MaximumLength(500)
-                .WithMessage("Η περιγραφή της ράτσας δεν πρέπει να υπερβαίνει τους 500 χαρακτήρες.");
+                .WithMessage("Description must have max 500 characters");
         }
     }
 }

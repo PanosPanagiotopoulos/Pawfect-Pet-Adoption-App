@@ -14,6 +14,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 	public class MessageQuery : BaseQuery<Data.Entities.Message>
 	{
         private readonly IFilterBuilder<Data.Entities.Message, Models.Lookups.MessageLookup> _filterBuilder;
+        private readonly IQueryFactory _queryFactory;
 
         public MessageQuery
         (
@@ -21,11 +22,13 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
             IAuthorisationService authorisationService,
             ClaimsExtractor claimsExtractor,
             IAuthorisationContentResolver authorisationContentResolver,
-            IFilterBuilder<Data.Entities.Message, Models.Lookups.MessageLookup> filterBuilder
+            IFilterBuilder<Data.Entities.Message, Models.Lookups.MessageLookup> filterBuilder,
+            IQueryFactory queryFactory
 
         ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
         {
             _filterBuilder = filterBuilder;
+            _queryFactory = queryFactory;
         }
 
         // Λίστα από IDs μηνυμάτων για φιλτράρισμα
@@ -132,14 +135,26 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
                 if (await _authorisationService.AuthorizeAsync(Permission.BrowseMessages))
                     return filter;
 
+            List<FilterDefinition<Data.Entities.Message>> authorizationFilters = new List<FilterDefinition<Data.Entities.Message>>();
             if (_authorise.HasFlag(AuthorizationFlags.Affiliation))
             {
-                FilterDefinition<Data.Entities.Message> requiredFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.Message>();
-
-                filter = Builders<Data.Entities.Message>.Filter.And(filter, requiredFilter);
+                FilterDefinition<Data.Entities.Message> affiliatedFilter = _authorisationContentResolver.BuildAffiliatedFilterParams<Data.Entities.Message>();
+                authorizationFilters.Add(affiliatedFilter);
             }
 
-            return await Task.FromResult(filter);
+            if (_authorise.HasFlag(AuthorizationFlags.Owner))
+            {
+                FilterDefinition<Data.Entities.Message> ownedFilter = _authorisationContentResolver.BuildOwnedFilterParams<Data.Entities.Message>();
+                authorizationFilters.Add(ownedFilter);
+            }
+
+            if (authorizationFilters.Count == 0) return filter;
+
+            FilterDefinition<Data.Entities.Message> combinedAuthorizationFilter = Builders<Data.Entities.Message>.Filter.Or(authorizationFilters);
+
+            filter = Builders<Data.Entities.Message>.Filter.And(filter, combinedAuthorizationFilter);
+
+			return await Task.FromResult(filter);
         }
 
         // Επιστρέφει τα ονόματα των πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος

@@ -5,17 +5,17 @@ namespace Pawfect_Pet_Adoption_App_API.Models.AnimalType
     {
         public AnimalTypeValidator()
         {
-            // Το όνομα του τύπου ζώου είναι απαραίτητο
+            // The name of the animal type is required
             RuleFor(animalType => animalType.Name)
                 .Cascade(CascadeMode.Stop)
                 .Length(1, 100)
-                .WithMessage("Το όνομα του τύπου ζώου πρέπει να είναι μεταξύ 1-100 χαρακτήρες.");
+                .WithMessage("The name of the animal type must be between 1 and 100 characters.");
 
-            // Η περιγραφή του τύπου ζώου είναι προαιρετική
+            // The description of the animal type is optional
             RuleFor(animalType => animalType.Description)
                 .Cascade(CascadeMode.Stop)
                 .MaximumLength(500)
-                .WithMessage("Η περιγραφή του τύπου ζώου δεν πρέπει να υπερβαίνει τους 500 χαρακτήρες.");
+                .WithMessage("The description of the animal type must not exceed 500 characters.");
         }
     }
 }

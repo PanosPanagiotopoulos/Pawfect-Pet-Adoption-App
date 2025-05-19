@@ -10,6 +10,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Report;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.ReportServices;
+using Pawfect_Pet_Adoption_App_API.Transactions;
 using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -44,10 +45,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
 		[HttpPost("query")]
-		[ProducesResponseType(200, Type = typeof(IEnumerable<Report>))]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(404)]
-		[ProducesResponseType(500, Type = typeof(String))]
+		[Authorize]
 		public async Task<IActionResult> QueryReports([FromBody] ReportLookup reportLookup)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -96,8 +94,9 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
             lookup.Fields = censoredFields;
             Report model = (await _builderFactory.Builder<ReportBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-													.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
-            .FirstOrDefault();
+													.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), 
+													censoredFields))
+													.FirstOrDefault();
 
             if (model == null) throw new NotFoundException("Report not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.Report));
 
@@ -110,7 +109,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("persist")]
 		[Authorize]
-		public async Task<IActionResult> Persist([FromBody] ReportPersist model, [FromQuery] List<String> fields)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> Persist([FromBody] ReportPersist model, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -125,7 +125,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("delete")]
 		[Authorize]
-		public async Task<IActionResult> Delete([FromBody] String id)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> Delete([FromBody] String id)
 		{
 			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
@@ -140,9 +141,10 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		/// </summary>
 		[HttpPost("delete/many")]
 		[Authorize]
-		public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
 		{
-			if (ids == null || !ids.Any() || !ModelState.IsValid) return BadRequest(ModelState);
+			if (ids == null || ids.Count == 0 || !ModelState.IsValid) return BadRequest(ModelState);
 
 			await _reportService.Delete(ids);
 

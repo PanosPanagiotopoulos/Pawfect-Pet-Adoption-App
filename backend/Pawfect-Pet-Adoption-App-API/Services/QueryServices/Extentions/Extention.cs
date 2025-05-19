@@ -7,6 +7,7 @@ using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
 using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Pawfect_Pet_Adoption_App_API.Transactions;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 {
@@ -47,8 +48,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 			services.AddScoped<INotificationRepository, NotificationRepository>();
 			services.AddScoped<IFileRepository, FileRepository>();
 
+            // Mongo Session Filter
+            services.AddScoped<MongoTransactionFilter>();
 
-			return services;
+            return services;
 		}
 
 	}

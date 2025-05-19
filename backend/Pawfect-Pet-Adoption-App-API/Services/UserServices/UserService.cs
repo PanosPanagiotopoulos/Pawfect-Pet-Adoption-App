@@ -256,7 +256,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 
 			// Σε περίπτωση που δεν είναι End-User , θα πρέπει να σταλεί ειδοποίηση σε admin για αν επιβεβαιωθεί
-			if (!(user.Role == UserRole.User))
+			if (user.Roles.Any(role => role != UserRole.User))
 			{
 				// TODO: Στείλτε ειδοποίηση στον admin για να επιβεβαιώσει τον χρήστη
 			}
@@ -410,8 +410,16 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
                 workingUser = _mapper.Map<Data.Entities.User>(userPersist);
 
-				// Hash τα credentials συνθηματικών του χρήστη
-				this.HashLoginCredentials(ref workingUser);
+				// Get all needed access roles
+				if (userPersist.Role == UserRole.User)
+                    workingUser.Roles = new List<UserRole> { UserRole.User };
+                else if (userPersist.Role == UserRole.Shelter)
+                    workingUser.Roles = new List<UserRole> { UserRole.User, UserRole.Shelter };
+                else if (userPersist.Role == UserRole.Admin)
+                    workingUser.Roles = new List<UserRole> { UserRole.User, UserRole.Shelter, UserRole.Admin };
+
+                // Hash τα credentials συνθηματικών του χρήστη
+                this.HashLoginCredentials(ref workingUser);
 
 				workingUser.CreatedAt = DateTime.UtcNow;
 				workingUser.UpdatedAt = DateTime.UtcNow;

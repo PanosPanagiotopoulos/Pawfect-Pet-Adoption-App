@@ -7,7 +7,7 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
 {
 	public class UserRepository : GeneralRepo<User>, IUserRepository
 	{
-		public UserRepository(MongoDbService dbService) : base(dbService) { }
+		public UserRepository(MongoDbService dbService, IHttpContextAccessor httpContextAccessor) : base(dbService, httpContextAccessor) { }
 
 		public async Task<IEnumerable<User>> GetAllAsync()
 		{

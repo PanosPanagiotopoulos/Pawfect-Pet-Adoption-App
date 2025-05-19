@@ -7,7 +7,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
 		public String? Id { get; set; }
 		public String Email { get; set; }
 		public String FullName { get; set; }
-		public UserRole? Role { get; set; }
+		public List<UserRole> Roles { get; set; }
 		public String Phone { get; set; }
 		public Location? Location { get; set; }
 		public Shelter.Shelter? Shelter { get; set; }
