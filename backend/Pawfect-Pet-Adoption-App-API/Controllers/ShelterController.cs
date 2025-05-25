@@ -11,6 +11,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Shelter;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
 using Pawfect_Pet_Adoption_App_API.Transactions;
+using System.Linq;
 using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -90,7 +91,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             lookup.Fields = fields;
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<ShelterCensor>().Censor([.. lookup.Fields], context);
+            List<String> censoredFields = await _censorFactory.Censor<ShelterCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying shelters");
 
             lookup.Fields = censoredFields;
@@ -110,11 +111,13 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		[HttpPost("persist")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Persist([FromBody] ShelterPersist model)
+        public async Task<IActionResult> Persist([FromBody] ShelterPersist model, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			Shelter shelter = await _shelterService.Persist(model);
+			fields = BaseCensor.PrepareFieldsList(fields);
+
+            Shelter shelter = await _shelterService.Persist(model, fields);
 
 			return Ok(shelter);
 			

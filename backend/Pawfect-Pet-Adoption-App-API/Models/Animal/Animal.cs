@@ -18,7 +18,7 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Animal
 		public Shelter.Shelter? Shelter { get; set; }
 		public Breed.Breed? Breed { get; set; }
 		public AnimalType.AnimalType? AnimalType { get; set; }
-		public List<File.File>? Photos { get; set; }
+		public List<File.File>? AttachedPhotos { get; set; }
 		public AdoptionStatus? AdoptionStatus { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }

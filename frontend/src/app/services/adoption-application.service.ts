@@ -7,6 +7,7 @@ import {
 } from '../models/adoption-application/adoption-application.model';
 import { catchError, Observable, throwError } from 'rxjs';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
+import { HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -33,7 +34,11 @@ export class AdoptionApplicationService {
     reqFields: string[] = []
   ): Observable<AdoptionApplication> {
     const url = `${this.apiBase}/${id}`;
-    const options = { params: { f: reqFields } };
+    let params = new HttpParams();
+        reqFields.forEach(field => {
+          params = params.append('fields', field);
+        });
+        const options = { params };
 
     return this.http
       .get<AdoptionApplication>(url, options)
@@ -44,6 +49,20 @@ export class AdoptionApplicationService {
     const url = `${this.apiBase}/persist`;
     return this.http
       .post<AdoptionApplication>(url, item)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  delete(id: string): Observable<void> {
+    const url = `${this.apiBase}/delete`;
+    return this.http
+      .post<void>(url, { id })
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  deleteMany(ids: string[]): Observable<void> {
+    const url = `${this.apiBase}/delete/many`;
+    return this.http
+      .post<void>(url, ids)
       .pipe(catchError((error: any) => throwError(error)));
   }
 }

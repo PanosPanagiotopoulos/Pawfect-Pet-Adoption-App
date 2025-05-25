@@ -1,33 +1,59 @@
 ﻿using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels;
+using System.Text.RegularExpressions;
 
 namespace Pawfect_Pet_Adoption_App_API.Models
 {
     public class SocialMediaValidator : AbstractValidator<SocialMedia>
     {
+
         public SocialMediaValidator()
         {
-            When(socialMediaData => socialMediaData != null, () =>
+            When(socialMedia => socialMedia != null, () =>
             {
-                // Όταν τα δεδομένα των κοινωνικών μέσων υπάρχουν
+                // Validate Facebook URL when provided
                 When(socialMedia => !String.IsNullOrEmpty(socialMedia.Facebook), () =>
                 {
-                    // Όταν το πεδίο Facebook δεν είναι κενό
                     RuleFor(socialMedia => socialMedia.Facebook)
-                    .Cascade(CascadeMode.Stop)
-                    .Matches(@"^https?:\/\/(www\.)?facebook\.com\/[A-Za-z0-9._%-]+$")
-                    .WithMessage("Please add a valid facebook link");
+                        .Cascade(CascadeMode.Stop)
+                        .Must(BeValidFacebookUrl)
+                        .WithMessage("Please provide a valid Facebook URL");
                 });
 
+                // Validate Instagram URL when provided
                 When(socialMedia => !String.IsNullOrEmpty(socialMedia.Instagram), () =>
                 {
-                    // Όταν το πεδίο Instagram δεν είναι κενό
                     RuleFor(socialMedia => socialMedia.Instagram)
-                    .Cascade(CascadeMode.Stop)
-                    .Matches(@"^https?:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._%-]+$")
-                    .WithMessage("Please add a valid instagram link");
+                        .Cascade(CascadeMode.Stop)
+                        .Must(BeValidInstagramUrl)
+                        .WithMessage("Please provide a valid Instagram URL");
                 });
             });
+        }
+
+        private Boolean BeValidFacebookUrl(String url)
+        {
+            if (String.IsNullOrEmpty(url))
+                return false;
+
+            // Regex: http(s)://(optional subdomain).facebook.com/anything
+            Regex regex = new Regex(@"^https?:\/\/([a-zA-Z0-9-]+\.)*facebook\.com(\/.*)?$", RegexOptions.IgnoreCase);
+            Boolean isValid = regex.IsMatch(url);
+
+
+            return isValid;
+        }
+
+        private Boolean BeValidInstagramUrl(String url)
+        {
+            if (String.IsNullOrEmpty(url)) return false;
+
+            // Regex: http(s)://(optional subdomain).instagram.com/anything
+            Regex regex = new Regex(@"^https?:\/\/([a-zA-Z0-9-]+\.)*instagram\.com(\/.*)?$", RegexOptions.IgnoreCase);
+            Boolean isValid = regex.IsMatch(url);
+
+            return isValid;
         }
     }
 }

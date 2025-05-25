@@ -1,7 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ValidationErrorInfo } from '../form-input-error-tracker.service';
-
+import { ValidationErrorInfo } from './form-input-error-tracker.service';
 @Component({
   selector: 'app-form-error-summary',
   standalone: true,

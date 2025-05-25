@@ -24,10 +24,7 @@ export class AuthService {
   constructor(
     private readonly installationConfiguration: InstallationConfigurationService,
     private readonly http: BaseHttpService
-  ) {
-    // Initialize auth state on service creation
-    this.authStateSubject.next(!!this.getToken());
-  }
+  ) {}
 
   private get apiBase(): string {
     return `${this.installationConfiguration.appServiceAddress}auth`;
@@ -78,28 +75,24 @@ export class AuthService {
     );
   }
 
+  me(): Observable<LoggedAccount> {
+    const url = `${this.apiBase}/me`;
+    return this.http.post<LoggedAccount>(url).pipe(
+      tap((response: LoggedAccount) => {
+        if (response.isVerified) {
+            this.setLoggedAccount(response);
+          } else {
+            this.clearLoggedAccount();
+          }
+      }),
+      catchError((error: any) =>  { this.clearLoggedAccount(); return throwError(error); })
+    );
+  }
+
   register(registerData: RegisterPayload): Observable<User> {
-    const formData = new FormData();
-
-    // Append the user object as JSON
-    formData.append('user', JSON.stringify(registerData.user));
-
-    // Append the file separately if it exists
-    if (registerData.user.profilePhotoId) {
-      formData.append(
-        'AttachedPhoto',
-        registerData.user.profilePhotoId,
-        registerData.user.profilePhotoId.name
-      );
-    }
-
-    if (registerData.shelter) {
-      formData.append('shelter', JSON.stringify(registerData.shelter));
-    }
-
     const url = `${this.apiBase}/register/unverified`;
     return this.http
-      .post<User>(url, formData)
+      .post<User>(url, registerData)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
@@ -172,27 +165,37 @@ export class AuthService {
     return this.authState$;
   }
 
-  getToken(): string | null {
-    const account = this.loadLoggedAccount();
-    return account ? account.token : null;
-  }
-
-  getUserId(): string | null {
+  getUserEmail(): string | null {
     const token = this.getToken();
     if (!token) return null;
 
     try {
       const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
-      return decoded.nameid;
+      return decoded.email;
     } catch (error) {
       console.error('Error decoding JWT token:', error);
       return null;
     }
   }
 
-  getUserRole(): string | null {
+  hasPermission(permission: string): boolean {
     const account = this.loadLoggedAccount();
-    return account ? account.role.toString() : null;
+    if (!account) return false;
+
+    const permissions = account.permissions || [];
+    return permissions.includes(permission);
+  }
+
+  hasAnyPermission(permissions: string[]): boolean {
+    const account = this.loadLoggedAccount();
+    if (!account) return false;
+    const userPermissions = account.permissions || [];
+    return permissions.some((permission) => userPermissions.includes(permission));
+  }
+
+  getUserRoles(): string[] | null {
+    const account = this.loadLoggedAccount();
+    return account ? account.roles : null;
   }
 
   private setLoggedAccount(account: LoggedAccount): void {
@@ -215,5 +218,10 @@ export class AuthService {
       }
     }
     return this._loggedAccount;
+  }
+
+  getToken(): string | null {
+    const account = this.loadLoggedAccount();
+    return account ? account.token : null;
   }
 }

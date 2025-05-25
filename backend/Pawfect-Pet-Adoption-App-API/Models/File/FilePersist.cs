@@ -13,5 +13,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.File
 		public String FileType { get; set; }
 		public FileSaveStatus? FileSaveStatus { get; set; }
 		public String SourceUrl { get; set; }
-	}
+        public String AwsKey { get; set; }
+    }
 }

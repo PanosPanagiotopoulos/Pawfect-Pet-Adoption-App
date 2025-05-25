@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
-import { User, UserRole } from 'src/app/models/user/user.model';
 import { UserRoundCogIcon } from 'lucide-angular';
+import { UserRole } from 'src/app/common/enum/user-role.enum';
+import { User } from 'src/app/models/user/user.model';
 
 @Component({
   selector: 'app-verified',
@@ -83,7 +84,7 @@ export class VerifiedComponent implements OnInit {
   isLoading = true;
   isVerified = false;
   error: string | null = null;
-  userRole: UserRole | null = null;
+  userRoles: UserRole[] | null = null;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -105,7 +106,7 @@ export class VerifiedComponent implements OnInit {
     ) as string;
 
     if (complete && userId) {
-      this.handleAlreadyVerified(complete, userId);
+      this.handleAlreadyVerified(userId);
       return;
     }
 
@@ -120,7 +121,7 @@ export class VerifiedComponent implements OnInit {
         this.isVerified = true;
         this.isLoading = false;
         this.error = null;
-        this.userRole = model.role!;
+        this.userRoles = model.roles!;
       },
       (error) => {
         this.isVerified = false;
@@ -132,7 +133,7 @@ export class VerifiedComponent implements OnInit {
   }
 
   getVerificationMessage(): string {
-    if (this.userRole === UserRole.Shelter) {
+    if (this.userRoles?.includes(UserRole.Shelter)) {
       return 'Η επαλήθευση ολοκληρώθηκε. Ένας διαχειριστής θα εξετάσει την εγγραφή σας. Παρακολουθείτε το email σας για ενημερώσεις.';
     }
     return 'Το email σας έχει επαληθευτεί επιτυχώς.';
@@ -142,20 +143,7 @@ export class VerifiedComponent implements OnInit {
     this.router.navigate(['/auth/login']);
   }
 
-  handleAlreadyVerified(completeRole: string, userId: string): void {
-    let role: UserRole | null = null;
-    try {
-      role = this.isRole(completeRole);
-    } catch (error: any) {
-      this.error = error.message;
-      return;
-    }
-
-    if (role) {
-      this.error = null;
-      this.userRole = role;
-    }
-
+  handleAlreadyVerified(userId: string): void {
     this.authService.verifyUser(userId).subscribe(
       () => {
         this.isVerified = true;

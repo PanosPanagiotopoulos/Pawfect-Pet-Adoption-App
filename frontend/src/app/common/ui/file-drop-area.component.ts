@@ -8,12 +8,15 @@ import {
   ElementRef,
   ViewChild,
   ChangeDetectorRef,
+  OnDestroy,
+  OnInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { NgIconsModule } from '@ng-icons/core';
-import { lucideUpload, lucideFile, lucideX } from '@ng-icons/lucide';
 import { ValidationMessageComponent } from './validation-message.component';
+import { FileItem, FilePersist } from 'src/app/models/file/file.model';
+import { FileService } from 'src/app/services/file.service';
 
 @Component({
   selector: 'app-file-drop-area',
@@ -52,6 +55,7 @@ import { ValidationMessageComponent } from './validation-message.component';
         (drop)="onDrop($event)"
       >
         <input
+          #fileInput
           type="file"
           [id]="controlName"
           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
@@ -95,10 +99,10 @@ import { ValidationMessageComponent } from './validation-message.component';
                 class="text-gray-400 mr-2 flex-shrink-0"
               ></ng-icon>
               <span class="text-sm text-gray-300 truncate">{{
-                file.name
+                file.file.name  
               }}</span>
               <span class="text-xs text-gray-500 ml-2 flex-shrink-0"
-                >({{ formatFileSize(file.size) }})</span
+                >({{ formatFileSize(file.file.size!) }})</span
               >
             </div>
 
@@ -114,7 +118,12 @@ import { ValidationMessageComponent } from './validation-message.component';
         </div>
       </div>
 
-      <!-- Error message -->
+      <!-- Error message for upload failure -->
+      <div *ngIf="uploadError" class="mt-2 text-sm text-red-500">
+        {{ uploadError }}
+      </div>
+
+      <!-- Error message from validation -->
       <app-validation-message
         [id]="controlName + '-error'"
         [control]="form.get(controlName)"
@@ -156,33 +165,37 @@ import { ValidationMessageComponent } from './validation-message.component';
     `,
   ],
 })
-export class FileDropAreaComponent {
+export class FileDropAreaComponent implements OnInit, OnDestroy {
   @Input() form!: FormGroup;
   @Input() controlName!: string;
   @Input() label: string = 'Επιλογή αρχείων';
   @Input() hint?: string;
   @Input() accept: string = '*/*';
   @Input() multiple: boolean = false;
-  @Input() maxFileSize: number = 5 * 1024 * 1024; // 5MB default
+  @Input() maxFileSize: number = 5 * 1024 * 1024;
   @Input() maxFiles: number = 5;
-  @Output() filesChange = new EventEmitter<File[]>();
+  @Output() filesChange = new EventEmitter<FileItem[]>();
 
   @ViewChild('dropArea') dropArea!: ElementRef;
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   isDragging = false;
-  selectedFiles: File[] = [];
+  selectedFiles: FileItem[] = [];
+  private persistInterval: any;
+  uploadError: string | null = null;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private fileService: FileService
+  ) {}
 
   ngOnInit() {
-    // Initialize from existing value if present
-    const currentValue = this.form.get(this.controlName)?.value;
-    if (currentValue) {
-      if (this.multiple && Array.isArray(currentValue)) {
-        this.selectedFiles = currentValue;
-      } else if (!this.multiple && currentValue instanceof File) {
-        this.selectedFiles = [currentValue];
-      }
+    this.persistInterval = setInterval(() => this.checkAndPersistFiles(), 1000);
+  }
+
+  ngOnDestroy() {
+    if (this.persistInterval) {
+      clearInterval(this.persistInterval);
     }
   }
 
@@ -199,14 +212,10 @@ export class FileDropAreaComponent {
 
   get acceptText(): string {
     if (this.accept === '*/*') return 'Αποδεκτοί όλοι οι τύποι αρχείων';
-
     const types = this.accept
       .split(',')
-      .map((type) => {
-        return type.trim().replace('.', '').toUpperCase();
-      })
+      .map((type) => type.trim().replace('.', '').toUpperCase())
       .join(', ');
-
     return `Αποδεκτοί τύποι: ${types}`;
   }
 
@@ -238,11 +247,9 @@ export class FileDropAreaComponent {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging = false;
-
     if (event.dataTransfer?.files) {
       this.handleFiles(event.dataTransfer.files);
     }
-
     this.cdr.markForCheck();
   }
 
@@ -254,89 +261,116 @@ export class FileDropAreaComponent {
   }
 
   handleFiles(fileList: FileList): void {
-    // Convert FileList to array
     const newFiles = Array.from(fileList);
 
-    // Check if we're exceeding max files
     if (this.multiple) {
       if (this.selectedFiles.length + newFiles.length > this.maxFiles) {
         this.setError(`Μπορείτε να επιλέξετε μέχρι ${this.maxFiles} αρχεία`);
         return;
       }
     } else {
-      // If not multiple, replace existing files
       this.selectedFiles = [];
     }
 
-    // Check file sizes
-    const oversizedFiles = newFiles.filter(
-      (file) => file.size > this.maxFileSize
-    );
+    const oversizedFiles = newFiles.filter(file => file.size > this.maxFileSize);
     if (oversizedFiles.length > 0) {
-      this.setError(
-        `Το μέγιστο μέγεθος αρχείου είναι ${this.formatFileSize(
-          this.maxFileSize
-        )}`
-      );
+      this.setError(`Το μέγιστο μέγεθος αρχείου είναι ${this.formatFileSize(this.maxFileSize)}`);
       return;
     }
 
-    // Check file types if accept is specified
     if (this.accept !== '*/*') {
-      const acceptedTypes = this.accept.split(',').map((type) => type.trim());
-      const invalidFiles = newFiles.filter((file) => {
-        return !acceptedTypes.some((type) => {
+      const acceptedTypes = this.accept.split(',').map(type => type.trim());
+      const invalidFiles = newFiles.filter(file => {
+        return !acceptedTypes.some(type => {
           if (type.startsWith('.')) {
-            // Check file extension
             return file.name.toLowerCase().endsWith(type.toLowerCase());
           } else {
-            // Check MIME type
             return file.type.match(new RegExp(type.replace('*', '.*')));
           }
         });
       });
-
       if (invalidFiles.length > 0) {
-        this.setError(
-          `Μη αποδεκτός τύπος αρχείου. Αποδεκτοί τύποι: ${this.accept}`
-        );
+        this.setError(`Μη αποδεκτός τύπος αρχείου. Αποδεκτοί τύποι: ${this.accept}`);
         return;
       }
     }
 
-    // Add valid files
+    const newFileItems = newFiles.map(file => ({ 
+      file, 
+      addedAt: Date.now(), 
+      isPersisting: false, 
+      uploadFailed: false 
+    }));
     if (this.multiple) {
-      this.selectedFiles = [...this.selectedFiles, ...newFiles];
+      this.selectedFiles = [...this.selectedFiles, ...newFileItems];
     } else {
-      this.selectedFiles = [newFiles[0]];
+      this.selectedFiles = newFileItems;
     }
 
-    // Update form control
     this.updateFormControl();
-
-    // Emit change event
     this.filesChange.emit(this.selectedFiles);
+    this.uploadError = null;
   }
 
   removeFile(index: number): void {
     this.selectedFiles.splice(index, 1);
     this.updateFormControl();
     this.filesChange.emit(this.selectedFiles);
+    this.uploadError = null;
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
     this.cdr.markForCheck();
+  }
+
+  checkAndPersistFiles(): void {
+    const now = Date.now();
+    const filesToPersist = this.selectedFiles.filter(
+      item => !item.persistedId && !item.isPersisting && !item.uploadFailed && item.addedAt + 2000 <= now
+    );
+
+    if (filesToPersist.length > 0) {
+      filesToPersist.forEach(item => item.isPersisting = true);
+      const formData = new FormData();
+      filesToPersist.forEach((item: FileItem, index) => {
+        formData.append(`files[${index}]`, item.file);
+      });
+
+      this.fileService.persistBatchTemporary(formData).subscribe({
+        next: (filePersists: FilePersist[]) => {
+          filePersists.forEach((fp, index) => {
+            const item = filesToPersist[index];
+            if (this.selectedFiles.includes(item)) {
+              item.persistedId = fp.id;
+            }
+            item.isPersisting = false;
+          });
+          this.updateFormControl();
+          this.filesChange.emit(this.selectedFiles);
+          this.uploadError = null;
+          this.cdr.markForCheck();
+        },
+        error: (error: Error) => {
+          console.error('Error persisting files:', error);
+          filesToPersist.forEach(item => {
+            item.isPersisting = false;
+            item.uploadFailed = true;
+          });
+          this.uploadError = 'Η μεταφόρτωση απέτυχε. Παρακαλώ δοκιμάστε ξανά.';
+          this.cdr.markForCheck();
+        }
+      });
+    }
   }
 
   updateFormControl(): void {
     const control = this.form.get(this.controlName);
     if (control) {
-      if (this.selectedFiles.length > 0) {
-        // Set the actual File object
-        const valueToSet = this.multiple
-          ? this.selectedFiles
-          : this.selectedFiles[0];
-        control.setValue(valueToSet);
-      } else {
-        control.setValue(null);
-      }
+      const persistedIds = this.selectedFiles
+        .filter(item => item.persistedId)
+        .map(item => item.persistedId!);
+      const valueToSet = this.multiple ? persistedIds : persistedIds[0] || null;
+      control.setValue(valueToSet);
       control.markAsTouched();
       control.markAsDirty();
       control.updateValueAndValidity();
@@ -353,11 +387,9 @@ export class FileDropAreaComponent {
 
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
-
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }

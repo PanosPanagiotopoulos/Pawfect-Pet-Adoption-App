@@ -210,17 +210,43 @@
         <h2 class="text-2xl font-bold text-white mb-2">
           {{
             fromLogin
-              ? "Επαλήθευση Email Απαιτείται"
-              : "Η Εγγραφή Ολοκληρώθηκε!"
+              ? "Email Verification Required"
+              : "Registration Completed!"
           }}
         </h2>
-        <p class="text-gray-400" *ngIf="fromLogin">
+        <p class="text-gray-400 mb-4">
           {{
-            "Ο λογαριασμός σας υπάρχει, αλλά το email σας δεν έχει επαληθευτεί. Έχουμε στείλει ένα email επιβεβαίωσης στο " +
-              (registrationForm.get("email")?.value || "email σας") +
-              ". Παρακαλούμε επαληθεύστε το email σας για να συνδεθείτε."
+            fromLogin
+              ? "Your account exists, but your email is not verified. We’ve sent a verification email to " +
+                (registrationForm.get('email')?.value || "your email") +
+                ". Please verify your email to log in."
+              : "We’ve sent a verification email to " +
+                (registrationForm.get('email')?.value || "your email") +
+                ". Please verify your email to complete your registration."
           }}
         </p>
+        <!-- Verification Steps in Greek -->
+        <div class="text-left text-gray-400 text-sm mb-6">
+          <p class="mb-2">Για να επαληθεύσετε τον λογαριασμό σας, παρακαλούμε ακολουθήστε τα παρακάτω βήματα:</p>
+          <ul class="list-none space-y-2">
+            <li class="flex items-start">
+              <span class="mr-2 text-primary-400">•</span>
+              Ελέγξτε τα εισερχόμενά σας για ένα email από το Pawfect.
+            </li>
+            <li class="flex items-start">
+              <span class="mr-2 text-primary-400">•</span>
+              Κάντε κλικ στον σύνδεσμο επαλήθευσης στο email για να ενεργοποιήσετε τον λογαριασμό σας.
+            </li>
+            <li class="flex items-start">
+              <span class="mr-2 text-primary-400">•</span>
+              Αν δεν βλέπετε το email, ελέγξτε τον φάκελο ανεπιθύμητων ή spam.
+            </li>
+            <li class="flex items-start">
+              <span class="mr-2 text-primary-400">•</span>
+              Αν χρειάζεται, κάντε κλικ στο κουμπί παρακάτω για να επαναστείλετε το email επαλήθευσης.
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div class="pt-4 space-y-4">
@@ -231,7 +257,7 @@
           [disabled]="isLoading"
           class="inline-block w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-70 disabled:transform-none"
         >
-          <span *ngIf="!isLoading">Αποστολή νέου email επαλήθευσης</span>
+          <span *ngIf="!isLoading">Resend Verification Email</span>
           <span *ngIf="isLoading" class="flex items-center justify-center">
             <svg
               class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
@@ -253,7 +279,7 @@
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            Αποστολή...
+            Sending...
           </span>
         </button>
 
@@ -261,7 +287,7 @@
           routerLink="/auth/login"
           class="inline-block w-full px-4 py-3 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-all duration-300"
         >
-          Μετάβαση στη Σύνδεση
+          Go to Login
         </a>
       </div>
     </div>

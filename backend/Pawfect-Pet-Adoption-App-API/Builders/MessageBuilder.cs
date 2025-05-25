@@ -1,12 +1,9 @@
 ﻿using AutoMapper;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.Message;
-using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Builders
 {
@@ -44,12 +41,21 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
         public override async Task<List<Models.Message.Message>> Build(List<Data.Entities.Message> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
-			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
+			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = this.ExtractBuildFields(fields);
 
-            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-            Dictionary<String, List<Models.User.User>>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User))
-				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.User.User)]))
-				: null;
+			List<String> userFields = new List<String>();
+			// Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
+			if (foreignEntitiesFields.ContainsKey(nameof(Models.Message.Message.Recipient)))
+				userFields.AddRange(foreignEntitiesFields[nameof(Models.Message.Message.Recipient)]);
+            if (foreignEntitiesFields.ContainsKey(nameof(Models.Message.Message.Sender)))
+                userFields.AddRange(foreignEntitiesFields[nameof(Models.Message.Message.Sender)]);
+
+            Dictionary<String, List<Models.User.User>>? userMap = userFields.Count > 0 ? await this.CollectUsers(entities, userFields) : null;
+
+            Dictionary<String, Models.Conversation.Conversation>? conversationsMap = foreignEntitiesFields.ContainsKey(nameof(Models.Message.Message.Conversation))
+                ? (await CollectConversations(entities,
+                                    foreignEntitiesFields[nameof(Models.Message.Message.Conversation)]))
+                : null;
 
             List<Models.Message.Message> result = new List<Models.Message.Message>();
 			foreach (Data.Entities.Message e in entities)
@@ -59,10 +65,13 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (nativeFields.Contains(nameof(Models.Message.Message.Content))) dto.Content = e.Content;
 				if (nativeFields.Contains(nameof(Models.Message.Message.IsRead))) dto.IsRead = e.IsRead;
 				if (nativeFields.Contains(nameof(Models.Message.Message.CreatedAt))) dto.CreatedAt = e.CreatedAt;
-				if (userMap != null && userMap.ContainsKey(e.Id)) dto.Sender = userMap[e.Id][0];
-				if (userMap != null && userMap.ContainsKey(e.Id)) dto.Recipient = userMap[e.Id][1];
+                
+                if (userMap != null && userMap.TryGetValue(e.Id, out List<Models.User.User> senders) && senders != null && senders.Count > 0) dto.Sender = senders[0];
+                if (userMap != null && userMap.TryGetValue(e.Id, out List<Models.User.User> recipients) && recipients != null && recipients.Count > 0) dto.Recipient = recipients[1];
+                
+                if (conversationsMap != null && conversationsMap.ContainsKey(e.Id)) dto.Conversation = conversationsMap[e.Id];
 
-				result.Add(dto);
+                result.Add(dto);
 			}
 
 			return await Task.FromResult(result);
@@ -93,5 +102,31 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Ταίριασμα του προηγούμενου Dictionary με τα messages δημιουργώντας ένα Dictionary : [ MessageId -> UserId ] 
 			return messages.ToDictionary(x => x.Id, x => new List<Models.User.User>() { userDtoMap[x.SenderId], userDtoMap[x.RecipientId] });
 		}
-	}
+
+        private async Task<Dictionary<String, Models.Conversation.Conversation>> CollectConversations(List<Data.Entities.Message> messages, List<String> conversationFields)
+        {
+            // Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
+            List<String> conversationIds = messages.Select(x => x.ConversationId).Distinct().ToList();
+
+            ConversationLookup conversationLookup = new ConversationLookup();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            conversationLookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            conversationLookup.PageSize = 1000;
+            conversationLookup.Ids = conversationIds;
+            conversationLookup.Fields = conversationFields;
+
+            List<Data.Entities.Conversation> conversations = await conversationLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
+
+            List<Models.Conversation.Conversation> conversationDtos = await _builderFactory.Builder<ConversationBuilder>().Authorise(this._authorise).Build(conversations, conversationFields);
+
+            if (conversationDtos == null || conversationDtos.Count == 0) { return null; }
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
+            Dictionary<String, Models.Conversation.Conversation> conversationDtoMap = conversationDtos.ToDictionary(x => x.Id);
+
+            // Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> UserId ] 
+            return messages.ToDictionary(x => x.Id, x => conversationDtoMap[x.ConversationId]);
+        }
+    }
 }

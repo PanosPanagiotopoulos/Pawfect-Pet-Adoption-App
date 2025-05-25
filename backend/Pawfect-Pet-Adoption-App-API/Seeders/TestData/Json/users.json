@@ -1,0 +1,222 @@
+[
+  {
+    "Id": "709f3f99def98de900439031",
+    "Email": "admin1@gmail.com",
+    "Password": "admin",
+    "FullName": "John Doe",
+    "Roles": [ 1 ],
+    "Phone": "+12345678901",
+    "Location": {
+      "Address": "Main St",
+      "Number": "123",
+      "City": "New York",
+      "ZipCode": "10001"
+    },
+    "ShelterId": null,
+    "AuthProvider": 1,
+    "AuthProviderId": null,
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de900439032",
+    "Email": "jane.smith@example.com",
+    "Password": null,
+    "FullName": "Jane Smith",
+    "Roles": [ 1 ],
+    "Phone": "+12345678902",
+    "Location": {
+      "Address": "Oak Ave",
+      "Number": "456",
+      "City": "Los Angeles",
+      "ZipCode": "90001"
+    },
+    "ShelterId": null,
+    "AuthProvider": 2,
+    "AuthProviderId": "google123456",
+    "IsVerified": false,
+    "HasPhoneVerified": false,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de900439033",
+    "Email": "admin2@gmail.com",
+    "Password": "admin",
+    "FullName": "Happy Paws Shelter",
+    "Roles": [ 1, 2 ],
+    "Phone": "+12345678903",
+    "Location": {
+      "Address": "Elm St",
+      "Number": "789",
+      "City": "Chicago",
+      "ZipCode": "60601"
+    },
+    "ShelterId": null,
+    "AuthProvider": 1,
+    "AuthProviderId": null,
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de900439034",
+    "Email": "city.shelter@example.com",
+    "Password": null,
+    "FullName": "City Shelter",
+    "Roles": [ 1, 2 ],
+    "Phone": "+12345678904",
+    "Location": {
+      "Address": "Pine Rd",
+      "Number": "101",
+      "City": "Miami",
+      "ZipCode": "33101"
+    },
+    "ShelterId": null,
+    "AuthProvider": 2,
+    "AuthProviderId": "google789012",
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de900439035",
+    "Email": "admin3@gmail.com",
+    "Password": "admin",
+    "FullName": "Admin User",
+    "Roles": [ 1, 2, 3 ],
+    "Phone": "+12345678905",
+    "Location": {
+      "Address": "Cedar Ln",
+      "Number": "202",
+      "City": "Boston",
+      "ZipCode": "02108"
+    },
+    "ShelterId": null,
+    "AuthProvider": 1,
+    "AuthProviderId": null,
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de900439036",
+    "Email": "admin4@gmail.com",
+    "Password": "admin",
+    "FullName": "Alice Brown",
+    "Roles": [ 1 ],
+    "Phone": "+12345678906",
+    "Location": {
+      "Address": "Maple Dr",
+      "Number": "303",
+      "City": "Seattle",
+      "ZipCode": "98101"
+    },
+    "ShelterId": null,
+    "AuthProvider": 1,
+    "AuthProviderId": null,
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de900439037",
+    "Email": "admin5@gmail.com",
+    "Password": null,
+    "FullName": "Bob Jones",
+    "Roles": [ 1 ],
+    "Phone": "+12345678907",
+    "Location": {
+      "Address": "Birch Ave",
+      "Number": "404",
+      "City": "San Francisco",
+      "ZipCode": "94101"
+    },
+    "ShelterId": null,
+    "AuthProvider": 2,
+    "AuthProviderId": "google345678",
+    "IsVerified": false,
+    "HasPhoneVerified": false,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de900439038",
+    "Email": "admin6shelter@gmail.com",
+    "Password": "$2a$10$hashedpassword5",
+    "FullName": "Pawsome Shelter",
+    "Roles": [ 1, 2 ],
+    "Phone": "+12345678908",
+    "Location": {
+      "Address": "Willow St",
+      "Number": "505",
+      "City": "Austin",
+      "ZipCode": "78701"
+    },
+    "ShelterId": null,
+    "AuthProvider": 1,
+    "AuthProviderId": null,
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de900439039",
+    "Email": "furry.friends@example.com",
+    "Password": null,
+    "FullName": "Furry Friends Shelter",
+    "Roles": [ 1, 2 ],
+    "Phone": "+12345678909",
+    "Location": {
+      "Address": "Spruce Rd",
+      "Number": "606",
+      "City": "Denver",
+      "ZipCode": "80201"
+    },
+    "ShelterId": null,
+    "AuthProvider": 2,
+    "AuthProviderId": "google901234",
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "709f3f99def98de90043903a",
+    "Email": "superadmin",
+    "Password": "superadmin",
+    "FullName": "Super Admin",
+    "Roles": [ 1, 2, 3 ],
+    "Phone": "+12345678910",
+    "Location": {
+      "Address": "Ash St",
+      "Number": "707",
+      "City": "Phoenix",
+      "ZipCode": "85001"
+    },
+    "ShelterId": null,
+    "AuthProvider": 1,
+    "AuthProviderId": null,
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  }
+]

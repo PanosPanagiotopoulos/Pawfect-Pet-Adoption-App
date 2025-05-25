@@ -21,9 +21,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
             IAuthorisationService authorisationService,
             ClaimsExtractor claimsExtractor,
             IAuthorisationContentResolver authorisationContentResolver,
+            IHttpContextAccessor httpContextAccessor,
             IFilterBuilder<Data.Entities.Animal, Models.Lookups.AnimalLookup> filterBuilder
 
-        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor, httpContextAccessor)
         {
             _filterBuilder = filterBuilder;
         }
@@ -175,7 +176,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				if (item.Equals(nameof(Models.Animal.Animal.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Animal.CreatedAt));
 				if (item.Equals(nameof(Models.Animal.Animal.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.Animal.UpdatedAt));
                 
-				if (item.StartsWith(nameof(Models.Animal.Animal.Photos))) projectionFields.Add(nameof(Data.Entities.Animal.PhotosIds));
+				if (item.StartsWith(nameof(Models.Animal.Animal.AttachedPhotos))) projectionFields.Add(nameof(Data.Entities.Animal.PhotosIds));
                 if (item.StartsWith(nameof(Models.Animal.Animal.Shelter))) projectionFields.Add(nameof(Data.Entities.Animal.ShelterId));
 				if (item.StartsWith(nameof(Models.Animal.Animal.Breed))) projectionFields.Add(nameof(Data.Entities.Animal.BreedId));
 				if (item.StartsWith(nameof(Models.Animal.Animal.AnimalType))) projectionFields.Add(nameof(Data.Entities.Animal.AnimalTypeId));

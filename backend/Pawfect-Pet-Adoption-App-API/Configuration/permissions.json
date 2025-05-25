@@ -1,7 +1,6 @@
 {
   "PermissionConfig": {
     "Policies": [
-      // Users
       {
         "Permission": "BrowseUsers",
         "Roles": [ "User", "Shelter", "Admin" ],
@@ -17,8 +16,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-
-      // Shelters
       {
         "Permission": "BrowseShelters",
         "Roles": [ "User", "Shelter", "Admin" ],
@@ -34,8 +31,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-
-      // Animals
       {
         "Permission": "CreateAnimals",
         "Roles": [ "Shelter", "Admin" ],
@@ -56,8 +51,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-
-      // Animal Types
       {
         "Permission": "CreateAnimalTypes",
         "Roles": [ "Admin" ],
@@ -78,8 +71,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-
-      // Breeds
       {
         "Permission": "CreateBreeds",
         "Roles": [ "Admin" ],
@@ -100,8 +91,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-
-      // Adoption Applications
       {
         "Permission": "CreateAdoptionApplications",
         "Roles": [ "User", "Shelter", "Admin" ],
@@ -110,20 +99,18 @@
       {
         "Permission": "BrowseAdoptionApplications",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "Shelter" ]
+        "AffiliatedRoles": []
       },
       {
         "Permission": "EditAdoptionApplications",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "Shelter" ]
+        "AffiliatedRoles": []
       },
       {
         "Permission": "DeleteAdoptionApplications",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "Shelter" ]
+        "AffiliatedRoles": []
       },
-
-      // Files
       {
         "Permission": "CreateFiles",
         "Roles": [ "User", "Shelter", "Admin" ],
@@ -144,8 +131,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-
-      // Conversations
       {
         "Permission": "CreateConversations",
         "Roles": [ "User", "Shelter", "Admin" ],
@@ -166,8 +151,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-
-      // Messages
       {
         "Permission": "CreateMessages",
         "Roles": [ "Admin" ],
@@ -188,7 +171,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-      // Notifications
       {
         "Permission": "CreateNotifications",
         "Roles": [ "User", "Shelter", "Admin" ],
@@ -209,8 +191,6 @@
         "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
-
-      // Reports
       {
         "Permission": "CreateReports",
         "Roles": [ "User", "Shelter", "Admin" ],

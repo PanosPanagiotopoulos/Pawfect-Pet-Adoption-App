@@ -19,17 +19,8 @@
 
 			using (SHA256 sha256 = SHA256.Create())
 			{
-				try
-				{
-					byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(value));
-					return Convert.ToBase64String(hashedBytes);
-				}
-				catch (Exception e)
-				{
-					Log.Error("Error in Hashing Value : " + value + " Error : " + e.Message);
-					throw e;
-				}
-
+				byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(value));
+				return Convert.ToBase64String(hashedBytes);
 			}
 		}
 		public static Boolean IsHashed(String? value)
@@ -49,7 +40,7 @@
 		}
 
 		// Validation hash ενώς String με ενώς άλλου
-		public static Boolean ValidatedHashedValues(String? enteredValue, String? existingValue)
+		public static Boolean ValidatedHashedValues(String enteredValue, String existingValue)
 		{
 			Log.Information("Entered Value = " + enteredValue + " Hashed Value = " + existingValue);
 			if (String.IsNullOrEmpty(enteredValue) || String.IsNullOrEmpty(existingValue))

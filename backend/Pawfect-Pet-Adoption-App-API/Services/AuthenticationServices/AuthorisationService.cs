@@ -40,13 +40,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
             return await Task.FromResult(_permissionProvider.HasAnyPermission(userRoles, permissions));
         }
 
-        public async Task<Boolean> AuthorizeAffiliatedAsync(AffiliatedResource resource)
+        public async Task<Boolean> AuthorizeAffiliatedAsync(AffiliatedResource resource, params String[] permissions)
         {
-            if (resource == null || !resource.AffiliatedRoles.Any() || resource.AffiliatedFilterParams == null)
+            if (resource == null || resource.AffiliatedFilterParams == null)
                 throw new ArgumentException("Invalid affiliated resource provided.");
 
             ClaimsPrincipal user = _authorisationContentResolver.CurrentPrincipal();
             if (user == null) throw new UnAuthenticatedException("User is not authenticated.");
+
+            resource.AffiliatedRoles = _authorisationContentResolver.AffiliatedRolesOf(permissions);
 
             AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(user, resource, new AffiliatedRequirement(resource));
             return authorizationResult.Succeeded;
@@ -110,7 +112,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
             Boolean isAuthorised = await this.AuthorizeAsync(permissions);
             if (isAuthorised) return true;
 
-            Boolean isAffiliated = await this.AuthorizeAffiliatedAsync(affiliatedResource);
+            Boolean isAffiliated = await this.AuthorizeAffiliatedAsync(affiliatedResource, permissions);
             if (isAffiliated) return isAffiliated;
 
             Boolean isOwned = await this.AuthorizeOwnedAsync(ownedResource);

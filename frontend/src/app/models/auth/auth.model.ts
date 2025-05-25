@@ -19,12 +19,12 @@ export interface OtpPayload {
 export interface LoggedAccount {
   token: string;
   phone: string;
-  email: string;
-  role: UserRole[];
-  loggedAt: Date;
+  roles: string[];
+  permissions: string[];
   isPhoneVerified: boolean;
   isEmailVerified: boolean;
   isVerified: boolean;
+  loggedAt: Date;
 }
 
 export interface LoginPayload {

@@ -8,9 +8,11 @@ using Pawfect_Pet_Adoption_App_API.Exceptions;
 using Pawfect_Pet_Adoption_App_API.Models.File;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 using Pawfect_Pet_Adoption_App_API.Transactions;
-using System.Reflection;
+using System.Linq;
+using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
@@ -23,6 +25,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         private readonly IBuilderFactory _builderFactory;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
+        private readonly IAuthorisationContentResolver _authorisationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
         private readonly IQueryFactory _queryFactory;
 
         public FileController(
@@ -31,6 +35,8 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             IBuilderFactory builderFactory,
 			ICensorFactory censorFactory,
             AuthContextBuilder contextBuilder,
+            IAuthorisationContentResolver authorisationContentResolver,
+            ClaimsExtractor claimsExtractor, 
             IQueryFactory queryFactory)
         {
             _fileService = fileService;
@@ -38,7 +44,46 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             _builderFactory = builderFactory;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _authorisationContentResolver = authorisationContentResolver;
+            _claimsExtractor = claimsExtractor;
             _queryFactory = queryFactory;
+        }
+
+        /// <summary>
+        /// Persist an animal.
+        /// </summary>
+        /// // TODO: How to handle case that someone spams files since not authorized? 
+        [HttpPost("persist/temporary/many")]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> PersistBatchTemporarily()
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            IFormFileCollection files = Request.Form.Files;
+
+            // Early validation for empty or null input
+            if (files == null || files.Count == 0) return BadRequest("No files provided for upload.");
+
+            IEnumerable<Models.File.FilePersist> filesPersisted = await _fileService.SaveTemporarily([..files]);
+
+            return Ok(filesPersisted);
+        }
+
+        /// <summary>
+        /// Persist an animal.
+        /// </summary>
+        [HttpPost("persist")]
+        [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> PersistBatch([FromBody] List<FilePersist> models, [FromQuery] List<String> fields)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            fields = BaseCensor.PrepareFieldsList(fields);
+
+            List<Models.File.File>? files = await _fileService.Persist(models, fields);
+
+            return Ok(files);
         }
 
         /// <summary>
@@ -85,11 +130,10 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
                 Offset = 1,
                 PageSize = 1,
                 Ids = new List<String> { id },
-                Fields = fields
             };
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<FileCensor>().Censor([.. lookup.Fields], context);
+            List<String> censoredFields = await _censorFactory.Censor<FileCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying files");
 
             lookup.Fields = censoredFields;
@@ -100,40 +144,6 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             if (model == null) throw new NotFoundException("Files not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.File));
 
             return Ok(model);
-		}
-
-		/// <summary>
-		/// Persist an animal.
-		/// </summary>
-		[HttpPost("persist/temporary")]
-		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> PersistBatchTemporarily([FromForm] List<TempMediaFile> models)
-		{
-			if (!ModelState.IsValid) return BadRequest(ModelState);
-
-			// Early validation for empty or null input
-			if (models == null || models.Count == 0) return BadRequest("No files provided for upload.");
-
-            IEnumerable<Models.File.File>? files = await _fileService.SaveTemporarily(models);
-
-			return Ok(files);
-		}
-			
-
-		/// <summary>
-		/// Persist an animal.
-		/// </summary>
-		[HttpPost("persist")]
-		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> PersistBatch([FromBody] List<FilePersist> models, [FromQuery] List<String> fields)
-		{
-			if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            List<Models.File.File>? files = await _fileService.Persist(models, fields);
-
-			return Ok(files);
 		}
 
 		/// <summary>

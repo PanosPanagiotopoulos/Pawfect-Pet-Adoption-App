@@ -1,5 +1,6 @@
 ﻿
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Censors
@@ -8,15 +9,18 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
     {
         private readonly IAuthorisationService _authorisationService;
         private readonly ICensorFactory _censorFactory;
+        private readonly AuthContextBuilder _contextBuilder;
 
         public AnimalCensor
         (
             IAuthorisationService authorisationService,
-            ICensorFactory censorFactory
+            ICensorFactory censorFactory,
+            AuthContextBuilder contextBuilder
         )
         {
             _authorisationService = authorisationService;
             _censorFactory = censorFactory;
+            _contextBuilder = contextBuilder;
         }
         public override async Task<List<String>> Censor(List<String> fields, AuthContext context)
         {
@@ -26,16 +30,22 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
             if (fields.Contains("*")) fields = this.ExtractForeign(fields, typeof(Data.Entities.Animal));
 
             List<String> censoredFields = new List<String>();
-            if (await _authorisationService.AuthorizeOrOwnedOrAffiliated(context, Permission.BrowseAnimals))
+            if (await _authorisationService.AuthorizeAsync(Permission.BrowseAnimals))
             {
                 censoredFields.AddRange(this.ExtractNonPrefixed(fields));
             }
 
+            AuthContext shelterContext = _contextBuilder.OwnedFrom(new ShelterLookup(), context.CurrentUserId).AffiliatedWith(new ShelterLookup()).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<ShelterCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Shelter)), shelterContext), nameof(Models.Animal.Animal.Shelter)));
+           
+            
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<AnimalTypeCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.AnimalType)), context), nameof(Models.Animal.Animal.AnimalType)));
 
-            censoredFields.AddRange(await _censorFactory.Censor<ShelterCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Shelter)), context));
-            censoredFields.AddRange(await _censorFactory.Censor<AnimalTypeCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.AnimalType)), context));
-            censoredFields.AddRange(await _censorFactory.Censor<BreedCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Breed)), context));
-            censoredFields.AddRange(await _censorFactory.Censor<FileCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Photos)), context));
+            AuthContext breedContext = _contextBuilder.OwnedFrom(new BreedLookup(), context.CurrentUserId).AffiliatedWith(new BreedLookup()).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<BreedCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Breed)), breedContext), nameof(Models.Animal.Animal.Breed)));
+
+            AuthContext fileContext = _contextBuilder.OwnedFrom(new AnimalLookup(), context.CurrentUserId).AffiliatedWith(new FileLookup()).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<FileCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.AttachedPhotos)), fileContext), nameof(Models.Animal.Animal.AttachedPhotos)));
 
             return censoredFields;
         }
@@ -47,12 +57,15 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
             List<String> nonPrefixed = this.ExtractNonPrefixed(fields);
             List<String> animalTypeFields = this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.AnimalType));
             List<String> breedFields = this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Breed));
-            List<String> photoFields = [..this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Photos))
+            List<String> photoFields = [..this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.AttachedPhotos))
                                        .Where(field => field.Equals(nameof(Models.File.File.SourceUrl), StringComparison.OrdinalIgnoreCase))];
             List<String> shelterFields = _censorFactory.Censor<ShelterCensor>().PseudoCensor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Shelter)));
 
 
-            return [..nonPrefixed.Concat(animalTypeFields).Concat(breedFields).Concat(photoFields).Concat(shelterFields)];
+            return [..nonPrefixed.Concat(this.AsPrefixed(animalTypeFields, nameof(Models.Animal.Animal.AnimalType)))
+                                 .Concat(this.AsPrefixed(breedFields, nameof(Models.Animal.Animal.Breed)))
+                                 .Concat(this.AsPrefixed(photoFields, nameof(Models.Animal.Animal.AttachedPhotos)))
+                                 .Concat(this.AsPrefixed(shelterFields, nameof(Models.Animal.Animal.Shelter)))];
         }
     }
 }

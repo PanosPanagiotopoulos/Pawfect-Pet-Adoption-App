@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Content Remove="Configuration\environment.json" />
+    <Content Remove="Seeders\TestData\animal-types.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +20,12 @@
 
   <ItemGroup>
     <None Include="Configuration\environment.json" />
+    <None Include="Seeders\TestData\Json\animal-types.json" />
   </ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Templates\Emails\*.html" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
@@ -47,6 +53,7 @@
 
   <ItemGroup>
     <Folder Include="logs\" />
+    <Folder Include="Seeders\TestData\Files\UserProfilePictures\" />
   </ItemGroup>
 
 </Project>

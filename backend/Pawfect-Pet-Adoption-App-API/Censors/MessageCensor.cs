@@ -9,7 +9,7 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
         private readonly IAuthorisationService _authorisationService;
         private readonly ICensorFactory _censorFactory;
         private readonly IAuthorisationContentResolver _authorisationContentResolver;
-        private readonly AuthContextBuilder _authorisationContextBuilder;
+        private readonly AuthContextBuilder _contextBuilder;
 
         public MessageCensor
         (
@@ -22,7 +22,7 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
             _authorisationService = authorisationService;
             _censorFactory = censorFactory;
             _authorisationContentResolver = authorisationContentResolver;
-            _authorisationContextBuilder = authorisationContextBuilder;
+            _contextBuilder = authorisationContextBuilder;
         }
         public override async Task<List<String>> Censor(List<String> fields, AuthContext context)
         {
@@ -37,16 +37,41 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
                 censoredFields.AddRange(this.ExtractNonPrefixed(fields));
             }
 
-            censoredFields.AddRange(await _censorFactory.Censor<UserCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Message.Message.Recipient)), context));
-            censoredFields.AddRange(await _censorFactory.Censor<UserCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Message.Message.Sender)), context));
+            AuthContext recipientContext = _contextBuilder.OwnedFrom(new UserLookup(), context.CurrentUserId).AffiliatedWith(new UserLookup()).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<UserCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Message.Message.Recipient)), recipientContext), nameof(Models.Message.Message.Recipient)));
 
-            AuthContext conversationContext = _authorisationContextBuilder
-                .OwnedFrom(context.OwnedResource)
-                .AffiliatedWith(new ConversationLookup(), _authorisationContentResolver.AffiliatedRolesOf(Permission.BrowseConversations))
+            AuthContext senderContext = _contextBuilder.OwnedFrom(new UserLookup(), context.CurrentUserId).AffiliatedWith(new UserLookup()).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<UserCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Message.Message.Sender)), senderContext), nameof(Models.Message.Message.Sender)));
+
+
+            // Prepare the conversation lookup for the conversation censoring
+            ConversationLookup conversationLookup = new ConversationLookup();
+            conversationLookup.UserIds = [context.CurrentUserId];
+            conversationLookup.Ids = [];
+            MessageLookup ownedMessageLookup = (MessageLookup)context.OwnedResource?.OwnedFilterParams?.RequestedFilters;
+            MessageLookup affiliatedMessageLookup = (MessageLookup)context.AffiliatedResource?.AffiliatedFilterParams?.RequestedFilters;
+            if (ownedMessageLookup != null)
+            {
+                conversationLookup.Ids.AddRange(ownedMessageLookup.ConversationIds ?? []);
+                conversationLookup.UserIds.AddRange(ownedMessageLookup.SenderIds ?? []);
+                conversationLookup.UserIds.AddRange(ownedMessageLookup.RecipientIds ?? []);
+            }
+            if (affiliatedMessageLookup != null)
+            {
+                conversationLookup.Ids.AddRange(affiliatedMessageLookup.ConversationIds ?? []);
+                conversationLookup.UserIds.AddRange(affiliatedMessageLookup.SenderIds ?? []);
+                conversationLookup.UserIds.AddRange(affiliatedMessageLookup.RecipientIds ?? []);
+            }
+
+            conversationLookup.Ids = [.. conversationLookup.Ids.Distinct()];
+            conversationLookup.UserIds = [..conversationLookup.UserIds.Distinct()];
+
+            AuthContext convContext = _contextBuilder
+                .OwnedFrom(conversationLookup)
+                .AffiliatedWith(conversationLookup)
                 .Build();
-            censoredFields.AddRange(await _censorFactory.Censor<ConversationCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Message.Message.Conversation)), context));
-            
 
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<ConversationCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Message.Message.Conversation)), convContext), nameof(Models.Message.Message.Conversation)));
 
             return censoredFields;
         }

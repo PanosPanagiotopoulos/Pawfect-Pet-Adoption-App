@@ -14,6 +14,7 @@ import { LogService } from 'src/app/common/services/log.service';
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
 import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
 import { of } from 'rxjs';
+import { File } from 'src/app/models/file/file.model';
 
 interface SearchSuggestion {
   text: string;
@@ -64,7 +65,7 @@ export class SearchComponent extends BaseComponent implements OnInit {
   ];
 
   // Pagination related properties
-  pageSize = 2;
+  pageSize = 15;
   currentOffset = 1;
   loadThreshold = 0.55;
   hasMoreToLoad = true;
@@ -120,7 +121,7 @@ export class SearchComponent extends BaseComponent implements OnInit {
         nameof<Animal>(x => x.name),
         nameof<Animal>(x => x.gender),
         nameof<Animal>(x => x.description),
-        nameof<Animal>(x => x.photos),
+        [nameof<Animal>(x => x.attachedPhotos), nameof<File>(x => x.sourceUrl)].join('.'),
         nameof<Animal>(x => x.adoptionStatus),
         nameof<Animal>(x => x.weight),
         nameof<Animal>(x => x.age),
@@ -130,10 +131,10 @@ export class SearchComponent extends BaseComponent implements OnInit {
         [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.shelterName)].join('.'),
       ],
       sortBy: [],
-      sortDescending: true
+      sortDescending: false
     };
   
-    this.animalService.query(lookup)
+    this.animalService.queryFreeView(lookup)
       .pipe(
         takeUntil(this._destroyed),
         catchError(error => {

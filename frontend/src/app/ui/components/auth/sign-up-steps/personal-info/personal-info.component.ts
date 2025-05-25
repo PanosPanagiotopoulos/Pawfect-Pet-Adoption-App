@@ -17,6 +17,7 @@ import { NgIconsModule } from '@ng-icons/core';
 import { GoogleSignupLoadingComponent } from './google-signup-loading.component';
 import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-banner.component';
 import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
+import { FileItem } from 'src/app/models/file/file.model';
 
 interface ValidationError {
   field: string;
@@ -416,13 +417,13 @@ export class PersonalInfoComponent {
     this.form.get('phone')?.setValue(phone);
   }
 
-  onProfilePhotoChange(files: File[]): void {
+  onProfilePhotoChange(files: FileItem[]): void {
     this.photoUploadSuccess = false;
     this.photoUploadError = null;
     if (files.length > 0) {
-      const file: File = files[0];
+      const profilePhoto: FileItem = files[0];
 
-      if (!file.type.match('image.*')) {
+      if (!profilePhoto.file.type.match('image.*')) {
         this.photoUploadError =
           'Μη έγκυρος τύπος αρχείου. Επιτρέπονται μόνο εικόνες.';
         this.profilePhotoPreview = null;
@@ -431,7 +432,7 @@ export class PersonalInfoComponent {
         return;
       }
 
-      if (file.size > 2 * 1024 * 1024) {
+      if (profilePhoto.file.size > 2 * 1024 * 1024) {
         this.photoUploadError =
           'Το μέγεθος της εικόνας δεν πρέπει να υπερβαίνει τα 2MB.';
         this.profilePhotoPreview = null;
@@ -443,9 +444,9 @@ export class PersonalInfoComponent {
       this.isPhotoLoading = true;
       this.cdr.markForCheck();
 
-      this.createImagePreview(file);
+      this.createImagePreview(profilePhoto.file);
 
-      this.form.get('profilePhoto')?.setValue(file);
+      this.form.get('profilePhoto')?.setValue(profilePhoto.persistedId);
       this.form.get('profilePhoto')?.updateValueAndValidity();
     } else {
       this.profilePhotoPreview = null;

@@ -10,7 +10,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AuthService } from 'src/app/services/auth.service';
 import { RegisterPayload, OtpPayload } from 'src/app/models/auth/auth.model';
-import { AuthProvider, User, UserRole } from 'src/app/models/user/user.model';
 import { CustomValidators } from './validators/custom.validators';
 import {
   trigger,
@@ -24,6 +23,9 @@ import { LogService } from 'src/app/common/services/log.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
 import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
+import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
+import { UserRole } from 'src/app/common/enum/user-role.enum';
+import { User } from 'src/app/models/user/user.model';
 interface LocationFormGroup extends FormGroup {
   controls: {
     city: AbstractControl;
@@ -663,6 +665,8 @@ export class SignupComponent
           verifiedBy: undefined,
         };
       }
+
+      console.log('Registration payload:\n', payload);
 
       this.authService.register(payload).subscribe({
         next: (user: User) => {

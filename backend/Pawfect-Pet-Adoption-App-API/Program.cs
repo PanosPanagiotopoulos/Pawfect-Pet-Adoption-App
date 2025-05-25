@@ -3,7 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using MongoDB.Driver;
-
+using Pawfect_Pet_Adoption_App_API.BackgroundTasks.TemporaryFilesCleanupTask.Extensions;
+using Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask.Extensions;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
@@ -54,7 +55,7 @@ public class Program
 
 		WebApplication app = builder.Build();
 
-		if (args.Length == 1 && args[0].ToLower() == "seeddata")
+		if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
 			SeedData(app);
 
 		Configure(app);
@@ -83,7 +84,7 @@ public class Program
 		AddConfigurationFiles(configBuilder, configurationPaths, "aws", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "files", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "permissions", env);
-
+        AddConfigurationFiles(configBuilder, configurationPaths, "background_tasks", env);
 
         // Load environment variables from 'environment.json'
         foreach (String path in configurationPaths)
@@ -170,37 +171,10 @@ public class Program
 		.AddConventionServices()
 		.AddAwsServices(builder.Configuration.GetSection("Aws"))
 		.AddFileServices(builder.Configuration.GetSection("Files"))
-		.AddFilterBuilderServices();
+		.AddFilterBuilderServices()
+		.AddUnverifiedUserCleanupTask(builder.Configuration.GetSection("BackgroundTasks:UnverifiedUserCleanupTask"))
+		.AddTemporaryFilesCleanupTask(builder.Configuration.GetSection("BackgroundTasks:TemporaryFilesCleanupTask"));
 
-        // Authorisation
-        builder.Services.AddAuthorization(options =>
-        {
-            // Permission-based policies
-            List<String> permissions = typeof(Permission).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-                .Where(f => f.FieldType == typeof(String))
-                .Select(f => f.GetValue(null)?.ToString())
-                .Where(p => !String.IsNullOrEmpty(p))
-                .ToList();
-
-            foreach (String permission in permissions)
-            {
-                options.AddPolicy(permission, policy =>
-                    policy.RequireAssertion(context =>
-                    {
-                        using IServiceScope scope = context.Resource is IServiceProvider sp
-                            ? sp.CreateScope()
-                            : builder.Services.BuildServiceProvider().CreateScope();
-                        PermissionPolicyProvider permissionProvider = scope.ServiceProvider.GetRequiredService<PermissionPolicyProvider>();
-                        return permissionProvider.HasPermission(context.User, permission);
-                    }));
-            }
-
-            // Owned and Affiliated policies
-            options.AddPolicy("OwnedPolicy", policy =>
-                policy.AddRequirements(new OwnedRequirement(new OwnedResource())));
-            options.AddPolicy("AffiliatedPolicy", policy =>
-                policy.AddRequirements(new AffiliatedRequirement(new AffiliatedResource())));
-        });
 
         // CORS
         List<String> allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<List<String>>() ?? new List<String>();
@@ -251,8 +225,38 @@ public class Program
 			};
 		});
 
-		// Memory Cache
-		builder.Services.AddMemoryCache();
+        // Authorisation
+        builder.Services.AddAuthorization(options =>
+        {
+            // Permission-based policies
+            List<String> permissions = typeof(Permission).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                .Where(f => f.FieldType == typeof(String))
+                .Select(f => f.GetValue(null)?.ToString())
+                .Where(p => !String.IsNullOrEmpty(p))
+                .ToList();
+
+            foreach (String permission in permissions)
+            {
+                options.AddPolicy(permission, policy =>
+                    policy.RequireAssertion(context =>
+                    {
+                        using IServiceScope scope = context.Resource is IServiceProvider sp
+                            ? sp.CreateScope()
+                            : builder.Services.BuildServiceProvider().CreateScope();
+                        PermissionPolicyProvider permissionProvider = scope.ServiceProvider.GetRequiredService<PermissionPolicyProvider>();
+                        return permissionProvider.HasPermission(context.User, permission);
+                    }));
+            }
+
+            // Owned and Affiliated policies
+            options.AddPolicy("OwnedPolicy", policy =>
+                policy.AddRequirements(new OwnedRequirement(new OwnedResource())));
+            options.AddPolicy("AffiliatedPolicy", policy =>
+                policy.AddRequirements(new AffiliatedRequirement(new AffiliatedResource())));
+        });
+
+        // Memory Cache
+        builder.Services.AddMemoryCache();
 
 		// Swagger
 		builder.Services.AddEndpointsApiExplorer();

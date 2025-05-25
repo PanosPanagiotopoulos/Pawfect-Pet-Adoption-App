@@ -1,17 +1,21 @@
 ﻿namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
 	using AutoMapper;
-	using Microsoft.AspNetCore.Authorization;
-	using Microsoft.AspNetCore.Mvc;
-	using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+    using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+    using Pawfect_Pet_Adoption_App_API.Censors;
+    using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 	using Pawfect_Pet_Adoption_App_API.DevTools;
     using Pawfect_Pet_Adoption_App_API.Exceptions;
     using Pawfect_Pet_Adoption_App_API.Models;
 	using Pawfect_Pet_Adoption_App_API.Models.Authorization;
 	using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-	using Pawfect_Pet_Adoption_App_API.Services.UserServices;
-
-	using System.IdentityModel.Tokens.Jwt;
+    using Pawfect_Pet_Adoption_App_API.Services.Convention;
+    using Pawfect_Pet_Adoption_App_API.Services.UserServices;
+    using Pawfect_Pet_Adoption_App_API.Transactions;
+    using System.IdentityModel.Tokens.Jwt;
+    using System.Security.Claims;
 
 	[ApiController]
 	[Route("auth")]
@@ -20,13 +24,19 @@
 		private readonly IUserService _userService;
 		private readonly ILogger<AuthController> _logger;
 		private readonly JwtService _jwtService;
-		private readonly IAuthenticationService _authService;
+		private readonly Services.AuthenticationServices.IAuthenticationService _authService;
 		private readonly IMapper _mapper;
+        private readonly PermissionPolicyProvider _permissionPolicyProvider;
+        private readonly IAuthorisationContentResolver _authorisationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IConventionService _conventionService;
 
         public AuthController(
 			IUserService userService, ILogger<AuthController> logger
-			, JwtService jwtService, IAuthenticationService authService
-			, IMapper mapper
+			, JwtService jwtService, Services.AuthenticationServices.IAuthenticationService authService
+			, IMapper mapper, PermissionPolicyProvider permissionPolicyProvider,
+			IAuthorisationContentResolver authorisationContentResolver, ClaimsExtractor claimsExtractor,
+			IConventionService conventionService 
             )
 		{
 			_userService = userService;
@@ -34,6 +44,10 @@
 			_jwtService = jwtService;
 			_authService = authService;
 			_mapper = mapper;
+            _permissionPolicyProvider = permissionPolicyProvider;
+            _authorisationContentResolver = authorisationContentResolver;
+            _claimsExtractor = claimsExtractor;
+            _conventionService = conventionService;
         }
 
 		/// <summary>
@@ -44,15 +58,15 @@
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			String? loginEmail = payload.Email;
-			String? loginCredential = payload.Password;
+			String loginEmail = payload.Email;
+			String loginCredential = payload.Password;
 
 			if (payload.LoginProvider == AuthProvider.Google)
 				(loginEmail, loginCredential) = await _userService.RetrieveGoogleCredentials(payload.ProviderAccessCode);
 
-            Data.Entities.User? user = await _userService.RetrieveUserAsync(null, loginEmail);
+            Data.Entities.User user = await _userService.RetrieveUserAsync(null, loginEmail);
 
-			String? toCheckCredential = _userService.ExtractUserCredential(user);
+			String toCheckCredential = _userService.ExtractUserCredential(user);
 
 			if (!Security.ValidatedHashedValues(loginCredential, toCheckCredential))
 				throw new ForbiddenException("Invalid user credentials");
@@ -60,26 +74,26 @@
 			if (!user.HasPhoneVerified)
 				throw new ForbiddenException("Phone number has not been verified");
 
+            List<String> userRoles = [.. user.Roles.Select(roleEnum => roleEnum.ToString())];
+            List<String> permissions = [.. _permissionPolicyProvider.GetPermissionsAndAffiliatedForRoles(userRoles)];
+
             String? token = _jwtService.
 							GenerateJwtToken
 							(
 								user.Id, 
-								user.Email, 
-								[..user.Roles.Select(roleEnum => roleEnum.ToString())], 
-								user.HasEmailVerified.ToString(), 
-								user.IsVerified.ToString()
+								user.Email,
+								userRoles
 							);
 
 			if (String.IsNullOrEmpty(token))
 				throw new InvalidOperationException("Failed to create token");
 
-
-			return Ok(
+            return Ok(
 						new LoggedAccount() 
 						{   Token = token, 
-							Email = user.Email, 
 							Phone = user.Phone, 
-							Roles = user.Roles, 
+							Roles = userRoles, 
+							Permissions = permissions,
 							LoggedAt = DateTime.UtcNow, 
 							IsEmailVerified = user.HasEmailVerified, 
 							IsPhoneVerified = user.HasPhoneVerified, 
@@ -127,7 +141,49 @@
 			return Ok();
 		}
 
-		[HttpGet("google/callback")]
+        [HttpPost("me")]
+        [Authorize]
+        public async Task<IActionResult> Me()
+        {
+            // Check if user is authenticated
+            if (!User.Identity?.IsAuthenticated ?? true)
+                throw new ForbiddenException("User is not authenticated");
+
+			ClaimsPrincipal currentUser = _authorisationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(currentUser);
+            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+
+            // Get token from ClaimsPrincipal's underlying token
+            String? token = HttpContext.GetTokenAsync("Bearer", "access_token").Result;
+            if (String.IsNullOrEmpty(token))
+                throw new ForbiddenException("No token found for the user");
+
+            // Retrieve user from database for additional details
+            Data.Entities.User user = await _userService.RetrieveUserAsync(userId, null);
+            if (user == null)
+                throw new NotFoundException("Authorized user not found");
+            
+
+            // Get roles and permissions
+            List<String> userRoles = user.Roles?.Select(roleEnum => roleEnum.ToString()).ToList() ?? new List<String>();
+            List<String> permissions = _permissionPolicyProvider.GetPermissionsAndAffiliatedForRoles(userRoles).ToList();
+			DateTime loggedAt = _claimsExtractor.CurrentUserLoggedAtDate(currentUser);
+
+            // Return LoggedAccount
+            return Ok(new LoggedAccount()
+            {
+                Token = token,
+                Phone = user.Phone,
+                Roles = userRoles,
+                Permissions = permissions,
+                LoggedAt = loggedAt,
+                IsEmailVerified = user.HasEmailVerified,
+                IsPhoneVerified = user.HasPhoneVerified,
+                IsVerified = user.IsVerified
+            });
+        }
+
+        [HttpGet("google/callback")]
 		public IActionResult GoogleCallback() { return Ok(); }
 
 		/// <summary>
@@ -135,15 +191,19 @@
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
 		[HttpPost("register/unverified")]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
 		public async Task<IActionResult> RegisterUserUnverified([FromBody] RegisterPersist toRegisterUser, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			return Ok(await _userService.RegisterUserUnverifiedAsync(toRegisterUser, fields));
+			fields = BaseCensor.PrepareFieldsList(fields);
+
+            return Ok(await _userService.RegisterUserUnverifiedAsync(toRegisterUser, fields));
 		}
 
 		[HttpPost("register/unverified/google")]
-		public async Task<IActionResult> RegisterUserWithGoogleUnverified([FromBody] AuthPayload payload)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> RegisterUserWithGoogleUnverified([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -170,7 +230,8 @@
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
 		[HttpPost("verify-otp")]
-		public async Task<IActionResult> VerifyUserOtp([FromBody] AuthPayload payload)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> VerifyUserOtp([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -218,10 +279,8 @@
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
 		[HttpPost("verify-email")]
-		[ProducesResponseType(200)]
-		[ProducesResponseType(400, Type = typeof(ValidationProblemDetails))]
-		[ProducesResponseType(500, Type = typeof(String))]
-		public async Task<IActionResult> VerifyEmail([FromBody] AuthPayload payload)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> VerifyEmail([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -255,7 +314,8 @@
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
 		[HttpPost("verify-user")]
-		public async Task<IActionResult> VerifyUser([FromBody] AuthPayload payload)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> VerifyUser([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -307,7 +367,8 @@
 		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
 		/// </summary>
 		[HttpPost("reset-password")]
-		public async Task<IActionResult> ResetPassword([FromBody] AuthPayload AuthPayload)
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> ResetPassword([FromBody] AuthPayload AuthPayload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 

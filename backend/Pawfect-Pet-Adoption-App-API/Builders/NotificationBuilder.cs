@@ -44,11 +44,11 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 		public override async Task<List<Models.Notification.Notification>> Build(List<Data.Entities.Notification> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
-			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
+			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = this.ExtractBuildFields(fields);
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-            Dictionary<String, Models.User.User>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User))
-				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.User.User)]))
+            Dictionary<String, Models.User.User>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.Notification.Notification.User))
+				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.Notification.Notification.User)]))
 				: null;
 
             List<Models.Notification.Notification> result = new List<Models.Notification.Notification>();

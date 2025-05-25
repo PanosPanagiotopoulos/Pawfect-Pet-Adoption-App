@@ -22,9 +22,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
             IAuthorisationService authorisationService,
             ClaimsExtractor claimsExtractor,
             IAuthorisationContentResolver authorisationContentResolver,
+            IHttpContextAccessor httpContextAccessor,
             IFilterBuilder<Data.Entities.File, Models.Lookups.FileLookup> filterBuilder
 
-        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor, httpContextAccessor)
         {
             _filterBuilder = filterBuilder;
         }
@@ -37,8 +38,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		public List<String>? OwnerIds { get; set; }
 
 		public List<FileSaveStatus>? FileSaveStatuses { get; set; }
+        public DateTime? CreatedFrom { get; set; }
+        public DateTime? CreatedTill { get; set; }
 
-		public String? Name { get; set; }
+        public String? Name { get; set; }
 
         private AuthorizationFlags _authorise = AuthorizationFlags.None;
 
@@ -83,8 +86,20 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				filter &= builder.In(file => file.FileSaveStatus, FileSaveStatuses);
 			}
 
-			// Εφαρμόζει φίλτρο για fuzzy search μέσω indexing στη Mongo σε πεδίο : Filename
-			if (!String.IsNullOrEmpty(Query))
+            // Εφαρμόζει φίλτρο για την ημερομηνία έναρξης
+            if (CreatedFrom.HasValue)
+            {
+                filter &= builder.Gte(user => user.CreatedAt, CreatedFrom.Value);
+            }
+
+            // Εφαρμόζει φίλτρο για την ημερομηνία λήξης
+            if (CreatedTill.HasValue)
+            {
+                filter &= builder.Lte(user => user.CreatedAt, CreatedTill.Value);
+            }
+
+            // Εφαρμόζει φίλτρο για fuzzy search μέσω indexing στη Mongo σε πεδίο : Filename
+            if (!String.IsNullOrEmpty(Query))
 			{
 				filter &= builder.Text(Query);
 			}
@@ -128,13 +143,14 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων AnimalTypeDto στα ονόματα πεδίων AnimalType
 				projectionFields.Add(nameof(Data.Entities.File.Id));
-				if (item.Equals(nameof(Models.File.File.Filename))) projectionFields.Add(nameof(Data.Entities.File.Filename));
+                projectionFields.Add(nameof(Data.Entities.File.AwsKey));
+                if (item.Equals(nameof(Models.File.File.Filename))) projectionFields.Add(nameof(Data.Entities.File.Filename));
 				if (item.Equals(nameof(Models.File.File.FileType))) projectionFields.Add(nameof(Data.Entities.File.FileType));
 				if (item.Equals(nameof(Models.File.File.MimeType))) projectionFields.Add(nameof(Data.Entities.File.MimeType));
 				if (item.Equals(nameof(Models.File.File.Size))) projectionFields.Add(nameof(Data.Entities.File.Size));
 				if (item.Equals(nameof(Models.File.File.FileSaveStatus))) projectionFields.Add(nameof(Data.Entities.File.FileSaveStatus));
 				if (item.Equals(nameof(Models.File.File.SourceUrl))) projectionFields.Add(nameof(Data.Entities.File.SourceUrl));
-				if (item.Equals(nameof(Models.File.File.CreatedAt))) projectionFields.Add(nameof(Data.Entities.File.CreatedAt));
+                if (item.Equals(nameof(Models.File.File.CreatedAt))) projectionFields.Add(nameof(Data.Entities.File.CreatedAt));
 				if (item.Equals(nameof(Models.File.File.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.File.UpdatedAt));
 				if (item.StartsWith(nameof(Models.File.File.Owner))) projectionFields.Add(nameof(Data.Entities.File.OwnerId));
 

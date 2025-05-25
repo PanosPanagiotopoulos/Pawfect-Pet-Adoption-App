@@ -25,6 +25,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'adopt',
+    loadChildren: () =>
+      import('./ui/components/adopt/adopt.module').then(
+        (m) => m.AdoptModule
+      ),
+  },
+  {
     path: '404',
     component: NotFoundComponent
   },

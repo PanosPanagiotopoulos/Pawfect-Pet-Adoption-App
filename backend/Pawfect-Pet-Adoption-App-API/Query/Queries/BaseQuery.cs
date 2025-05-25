@@ -18,18 +18,21 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
         protected readonly ClaimsExtractor _claimsExtractor;
 
-        protected BaseQuery
-		(
-             MongoDbService mongoDbService,
-             IAuthorisationService authorisationService,
-             IAuthorisationContentResolver authorisationContentResolver,
-             ClaimsExtractor claimsExtractor
+        protected readonly IHttpContextAccessor _httpContextAccessor;
+
+        protected BaseQuery(
+            MongoDbService mongoDbService,
+            IAuthorisationService authorisationService,
+            IAuthorisationContentResolver authorisationContentResolver,
+            ClaimsExtractor claimsExtractor,
+            IHttpContextAccessor httpContextAccessor
         )
         {
             this._collection = mongoDbService.GetCollection<T>();
             this._authorisationService = authorisationService;
             this._authorisationContentResolver = authorisationContentResolver;
             this._claimsExtractor = claimsExtractor;
+            this._httpContextAccessor = httpContextAccessor;
         }
 
 
@@ -53,7 +56,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		// Εφαρμόζει την προβολή για δυναμικά πεδία
         private IFindFluent<T, T> ApplyProjection(IFindFluent<T, T> finder)
 		{
-			if (Fields == null || !Fields.Any())
+			if (Fields == null || Fields.Count == 0)
 			{
 				return finder.Project<T>(Builders<T>.Projection.Exclude("_id"));
 			}
@@ -113,13 +116,16 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 		public virtual async Task<List<T>> CollectAsync()
 		{
 			// Βήμα 1: Εφαρμογή φίλτρων στην ερώτηση
-			FilterDefinition<T> filter = await ApplyFilters();
+			FilterDefinition<T> filter = await this.ApplyFilters();
 
             // Βήμα 2: Εφαρμογή authorisation στα δεδομένα που ζητούντε
             filter = await this.ApplyAuthorisation(filter);
 
-            // Αρχικοποίηση της λειτουργίας αναζήτησης
-            IFindFluent<T, T> finder = _collection.Find(filter);
+            // Initialize the find operation with session if available
+            IClientSessionHandle session = this.Session();
+            IFindFluent<T, T> finder = session != null
+                ? _collection.Find(session, filter)
+                : _collection.Find(filter);
 
 			// Βήμα 3: Εφαρμογή ταξινόμησης αν απαιτείται
 			finder = this.ApplySorting(finder);
@@ -131,7 +137,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 			finder = this.ApplyProjection(finder);
 
 			// Εκτέλεση της ερώτησης και επιστροφή του αποτελέσματος
-			return (await finder.ToListAsync()) ?? new List<T>();
+			return await finder.ToListAsync() ?? new List<T>();
 		}
-	}
+
+        private IClientSessionHandle Session() =>
+            _httpContextAccessor.HttpContext?.Items["MongoSession"] as IClientSessionHandle;
+    }
 }

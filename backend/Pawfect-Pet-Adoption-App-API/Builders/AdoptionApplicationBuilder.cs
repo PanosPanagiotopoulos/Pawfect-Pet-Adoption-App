@@ -50,20 +50,20 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = base.ExtractBuildFields(fields);
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-            Dictionary<String, Models.Animal.Animal>? animalMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal))
-				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Models.Animal.Animal)]))
+            Dictionary<String, Models.Animal.Animal>? animalMap = foreignEntitiesFields.ContainsKey(nameof(Models.AdoptionApplication.AdoptionApplication.Animal))
+				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Models.AdoptionApplication.AdoptionApplication.Animal)]))
 				: null;
 
-            Dictionary<String, Models.User.User>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User))
-				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.User.User)]))
+            Dictionary<String, Models.User.User>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.AdoptionApplication.AdoptionApplication.User))
+				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.AdoptionApplication.AdoptionApplication.User)]))
 				: null;
 
             Dictionary<String, Models.Shelter.Shelter>? shelterMap = foreignEntitiesFields.ContainsKey(nameof(Models.Shelter.Shelter))
-				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Models.Shelter.Shelter)]))
+				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Models.AdoptionApplication.AdoptionApplication.Shelter)]))
 				: null;
 
-            Dictionary<String, List<Models.File.File>>? filesMap = foreignEntitiesFields.ContainsKey(nameof(Models.File.File))
-				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Models.File.File)]))
+            Dictionary<String, List<Models.File.File>>? filesMap = foreignEntitiesFields.ContainsKey(nameof(Models.AdoptionApplication.AdoptionApplication.AttachedFiles))
+				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Models.AdoptionApplication.AdoptionApplication.AttachedFiles)]))
 				: null;
 
             List<Models.AdoptionApplication.AdoptionApplication> result = new List<Models.AdoptionApplication.AdoptionApplication>();

@@ -117,9 +117,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 		private async Task<Boolean> AuthorisePersistAdoptionApplication(Data.Entities.AdoptionApplication data, String permission)
 			=> await AuthorisePersistAdoptionApplication(new List<Data.Entities.AdoptionApplication> { data }, permission);
         private async Task<Boolean> AuthorisePersistAdoptionApplication(List<Data.Entities.AdoptionApplication> datas, String permission)
-        {
-			List<String> affiliatedRolesOfPermission = _authorisationContentResolver.AffiliatedRolesOf(permission);
-            
+        {            
 			ClaimsPrincipal claimsPrincipal = _authorisationContentResolver.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
             if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("No authenticated user found");
@@ -132,7 +130,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
                 lookup.ShelterIds = new List<String> { data.ShelterId };
                 AuthContext authContext =
                     _contextBuilder.OwnedFrom(lookup, data.UserId)
-                                   .AffiliatedWith(lookup, affiliatedRolesOfPermission, userShelterId)
+                                   .AffiliatedWith(lookup, null, userShelterId)
                                    .Build();
 
 				if (await _authorisationService.AuthorizeOrOwnedOrAffiliated(authContext, permission))
@@ -175,9 +173,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 			}
 
 			List<FilePersist> persistModels = new List<FilePersist>();
+
+			ClaimsPrincipal claimsPrincipal = _authorisationContentResolver.CurrentPrincipal();
+			String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+			if (String.IsNullOrEmpty(userId)) throw new UnAuthenticatedException();
+
 			foreach (Data.Entities.File file in attachedFiles)
 			{
 				file.FileSaveStatus = FileSaveStatus.Permanent;
+				file.OwnerId = userId;
 				persistModels.Add(_mapper.Map<FilePersist>(file));
 			}
 

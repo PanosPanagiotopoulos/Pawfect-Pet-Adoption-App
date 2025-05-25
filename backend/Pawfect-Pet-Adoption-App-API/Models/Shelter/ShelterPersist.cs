@@ -7,15 +7,12 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
 {
     public class ShelterPersist
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
         public String Id { get; set; }
 
         /// <value>
         /// Το id του αντίστοιχου χρήστη που αυτόυ του καταφυγίου
         /// Αναφορά σε User
         /// </value>
-        [BsonRepresentation(BsonType.ObjectId)]
         public String UserId { get; set; }
 
         public String ShelterName { get; set; }
@@ -50,7 +47,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
         /// Το id του admin που επιβεβαίωσε την εγγραφή.
         /// Βλέπει σε admin user αφού επιβεβαιωθεί
         /// </value>
-        [BsonRepresentation(BsonType.ObjectId)]
         public String? VerifiedBy { get; set; }
     }
 }

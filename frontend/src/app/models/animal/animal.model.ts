@@ -16,7 +16,7 @@ export interface Animal {
   shelter?: Shelter;
   breed?: Breed;
   animalType?: AnimalType;
-  photos?: File[];
+  attachedPhotos?: File[];
   adoptionStatus?: AdoptionStatus;
   createdAt?: Date;
   updatedAt?: Date;
@@ -33,7 +33,7 @@ export interface AnimalPersist {
   shelterId: string;
   breedId: string;
   animalTypeId: string;
-  photosIds: string[];
+  attachedPhotosIds: string[];
   adoptionStatus: AdoptionStatus;
 }
 

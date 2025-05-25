@@ -22,9 +22,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
             IAuthorisationService authorisationService,
             ClaimsExtractor claimsExtractor,
             IAuthorisationContentResolver authorisationContentResolver,
+            IHttpContextAccessor httpContextAccessor,
             IFilterBuilder<Data.Entities.User, Models.Lookups.UserLookup> filterBuilder
 
-        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor, httpContextAccessor)
         {
             _filterBuilder = filterBuilder;
         }
@@ -53,6 +54,8 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 
 		// Ημερομηνία λήξης για φιλτράρισμα (δημιουργήθηκε μέχρι)
 		public DateTime? CreatedTill { get; set; }
+
+        public Boolean? IsVerified { get; set; }
 
         private AuthorizationFlags _authorise = AuthorizationFlags.None;
         public UserQuery Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
@@ -134,8 +137,13 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				filter &= builder.Lte(user => user.CreatedAt, CreatedTill.Value);
 			}
 
-			// Εφαρμόζει φίλτρο για fuzzy search μέσω indexing στη Mongo σε πεδίο : FullName
-			if (!String.IsNullOrEmpty(Query))
+			if (IsVerified.HasValue)
+            {
+                filter &= builder.Eq(user => user.IsVerified, IsVerified.Value);
+            }
+
+            // Εφαρμόζει φίλτρο για fuzzy search μέσω indexing στη Mongo σε πεδίο : FullName
+            if (!String.IsNullOrEmpty(Query))
 			{
 				filter &= builder.Text(Query);
 			}

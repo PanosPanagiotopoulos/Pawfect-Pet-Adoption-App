@@ -21,14 +21,14 @@ export class UtilsService {
 
   // Try to load each image URL until one succeeds or fall back to placeholder
   async tryLoadImages(animal: Animal): Promise<string> {
-    if (!animal.photos || animal.photos.length === 0) {
+    if (!animal.attachedPhotos || animal.attachedPhotos.length === 0) {
       return '/assets/placeholder.jpg';
     }
 
-    for (const photoUrl of animal.photos) {
+    for (const photoUrl of animal.attachedPhotos.map(photo => photo.sourceUrl)) {
       try {
-        await this.loadImage(photoUrl);
-        return photoUrl;
+        await this.loadImage(photoUrl!);
+        return photoUrl!;
       } catch (error) {
         continue;
       }

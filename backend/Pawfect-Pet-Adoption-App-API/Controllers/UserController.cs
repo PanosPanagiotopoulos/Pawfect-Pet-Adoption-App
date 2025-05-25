@@ -5,13 +5,14 @@ using Pawfect_Pet_Adoption_App_API.Censors;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Pawfect_Pet_Adoption_App_API.DevTools;
 using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
 using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Services.Convention;
 using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 using Pawfect_Pet_Adoption_App_API.Transactions;
-using System.Reflection;
+using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
@@ -25,12 +26,17 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         private readonly IBuilderFactory _builderFactory;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
+        private readonly IConventionService _conventionService;
+        private readonly IAuthorisationContentResolver _authorisationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
 
         public UserController
 			(
-			IUserService userService, ILogger<UserController> logger,
-			IQueryFactory queryFactory, IBuilderFactory builderFactory,
-			ICensorFactory censorFactory, AuthContextBuilder contextBuilder
+			    IUserService userService, ILogger<UserController> logger,
+			    IQueryFactory queryFactory, IBuilderFactory builderFactory,
+			    ICensorFactory censorFactory, AuthContextBuilder contextBuilder,
+                IConventionService conventionService, IAuthorisationContentResolver authorisationContentResolver,
+                ClaimsExtractor claimsExtractor
 
             )
 		{
@@ -40,6 +46,9 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             _builderFactory = builderFactory;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _conventionService = conventionService;
+            _authorisationContentResolver = authorisationContentResolver;
+            _claimsExtractor = claimsExtractor;
         }
 
 		/// <summary>
@@ -59,11 +68,11 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             userLookup.Fields = censoredFields;
             List<Data.Entities.User> datas = await userLookup
                                                     .EnrichLookup(_queryFactory)
-                                                    .Authorise(AuthorizationFlags.OwnerOrPermission)
+                                                    .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
                                                     .CollectAsync();
 
             List<User> models = await _builderFactory.Builder<UserBuilder>()
-                                                .Authorise(AuthorizationFlags.OwnerOrPermission)
+                                                .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
                                                 .Build(datas, [.. userLookup.Fields]);
 
             if (models == null) throw new NotFoundException("Users not found", JsonHelper.SerializeObjectFormatted(userLookup), typeof(Data.Entities.User));
@@ -91,7 +100,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             lookup.Fields = fields;
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. lookup.Fields], context);
+            List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
 
             lookup.Fields = censoredFields;
@@ -104,11 +113,47 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             return Ok(model);
 		}
 
-		/// <summary>
-		/// Delete a user by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete")]
+        /// <summary>
+        /// Query χρήστες.
+        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
+        /// </summary>
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetMe([FromQuery] List<String> fields)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            ClaimsPrincipal currentUser = _authorisationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(currentUser);
+            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+
+            UserLookup lookup = new UserLookup();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            lookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            lookup.PageSize = 1;
+            lookup.Ids = [userId];
+            lookup.Fields = fields;
+
+            AuthContext context = _contextBuilder.OwnedFrom(lookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
+
+            lookup.Fields = censoredFields;
+            User model = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                                .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+                                .FirstOrDefault();
+
+            if (model == null) throw new NotFoundException("Shelter not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.Shelter));
+
+            return Ok(model);
+        }
+
+        /// <summary>
+        /// Delete a user by ID.
+        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
+        /// </summary>
+        [HttpPost("delete")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromBody] String id)

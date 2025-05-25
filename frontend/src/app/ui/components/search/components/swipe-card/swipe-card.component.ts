@@ -242,7 +242,7 @@ export class SwipeCardComponent implements AfterViewInit, OnChanges {
   
   private updateCurrentImageUrl() {
     this.isLoading = true;
-    if (this.animal?.photos?.length) {
+    if (this.animal?.attachedPhotos?.length) {
       this.loadImage().finally(() => {
         this.isLoading = false; 
         this.cdr.markForCheck();

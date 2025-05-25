@@ -42,7 +42,7 @@ import { User } from 'src/app/models/user/user.model';
           class="flex items-center space-x-3 p-3 rounded-xl text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300 group"
         >
           <app-user-avatar
-            [imageUrl]="currentUser?.profilePhoto!"
+            [imageUrl]="currentUser?.profilePhoto?.sourceUrl"
             [name]="currentUser?.fullName"
           >
           </app-user-avatar>

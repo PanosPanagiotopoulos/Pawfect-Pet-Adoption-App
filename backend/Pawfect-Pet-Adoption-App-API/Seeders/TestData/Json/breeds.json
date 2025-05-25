@@ -1,0 +1,82 @@
+[
+  {
+    "Id": "608f2f88cdf97ce800439021",
+    "Name": "Labrador Retriever",
+    "AnimalTypeId": "507f1f77bcf86cd799439011",
+    "Description": "Friendly and outgoing dog breed",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce800439022",
+    "Name": "German Shepherd",
+    "AnimalTypeId": "507f1f77bcf86cd799439011",
+    "Description": "Intelligent and versatile dog breed",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce800439023",
+    "Name": "Persian",
+    "AnimalTypeId": "507f1f77bcf86cd799439012",
+    "Description": "Long-haired cat breed",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce800439024",
+    "Name": "Siamese",
+    "AnimalTypeId": "507f1f77bcf86cd799439012",
+    "Description": "Vocal and social cat breed",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce800439025",
+    "Name": "Parakeet",
+    "AnimalTypeId": "507f1f77bcf86cd799439013",
+    "Description": "Small, colorful bird",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce800439026",
+    "Name": "Holland Lop",
+    "AnimalTypeId": "507f1f77bcf86cd799439014",
+    "Description": "Small rabbit with floppy ears",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce800439027",
+    "Name": "Syrian Hamster",
+    "AnimalTypeId": "507f1f77bcf86cd799439015",
+    "Description": "Common pet hamster",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce800439028",
+    "Name": "Goldfish",
+    "AnimalTypeId": "507f1f77bcf86cd799439016",
+    "Description": "Popular aquarium fish",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce800439029",
+    "Name": "Red-Eared Slider",
+    "AnimalTypeId": "507f1f77bcf86cd799439017",
+    "Description": "Common pet turtle",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "608f2f88cdf97ce80043902a",
+    "Name": "Appaloosa",
+    "AnimalTypeId": "507f1f77bcf86cd799439019",
+    "Description": "Spotted horse breed",
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  }
+]

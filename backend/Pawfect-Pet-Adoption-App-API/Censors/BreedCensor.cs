@@ -1,4 +1,5 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Censors
@@ -7,15 +8,18 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
     {
         private readonly IAuthorisationService _authorisationService;
         private readonly ICensorFactory _censorFactory;
+        private readonly AuthContextBuilder _contextBuilder;
 
         public BreedCensor
         (
             IAuthorisationService authorisationService,
-            ICensorFactory censorFactory
+            ICensorFactory censorFactory,
+            AuthContextBuilder contextBuilder
         )
         {
             _authorisationService = authorisationService;
             _censorFactory = censorFactory;
+            _contextBuilder = contextBuilder;
         }
         public override async Task<List<String>> Censor(List<String> fields, AuthContext context)
         {
@@ -25,12 +29,13 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
             if (fields.Contains("*")) fields = this.ExtractForeign(fields, typeof(Data.Entities.Breed));
 
             List<String> censoredFields = new List<String>();
-            if (await _authorisationService.AuthorizeOrOwnedOrAffiliated(context, Permission.BrowseBreeds))
+            if (await _authorisationService.AuthorizeAsync(Permission.BrowseBreeds))
             {
                 censoredFields.AddRange(this.ExtractNonPrefixed(fields));
             }
 
-            censoredFields.AddRange(await _censorFactory.Censor<AnimalTypeCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Breed.Breed.AnimalType)), context));
+            AuthContext animalTypeContext = _contextBuilder.OwnedFrom(new AnimalTypeLookup(), context.CurrentUserId).AffiliatedWith(new AnimalTypeLookup()).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<AnimalTypeCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Breed.Breed.AnimalType)), animalTypeContext), nameof(Models.Breed.Breed.AnimalType)));
 
 
             return censoredFields;

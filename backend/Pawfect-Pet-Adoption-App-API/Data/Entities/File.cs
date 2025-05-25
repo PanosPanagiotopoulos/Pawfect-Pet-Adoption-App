@@ -18,8 +18,8 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
 		public String MimeType { get; set; }
 		public String FileType { get; set; }
 		public String SourceUrl { get; set; }
-
-		public FileSaveStatus FileSaveStatus { get; set; }
+        public String AwsKey { get; set; }
+        public FileSaveStatus FileSaveStatus { get; set; }
 
 		// Commons
 		public DateTime CreatedAt { get; set; }
@@ -30,7 +30,7 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
 	public class FileSaveResult
 	{
 		public String FileName { get; set; }
-		public Models.File.File File { get; set; }
+		public Models.File.FilePersist File { get; set; }
 		public Boolean Success { get; set; }
 		public String ErrorMessage { get; set; }
 	}
@@ -38,8 +38,8 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities
 	public class FileInfo
 	{
 		public String FileId { get; set; }
-		public String Key { get; set; }
-		public TempMediaFile TempMediaFile { get; set; }
+		public String AwsKey { get; set; }
+		public IFormFile TempFile { get; set; }
 		public Boolean IsValid { get; set; }
 		public String ErrorMessage { get; set; }
 	}

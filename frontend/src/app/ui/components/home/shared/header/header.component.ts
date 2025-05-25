@@ -3,7 +3,6 @@ import { RouterLink, Router } from '@angular/router';
 import { NgIconsModule } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
 import { NavLinkComponent } from '../nav-link/nav-link.component';
-import { AuthButtonComponent } from '../auth-button/auth-button.component';
 import { MobileMenuComponent } from '../mobile-menu/mobile-menu.component';
 import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
 import { DropdownComponent } from '../dropdown/dropdown.component';
@@ -14,6 +13,7 @@ import { User } from 'src/app/models/user/user.model';
 import { takeUntil } from 'rxjs';
 import { UserService } from 'src/app/services/user.service';
 import { nameof } from 'ts-simple-nameof';
+import { File } from 'src/app/models/file/file.model';
 
 @Component({
   selector: 'app-header',
@@ -48,9 +48,9 @@ export class HeaderComponent extends BaseComponent {
     authService.isLoggedIn().subscribe((isLoggedInFlag: boolean) => {
       if (isLoggedInFlag) {
         this.userService
-          .getSingle(authService.getUserId()!, [
+          .getMe([
             nameof<User>((x) => x.id),
-            nameof<User>((x) => x.profilePhoto),
+            [nameof<User>(x => x.profilePhoto), nameof<File>(x => x.sourceUrl)].join('.'),
             nameof<User>((x) => x.fullName),
           ])
           .pipe(takeUntil(this._destroyed))
@@ -86,7 +86,10 @@ export class HeaderComponent extends BaseComponent {
       .subscribe({
         next: () => {
           this.isUserMenuOpen = false;
-          this.router.navigate(['/']);
+          const currentUrl = this.router.url;
+          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+            this.router.navigate([currentUrl]);
+          });
         },
         error: (error) => {
           console.error('Logout error:', error);

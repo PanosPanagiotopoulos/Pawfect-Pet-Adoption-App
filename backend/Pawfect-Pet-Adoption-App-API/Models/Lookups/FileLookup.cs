@@ -15,8 +15,10 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 
 		public List<FileSaveStatus>? FileSaveStatuses { get; set; }
 
+        public DateTime? CreatedFrom { get; set; }
+        public DateTime? CreatedTill { get; set; }
 
-		public FileQuery EnrichLookup(IQueryFactory queryFactory)
+        public FileQuery EnrichLookup(IQueryFactory queryFactory)
 		{
             FileQuery fileQuery = queryFactory.Query<FileQuery>();
 
@@ -24,13 +26,15 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
             fileQuery.Ids = this.Ids;
 			fileQuery.OwnerIds = this.OwnerIds;
 			fileQuery.FileSaveStatuses = this.FileSaveStatuses;
+			fileQuery.CreatedFrom = this.CreatedFrom;
+			fileQuery.CreatedTill = this.CreatedTill;
 			fileQuery.Query = this.Query;
 
 			// Ορίζει επιπλέον επιλογές για το BreedQuery
 			fileQuery.PageSize = this.PageSize;
 			fileQuery.Offset = this.Offset;
 			fileQuery.SortDescending = this.SortDescending;
-			fileQuery.Fields = fileQuery.FieldNamesOf(this.Fields.ToList());
+			fileQuery.Fields = fileQuery.FieldNamesOf([.. this.Fields]);
 			fileQuery.SortBy = this.SortBy;
 			fileQuery.ExcludedIds = this.ExcludedIds;
 

@@ -25,6 +25,7 @@ using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 using Pawfect_Pet_Adoption_App_API.Services.HttpServices;
 using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
 using Pawfect_Pet_Adoption_App_API.Services.SmsServices;
+using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 {
@@ -45,7 +46,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 		private readonly Lazy<IFileService> _fileService;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
-		private readonly IAuthorisationService _authorisationService;
+        private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IAuthorisationService _authorisationService;
         private readonly IAuthorisationContentResolver _authorisationContentResolver;
 
         public UserService
@@ -62,6 +64,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			Lazy<IFileService> fileService,
 			ICensorFactory censorFactory,
             AuthContextBuilder contextBuilder,
+			ClaimsExtractor claimsExtractor,
 			IAuthorisationService authorisationService,
 			IAuthorisationContentResolver authorisationContentResolver
         )
@@ -81,6 +84,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			_fileService = fileService;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _claimsExtractor = claimsExtractor;
             _authorisationService = authorisationService;
             _authorisationContentResolver = authorisationContentResolver;
         }
@@ -92,7 +96,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				throw new ArgumentException("This email is already in use");
 
             // Αποθηκεύστε τα δεδομένα του χρήστη.
-            Models.User.User newUser = await Persist(registerPersist.User, true, buildDto: true, buildFields: fields);
+            Models.User.User newUser = await this.Persist(registerPersist.User, true, buildDto: true, buildFields: fields);
 
 			if (newUser == null)
 				throw new NotFoundException("Failed to persist user", null, typeof(Data.Entities.User));
@@ -111,7 +115,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			return newUser;
 		}
 
-		private async Task PersistProfilePhoto(String profilePhoto, String oldProfilePhoto)
+		private async Task PersistProfilePhoto(String profilePhoto, String oldProfilePhoto, String ownerId)
 		{
 			Boolean emptyOldPhoto = String.IsNullOrEmpty(oldProfilePhoto);
 			Boolean emptyNewPhoto = String.IsNullOrEmpty(profilePhoto);
@@ -129,7 +133,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// Is empty, means it got deleted, so no need to query for persisting
 			if (emptyNewPhoto) return;
 
-			
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = new List<String>() { profilePhoto };
 			lookup.Fields = new List<String> { "*" };
@@ -144,6 +147,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			}
 			
 			profilePhotoFile.FileSaveStatus = FileSaveStatus.Permanent;
+			profilePhotoFile.OwnerId = ownerId;
 
 			await _fileService.Value.Persist
 			(
@@ -209,8 +213,20 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// Δημιουργήστε το URL επιβεβαίωσης.
 			String verificationUrl = Path.Join(_requestService.GetFrontendBaseURI(), $"auth/verified?token={token}");
 
-			// Στείλτε το email επιβεβαίωσης.
-			await _emailService.SendEmailAsync(email, EmailType.Verification.ToString(), String.Format(IEmailService.EmailTemplates[EmailType.Verification], verificationUrl));
+			String firstname = (await _userRepository.FindAsync(user => user.Email == email, [nameof(Data.Entities.User.FullName)]))?.FullName?.Split(" ")[0];
+			if (String.IsNullOrEmpty(firstname)) throw new NotFoundException("User was not found to send email");
+
+            // Create the template with the appropriate parameters
+            Dictionary<String, String> parameters = new Dictionary<String, String>
+            {
+                { "Firstname", firstname },
+                { "VerificationLink", verificationUrl }
+            };
+
+            String message = await _emailService.GetEmailTemplateAsync(EmailType.Verification, parameters);
+
+            // Send email
+            await _emailService.SendEmailAsync(email, EmailType.Verification.ToString(), message);
 		}
 
 		public String VerifyEmail(String token)
@@ -282,11 +298,23 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 			// Κατασκευή θέματος URL. Το σπάμε με κενό για καλύτερο projection στον χρήστη
 			String subject = String.Join(' ', EmailType.Reset_Password.ToString().Split('_'));
-			// Αποστολή reset password email
-			await _emailService.SendEmailAsync(email, subject, String.Format(IEmailService.EmailTemplates[EmailType.Reset_Password], resetPasswordUrl));
-		}
 
-		public async Task<String> VerifyResetPasswordToken(String token)
+            String firstname = (await _userRepository.FindAsync(user => user.Email == email, [nameof(Data.Entities.User.FullName)]))?.FullName?.Split(" ")[0];
+            if (String.IsNullOrEmpty(firstname)) throw new NotFoundException("User was not found to send email");
+
+            Dictionary<String, String> parameters = new Dictionary<String, String>
+            {
+                { "Firstname", firstname },
+                { "ResetLink", resetPasswordUrl }
+            };
+
+            String message = await _emailService.GetEmailTemplateAsync(EmailType.Reset_Password, parameters);
+
+            // Αποστολή reset password email
+            await _emailService.SendEmailAsync(email, subject, message);
+        }
+
+        public async Task<String> VerifyResetPasswordToken(String token)
 		{
 			if (String.IsNullOrEmpty(token))
 				throw new ArgumentException("No token found to reset password");
@@ -405,9 +433,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
 			if ( IsCreation = (workingUser == null) )
 			{
-                if (String.IsNullOrEmpty(workingUser.Id))
-                    throw new InvalidOperationException("Persisting failed and user was not found");
-
                 workingUser = _mapper.Map<Data.Entities.User>(userPersist);
 
 				// Get all needed access roles
@@ -427,17 +452,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 			else
 			{
-                OwnedResource resource = _authorisationContentResolver.BuildOwnedResource(new UserLookup(), workingUser.Id);
-                // Ενημερώστε τον υπάρχοντα χρήστη αν είναι ο ίδιος.
-                if (!await _authorisationService.AuthorizeOrOwnedAsync(resource, Permission.EditUsers))
-					throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.User), Permission.EditUsers);
+     //           OwnedResource resource = _authorisationContentResolver.BuildOwnedResource(new UserLookup(), workingUser.Id);
+     //           // Ενημερώστε τον υπάρχοντα χρήστη αν είναι ο ίδιος.
+     //           if (!await _authorisationService.AuthorizeOrOwnedAsync(resource, Permission.EditUsers))
+					//throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.User), Permission.EditUsers);
 
                 _mapper.Map(userPersist, workingUser);
 				this.HashLoginCredentials(ref workingUser);
 				workingUser.UpdatedAt = DateTime.UtcNow;
 			}
-
-			await this.PersistProfilePhoto(userPersist.ProfilePhotoId, workingUser.ProfilePhotoId);
 
 			if (IsCreation) workingUser.Id = await _userRepository.AddAsync(workingUser);
 			else workingUser.Id = await _userRepository.UpdateAsync(workingUser);
@@ -445,6 +468,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
             if (String.IsNullOrEmpty(workingUser.Id))
                 throw new InvalidOperationException("Persisting failed and user was not found");
 
+            await this.PersistProfilePhoto(userPersist.ProfilePhotoId, workingUser.ProfilePhotoId, workingUser.Id);
 
             Models.User.User persisted = new Models.User.User();
 			if (buildDto)
@@ -453,16 +477,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				UserLookup lookup = new UserLookup();
 				lookup.Ids = new List<String> { workingUser.Id };
 				lookup.Fields = buildFields ?? new List<String> { "*", nameof(Models.Shelter.Shelter) + ".*" };
-				lookup.Offset = 0;
+				lookup.Offset = 1;
 				lookup.PageSize = 1;
 
-                AuthContext context = _contextBuilder.OwnedFrom(lookup).Build();
-                List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. lookup.Fields], context);
-                if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
-
-                lookup.Fields = censoredFields;
-                persisted = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                    .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+                persisted = (await _builderFactory.Builder<UserBuilder>()
+                    .Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [.. lookup.Fields]))
                     .FirstOrDefault();
             }
 
@@ -479,9 +498,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
 			if (IsCreation = (workingUser == null))
 			{
-                if (String.IsNullOrEmpty(workingUser.Id))
-                    throw new InvalidOperationException("Persisting failed and user was not found");
-
                 workingUser = _mapper.Map<Data.Entities.User>(user);
 				// Hash τα credentials συνθηματικών του χρήστη
 				this.HashLoginCredentials(ref workingUser);
@@ -495,10 +511,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 			else
 			{
-                OwnedResource resource = _authorisationContentResolver.BuildOwnedResource(new UserLookup(), workingUser.Id);
-                // Ενημερώστε τον υπάρχοντα χρήστη αν είναι ο ίδιος.
-                if (!await _authorisationService.AuthorizeOrOwnedAsync(resource, Permission.EditUsers))
-                    throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.User), Permission.EditUsers);
+                //OwnedResource resource = _authorisationContentResolver.BuildOwnedResource(new UserLookup(), workingUser.Id);
+                //// Ενημερώστε τον υπάρχοντα χρήστη αν είναι ο ίδιος.
+                //if (!await _authorisationService.AuthorizeOrOwnedAsync(resource, Permission.EditUsers))
+                //    throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.User), Permission.EditUsers);
 
                 // Ενημερώστε τον υπάρχοντα χρήστη.
                 _mapper.Map(user, workingUser);
@@ -506,11 +522,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				workingUser.UpdatedAt = DateTime.UtcNow;
 			}
 
-			await this.PersistProfilePhoto(user.ProfilePhotoId, workingUser.ProfilePhotoId);
 
 			if (IsCreation) workingUser.Id = await _userRepository.AddAsync(workingUser);
 			else workingUser.Id = await _userRepository.UpdateAsync(workingUser);
 
+            if (String.IsNullOrEmpty(workingUser.Id))
+                throw new InvalidOperationException("Persisting failed and user was not found");
+
+            await this.PersistProfilePhoto(user.ProfilePhotoId, workingUser.ProfilePhotoId, workingUser.Id);
 
             Models.User.User persisted = new Models.User.User();
 			if (buildDto)
@@ -519,16 +538,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 				UserLookup lookup = new UserLookup();
 				lookup.Ids = new List<String> { workingUser.Id };
 				lookup.Fields = buildFields ?? new List<String> { "*", nameof(Models.Shelter.Shelter) + ".*" };
-				lookup.Offset = 0;
+				lookup.Offset = 1;
 				lookup.PageSize = 1;
 
-                AuthContext context = _contextBuilder.OwnedFrom(lookup).Build();
-                List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. lookup.Fields], context);
-                if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
-
-                lookup.Fields = censoredFields;
-                persisted = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-					.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+                persisted = (await _builderFactory.Builder<UserBuilder>()
+					.Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [..lookup.Fields]))
 					.FirstOrDefault();
             }
 
@@ -580,17 +594,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			lookup.Fields = fields;
 			lookup.PageSize = 1;
 			lookup.Offset = 0;
-
-            AuthContext context = _contextBuilder.OwnedFrom(lookup, id).Build();
-            List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. lookup.Fields], context);
-            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
-            lookup.Fields = censoredFields;
+            lookup.Fields = fields;
             List<Data.Entities.User> user = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync();
 
 			if (user == null)
 				throw new NotFoundException("No user found with this id");
 
-			return (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).Build(user, censoredFields)).FirstOrDefault();
+			return (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).Build(user, fields)).FirstOrDefault();
 		}
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }

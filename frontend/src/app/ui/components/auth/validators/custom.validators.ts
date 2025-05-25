@@ -1,5 +1,4 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { UserRole } from 'src/app/models/user/user.model';
 
 export class CustomValidators {
   static passwordValidator(): ValidatorFn {

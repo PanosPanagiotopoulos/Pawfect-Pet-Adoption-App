@@ -11,6 +11,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Report;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.ReportServices;
 using Pawfect_Pet_Adoption_App_API.Transactions;
+using System.Linq;
 using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -89,7 +90,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             lookup.Fields = fields;
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<ReportCensor>().Censor([.. lookup.Fields], context);
+            List<String> censoredFields = await _censorFactory.Censor<ReportCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying reports");
 
             lookup.Fields = censoredFields;
@@ -114,7 +115,9 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			Report? report = await _reportService.Persist(model, fields);
+			fields = BaseCensor.PrepareFieldsList(fields);
+
+            Report? report = await _reportService.Persist(model, fields);
 
 			return Ok(report);
 		}

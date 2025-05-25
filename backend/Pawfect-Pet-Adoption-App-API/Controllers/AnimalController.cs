@@ -10,6 +10,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.AnimalServices;
 using Pawfect_Pet_Adoption_App_API.Transactions;
+using System.Linq;
 using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -52,16 +53,16 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
             AuthContext context = _contextBuilder.OwnedFrom(animalLookup).AffiliatedWith(animalLookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor([.. animalLookup.Fields], context);
+            List<String> censoredFields = await _censorFactory.Censor<AnimalCensor>().Censor([.. animalLookup.Fields], context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying animals");
 
             animalLookup.Fields = censoredFields;
             List<Data.Entities.Animal> datas = await animalLookup
-                .EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.Affiliation)
+                .EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
                 .CollectAsync();
 
             List<Animal> models = await _builderFactory.Builder<AnimalBuilder>()
-                .Authorise(AuthorizationFlags.Affiliation)
+                .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
                 .Build(datas, [..animalLookup.Fields]);
 
             if (models == null) throw new NotFoundException("Animals not found", JsonHelper.SerializeObjectFormatted(animalLookup), typeof(Data.Entities.Animal));
@@ -106,7 +107,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             };
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<AnimalCensor>().Censor([.. lookup.Fields], context);
+            List<String> censoredFields = await _censorFactory.Censor<AnimalCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying animals");
 
             lookup.Fields = censoredFields;
@@ -129,7 +130,9 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			Animal animal = await _animalService.Persist(model, fields);
+            fields = BaseCensor.PrepareFieldsList(fields);
+
+            Animal animal = await _animalService.Persist(model, fields);
 
 			return Ok(animal);
 		}

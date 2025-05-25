@@ -47,15 +47,15 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
         public override async Task<List<Models.User.User>> Build(List<Data.Entities.User> entities, List<String> fields)
 		{
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
-			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
+			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = this.ExtractBuildFields(fields);
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-            Dictionary<String, Models.Shelter.Shelter?>? shelterMap = foreignEntitiesFields.ContainsKey(nameof(Models.Shelter.Shelter))
-				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Models.Shelter.Shelter)]))
+            Dictionary<String, Models.Shelter.Shelter?>? shelterMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User.Shelter))
+				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Models.User.User.Shelter)]))
 				: null;
 
-            Dictionary<String, Models.File.File>? fileMap = foreignEntitiesFields.ContainsKey(nameof(Models.File.File))
-				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Models.File.File)]))
+            Dictionary<String, Models.File.File>? fileMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User.ProfilePhoto))
+				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Models.User.User.ProfilePhoto)]))
 				: null;
 
             List<Models.User.User> result = new List<Models.User.User>();

@@ -23,7 +23,7 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
             if (context == null) throw new ArgumentNullException(nameof(context));
 
             List<String> censoredFields = new List<String>();
-            if (await _authorisationService.AuthorizeOrOwnedOrAffiliated(context, Permission.BrowseAnimalTypes))
+            if (await _authorisationService.AuthorizeAsync(Permission.BrowseAnimalTypes))
             {
                 censoredFields.AddRange(this.ExtractNonPrefixed(fields));
             }

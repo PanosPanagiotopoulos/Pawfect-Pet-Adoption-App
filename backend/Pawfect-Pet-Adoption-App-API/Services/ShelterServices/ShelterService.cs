@@ -110,14 +110,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.ShelterServices
 			lookup.Fields = buildFields ?? new List<String> { "*", nameof(Models.User.User) + ".*" };
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
-            
-			AuthContext context = _contextBuilder.OwnedFrom(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<ShelterCensor>().Censor([.. lookup.Fields], context);
-            if (!censoredFields.Any()) throw new ForbiddenException("Unauthorised access when querying shelters");
-
-            lookup.Fields = censoredFields;
-            return (await _builderFactory.Builder<ShelterBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-					.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+            return (await _builderFactory.Builder<ShelterBuilder>()
+					.Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [..lookup.Fields]))
 					.FirstOrDefault();
         }
 

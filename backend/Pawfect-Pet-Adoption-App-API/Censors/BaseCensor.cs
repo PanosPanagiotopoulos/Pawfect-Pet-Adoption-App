@@ -37,5 +37,18 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
             List<String> foreignFields = [.. fields.Concat(EntityHelper.GetAllForeignPropertyNames(entityType))];
             return foreignFields ?? new List<String>(); 
         }
+
+        protected List<String> AsPrefixed(List<String> nonPrefixed , String prefix) =>[..nonPrefixed.Select(str => $"{prefix}.{str}")];
+
+        public static List<String> PrepareFieldsList(List<String> fieldList)
+        {
+            if (fieldList == null || fieldList.Count == 0) return new List<String>();
+            return [..
+                fieldList.Select(field =>
+                {
+                    return String.Join(".", field.Split(".").Select(part => char.ToUpper(part[0]) + part.Substring(1)));
+                })
+            ];
+        }
     }
 }

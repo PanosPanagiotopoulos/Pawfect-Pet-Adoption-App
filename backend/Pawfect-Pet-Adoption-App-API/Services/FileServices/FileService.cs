@@ -84,9 +84,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		}
 		public async Task<List<Models.File.File>> Persist(List<FilePersist> persists, List<String> fields)
 		{
-			OwnedResource ownedResource = _authorisationContentResolver.BuildOwnedResource(new FileLookup(), [.. persists.Select(x => x.OwnerId)]);
-			if (!await _authorisationService.AuthorizeOrOwnedAsync(ownedResource, Permission.CreateFiles))
-                throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
+			if (persists.All(persist => String.IsNullOrEmpty(persist.OwnerId)))
+			{
+				OwnedResource ownedResource = _authorisationContentResolver.BuildOwnedResource(new FileLookup(), [.. persists.Select(x => x.OwnerId)]);
+				if (!await _authorisationService.AuthorizeOrOwnedAsync(ownedResource, Permission.CreateFiles))
+					throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
+			}
 
             Boolean isUpdate = persists.Select(f => f.Id).Any(_conventionService.IsValidId);
 			List<Data.Entities.File> persistData = new List<Data.Entities.File>();
@@ -135,39 +138,35 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
+			lookup.Fields = fields;
 
-            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<FileCensor>().Censor([.. lookup.Fields], context);
-            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying files");
-
-            lookup.Fields = censoredFields;
             return await _builderFactory.Builder<FileBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-										.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields);
+										.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), fields);
         }
 
-		public async Task<Models.File.File> SaveTemporarily(TempMediaFile tempMediaFile) => (await this.SaveTemporarily(new List<TempMediaFile>() { tempMediaFile })).FirstOrDefault();
+		public async Task<Models.File.FilePersist> SaveTemporarily(IFormFile file) => (await this.SaveTemporarily(new List<IFormFile>() { file })).FirstOrDefault();
 
-		public async Task<IEnumerable<Models.File.File>> SaveTemporarily(List<TempMediaFile> tempMediaFiles)
+		public async Task<IEnumerable<Models.File.FilePersist>> SaveTemporarily(List<IFormFile> files)
 		{
-			if (!await _authorisationService.AuthorizeAsync(Permission.CreateFiles))
-                throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
+			//if (!await _authorisationService.AuthorizeAsync(Permission.CreateFiles))
+   //             throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
 
-            if (tempMediaFiles == null || !tempMediaFiles.Any())
+            if (files == null || !files.Any())
 				throw new ArgumentException("No files provided for upload.");
 
 			// Step 1: Pre-generate unique IDs and validate files
 			List<Data.Entities.FileInfo> fileInfos = 
 			[..
-				tempMediaFiles.Select(tmf =>
+				files.Select(file =>
 				{
 					String fileId = ObjectId.GenerateNewId().ToString();
-					String key = _awsService.ConstructAwsKey(fileId, tmf.OwnerId);
-					(Boolean IsValid, String ErrorMessage) validationResult = _conventionService.IsValidFile(tmf.File, _filesConfig);
+					String awsKey = _awsService.ConstructAwsKey(file.FileName, Guid.NewGuid().ToString());
+					(Boolean IsValid, String ErrorMessage) validationResult = _conventionService.IsValidFile(file, _filesConfig);
 					return new Data.Entities.FileInfo
 					{
 						FileId = fileId,
-						Key = key,
-						TempMediaFile = tmf,
+						AwsKey = awsKey,
+						TempFile = file,
 						IsValid = validationResult.IsValid,
 						ErrorMessage = validationResult.ErrorMessage
 					};
@@ -176,12 +175,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 
 			// Step 2: Process files in batches
 			List<FileSaveResult> saveResults = new List<FileSaveResult>();
-            IEnumerable<Models.File.File> dtos = null;
+            List<Models.File.FilePersist> persists = new List<Models.File.FilePersist>();
 
 			List<Data.Entities.FileInfo> validFiles = fileInfos.Where(fi => fi.IsValid).ToList();
 			for (int i = 0; i < validFiles.Count; i += _filesConfig.BatchSize)
 			{
-				List<Data.Entities.FileInfo> batch = validFiles.Skip(i).Take(_filesConfig.BatchSize).ToList();
+				List<Data.Entities.FileInfo> batch = [.. validFiles.Skip(i).Take(_filesConfig.BatchSize)];
 				IEnumerable<Task<UploadResult>> uploadTasks = batch.Select(async (Data.Entities.FileInfo info) =>
 				{
 					int retryDelay = _filesConfig.InitialRetryDelayMs;
@@ -189,71 +188,69 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 					{
 						try
 						{
-							String url = await _awsService.UploadAsync(info.TempMediaFile.File, info.Key);
-							FilePersist persist = new FilePersist
+							String url = await _awsService.UploadAsync(info.TempFile, info.AwsKey);
+							FilePersist persist = new FilePersist()
 							{
 								Id = info.FileId,
-								Filename = info.TempMediaFile.File.FileName,
-								FileType = _conventionService.ToFileType(Path.GetExtension(info.TempMediaFile.File.FileName)),
-								MimeType = info.TempMediaFile.File.ContentType,
-								Size = info.TempMediaFile.File.Length,
+								Filename = info.TempFile.FileName,
+								FileType = _conventionService.ToFileType(Path.GetExtension(info.TempFile.FileName)),
+								MimeType = info.TempFile.ContentType,
+								Size = info.TempFile.Length,
 								FileSaveStatus = FileSaveStatus.Temporary,
 								SourceUrl = url,
-								OwnerId = info.TempMediaFile.OwnerId
+								AwsKey = info.AwsKey,
+								OwnerId = null // TODO: Can be null for now since it is temporary
 							};
-							return new UploadResult { Persist = persist, FileName = info.TempMediaFile.File.FileName, Error = (String)null };
+
+							persists.Add(persist);
+                            
+							return new UploadResult { Persist = persist, FileName = info.TempFile.FileName, Error = (String)null };
 						}
 						catch (Exception ex)
 						{
 							if (attempt == _filesConfig.MaxRetryCount - 1)
-								return new UploadResult { Persist = (FilePersist)null, FileName = info.TempMediaFile.File.FileName, Error = ex.Message };
+								return new UploadResult { Persist = (FilePersist)null, FileName = info.TempFile.FileName, Error = ex.Message };
 							await Task.Delay(retryDelay);
 							retryDelay *= 2; // Exponential backoff
 						}
 					}
-					return new UploadResult { Persist = (FilePersist)null, FileName = info.TempMediaFile.File.FileName, Error = "Unexpected retry failure" };
+					return new UploadResult { Persist = (FilePersist)null, FileName = info.TempFile.FileName, Error = "Unexpected retry failure" };
 				});
 
-				List<UploadResult> failedUploads = (await Task.WhenAll(uploadTasks)).Where(r => r.Persist == null).ToList();
+				List<UploadResult> completeUploadResults = [..await Task.WhenAll(uploadTasks)];
+
+
+                List<UploadResult> failedUploads = [.. completeUploadResults.Where(r => r.Persist == null)];
 				
 				// -- End Proccess Of Files -- //
 
-
 				// Step 3: Bulk insert metadata for successful uploads
-				if ((await Task.WhenAll(uploadTasks)).Where(r => r.Persist != null).ToList().Count != 0)
+				if (completeUploadResults.Where(r => r.Persist != null).ToList().Count != 0)
 				{
-					List<Data.Entities.File> files = (await Task.WhenAll(uploadTasks)).Where(r => r.Persist != null).ToList().Select(r => _mapper.Map<Data.Entities.File>(r.Persist)).ToList();
-					DateTime now = DateTime.UtcNow;
-					foreach (Data.Entities.File file in files)
-					{
-						file.CreatedAt = now;
-						file.UpdatedAt = now;
-					}
+					List<Data.Entities.File> uploadedFiles = [.. (completeUploadResults
+																  .Where(r => r.Persist != null)
+																  .Select(r => new Data.Entities.File() {
+																	  Id = null,
+																	  OwnerId = null,
+																	  Filename= r.Persist.Filename,
+																	  Size = r.Persist.Size,
+                                                                      MimeType = r.Persist.MimeType,
+																	  FileType = r.Persist.FileType,
+																	  FileSaveStatus = r.Persist.FileSaveStatus.Value,
+																	  SourceUrl = r.Persist.SourceUrl,
+																	  AwsKey = r.Persist.AwsKey,
+																	  CreatedAt = DateTime.UtcNow,
+                                                                      UpdatedAt = DateTime.UtcNow
+                                                                  }))];
 
-					await _fileRepository.AddManyAsync(files);
+					await _fileRepository.AddManyAsync(uploadedFiles);
 
 					// Step 4: Build DTOs for successful uploads
-					List<String> fileIds = files.Select(f => f.Id).ToList();
-					FileLookup lookup = new FileLookup()
-					{
-						Ids = fileIds,
-						Fields = new List<String> { "*" },
-						Offset = 0,
-						PageSize = fileIds.Count
-					};
-
-                    AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-                    List<String> censoredFields = await _censorFactory.Censor<FileCensor>().Censor([.. lookup.Fields], context);
-                    if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying files");
-
-                    lookup.Fields = censoredFields;
-                    dtos = await _builderFactory.Builder<FileBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-								. Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), [..lookup.Fields]);
-
-                    saveResults.AddRange((await Task.WhenAll(uploadTasks)).Where(r => r.Persist != null).ToList().Select((su, index) => new FileSaveResult
+					List<String> fileIds = [.. uploadedFiles.Select(f => f.Id)];
+                    saveResults.AddRange(completeUploadResults.Where(r => r.Persist != null).Select((su, index) => new FileSaveResult
 					{
 						FileName = su.FileName,
-						File = dtos.ElementAt(index),
+						File = persists.ElementAt(index),
 						Success = true,
 						ErrorMessage = null
 					}));
@@ -271,16 +268,16 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			// Step 5: Add invalid files to results
 			saveResults.AddRange(fileInfos.Where(fi => !fi.IsValid).Select(fi => new FileSaveResult
 			{
-				FileName = fi.TempMediaFile.File.FileName,
+				FileName = fi.TempFile.FileName,
 				File = null,
 				Success = false,
 				ErrorMessage = fi.ErrorMessage
 			}));
 
 			// Step 6: Log performance metrics
-			LogUploadPerformance(saveResults, tempMediaFiles.Count);
+			LogUploadPerformance(saveResults, files.Count);
 
-			return dtos;
+			return persists;
 		}
 		private void LogUploadPerformance(List<FileSaveResult> results, int totalFiles)
 		{
@@ -295,9 +292,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		{
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = ids;
-			lookup.Fields = new List<String> { nameof(Models.File.File.Id), nameof(Models.File.File.Owner) + "." + nameof(Models.User.User.Id) };
-			lookup.Offset = 0;
-			lookup.PageSize = 1000;
+			lookup.Fields = new List<String> { nameof(Models.File.File.Id), nameof(Data.Entities.File.AwsKey),
+											   nameof(Models.File.File.Owner) };
+			lookup.Offset = 1;
+			lookup.PageSize = 10000;
 
 			List<Data.Entities.File> files = await lookup.EnrichLookup(_queryFactory).CollectAsync();
 
@@ -306,13 +304,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
                 throw new ForbiddenException("You do not have permission to delete files.", typeof(Data.Entities.File), Permission.DeleteFiles);
 
 
-            List<String> keys = files.Select(file => { return _awsService.ConstructAwsKey(file.Id, file.OwnerId); } ).ToList();
+            List<String> keys = [.. files.Select(file => file.AwsKey)];
 
 			Dictionary<String, Boolean> results = await _awsService.DeleteAsync(keys);
 
-			List<String> failedIds = results.Where(r => !r.Value).Select(r => r.Key.Split('-')[0]).ToList();
+			List<String> failedIds = [.. results.Where(r => !r.Value).Select(r => r.Key.Split('-')[0])];
 
-			if (failedIds.Any())
+			if (failedIds.Count != 0)
 			{
 				_logger.LogError("Not all objects where deleted from AWS. Removing them from file deleting pipeline");
 

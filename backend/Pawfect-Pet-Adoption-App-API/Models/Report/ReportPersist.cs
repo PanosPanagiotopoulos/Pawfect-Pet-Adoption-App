@@ -19,7 +19,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Report
 
 		public String Reason { get; set; }
 
-
 		/// 
 		/// <value>
 		/// Η κατάσταση της αναφοράς

@@ -22,9 +22,10 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
             IAuthorisationService authorisationService,
             ClaimsExtractor claimsExtractor,
             IAuthorisationContentResolver authorisationContentResolver,
+            IHttpContextAccessor httpContextAccessor,
             IFilterBuilder<Data.Entities.Shelter, Models.Lookups.ShelterLookup> filterBuilder
 
-        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor)
+        ) : base(mongoDbService, authorisationService, authorisationContentResolver, claimsExtractor, httpContextAccessor)
         {
             _filterBuilder = filterBuilder;
         }

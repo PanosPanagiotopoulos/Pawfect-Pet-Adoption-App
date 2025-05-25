@@ -7,6 +7,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.Convention
 		Boolean IsValidId(String id);
 		String ToExtention(String fileType);
 		String ToFileType(String extension);
-		(Boolean IsValid, String ErrorMessage) IsValidFile(IFormFile file, FilesConfig config);
+		String ToMimeType(String extension);
+        (Boolean IsValid, String ErrorMessage) IsValidFile(IFormFile file, FilesConfig config);
 	}
 }

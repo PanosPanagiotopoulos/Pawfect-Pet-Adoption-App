@@ -97,8 +97,8 @@ export class PetDetailsDialogComponent {
 
   changeImage(index: number) {
     this.currentImageIndex = index;
-    if (this.animal?.photos?.length) {
-      this.currentImage = this.animal.photos[index];
+    if (this.animal?.attachedPhotos?.length) {
+      this.currentImage = this.animal.attachedPhotos[index].sourceUrl!;
     } else {
       this.currentImage = 'assets/placeholder.jpg';
     }

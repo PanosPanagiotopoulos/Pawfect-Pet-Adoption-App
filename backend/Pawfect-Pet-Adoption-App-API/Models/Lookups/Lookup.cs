@@ -1,4 +1,5 @@
-﻿using Pawfect_Pet_Adoption_App_API.Query;
+﻿using Pawfect_Pet_Adoption_App_API.Censors;
+using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Query.Queries;
 using System.Collections;
 using System.Reflection;
@@ -7,9 +8,9 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 {
 	public abstract class Lookup
 	{
-		// Φιλτράρισμα
-		public int Offset { get; set; }
-		public int PageSize { get; set; }
+        // Φιλτράρισμα
+        public int Offset { get; set; } = 1;
+        public int PageSize { get; set; } = 10000;
 		public String? Query { get; set; }
         public List<String> ExcludeIds { get; set; }
 
@@ -19,25 +20,15 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
 		public ICollection<String> Fields
 		{
 			get => _fields;
-            set => _fields = (value ?? new List<String>())
-                     .Select(s =>
-                         String.IsNullOrWhiteSpace(s)
-                             ? s
-                             : char.ToUpper(s[0]) + s.Substring(1))
-                     .ToList();
+            set => _fields = BaseCensor.PrepareFieldsList([..value]);
         }
 
 		// Ταξινόμηση
 		public ICollection<String> SortBy
 		{
 			get => _sortBy;
-			set => _sortBy = (value ?? new List<String>())
-					 .Select(s =>
-						 String.IsNullOrWhiteSpace(s)
-							 ? s
-							 : char.ToUpper(s[0]) + s.Substring(1))
-					 .ToList();
-		}
+			set => _sortBy = BaseCensor.PrepareFieldsList([.. value]);
+        }
 		public Boolean? SortDescending { get; set; } = false; // Κατεύθυνση ταξινόμησης
 
         // Μέθοδος για τον έλεγχο όλων των πεδίων για έναν συγκεκριμένο τύπο στοιχείου

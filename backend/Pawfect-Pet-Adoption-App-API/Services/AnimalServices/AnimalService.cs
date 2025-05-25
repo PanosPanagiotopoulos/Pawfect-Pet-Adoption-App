@@ -18,6 +18,7 @@ using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Services.BreedServices;
 using Pawfect_Pet_Adoption_App_API.Services.Convention;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices;
+using System.Security.Claims;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 {
@@ -27,6 +28,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 		private readonly IAnimalRepository _animalRepository;
 		private readonly IMapper _mapper;
 		private readonly IConventionService _conventionService;
+        private readonly ClaimsExtractor _claimsExtractor;
         private readonly IAuthorisationContentResolver _authorisationContentResolver;
         private readonly Lazy<IFileService> _fileService;
         private readonly ICensorFactory _censorFactory;
@@ -47,6 +49,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
                 IBuilderFactory builderFactory,
                 IAuthorisationService authorisationService,
                 IConventionService conventionService,
+				ClaimsExtractor claimsExtractor,
 				IAuthorisationContentResolver authorisationContentResolver
 
             )
@@ -55,6 +58,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 			_animalRepository = animalRepository;
 			_mapper = mapper;
 			_conventionService = conventionService;
+            _claimsExtractor = claimsExtractor;
             _authorisationContentResolver = authorisationContentResolver;
             _fileService = fileService;
             _censorFactory = censorFactory;
@@ -154,10 +158,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 				return;
 			}
 
-			List<FilePersist> persistModels = new List<FilePersist>();
+            ClaimsPrincipal claimsPrincipal = _authorisationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+            if (String.IsNullOrEmpty(userId)) throw new UnAuthenticatedException();
+
+            List<FilePersist> persistModels = new List<FilePersist>();
 			foreach (Data.Entities.File file in attachedFiles)
 			{
 				file.FileSaveStatus = FileSaveStatus.Permanent;
+				file.OwnerId = userId;
 				persistModels.Add(_mapper.Map<FilePersist>(file));
 			}
 

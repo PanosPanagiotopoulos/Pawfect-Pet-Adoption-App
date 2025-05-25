@@ -60,12 +60,12 @@ export class LoginComponent extends BaseComponent implements OnInit {
     this.authService.loginWithGoogle(authCode).subscribe({
       next: (response: LoggedAccount) => {
         if (response && !response.isPhoneVerified) {
-          sessionStorage.setItem('unverifiedPhone', response.phone);
+          sessionStorage.setItem('unverifiedPhone', this.authService.getUserEmail()!);
           this.navigateToPhoneVerification();
         }
 
         if (response && !response.isEmailVerified) {
-          sessionStorage.setItem('unverifiedEmail', response.email);
+          sessionStorage.setItem('unverifiedEmail', this.authService.getUserEmail()!);
           this.navigateToEmailVerification();
         } else {
           this.router.navigate(['/']);
@@ -138,7 +138,7 @@ export class LoginComponent extends BaseComponent implements OnInit {
       .subscribe({
         next: (response) => {
           if (response && !response.isEmailVerified) {
-            sessionStorage.setItem('unverifiedEmail', response.email || '');
+            sessionStorage.setItem('unverifiedEmail', this.authService.getUserEmail()!);
             this.navigateToEmailVerification();
           } else {
             this.router.navigate(['/']);

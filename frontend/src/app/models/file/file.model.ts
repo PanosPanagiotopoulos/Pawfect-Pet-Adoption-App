@@ -19,10 +19,14 @@ export interface FilePersist {
     fileType: string;
     ownerId: string;
     size: number;
+    awsKey: string;
     sourceUrl: string;
 }
 
-export interface TempMediaFile {
-    file: globalThis.File;
-    ownerId: string;
+export interface FileItem {
+  file: globalThis.File;
+  addedAt: number;
+  persistedId?: string;
+  isPersisting: boolean;
+  uploadFailed: boolean;
 }

@@ -54,21 +54,21 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-            Dictionary<String, Models.Breed.Breed>? breedMap = foreignEntitiesFields.ContainsKey(nameof(Models.Breed.Breed))
-				? (await CollectBreeds(entities, foreignEntitiesFields[nameof(Models.Breed.Breed)]))
+            Dictionary<String, Models.Breed.Breed>? breedMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal.Breed))
+				? (await CollectBreeds(entities, foreignEntitiesFields[nameof(Models.Animal.Animal.Breed)]))
 				: null;
 
-            Dictionary<String, Models.Shelter.Shelter>? shelterMap = foreignEntitiesFields.ContainsKey(nameof(Models.Shelter.Shelter))
-				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Models.Shelter.Shelter)]))
+            Dictionary<String, Models.Shelter.Shelter>? shelterMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal.Shelter))
+				? (await CollectShelters(entities, foreignEntitiesFields[nameof(Models.Animal.Animal.Shelter)]))
 				: null;
 
 
-            Dictionary<String, Models.AnimalType.AnimalType>? animalTypeMap = foreignEntitiesFields.ContainsKey(nameof(Models.AnimalType.AnimalType))
-				? (await CollectAnimalTypes(entities, foreignEntitiesFields[nameof(Models.AnimalType.AnimalType)]))
+            Dictionary<String, Models.AnimalType.AnimalType>? animalTypeMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal.AnimalType))
+				? (await CollectAnimalTypes(entities, foreignEntitiesFields[nameof(Models.Animal.Animal.AnimalType)]))
 				: null;
 
-            Dictionary<String, List<Models.File.File>>? filesMap = foreignEntitiesFields.ContainsKey(nameof(Models.File.File))
-				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Models.File.File)]))
+            Dictionary<String, List<Models.File.File>>? filesMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal.AttachedPhotos))
+				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Models.Animal.Animal.AttachedPhotos)]))
 				: null;
 
 
@@ -89,7 +89,7 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (breedMap != null && breedMap.ContainsKey(e.Id)) dto.Breed = breedMap[e.Id];
 				if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
 				if (animalTypeMap != null && animalTypeMap.ContainsKey(e.Id)) dto.AnimalType = animalTypeMap[e.Id];
-				if (filesMap != null && filesMap.ContainsKey(e.Id)) dto.Photos = filesMap[e.Id];
+				if (filesMap != null && filesMap.ContainsKey(e.Id)) dto.AttachedPhotos = filesMap[e.Id];
 
 				result.Add(dto);
 			}

@@ -20,46 +20,38 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AwsServices
 
 		public async Task<String> UploadAsync(IFormFile file, String key)
 		{
+			// Check if the key already exists
 			try
 			{
-				// Check if the key already exists
-				try
-				{
-					await _s3Client.GetObjectMetadataAsync(_awsConfig.BucketName, key);
-					// If the above line doesn't throw, the object exists
-					throw new InvalidOperationException($"A file with the key '{key}' already exists in the S3 bucket.");
-				}
-				catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-				{
-					// Object does not exist, proceed with upload
-				}
-				catch (Exception ex)
-				{
-					// Handle other exceptions
-					throw new InvalidOperationException($"Error checking for existing file: {ex.Message}", ex);
-				}
-
-				// Proceed with upload
-				using (Stream stream = file.OpenReadStream())
-				{
-					TransferUtilityUploadRequest uploadRequest = new TransferUtilityUploadRequest
-					{
-						InputStream = stream,
-						Key = key,
-						BucketName = _awsConfig.BucketName,
-						ContentType = file.ContentType,
-						CannedACL = S3CannedACL.PublicRead
-					};
-
-					TransferUtility transferUtility = new TransferUtility(_s3Client);
-					await transferUtility.UploadAsync(uploadRequest);
-				}
-				return await this.GetAsync(key);
+				await _s3Client.GetObjectMetadataAsync(_awsConfig.BucketName, key);
+				// If the above line doesn't throw, the object exists
+				throw new InvalidOperationException($"A file with the key '{key}' already exists in the S3 bucket.");
+			}
+			catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+			{
+				// Object does not exist, proceed with upload
 			}
 			catch (Exception ex)
 			{
-				throw new InvalidOperationException($"Failed to upload file to S3: {ex.Message}", ex);
+				// Handle other exceptions
+				throw new InvalidOperationException($"Error checking for existing file: {ex.Message}", ex);
 			}
+
+			// Proceed with upload
+			using (Stream stream = file.OpenReadStream())
+			{
+				TransferUtilityUploadRequest uploadRequest = new TransferUtilityUploadRequest
+				{
+					InputStream = stream,
+					Key = key,
+					BucketName = _awsConfig.BucketName,
+					ContentType = file.ContentType,
+				};
+
+				TransferUtility transferUtility = new TransferUtility(_s3Client);
+				await transferUtility.UploadAsync(uploadRequest);
+			}
+			return await this.GetAsync(key);
 		}
 
 		public async Task<String> GetAsync(String key)

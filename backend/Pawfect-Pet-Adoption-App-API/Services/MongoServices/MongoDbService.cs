@@ -16,7 +16,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MongoServices
 	{
 		public IMongoDatabase db { get; }
 
-		public MongoDbService(IOptions<MongoDbConfig> settings, IMongoClient client)
+		public MongoDbService
+		(
+			IOptions<MongoDbConfig> settings, 
+			IMongoClient client
+		)
 		{
 			db = client.GetDatabase(settings.Value.DatabaseName);
 		}
@@ -33,9 +37,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.MongoServices
 		public void DropAllCollections()
 		{
 			// Get the list of collections in the database
-			List<String> collectionNames = db.ListCollectionNames().ToList();
+			List<String> excludedInDrop = ["users", "shelters", "files"];
+			//List<String> collectionNames = db.ListCollectionNames().ToList().Where(cName => !excludedInDrop.Contains(cName)).ToList();
+            List<String> collectionNames = db.ListCollectionNames().ToList();
 
-			foreach (String collectionName in collectionNames)
+            foreach (String collectionName in collectionNames)
 			{
 				IMongoCollection<BsonDocument> collection = db.GetCollection<BsonDocument>(collectionName);
 				collection.DeleteMany(FilterDefinition<BsonDocument>.Empty);

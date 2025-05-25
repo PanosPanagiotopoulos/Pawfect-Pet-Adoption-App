@@ -10,7 +10,7 @@ export interface Shelter {
   description?: string;
   website?: string;
   socialMedia?: SocialMedia;
-  operatingHoours?: OperatingHours;
+  operatingHours?: OperatingHours;
   verificationStatus?: VerificationStatus;
   verifiedBy?: string;
   animals?: Animal[];

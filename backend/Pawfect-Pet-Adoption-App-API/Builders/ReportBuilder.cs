@@ -46,10 +46,16 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			// Εξαγωγή των αρχικών πεδίων και των πεδίων ξένων entities από τα παρεχόμενα πεδία
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
 
+            List<String> userFields = new List<String>();
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-            Dictionary<String, List<Models.User.User>>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User))
-				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.User.User)]))
-				: null;
+            if (foreignEntitiesFields.ContainsKey(nameof(Models.Report.Report.Reporter)))
+                userFields.AddRange(foreignEntitiesFields[nameof(Models.Report.Report.Reporter)]);
+            if (foreignEntitiesFields.ContainsKey(nameof(Models.Report.Report.Reported)))
+                userFields.AddRange(foreignEntitiesFields[nameof(Models.Report.Report.Reported)]);
+
+            // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
+            Dictionary<String, List<Models.User.User>>? userMap = userFields.Count > 0 ? await this.CollectUsers(entities, userFields) : null;
+
 
             List<Models.Report.Report> result = new List<Models.Report.Report>();
 			foreach (Data.Entities.Report e in entities)
@@ -61,10 +67,10 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 				if (nativeFields.Contains(nameof(Models.Report.Report.Status))) dto.Status = e.Status;
 				if (nativeFields.Contains(nameof(Models.Report.Report.CreatedAt))) dto.CreatedAt = e.CreatedAt;
 				if (nativeFields.Contains(nameof(Models.Report.Report.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
-				if (userMap != null && userMap.ContainsKey(e.Id)) dto.Reporter = userMap[e.Id][0];
-				if (userMap != null && userMap.ContainsKey(e.Id)) dto.Reported = userMap[e.Id][1];
+                if (userMap != null && userMap.TryGetValue(e.Id, out List<Models.User.User> reporters) && reporters != null && reporters.Count > 0) dto.Reporter = reporters[0];
+                if (userMap != null && userMap.TryGetValue(e.Id, out List<Models.User.User> reportereds) && reportereds != null && reportereds.Count > 0) dto.Reported = reportereds[1];
 
-				result.Add(dto);
+                result.Add(dto);
 			}
 
 			return await Task.FromResult(result);

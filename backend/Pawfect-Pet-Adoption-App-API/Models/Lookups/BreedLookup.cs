@@ -9,15 +9,6 @@ namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
     {
         private BreedQuery breedQuery { get; set; }
 
-        // Constructor για την κλάση BreedLookup
-        // Είσοδος: breedQuery - μια έκδοση της κλάσης BreedQuery
-        public BreedLookup(BreedQuery breedQuery)
-        {
-            breedQuery = breedQuery;
-        }
-
-        public BreedLookup() { }
-
         // Λίστα με τα αναγνωριστικά των φυλών
         public List<String>? Ids { get; set; }
 

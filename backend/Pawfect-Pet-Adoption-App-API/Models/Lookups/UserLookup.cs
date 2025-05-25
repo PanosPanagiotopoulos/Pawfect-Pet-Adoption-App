@@ -55,7 +55,7 @@
             userQuery.PageSize = this.PageSize;
             userQuery.Offset = this.Offset;
             userQuery.SortDescending = this.SortDescending;
-            userQuery.Fields = userQuery.FieldNamesOf(this.Fields.ToList());
+            userQuery.Fields = userQuery.FieldNamesOf([..this.Fields]);
             userQuery.SortBy = this.SortBy;
             userQuery.ExcludedIds = this.ExcludedIds;
 

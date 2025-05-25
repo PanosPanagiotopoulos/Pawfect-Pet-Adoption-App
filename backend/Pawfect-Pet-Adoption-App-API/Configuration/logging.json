@@ -5,7 +5,7 @@
       "Scope": 0
     },
     "MinimumLevel": {
-      "Default": "Debug",
+      "Default": "Debug"
       //"Override": {
       //  "Microsoft.EntityFrameworkCore.Database.Command": "Warning",
       //  "Microsoft": "Warning",

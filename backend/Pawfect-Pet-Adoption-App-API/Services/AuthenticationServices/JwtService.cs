@@ -45,11 +45,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
         /// <param name="isEmailVerified">Flag επιβεβαίωσης email.</param>
         /// <param name="isVerified">Flag επιβεβαίωσης χρήστη.</param>
         /// <returns>Ένα JWT token σε μορφή String ή null αν αποτύχει.</returns>
-        public String? GenerateJwtToken(String userId, String email, List<String> roles, String isEmailVerified, String isVerified)
+        public String? GenerateJwtToken(String userId, String email, List<String> roles)
         {
-            String? issuer = _jwtConfiguration.Issuer;
-            List<String>? audiences = _jwtConfiguration.Audiences;
-            String? jwtKey = _jwtConfiguration.Key;
+            String issuer = _jwtConfiguration.Issuer;
+            List<String> audiences = _jwtConfiguration.Audiences;
+            String jwtKey = _jwtConfiguration.Key;
 
             if (String.IsNullOrEmpty(issuer) || audiences == null || !audiences.Any() || String.IsNullOrEmpty(jwtKey))
             {
@@ -63,23 +63,16 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                 return null;
             }
 
-            if (roles == null || !roles.Any())
-            {
-                _logger.LogError("Η λίστα των ρόλων είναι κενή ή null για το userId: {UserId}.", userId);
-                return null;
-            }
-           
             // Δημιουργεί τις απαιτούμενες δηλώσεις (claims) για το JWT
             List<Claim> claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.NameId, userId),
-                new Claim(JwtRegisteredClaimNames.Email, email),
-                new Claim("isEmailVerified", isEmailVerified),
-                new Claim("isVerified", isVerified),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim(ClaimTypes.Email, email),
+                new Claim("jti", Guid.NewGuid().ToString()),
+                new Claim("iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
             };
 
-            // Add multiple roles as individual claims
+            // Add multiple roles 
             foreach (String role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));

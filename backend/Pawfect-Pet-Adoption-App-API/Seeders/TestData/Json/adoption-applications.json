@@ -1,0 +1,103 @@
+[
+  {
+    "Id": "e1af8fccdca9aef900439101",
+    "UserId": "709f3f99def98de900439031",
+    "AnimalId": "90bf5fbbcfa9adf900439051",
+    "ShelterId": "80af4faaef0a9ef900439041",
+    "Status": 1,
+    "ApplicationDetails": "I live in a house with a fenced yard, have owned dogs before, and am home most of the day.",
+    "CreatedAt": "2023-01-04T08:00:00Z",
+    "UpdatedAt": "2023-01-04T08:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439102",
+    "UserId": "709f3f99def98de900439032",
+    "AnimalId": "90bf5fbbcfa9adf900439052",
+    "ShelterId": "80af4faaef0a9ef900439042",
+    "Status": 2,
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-04T09:00:00Z",
+    "UpdatedAt": "2023-01-04T10:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439103",
+    "UserId": "709f3f99def98de900439036",
+    "AnimalId": "90bf5fbbcfa9adf900439053",
+    "ShelterId": "80af4faaef0a9ef900439043",
+    "Status": 1,
+    "ApplicationDetails": "I live in a house with no yard, have owned cats, and work part-time.",
+    "CreatedAt": "2023-01-04T10:00:00Z",
+    "UpdatedAt": "2023-01-04T10:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439104",
+    "UserId": "709f3f99def98de900439037",
+    "AnimalId": "90bf5fbbcfa9adf900439054",
+    "ShelterId": "80af4faaef0a9ef900439044",
+    "Status": 3,
+    "ApplicationDetails": "I live in a small apartment, no pet experience, and have a full-time job.",
+    "CreatedAt": "2023-01-04T11:00:00Z",
+    "UpdatedAt": "2023-01-04T12:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439105",
+    "UserId": "709f3f99def98de900439031",
+    "AnimalId": "90bf5fbbcfa9adf900439055",
+    "ShelterId": "80af4faaef0a9ef900439045",
+    "Status": 1,
+    "ApplicationDetails": "I live in a house with a large yard, have cared for birds, and am retired.",
+    "CreatedAt": "2023-01-04T12:00:00Z",
+    "UpdatedAt": "2023-01-04T12:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439106",
+    "UserId": "709f3f99def98de900439032",
+    "AnimalId": "90bf5fbbcfa9adf900439056",
+    "ShelterId": "80af4faaef0a9ef900439046",
+    "Status": 2,
+    "ApplicationDetails": "I live in a pet-friendly apartment, have owned rabbits, and have flexible hours.",
+    "CreatedAt": "2023-01-04T13:00:00Z",
+    "UpdatedAt": "2023-01-04T14:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439107",
+    "UserId": "709f3f99def98de900439036",
+    "AnimalId": "90bf5fbbcfa9adf900439057",
+    "ShelterId": "80af4faaef0a9ef900439047",
+    "Status": 1,
+    "ApplicationDetails": "I live in a house with a small yard, have owned hamsters, and am home evenings.",
+    "AttachedFilesIds": [ "e1af8fccdca9aef900439117" ],
+    "CreatedAt": "2023-01-04T14:00:00Z",
+    "UpdatedAt": "2023-01-04T14:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439108",
+    "UserId": "709f3f99def98de900439037",
+    "AnimalId": "90bf5fbbcfa9adf900439058",
+    "ShelterId": "80af4faaef0a9ef900439048",
+    "Status": 4,
+    "ApplicationDetails": "I live in an apartment with an aquarium, have kept fish, and work part-time.",
+    "CreatedAt": "2023-01-04T15:00:00Z",
+    "UpdatedAt": "2023-01-04T16:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439109",
+    "UserId": "709f3f99def98de900439031",
+    "AnimalId": "90bf5fbbcfa9adf900439059",
+    "ShelterId": "80af4faaef0a9ef900439049",
+    "Status": 1,
+    "ApplicationDetails": "I live in a house with an enclosed yard, have cared for turtles, and am home full-time.",
+    "CreatedAt": "2023-01-04T16:00:00Z",
+    "UpdatedAt": "2023-01-04T16:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef90043910a",
+    "UserId": "709f3f99def98de900439032",
+    "AnimalId": "90bf5fbbcfa9adf90043905a",
+    "ShelterId": "80af4faaef0a9ef90043904a",
+    "Status": 2,
+    "ApplicationDetails": "I live on a farm with large space, have raised horses, and am on the property full-time.",
+    "CreatedAt": "2023-01-04T17:00:00Z",
+    "UpdatedAt": "2023-01-04T18:00:00Z"
+  }
+]

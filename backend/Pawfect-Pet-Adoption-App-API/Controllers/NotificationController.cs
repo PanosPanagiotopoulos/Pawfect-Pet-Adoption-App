@@ -10,6 +10,7 @@ using Pawfect_Pet_Adoption_App_API.Models.Notification;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.NotificationServices;
 using Pawfect_Pet_Adoption_App_API.Transactions;
+using System.Linq;
 using System.Reflection;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
@@ -89,7 +90,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             };
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<NotificationCensor>().Censor([.. lookup.Fields], context);
+            List<String> censoredFields = await _censorFactory.Censor<NotificationCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying notifications");
 
             lookup.Fields = censoredFields;
@@ -112,7 +113,9 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			Notification notification = await _notificationService.Persist(model, fields);
+            fields = BaseCensor.PrepareFieldsList(fields);
+
+            Notification notification = await _notificationService.Persist(model, fields);
 
 			return Ok(notification);
 		}

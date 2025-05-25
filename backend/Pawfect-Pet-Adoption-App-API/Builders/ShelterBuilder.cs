@@ -61,12 +61,12 @@ namespace Pawfect_Pet_Adoption_App_API.Builders
 			(List<String> nativeFields, Dictionary<String, List<String>> foreignEntitiesFields) = ExtractBuildFields(fields);
 
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή για κάθε ξένο entity που ζητείται να επιστραφούν τα δεδομένα για αυτό
-            Dictionary<String, Models.User.User>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User))
-				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.User.User)]))
+            Dictionary<String, Models.User.User>? userMap = foreignEntitiesFields.ContainsKey(nameof(Models.Shelter.Shelter.User))
+				? (await CollectUsers(entities, foreignEntitiesFields[nameof(Models.Shelter.Shelter.User)]))
 				: null;
 
-            Dictionary<String, List<Models.Animal.Animal>>? animalsMap = foreignEntitiesFields.ContainsKey(nameof(Models.Animal.Animal))
-				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Models.Animal.Animal)]))
+            Dictionary<String, List<Models.Animal.Animal>>? animalsMap = foreignEntitiesFields.ContainsKey(nameof(Models.Shelter.Shelter.Animals))
+				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Models.Shelter.Shelter.Animals)]))
 				: null;
 
             List<Models.Shelter.Shelter> result = new List<Models.Shelter.Shelter>();

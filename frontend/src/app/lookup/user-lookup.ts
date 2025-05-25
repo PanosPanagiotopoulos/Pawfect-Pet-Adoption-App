@@ -1,4 +1,4 @@
-import { UserRole } from '../models/user/user.model';
+import { UserRole } from '../common/enum/user-role.enum';
 import { Lookup } from './lookup';
 
 export interface UserLookup extends Lookup {

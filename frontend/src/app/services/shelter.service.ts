@@ -5,6 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ShelterLookup } from '../lookup/shelter-lookup';
 import { Shelter, ShelterPersist } from '../models/shelter/shelter.model';
+import { HttpParams } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -28,7 +29,11 @@ export class ShelterService {
 
   getSingle(id: string, reqFields: string[] = []): Observable<Shelter> {
     const url = `${this.apiBase}/${id}`;
-    const options = { params: { f: reqFields } };
+    let params = new HttpParams();
+        reqFields.forEach(field => {
+          params = params.append('fields', field);
+        });
+        const options = { params };
     return this.http
       .get<Shelter>(url, options)
       .pipe(catchError((error: any) => throwError(error)));
@@ -38,6 +43,20 @@ export class ShelterService {
     const url = `${this.apiBase}/persist`;
     return this.http
       .post<Shelter>(url, item)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  delete(id: string): Observable<void> {
+    const url = `${this.apiBase}/delete`;
+    return this.http
+      .post<void>(url, { id })
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  deleteMany(ids: string[]): Observable<void> {
+    const url = `${this.apiBase}/delete/many`;
+    return this.http
+      .post<void>(url, ids)
       .pipe(catchError((error: any) => throwError(error)));
   }
 }

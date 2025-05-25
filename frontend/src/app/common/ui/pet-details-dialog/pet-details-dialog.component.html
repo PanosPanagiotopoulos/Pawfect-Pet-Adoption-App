@@ -41,8 +41,8 @@
         
         <!-- Image Navigation Controls -->
         <div class="absolute inset-x-0 bottom-4 flex justify-center items-center gap-2">
-          <div class="flex justify-center gap-1.5 px-2 py-1 bg-black/40 backdrop-blur-sm rounded-full" *ngIf="animal.photos && animal.photos.length > 0">
-            <div *ngFor="let photo of animal.photos; let i = index"
+          <div class="flex justify-center gap-1.5 px-2 py-1 bg-black/40 backdrop-blur-sm rounded-full" *ngIf="animal.attachedPhotos && animal.attachedPhotos.length > 0">
+            <div *ngFor="let photo of animal.attachedPhotos; let i = index"
                  [class.bg-white]="currentImageIndex === i"
                  [ngStyle]="{ 'background-color': currentImageIndex !== i ? 'rgba(255, 255, 255, 0.4)' : 'white' }"
                  class="w-2 h-2 rounded-full cursor-pointer transition-all"
@@ -143,15 +143,15 @@
         </div>
 
         <!-- More Photos -->
-        <div *ngIf="animal.photos && animal.photos.length > 1" class="space-y-3">
+        <div *ngIf="animal.attachedPhotos && animal.attachedPhotos.length > 0" class="space-y-3">
           <h3 class="text-lg font-medium text-white">Περισσότερες φωτογραφίες</h3>
           <div class="grid grid-cols-3 gap-2">
-            <div *ngFor="let photo of animal.photos; let i = index"
+            <div *ngFor="let photo of animal.attachedPhotos; let i = index"
                  class="aspect-square rounded-xl overflow-hidden cursor-pointer relative group"
                  [class.ring-2]="currentImageIndex === i"
                  [class.ring-primary-500]="currentImageIndex === i"
                  (click)="changeImage(i)">
-              <img [src]="photo" [alt]="'Photo ' + (i + 1)" class="w-full h-full object-cover" />
+              <img [src]="photo.sourceUrl" [alt]="'Photo ' + (i + 1)" class="w-full h-full object-cover" />
               <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
           </div>

@@ -11,6 +11,7 @@ using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 using Pawfect_Pet_Adoption_App_API.Transactions;
+using System.Linq;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
@@ -85,16 +86,14 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 		
             AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
-
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
             lookup.Offset = 1;
             // Γενική τιμή για τη λήψη των dtos
             lookup.PageSize = 1;
             lookup.Ids = [id];
-            lookup.Fields = fields;
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor([.. lookup.Fields], context);
+            List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor(BaseCensor.PrepareFieldsList([..lookup.Fields]), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying adoption applications");
 
 			lookup.Fields = censoredFields;
@@ -119,7 +118,9 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			AdoptionApplication? adoptionApplication = await _adoptionApplicationService.Persist(model, fields);
+			fields = BaseCensor.PrepareFieldsList(fields);
+
+            AdoptionApplication ? adoptionApplication = await _adoptionApplicationService.Persist(model, fields);
 
 			return Ok(adoptionApplication);
 		}

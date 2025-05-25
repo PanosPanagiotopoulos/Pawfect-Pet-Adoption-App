@@ -1,5 +1,5 @@
 {
   "Cors": {
-	"AllowedOrigins": [ "%{FrontendUrl}%", "%{BackendUrl}%", "%{BackendUrlSecure}%" ]
+	  "AllowedOrigins": [ "%{FrontendUrl}%", "%{BackendUrl}%", "%{BackendUrlSecure}%" ]
   }
 }

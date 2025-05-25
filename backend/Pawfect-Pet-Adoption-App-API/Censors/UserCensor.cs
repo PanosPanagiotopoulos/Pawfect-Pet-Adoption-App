@@ -1,4 +1,5 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_Pet_Adoption_App_API.Models.Lookups;
 using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
 
 namespace Pawfect_Pet_Adoption_App_API.Censors
@@ -7,15 +8,18 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
     {
         private readonly IAuthorisationService _authorisationService;
         private readonly ICensorFactory _censorFactory;
+        private readonly AuthContextBuilder _contextBuilder;
 
         public UserCensor
         (
             IAuthorisationService authorisationService,
-            ICensorFactory censorFactory
+            ICensorFactory censorFactory,
+            AuthContextBuilder contextBuilder
         )
         {
             _authorisationService = authorisationService;
             _censorFactory = censorFactory;
+            _contextBuilder = contextBuilder;
         }
         public override async Task<List<String>> Censor(List<String> fields, AuthContext context)
         {
@@ -25,13 +29,21 @@ namespace Pawfect_Pet_Adoption_App_API.Censors
             if (fields.Contains("*")) fields = this.ExtractForeign(fields, typeof(Data.Entities.User));
             
             List<String> censoredFields = new List<String>();
-            if (await _authorisationService.AuthorizeOrOwnedOrAffiliated(context, Permission.BrowseUsers))
+            if (await _authorisationService.AuthorizeAsync(Permission.BrowseUsers))
             {
                 censoredFields.AddRange(this.ExtractNonPrefixed(fields));
             }
 
-            censoredFields.AddRange(await _censorFactory.Censor<ShelterCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.User.User.Shelter)), context));
-            censoredFields.AddRange(await _censorFactory.Censor<FileCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.User.User.ProfilePhoto)), context));
+
+            AuthContext shelterContext = _contextBuilder.OwnedFrom(new ShelterLookup(), context.CurrentUserId).AffiliatedWith(new ShelterLookup()).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<ShelterCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.User.User.Shelter)), shelterContext), nameof(Models.User.User.Shelter)));
+
+
+            // Create the file lookup for the profile photo censoring
+            FileLookup fileLookup = new FileLookup();
+            fileLookup.OwnerIds = [context.CurrentUserId];
+            AuthContext fileContext = _contextBuilder.OwnedFrom(fileLookup).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<FileCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.User.User.ProfilePhoto)), fileContext), nameof(Models.User.User.ProfilePhoto)));
 
             return censoredFields;
         }

@@ -7,7 +7,7 @@ export interface User {
   id?: string;
   email?: string;
   fullName?: string;
-  role?: UserRole;
+  roles?: UserRole[];
   phone?: string;
   location?: Location;
   shelter?: Shelter;

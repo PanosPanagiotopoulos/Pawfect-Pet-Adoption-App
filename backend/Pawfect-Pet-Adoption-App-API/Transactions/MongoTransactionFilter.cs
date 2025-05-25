@@ -7,12 +7,12 @@ namespace Pawfect_Pet_Adoption_App_API.Transactions
     {
         private readonly IMongoClient _mongoClient;
         private readonly ILogger<MongoTransactionFilter> _logger;
-        public int Order { get; set; } = 0; // Default order, can be overridden
+        public int Order { get; set; } = 0;
 
         public MongoTransactionFilter(IMongoClient mongoClient, ILogger<MongoTransactionFilter> logger)
         {
-            _mongoClient = mongoClient ?? throw new ArgumentNullException(nameof(mongoClient));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _mongoClient = mongoClient;
+            _logger = logger;
         }
 
         protected virtual Task OnPreRollback()
@@ -49,7 +49,7 @@ namespace Pawfect_Pet_Adoption_App_API.Transactions
                 context.HttpContext.Items["MongoSession"] = session;
 
                 // Execute the action
-                var resultContext = await next();
+                ActionExecutedContext resultContext = await next();
 
                 if (resultContext.Exception == null)
                 {

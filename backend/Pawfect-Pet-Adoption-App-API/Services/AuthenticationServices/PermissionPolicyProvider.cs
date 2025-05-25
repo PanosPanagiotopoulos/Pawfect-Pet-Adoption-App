@@ -50,6 +50,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                 .Any(p => p.Roles.Any(r => userRoles.Contains(r)));
         }
 
+        public IEnumerable<String> GetPermissionsAndAffiliatedForRoles(IEnumerable<String> userRoles)
+        {
+            return _config.Policies
+                .Where(p => p.Roles.Any(r => userRoles.Contains(r)) || ( p.AffiliatedRoles != null && p.AffiliatedRoles.Any(afRole => userRoles.Contains(afRole)) ) ) 
+                .Select(p => p.Permission)
+                .Distinct();
+        }
+
         public IEnumerable<String> GetPermissionsForRoles(IEnumerable<String> userRoles)
         {
             return _config.Policies
