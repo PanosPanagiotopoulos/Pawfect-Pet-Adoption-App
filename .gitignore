@@ -14,8 +14,8 @@ App/Main-API/Client/prompt.MD
 
 App/Main-API/Client/package-lock.json
 
-App/Main-API/Pawfect-Pet-Adoption-App-API/Configuration/environment.json
-App/Main-API/Pawfect-Pet-Adoption-App-API/.env
+App/Main-API/Configuration/environment.json
+App/Main-API/.env
 
 # Logs and Reports
 npm-debug.log*
@@ -28,7 +28,7 @@ pnpm-debug.log*
 .vs/
 .vscode/
 App/Main-API/Client/.vscode/
-App/Main-API/Pawfect-Pet-Adoption-App-API/.vscode/
+App/Main-API/.vscode/
 .idea/
 *.suo
 *.ntvs*
@@ -45,29 +45,29 @@ App/Main-API/Client/tailwind/
 App/Main-API/Pawfect-Search-Server/
 
 # C# Build Outputs
-App/Main-API/Pawfect-Pet-Adoption-App-API/bin/
-App/Main-API/Pawfect-Pet-Adoption-App-API/obj/
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.dll
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.exe
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.pdb
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.cache
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.pyo
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.pyc
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.pid
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.manifest
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.nupkg
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.local
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.config
-App/Main-API/Pawfect-Pet-Adoption-App-API/logs/
-App/Main-API/Pawfect-Pet-Adoption-App-API/PawfectUser_accessKeys.csv
+App/Main-API/bin/
+App/Main-API/obj/
+App/Main-API/*.dll
+App/Main-API/*.exe
+App/Main-API/*.pdb
+App/Main-API/*.cache
+App/Main-API/*.pyo
+App/Main-API/*.pyc
+App/Main-API/*.pid
+App/Main-API/*.manifest
+App/Main-API/*.nupkg
+App/Main-API/*.local
+App/Main-API/*.config
+App/Main-API/logs/
+App/Main-API/PawfectUser_accessKeys.csv
 
     
 # Entity Framework Migrations
-App/Main-API/Pawfect-Pet-Adoption-App-API/Migrations/
+App/Main-API/Migrations/
 
 # .NET User Secrets and App Settings
-App/Main-API/Pawfect-Pet-Adoption-App-API/appsettings.*.json
-App/Main-API/Pawfect-Pet-Adoption-App-API/appsettings.json
+App/Main-API/appsettings.*.json
+App/Main-API/appsettings.json
 
 # Windows & OS Specific Files
 Thumbs.db
@@ -93,5 +93,5 @@ dump/
 *.temp
 *.tmp
 App/Main-API/Client/*.txt
-App/Main-API/Pawfect-Pet-Adoption-App-API/*.txt
+App/Main-API/*.txt
 ~$*

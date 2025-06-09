@@ -1,0 +1,15 @@
+{
+  "UnverifiedUserCleanupTask": {
+    "Enable": false,
+    "WakeUpAfterSeconds": 3600, // 1 per day
+    "BatchSize": 100,
+    "DaysPrior": 1
+  },
+
+  "TemporaryFilesCleanupTask": {
+    "Enable": false,
+    "WakeUpAfterSeconds": 600, // 1 per 10 min
+    "BatchSize": 50,
+    "MinutesPrior": 60
+  }
+}

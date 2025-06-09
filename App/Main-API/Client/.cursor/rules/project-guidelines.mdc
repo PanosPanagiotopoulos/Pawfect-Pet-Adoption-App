@@ -1,0 +1,74 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: >
+  Angular project best practices including style guide adherence, syntax correctness, design patterns, performance, accessibility, and integration strategies.
+globs:
+  - "src/**/*.ts"
+  - "src/**/*.html"
+  - "src/**/*.css"
+  - "src/**/*.scss"
+  - "src/**/*.spec.ts"
+alwaysApply: true
+---
+
+- Adhere to the Angular Style Guide (e.g., component-based architecture, single responsibility principle).
+- Use PascalCase for class names (e.g., SearchComponent) and kebab-case for file names (e.g., search.component.ts).
+- Implement dependency injection via constructor injection.
+- Use OnPush change detection strategy for performance in components like SwipeCardComponent.
+- Include all necessary imports from @angular/* and other libraries (e.g., lucide-angular, rxjs).
+- Avoid unused imports and ensure TypeScript strict mode compliance.
+- Use interfaces and types for models (e.g., Animal, SearchSuggestion) as seen in src/app/models/.
+- Handle asynchronous operations with RxJS Observables, using pipeable operators like takeUntil, debounceTime.
+- Utilize Tailwind CSS utility classes as the primary styling method (e.g., bg-gradient-to-r, text-primary-500).
+- Incorporate Angular Material components (e.g., MatFormField, MatInput) where applicable.
+- Implement smooth animations using CSS keyframes (e.g., animate-gradient, animate-float) as in search.component.css.
+- Ensure responsive design with Tailwind’s responsive prefixes (e.g., sm:, lg:).
+- Use your custom color palette from tailwind.config.js (primary, secondary, accent).
+- Design standalone components like SwipeCardComponent and SavedAnimalsGridComponent for reuse.
+- Use @Input() for data input and @Output() for event emission (e.g., swipeLeft, swipeRight in SwipeCardComponent).
+- Place reusable components in src/app/ui/components/ with a clear naming convention.
+- Leverage Angular’s lifecycle hooks (e.g., ngOnInit, ngAfterViewInit) effectively.
+- Prefer Tailwind CSS utility classes over raw CSS where possible.
+- Define custom animations in global styles.css or component-specific CSS files (e.g., search.component.css).
+- Use CSS variables for theming (e.g., --color-primary) as in styles.css.
+- Ensure accessibility with proper contrast ratios and ARIA attributes.
+- Organize components in src/app/ui/components/ with subdirectories (e.g., search/components/).
+- Group related services, models, and utilities in src/app/services/, src/app/models/, and src/app/common/.
+- Use feature modules like SearchModule for lazy loading.
+- Follow Angular CLI conventions for generating files (e.g., ng generate component).
+- Use ErrorHandlerService for centralized error handling as in SearchComponent.
+- Display user-friendly error messages via ErrorDetails interface.
+- Log important events and errors using LogService.
+- Handle HTTP errors gracefully with RxJS catchError operator.
+- Use lazy loading for feature modules (e.g., SearchModule in search.module.ts).
+- Implement pagination with offset and pageSize as in SearchComponent.
+- Optimize animations to avoid performance bottlenecks (e.g., limit animation duration and complexity).
+- Use trackBy in *ngFor directives if lists grow large.
+- Sanitize user inputs in forms using Angular’s built-in security features.
+- Avoid exposing sensitive data (e.g., API keys) in client-side code.
+- Implement authentication guards when auth is enabled (currently disabled in config.json).
+- Write unit tests for components and services using Jasmine in src/**/*.spec.ts.
+- Ensure test configurations align with tsconfig.spec.json.
+- Test UI interactions like swipe gestures in SwipeCardComponent.
+- Add inline comments for complex logic (e.g., swipe mechanics in SwipeCardComponent).
+- Document component inputs, outputs, and methods with JSDoc.
+- Update src/index.html with relevant metadata if needed.
+- Use Angular’s i18n tools for Greek text (e.g., search.component.html).
+- Extract translatable strings with ng xi18n.
+- Provide language switcher if requested.
+- Follow WCAG 2.1 guidelines (e.g., sufficient color contrast in Tailwind palette).
+- Use semantic HTML in templates (e.g., h1, button in search.component.html).
+- Add ARIA attributes for dynamic content (e.g., swipe card states).
+- Use descriptive commit messages reflecting changes (e.g., 'feat: add swipe card component').
+- Organize changes in feature branches.
+- Use libraries like lucide-angular and ng-icons as seen in SearchModule.
+- Keep dependencies updated and documented in package.json.
+- Avoid deprecated APIs.
+- Use AnimalService for API calls with HttpClient as in SearchComponent.
+- Define API endpoints in config.json (e.g., appServiceAddress).
+- Handle pagination and filtering with AnimalLookup.
+

@@ -1,0 +1,48 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
+import { NgIconsModule } from '@ng-icons/core';
+import { AdoptionFormComponent } from './components/adoption-form/adoption-form.component';
+import { ShelterInfoComponent } from './components/shelter-info/shelter-info.component';
+import { AdoptComponent } from './adopt.component';
+import { NotFoundComponent } from '../not-found/not-found.component';
+import { FormInputComponent } from 'src/app/common/ui/form-input.component';
+import { TextAreaInputComponent } from 'src/app/common/ui/text-area-input.component';
+import { FileDropAreaComponent } from 'src/app/common/ui/file-drop-area.component';
+import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-banner.component';
+import { FormErrorSummaryComponent } from 'src/app/common/ui/form-error-summary.component';
+import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
+import { AuthGuard } from 'src/app/common/guards/auth.guard';
+import { Permission } from 'src/app/common/enum/permission.enum';
+
+@NgModule({
+  declarations: [
+    AdoptComponent,
+    AdoptionFormComponent,
+    ShelterInfoComponent
+  ],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NgIconsModule,
+    FormInputComponent,
+    TextAreaInputComponent,
+    FileDropAreaComponent,
+    ErrorMessageBannerComponent,
+    FormErrorSummaryComponent,
+    PetDetailsDialogComponent,
+    RouterModule.forChild([
+      { 
+        path: ':id', 
+        component: AdoptComponent,
+        canActivate: [AuthGuard],
+        data: {
+          permissions: [Permission.CreateAdoptionApplications]
+        }
+      },
+      { path: '**', component: NotFoundComponent }
+    ])
+  ]
+})
+export class AdoptModule { }

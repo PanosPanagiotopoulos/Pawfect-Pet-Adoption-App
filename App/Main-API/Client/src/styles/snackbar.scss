@@ -1,0 +1,63 @@
+// Snackbar animations
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+// Snackbar styles
+.mat-mdc-snack-bar-container {
+  &.error-snackbar {
+    --mdc-snackbar-container-color: #ef4444;
+    --mat-mdc-snack-bar-button-color: #fff;
+    --mdc-snackbar-supporting-text-color: #fff;
+  }
+
+  &.success-snackbar {
+    --mdc-snackbar-container-color: #22c55e;
+    --mat-mdc-snack-bar-button-color: #fff;
+    --mdc-snackbar-supporting-text-color: #fff;
+  }
+
+  &.warning-snackbar {
+    --mdc-snackbar-container-color: #f59e0b;
+    --mat-mdc-snack-bar-button-color: #fff;
+    --mdc-snackbar-supporting-text-color: #fff;
+  }
+
+  &.custom-snackbar {
+    --mdc-snackbar-container-color: transparent;
+    --mat-mdc-snack-bar-button-color: transparent;
+    --mdc-snackbar-supporting-text-color: transparent;
+  }
+}
+
+// Animation classes
+.animate__animated {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+.animate__fadeInDown {
+  animation-name: fadeInDown;
+}
+
+.animate__fadeOutUp {
+  animation-name: fadeOutUp;
+} 
