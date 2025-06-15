@@ -119,9 +119,9 @@ export class ErrorHandlerService {
           };
         }
         return {
-          title: 'Απαγορευμένη πρόσβαση',
-          message: 'Ο λογαριασμός σας έχει απενεργοποιηθεί.',
-          type: 'error',
+          "title": "Αποτυχία Πρόσβασης",
+          "message": "Παρακαλούμε ελέγξτε τα διαπιστευτήριά σας και δοκιμάστε ξανά.",
+          "type": "error"
         };
 
       case 404:

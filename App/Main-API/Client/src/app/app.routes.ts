@@ -25,10 +25,6 @@ export const routes: Routes = [
       import('./ui/components/search/search.module').then(
         (m) => m.SearchModule
       ),
-    canActivate: [AuthGuard],
-    data: {
-      permissions: [Permission.CanViewAnimals]
-    }
   },
   {
     path: 'adopt',

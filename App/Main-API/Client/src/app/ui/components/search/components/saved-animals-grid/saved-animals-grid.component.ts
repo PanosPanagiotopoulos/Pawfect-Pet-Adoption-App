@@ -7,10 +7,10 @@ import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/
 @Component({
   selector: 'app-saved-animals-grid',
   template: `
-    <div class="space-y-6">
-      <h2 *ngIf="animals?.length" class="text-2xl font-bold text-white">Αποθηκευμένα Κατοικίδια</h2>
+    <div class="space-y-8 lg:space-y-10">
+      <h2 *ngIf="animals?.length" class="text-2xl lg:text-3xl font-bold text-white">Αποθηκευμένα Κατοικίδια</h2>
       
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 max-w-[1600px] mx-auto">
         <app-animal-card
           *ngFor="let animal of animals"
           [animal]="animal!"

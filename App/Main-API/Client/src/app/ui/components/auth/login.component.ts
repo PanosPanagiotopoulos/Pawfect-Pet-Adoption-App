@@ -8,7 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { SignupStep } from './signup.component';
 import { LoggedAccount } from 'src/app/models/auth/auth.model';
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
-import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
+import { SnackbarService } from 'src/app/common/services/snackbar.service';
 
 @Component({
   selector: 'app-login',
@@ -18,14 +18,14 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
 export class LoginComponent extends BaseComponent implements OnInit {
   loginForm: FormGroup;
   isLoading = false;
-  error?: ErrorDetails;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
-    private readonly errorHandler: ErrorHandlerService
+    private readonly errorHandler: ErrorHandlerService,
+    private readonly snackbarService: SnackbarService
   ) {
     super();
     this.loginForm = this.fb.group({
@@ -37,7 +37,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
   ngOnInit(): void {
     this.authService.isLoggedIn().subscribe((isLoggedIn) => {
       if (isLoggedIn) {
-        this.router.navigate(['/']);
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+        this.router.navigateByUrl(returnUrl);
       }
     });
 
@@ -68,19 +69,23 @@ export class LoginComponent extends BaseComponent implements OnInit {
           sessionStorage.setItem('unverifiedEmail', this.authService.getUserEmail()!);
           this.navigateToEmailVerification();
         } else {
-          this.router.navigate(['/']);
+          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+          this.router.navigateByUrl(returnUrl);
         }
         this.isLoading = false;
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
-        this.error = this.errorHandler.handleAuthError(error);
+        const errorDetails = this.errorHandler.handleAuthError(error);
+        this.snackbarService.showError({
+          message: errorDetails.message,
+          subMessage: errorDetails.title
+        });
       },
     });
   }
 
   onSubmit(): void {
-    this.error = undefined;
     this.markFormGroupTouched(this.loginForm);
 
     if (this.loginForm.valid) {
@@ -98,13 +103,22 @@ export class LoginComponent extends BaseComponent implements OnInit {
             sessionStorage.setItem('unverifiedEmail', email);
             this.navigateToEmailVerification();
           } else {
-            this.router.navigate(['/']);
+            this.snackbarService.showSuccess({
+              message: 'Επιτυχής σύνδεση!',
+              subMessage: 'Καλώς ήρθατε πίσω!'
+            });
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+            this.router.navigateByUrl(returnUrl);
           }
           this.isLoading = false;
         },
         error: (error: HttpErrorResponse) => {
           this.isLoading = false;
-          this.error = this.errorHandler.handleAuthError(error);
+          const errorDetails = this.errorHandler.handleAuthError(error);
+          this.snackbarService.showError({
+            message: errorDetails.message,
+            subMessage: errorDetails.title
+          });
         },
       });
     }
@@ -129,7 +143,6 @@ export class LoginComponent extends BaseComponent implements OnInit {
   }
 
   loginWithGoogle(): void {
-    this.error = undefined;
     this.isLoading = true;
 
     this.authService
@@ -141,13 +154,17 @@ export class LoginComponent extends BaseComponent implements OnInit {
             sessionStorage.setItem('unverifiedEmail', this.authService.getUserEmail()!);
             this.navigateToEmailVerification();
           } else {
-            this.router.navigate(['/']);
+            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+            this.router.navigateByUrl(returnUrl);
           }
           this.isLoading = false;
         },
         error: (error) => {
           this.isLoading = false;
-          this.error = this.errorHandler.handleAuthError(error);
+          const errorDetails = this.errorHandler.handleAuthError(error);
+          this.snackbarService.showError({
+            message: errorDetails.message
+          });
         },
       });
   }

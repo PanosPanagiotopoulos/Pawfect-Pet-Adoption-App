@@ -3,7 +3,6 @@ import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { Permission } from '../enum/permission.enum';
 import { SnackbarService } from '../services/snackbar.service';
-import { UnauthorizedSnackbarComponent } from '../ui/unauthorized-snackbar.component';
 
 @Injectable({
   providedIn: 'root'
@@ -24,16 +23,29 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    // Check if user has any of the required permissions
-    const hasPermission = this.authService.hasAnyPermission(requiredPermissions);
+    const userLoggedIn: boolean = !!this.authService.getToken();
+    if (!userLoggedIn) {
+      // Show unauthorized error snackbar with custom message
+      this.snackbarService.showError({
+        message: 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα',
+        subMessage: 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
+      });
+    }
 
-    if (!hasPermission) {
-      // Show the cute unauthorized snackbar
-      this.snackbarService.showCustom(UnauthorizedSnackbarComponent, 3000);
+    // Check if user has any of the required permissions
+    if (userLoggedIn && !this.authService.hasAnyPermission(requiredPermissions)) {
+      // Show unauthorized error snackbar with custom message
+      this.snackbarService.showError({
+        message: 'Δεν έχετε τα απαραίτητα δικαιώματα για αυτή τη σελίδα',
+        subMessage: this.authService.getToken() ? 'Θα σας μεταφέρουμε στη σελίδα 404' : 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
+      });
 
       // Navigate to 404 page after a short delay to allow the snackbar to be seen
       setTimeout(() => {
-        this.router.navigate(['/404']);
+        const redirectUrl = this.authService.getToken() ? '/404' : '/auth/login';
+        this.router.navigate([redirectUrl], {
+              queryParams: { returnUrl: this.router.url }
+            });
       }, 1000);
 
       return false;

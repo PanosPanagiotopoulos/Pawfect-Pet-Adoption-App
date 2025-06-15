@@ -14,6 +14,7 @@ import { takeUntil } from 'rxjs';
 import { UserService } from 'src/app/services/user.service';
 import { nameof } from 'ts-simple-nameof';
 import { File } from 'src/app/models/file/file.model';
+import { SnackbarService } from 'src/app/common/services/snackbar.service';
 
 @Component({
   selector: 'app-header',
@@ -41,7 +42,8 @@ export class HeaderComponent extends BaseComponent {
   constructor(
     private authService: AuthService,
     private userService: UserService,
-    private router: Router
+    private router: Router,
+    private snackbarService: SnackbarService
   ) {
     super();
 
@@ -87,13 +89,19 @@ export class HeaderComponent extends BaseComponent {
         next: () => {
           this.isUserMenuOpen = false;
           const currentUrl = this.router.url;
-          this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-            this.router.navigate([currentUrl]);
+          this.router.navigateByUrl(currentUrl);
+          this.snackbarService.showSuccess({
+            message: 'Αποσυνδεθήκατε με επιτυχία',
+            subMessage: 'Ελπίζουμε να σας δούμε σύντομα!'
           });
         },
         error: (error) => {
           console.error('Logout error:', error);
           this.router.navigate(['/']);
+          this.snackbarService.showError({
+            message: 'Παρουσιάστηκε σφάλμα κατά την αποσύνδεση',
+            subMessage: 'Παρακαλώ δοκιμάστε ξανά'
+          });
         },
         complete: () => {
           this.closeMobileMenu();

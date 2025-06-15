@@ -13,6 +13,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
 import { AuthGuard } from 'src/app/common/guards/auth.guard';
 import { Permission } from 'src/app/common/enum/permission.enum';
+import { InstructionsModalComponent } from 'src/app/common/ui/instructions-modal/instructions-modal.component';
 
 @NgModule({
   declarations: [
@@ -30,12 +31,12 @@ import { Permission } from 'src/app/common/enum/permission.enum';
     PetDetailsDialogComponent,
     NgIconsModule,
     RouterModule,
+    InstructionsModalComponent,
     RouterModule.forChild([
       { 
         path: '', 
-        component: SearchComponent,
-      },
-      { path: '**', component: NotFoundComponent },
+        component: SearchComponent
+      }
     ]),
   ],
   exports: [

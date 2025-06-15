@@ -27,24 +27,54 @@
     --mdc-snackbar-container-color: #ef4444;
     --mat-mdc-snack-bar-button-color: #fff;
     --mdc-snackbar-supporting-text-color: #fff;
+    border-left: 4px solid #dc2626;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2), 0 2px 4px -1px rgba(239, 68, 68, 0.1);
   }
 
   &.success-snackbar {
     --mdc-snackbar-container-color: #22c55e;
     --mat-mdc-snack-bar-button-color: #fff;
     --mdc-snackbar-supporting-text-color: #fff;
+    border-left: 4px solid #16a34a;
+    box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.2), 0 2px 4px -1px rgba(34, 197, 94, 0.1);
   }
 
   &.warning-snackbar {
     --mdc-snackbar-container-color: #f59e0b;
     --mat-mdc-snack-bar-button-color: #fff;
     --mdc-snackbar-supporting-text-color: #fff;
+    border-left: 4px solid #d97706;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.2), 0 2px 4px -1px rgba(245, 158, 11, 0.1);
   }
 
   &.custom-snackbar {
-    --mdc-snackbar-container-color: transparent;
-    --mat-mdc-snack-bar-button-color: transparent;
-    --mdc-snackbar-supporting-text-color: transparent;
+    --mdc-snackbar-container-color: rgba(31, 41, 55, 0.95);
+    --mat-mdc-snack-bar-button-color: #fff;
+    --mdc-snackbar-supporting-text-color: #fff;
+    border-left: 4px solid #4b5563;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  // Common styles for all snackbars
+  .mdc-snackbar__surface {
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    min-width: 300px;
+    max-width: 500px;
+  }
+
+  .mdc-snackbar__label {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+  }
+
+  .mat-mdc-snack-bar-action {
+    margin-left: 0.5rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.025em;
   }
 }
 

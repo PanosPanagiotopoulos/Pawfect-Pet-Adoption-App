@@ -114,7 +114,7 @@ import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
 })
 export class AdoptionFormComponent {
   @Input() animal!: Animal;
-  @Output() applicationSubmitted = new EventEmitter<boolean>();
+  @Output() applicationSubmitted = new EventEmitter<string>();
   @ViewChild('formContainer') formContainer!: ElementRef;
 
   applicationForm: FormGroup;
@@ -193,14 +193,14 @@ export class AdoptionFormComponent {
           [nameof<AdoptionApplication>(x => x.attachedFiles), nameof<File>(x => x.fileType)].join('.'),
         ]
       ).subscribe({
-        next: () => {
+        next: (model: AdoptionApplication) => {
           this.isSubmitting = false;
-          this.applicationSubmitted.emit(true);
+          this.applicationSubmitted.emit(model.id);
         },
         error: (error) => {
           this.isSubmitting = false;
           this.error = this.errorHandler.handleError(error);
-          this.applicationSubmitted.emit(false);
+          this.applicationSubmitted.emit('');
         }
       });
     } else {

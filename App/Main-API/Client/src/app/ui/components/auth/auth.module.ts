@@ -63,7 +63,6 @@ import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-ban
         component: ResetPasswordRequestComponent,
       },
       { path: 'reset-password', component: ResetPasswordComponent },
-      { path: '**', component: NotFoundComponent },
     ]),
     FormInputComponent,
     TextAreaInputComponent,

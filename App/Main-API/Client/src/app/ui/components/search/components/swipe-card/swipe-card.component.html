@@ -1,4 +1,4 @@
-<div class="relative w-full h-[700px] overflow-hidden" #container>
+<div class="relative w-full h-[600px] lg:h-[680px] max-w-sm md:max-w-md lg:max-w-xl mx-auto overflow-hidden" #container>
   <!-- Loading State -->
   <div *ngIf="isLoading" class="absolute inset-0 flex items-center justify-center z-10">
     <div class="relative">
@@ -22,7 +22,7 @@
     <!-- Card Content -->
     <div class="relative h-full flex flex-col">
       <!-- Image Container -->
-      <div class="h-[55%] relative overflow-hidden">
+      <div class="h-[60%] relative overflow-hidden">
         <img
           [src]="currentImageUrl"
           [alt]="animal.name"
@@ -98,7 +98,7 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex justify-center space-x-6 mt-4">
+        <div class="flex justify-center space-x-20 mt-4">
           <button
             (click)="onDislike()"
             class="action-button p-4 bg-red-500/10 hover:bg-red-500/20 rounded-full transition-all duration-300 group shadow-lg"

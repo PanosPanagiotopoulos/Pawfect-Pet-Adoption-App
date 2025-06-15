@@ -148,3 +148,123 @@ html {
 .mat-input-element {
   color: white !important;
 }
+
+.error-snackbar {
+  background-color: #f44336;
+  color: white;
+}
+.success-snackbar {
+  background-color: #4caf50;
+  color: white;
+}
+.warning-snackbar {
+  background-color: #ff9800;
+  color: white;
+}
+.custom-snackbar {
+  /* Add custom styles without positioning */
+}
+/* Ensure positioning isn't overridden */
+.mat-snack-bar-container {
+  /* Optional: reinforce positioning if needed */
+  top: 0 !important;
+  right: 0 !important;
+}
+
+/* Snackbar Styles */
+.mat-mdc-snack-bar-container {
+  &.custom-snackbar {
+    --mdc-snackbar-container-color: transparent;
+    --mat-mdc-snack-bar-button-color: transparent;
+    --mdc-snackbar-supporting-text-color: transparent;
+  }
+}
+
+/* Snackbar container styles */
+.mat-mdc-snack-bar-container {
+  &.error-snackbar,
+  &.success-snackbar,
+  &.warning-snackbar,
+  &.unauthorized-snackbar,
+  &.custom-snackbar {
+    --mdc-snackbar-container-color: transparent !important;
+    --mat-mdc-snack-bar-button-color: white !important;
+    --mdc-snackbar-supporting-text-color: white !important;
+    margin-top: 1rem !important;
+  }
+
+  /* Specific styles for unauthorized snackbar */
+  &.unauthorized-snackbar {
+    .mdc-snackbar__surface {
+      background-color: rgba(31, 41, 55, 0.95) !important;
+      border-left: 4px solid #ef4444 !important;
+    }
+  }
+
+  /* Ensure text is visible */
+  .mdc-snackbar__surface {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .mdc-snackbar__label {
+    color: white !important;
+    padding: 0 !important;
+  }
+}
+
+/* Ensure proper positioning */
+.mat-mdc-snack-bar-container {
+  position: fixed !important;
+  top: 5rem !important;
+  right: 1rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: 400px !important;
+  min-width: 300px !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure snackbars are always on top */
+.cdk-overlay-pane {
+  z-index: 9999 !important;
+  position: fixed !important;
+  top: 5rem !important;
+  right: 1rem !important;
+}
+
+/* Snackbar Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.animate__animated {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+
+.animate__fadeInDown {
+  animation-name: slideInRight;
+}
+
+.animate__fadeOutUp {
+  animation-name: slideOutRight;
+}

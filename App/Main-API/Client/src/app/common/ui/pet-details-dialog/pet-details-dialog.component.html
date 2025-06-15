@@ -31,11 +31,11 @@
         <!-- Close Button -->
         <button 
         (click)="onClose()"
-          class="absolute top-4 right-4 p-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-full transition-all duration-300 group shadow-lg flex items-center justify-center">
+          class="absolute top-4 right-4 p-2.5 bg-red-600 hover:bg-red-700 rounded-full transition-all duration-300 group shadow-lg flex items-center justify-center">
           <ng-icon 
             name="lucideX" 
             [size]="'24'" 
-            class="text-red-400 transform transition-transform group-hover:scale-110">
+            class="text-white transform transition-transform group-hover:scale-110">
           </ng-icon>
         </button>
         
@@ -98,8 +98,16 @@
           </div>
           <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">
             <div class="text-sm text-gray-400 mb-1">Φύλο</div>
-            <div class="text-white font-medium">
-              {{ animal.gender === 1 ? 'Αρσενικό' : animal.gender === 2 ? 'Θηλυκό' : animal.gender || 'Μη διαθέσιμο' }}
+            <div class="flex items-center space-x-2">
+              <div 
+                class="w-6 h-6 rounded-full flex items-center justify-center" 
+                [ngClass]="{'bg-blue-500/25': animal.gender === 1, 'bg-pink-500/25': animal.gender === 2}">
+                <ng-icon 
+                  [name]="animal.gender === 1 ? 'lucideMars' : 'lucideVenus'" 
+                  [size]="'14'" 
+                  [class]="animal.gender === 1 ? 'text-blue-400' : 'text-pink-400'">
+                </ng-icon>
+              </div>
             </div>
           </div>
           <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">

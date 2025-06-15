@@ -244,7 +244,7 @@ export class AdoptComponent extends BaseComponent implements OnInit {
   isLoading = true;
   error?: ErrorDetails;
   isDialogOpen = false;
-  isShelterInfoOpen = false;
+  isShelterInfoOpen = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -315,9 +315,9 @@ export class AdoptComponent extends BaseComponent implements OnInit {
     });
   }
 
-  onApplicationSubmitted(success: boolean) {
-    if (success) {
-      this.router.navigate(['/search']);
+  onApplicationSubmitted(id: string) {
+    if (id) {
+      this.router.navigate([`/profile/adoption-applications/${id}`]);
     }
   }
 

@@ -38,7 +38,12 @@ import {
   lucideMailbox,
   lucideChevronUp,
   lucideChevronDown,
-  lucideHousePlus
+  lucideHousePlus,
+  lucideUsers, 
+  lucideRuler, 
+  lucideBuilding,
+  lucideCircle,
+  lucideCircleHelp,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -108,7 +113,12 @@ export function initializeApp(
       lucideMailbox,
       lucideChevronUp,
       lucideChevronDown,
-      lucideHousePlus
+      lucideHousePlus,
+      lucideUsers, 
+      lucideRuler, 
+      lucideBuilding,
+      lucideCircleHelp,
+      lucideCircle
     }),
     HeaderComponent,
   ],

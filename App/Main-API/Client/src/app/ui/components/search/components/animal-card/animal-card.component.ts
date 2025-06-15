@@ -24,44 +24,44 @@ import { UtilsService } from 'src/app/common/services/utils.service';
         <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-transparent"></div>
         
         <!-- Type Badge -->
-        <div class="absolute top-2 left-2 px-2 py-1 bg-primary-500/90 backdrop-blur-sm rounded-full text-white text-xs font-medium">
+        <div class="absolute top-3 left-3 px-3 py-1.5 bg-primary-500/90 backdrop-blur-sm rounded-full text-white text-sm font-medium">
           {{ animal.animalType?.name }}
         </div>
 
         <!-- Info Button -->
         <button 
           (click)="onInfoClick()"
-          class="action-button absolute top-2 right-2 p-2 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full transition-all duration-300 shadow-lg">
-          <ng-icon name="lucideInfo" [size]="'18'" class="text-white stroke-[2.5px]"></ng-icon>
+          class="action-button absolute top-3 right-3 p-2.5 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full transition-all duration-300 shadow-lg">
+          <ng-icon name="lucideInfo" [size]="'22'" class="text-white stroke-[2.5px]"></ng-icon>
         </button>
       </div>
 
       <!-- Content -->
-      <div class="p-4">
+      <div class="p-5">
         <!-- Name and Age -->
-        <div class="flex items-center justify-between mb-2">
-          <h3 *ngIf="animal.name" class="text-lg font-semibold text-white">{{ animal.name }}</h3>
-          <span *ngIf="animal.age" class="text-sm font-medium text-primary-400">{{ animal.age }} ετών</span>
+        <div class="flex items-center justify-between mb-3">
+          <h3 *ngIf="animal.name" class="text-xl font-semibold text-white">{{ animal.name }}</h3>
+          <span *ngIf="animal.age" class="text-base font-medium text-primary-400">{{ animal.age }} ετών</span>
         </div>
         
         <!-- Details -->
-        <div class="flex flex-wrap gap-2">
-          <span class="px-2 py-0.5 bg-white/10 rounded-full text-xs text-gray-300" *ngIf="animal.breed">
+        <div class="flex flex-wrap gap-3">
+          <span class="px-3 py-1 bg-white/10 rounded-full text-sm text-gray-300" *ngIf="animal.breed">
             {{ animal.breed.name }}
           </span>
-          <span class="px-2 py-0.5 bg-white/10 rounded-full text-xs text-gray-300" *ngIf="animal.weight">
+          <span class="px-3 py-1 bg-white/10 rounded-full text-sm text-gray-300" *ngIf="animal.weight">
             {{ animal.weight + ' kg' }} 
           </span>
         </div>
 
         <!-- Description Preview -->
-        <p class="mt-2 text-xs text-gray-400 line-clamp-2">{{ animal.description || 'Περιγραφή μη διαθέσιμη' }}</p>
+        <p class="mt-3 text-sm text-gray-400 line-clamp-2">{{ animal.description || 'Περιγραφή μη διαθέσιμη' }}</p>
 
         <!-- Adopt Button (visible on hover) -->
-        <div class="absolute inset-x-0 bottom-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent">
+        <div class="absolute inset-x-0 bottom-0 p-5 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent">
           <button 
             (click)="navigateToAdoption($event)"
-            class="w-full py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
+            class="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white text-base font-medium rounded-lg hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
           >
             Υιοθέτησε με τώρα!
           </button>
