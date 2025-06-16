@@ -1,19 +1,21 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Controllers
-{
+﻿namespace Main_API.Controllers 
+{ 
 	using AutoMapper;
-    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
-    using Pawfect_Pet_Adoption_App_API.Censors;
-    using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-	using Pawfect_Pet_Adoption_App_API.DevTools;
-    using Pawfect_Pet_Adoption_App_API.Exceptions;
-    using Pawfect_Pet_Adoption_App_API.Models;
-	using Pawfect_Pet_Adoption_App_API.Models.Authorization;
-	using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-    using Pawfect_Pet_Adoption_App_API.Services.Convention;
-    using Pawfect_Pet_Adoption_App_API.Services.UserServices;
-    using Pawfect_Pet_Adoption_App_API.Transactions;
+    using Main_API.Censors;
+    using Main_API.Data.Entities;
+    using Main_API.Data.Entities.EnumTypes;
+	using Main_API.DevTools;
+    using Main_API.Exceptions;
+    using Main_API.Models;
+	using Main_API.Models.Authorization;
+    using Main_API.Query.Interfaces;
+    using Main_API.Services.AuthenticationServices;
+    using Main_API.Services.Convention;
+    using Main_API.Services.CookiesServices;
+    using Main_API.Services.UserServices;
+    using Main_API.Transactions;
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
 
@@ -30,14 +32,23 @@
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly ClaimsExtractor _claimsExtractor;
         private readonly IConventionService _conventionService;
+        private readonly IRefreshTokenRepository _refreshTokenRepository;
+        private readonly ICookiesService _cookiesService;
 
-        public AuthController(
-			IUserService userService, ILogger<AuthController> logger
-			, JwtService jwtService, Services.AuthenticationServices.IAuthenticationService authService
-			, IMapper mapper, PermissionPolicyProvider permissionPolicyProvider,
-			IAuthorizationContentResolver AuthorizationContentResolver, ClaimsExtractor claimsExtractor,
-			IConventionService conventionService 
-            )
+        public AuthController
+		(
+			IUserService userService, 
+			ILogger<AuthController> logger, 
+			JwtService jwtService, 
+			Services.AuthenticationServices.IAuthenticationService authService,
+			IMapper mapper, 
+			PermissionPolicyProvider permissionPolicyProvider,
+			IAuthorizationContentResolver AuthorizationContentResolver, 
+			ClaimsExtractor claimsExtractor,
+			IConventionService conventionService, 
+			IRefreshTokenRepository refreshTokenRepository,
+			ICookiesService cookiesService
+        )
 		{
 			_userService = userService;
 			_logger = logger;
@@ -48,6 +59,8 @@
             _authorizationContentResolver = AuthorizationContentResolver;
             _claimsExtractor = claimsExtractor;
             _conventionService = conventionService;
+            _refreshTokenRepository = refreshTokenRepository;
+            _cookiesService = cookiesService;
         }
 
 		/// <summary>
@@ -65,6 +78,8 @@
 				(loginEmail, loginCredential) = await _userService.RetrieveGoogleCredentials(payload.ProviderAccessCode);
 
             Data.Entities.User user = await _userService.RetrieveUserAsync(null, loginEmail);
+			if (user == null) throw new NotFoundException();
+
 
 			String toCheckCredential = _userService.ExtractUserCredential(user);
 
@@ -77,69 +92,127 @@
             List<String> userRoles = [.. user.Roles.Select(roleEnum => roleEnum.ToString())];
             List<String> permissions = [.. _permissionPolicyProvider.GetPermissionsAndAffiliatedForRoles(userRoles)];
 
-            String? token = _jwtService.
-							GenerateJwtToken
-							(
-								user.Id, 
-								user.Email,
-								userRoles
-							);
+            // Delete cookies (in case there where any)
+            _cookiesService.DeleteCookie(JwtService.ACCESS_TOKEN);
+            _cookiesService.DeleteCookie(JwtService.REFRESH_TOKEN);
 
+            // ** TOKENS ** //
+            String? token = _jwtService.GenerateJwtToken(user.Id, user.Email, userRoles, user.IsVerified);
 			if (String.IsNullOrEmpty(token))
 				throw new InvalidOperationException("Failed to create token");
 
+            RefreshToken refreshToken = _jwtService.GenerateRefreshToken(user.Id, HttpContext.Connection.RemoteIpAddress?.ToString());
+            if (String.IsNullOrEmpty(await _refreshTokenRepository.AddAsync(refreshToken)))
+                throw new InvalidOperationException("Failed to create refresh token");
+
+			// ** COOKIES ** //
+			_cookiesService.AddCookie(JwtService.ACCESS_TOKEN, token, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
+            _cookiesService.AddCookie(JwtService.REFRESH_TOKEN, refreshToken.Token, refreshToken.ExpiresAt);
+
+			// ** ACCOUNT SERVE ** //
             return Ok(
-						new LoggedAccount() 
-						{   Token = token, 
-							Phone = user.Phone, 
-							Roles = userRoles, 
-							Permissions = permissions,
-							LoggedAt = DateTime.UtcNow, 
-							IsEmailVerified = user.HasEmailVerified, 
-							IsPhoneVerified = user.HasPhoneVerified, 
-							IsVerified = user.IsVerified 
-						}
-					);
+				new LoggedAccount() 
+				{   
+					Email = user.Email,
+                    Phone = user.Phone, 
+					Roles = userRoles, 
+					Permissions = permissions,
+					LoggedAt = DateTime.UtcNow, 
+					IsEmailVerified = user.HasEmailVerified, 
+					IsPhoneVerified = user.HasPhoneVerified, 
+					IsVerified = user.IsVerified 
+				}
+			);
 		}
 
-		/// <summary>
-		/// Συνάρτηση για την εκτέλεση αποσύνδεσης χρήστη
-		/// </summary>
-		[HttpPost("logout")]
-		[Authorize]
-		public IActionResult Logout()
-		{
-			String? authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+        [HttpPost("refresh")]
+        public async Task<IActionResult> RefreshToken()
+        {
+            String? refreshTokenString = Request.Cookies[JwtService.REFRESH_TOKEN];
+            if (String.IsNullOrEmpty(refreshTokenString))
+                return BadRequest("Refresh token is missing");
 
-			if (String.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-			{
-				ModelState.AddModelError("error", "Απουσία σωστής γραφής αυθεντικοποίησης token");
-				return BadRequest(ModelState);
-			}
+            RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString);
+            if (refreshToken == null || refreshToken.ExpiresAt < DateTime.UtcNow)
+                return Unauthorized("Invalid or expired refresh token");
 
-			String? token = authHeader.Substring("Bearer ".Length).Trim();
+            // ** ACCOUNT ** //
+            String userId = refreshToken.LinkedTo;
+            Data.Entities.User user = await _userService.RetrieveUserAsync(userId, null);
+            if (user == null) return Unauthorized("User not found");
 
-			if (String.IsNullOrEmpty(token))
-			{
-				ModelState.AddModelError("error", "Απουσία token αυθεντικοποιημένου χρήστη");
-				return BadRequest(ModelState);
-			}
+            List<String> userRoles = [.. user.Roles.Select(roleEnum => roleEnum.ToString())];
 
-			JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-			JwtSecurityToken jwtToken = handler.ReadJwtToken(token);
+            String newAccessToken = _jwtService.GenerateJwtToken(user.Id, user.Email, userRoles, user.IsVerified);
+            if (String.IsNullOrEmpty(newAccessToken))
+                throw new InvalidOperationException("Failed to create token");
 
-			String? tokenId = jwtToken.Id;
-			if (String.IsNullOrEmpty(tokenId))
-				throw new ArgumentException("Failed to find user id on authentication token");
+			// ** COOKIES ** //
+            _cookiesService.AddCookie(JwtService.ACCESS_TOKEN, newAccessToken, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
 
-			DateTime? expiration = jwtToken.ValidTo;
-			if (!expiration.HasValue)
-                throw new ArgumentException("Failed to find expiration date on authentication token");
+            return Ok(new LoggedAccount
+            {
+                Email = user.Email,
+                Phone = user.Phone,
+                Roles = userRoles,
+                Permissions = [.. _permissionPolicyProvider.GetPermissionsAndAffiliatedForRoles(userRoles)],
+                LoggedAt = DateTime.UtcNow,
+                IsEmailVerified = user.HasEmailVerified,
+                IsPhoneVerified = user.HasPhoneVerified,
+                IsVerified = user.IsVerified
+            });
+        }
 
+        /// <summary>
+        /// Συνάρτηση για την εκτέλεση αποσύνδεσης χρήστη
+        /// </summary>
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            // Extract access token from cookie
+            String? token = Request.Cookies[JwtService.ACCESS_TOKEN];
+            if (String.IsNullOrEmpty(token)) return Unauthorized("Access token is missing");
+
+            // Validate and parse the token
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+            JwtSecurityToken jwtToken;
+            try
+            {
+                jwtToken = handler.ReadJwtToken(token);
+            }
+            catch (Exception)
+            {
+                return Unauthorized("Invalid access token");
+            }
+
+            // Extract token ID (jti)
+            String? tokenId = jwtToken.Id;
+            if (String.IsNullOrEmpty(tokenId))
+                return Unauthorized("Failed to find token ID in access token");
+
+            // Extract expiration
+            DateTime? expiration = jwtToken.ValidTo;
+            if (!expiration.HasValue)
+                return Unauthorized("Failed to find expiration date in access token");
+
+            // Revoke the token
             _jwtService.RevokeToken(tokenId, expiration.Value);
 
-			return Ok();
-		}
+            // Handle refresh token deletion
+            String? refreshTokenString = Request.Cookies[JwtService.REFRESH_TOKEN];
+            if (!String.IsNullOrEmpty(refreshTokenString))
+            {
+                RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString);
+                if (refreshToken != null) await _refreshTokenRepository.DeleteAsync(refreshToken);
+
+				// Delete cookies
+				_cookiesService.DeleteCookie(JwtService.ACCESS_TOKEN);
+                _cookiesService.DeleteCookie(JwtService.REFRESH_TOKEN);
+            }
+
+            return Ok();
+        }
 
         [HttpPost("me")]
         [Authorize]
@@ -153,16 +226,16 @@
             String userId = _claimsExtractor.CurrentUserId(currentUser);
             if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
 
-            // Get token from ClaimsPrincipal's underlying token
-            String? token = HttpContext.GetTokenAsync("Bearer", "access_token").Result;
+            // ** TOKENS ** //
+            String? token = Request.Cookies[JwtService.ACCESS_TOKEN];
             if (String.IsNullOrEmpty(token))
-                throw new ForbiddenException("No token found for the user");
+                throw new UnAuthenticatedException("No access token found for the user");
 
+            // ** ACCOUNT DATA ** //
             // Retrieve user from database for additional details
             Data.Entities.User user = await _userService.RetrieveUserAsync(userId, null);
             if (user == null)
                 throw new NotFoundException("Authorized user not found");
-            
 
             // Get roles and permissions
             List<String> userRoles = user.Roles?.Select(roleEnum => roleEnum.ToString()).ToList() ?? new List<String>();
@@ -172,7 +245,7 @@
             // Return LoggedAccount
             return Ok(new LoggedAccount()
             {
-                Token = token,
+                Email = user.Email,
                 Phone = user.Phone,
                 Roles = userRoles,
                 Permissions = permissions,

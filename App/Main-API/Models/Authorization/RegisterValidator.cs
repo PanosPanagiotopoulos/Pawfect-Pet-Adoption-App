@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 
-using Pawfect_Pet_Adoption_App_API.Models.Shelter;
-using Pawfect_Pet_Adoption_App_API.Models.User;
+using Main_API.Models.Shelter;
+using Main_API.Models.User;
 
-namespace Pawfect_Pet_Adoption_App_API.Models
+namespace Main_API.Models
 {
 	public class RegisterValidator : AbstractValidator<RegisterPersist>
 	{

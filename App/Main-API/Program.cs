@@ -3,42 +3,45 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.BackgroundTasks.TemporaryFilesCleanupTask.Extensions;
-using Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask.Extensions;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Middleware;
-using Pawfect_Pet_Adoption_App_API.Middlewares;
-using Pawfect_Pet_Adoption_App_API.Models;
-using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.AnimalServices.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.AwsServices.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.BreedServices.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.Convention.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.ConversationServices.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.EmailServices.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.FileServices.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.FilterServices.Extensions;
-using Pawfect_Pet_Adoption_App_API.Services.HttpServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.MessageServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.NotificationServices.Extention;
-using Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.ReportServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.SearchServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.ShelterServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.SmsServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.UserServices.Extentions;
-using Pawfect_Pet_Adoption_App_API.Services.ValidationServices.Extentions;
+using Main_API.BackgroundTasks.TemporaryFilesCleanupTask.Extensions;
+using Main_API.BackgroundTasks.UnverifiedUserCleanupTask.Extensions;
+using Main_API.Data.Entities.Types.Authentication;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Data.Entities.Types.Cache;
+using Main_API.DevTools;
+using Main_API.Middleware;
+using Main_API.Middlewares;
+using Main_API.Models;
+using Main_API.Services.AdoptionApplicationServices.Extention;
+using Main_API.Services.AnimalServices.Extention;
+using Main_API.Services.AnimalTypeServices.Extentions;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.AuthenticationServices.Extentions;
+using Main_API.Services.AwsServices.Extention;
+using Main_API.Services.BreedServices.Extention;
+using Main_API.Services.Convention.Extention;
+using Main_API.Services.ConversationServices.Extention;
+using Main_API.Services.CookiesServices.Extensions;
+using Main_API.Services.EmailServices.Extention;
+using Main_API.Services.FileServices.Extention;
+using Main_API.Services.FilterServices.Extensions;
+using Main_API.Services.HttpServices.Extentions;
+using Main_API.Services.MessageServices.Extentions;
+using Main_API.Services.MongoServices.Extentions;
+using Main_API.Services.NotificationServices.Extention;
+using Main_API.Services.QueryServices.Extentions;
+using Main_API.Services.ReportServices.Extentions;
+using Main_API.Services.SearchServices.Extentions;
+using Main_API.Services.ShelterServices.Extentions;
+using Main_API.Services.SmsServices.Extentions;
+using Main_API.Services.UserServices.Extentions;
+using Main_API.Services.ValidationServices.Extentions;
 
 using Serilog;
 
 using System.Text;
+using Main_API.BackgroundTasks.RefreshTokensCleanupTask.Extensions;
+using Pawfect_Pet_Adoption_App_API.Middlewares;
 
 public class Program
 {
@@ -85,6 +88,8 @@ public class Program
 		AddConfigurationFiles(configBuilder, configurationPaths, "files", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "permissions", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "background_tasks", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "profile-fields", env);
+
 
         // Load environment variables from 'environment.json'
         foreach (String path in configurationPaths)
@@ -167,14 +172,21 @@ public class Program
 		.AddSearchServices()
 		.AddShelterServices()
 		.AddSmsServices(builder.Configuration.GetSection("SmsService"))
-		.AddUserServices()
+		.AddUserServices(builder.Configuration.GetSection("UserFields"))
 		.AddConventionServices()
 		.AddAwsServices(builder.Configuration.GetSection("Aws"))
 		.AddFileServices(builder.Configuration.GetSection("Files"))
 		.AddFilterBuilderServices()
 		.AddUnverifiedUserCleanupTask(builder.Configuration.GetSection("BackgroundTasks:UnverifiedUserCleanupTask"))
-		.AddTemporaryFilesCleanupTask(builder.Configuration.GetSection("BackgroundTasks:TemporaryFilesCleanupTask"));
+		.AddTemporaryFilesCleanupTask(builder.Configuration.GetSection("BackgroundTasks:TemporaryFilesCleanupTask"))
+        .AddRefreshTokenCleanupTask(builder.Configuration.GetSection("BackgroundTasks:RefreshTokenCleanupTask"))
+        .AddCookiesServices();
 
+        //builder.WebHost.ConfigureKestrel(serverOptions =>
+        //{
+        //    serverOptions.ListenAnyIP(7200); // for HTTP
+        //    serverOptions.ListenAnyIP(7201, listenOptions => listenOptions.UseHttps()); // for HTTPS
+        //});
 
         // CORS
         List<String> allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<List<String>>() ?? new List<String>();
@@ -182,9 +194,10 @@ public class Program
 		{
 			options.AddPolicy("Cors", policyBuilder =>
 			{
-				policyBuilder.WithOrigins(allowedOrigins.ToArray())
+				policyBuilder.WithOrigins([.. allowedOrigins])
 							 .WithMethods("GET", "POST", "PUT", "DELETE")
-							 .AllowAnyHeader();
+							 .AllowAnyHeader()
+							 .AllowCredentials();
 			});
 		});
 
@@ -197,7 +210,8 @@ public class Program
 		})
 		.AddJwtBearer(options =>
 		{
-			options.RequireHttpsMetadata = true;
+			// TODO: In prod be true
+			options.RequireHttpsMetadata = false;
 			options.SaveToken = true;
 			options.TokenValidationParameters = new TokenValidationParameters
 			{
@@ -211,18 +225,17 @@ public class Program
 			};
 			options.Events = new JwtBearerEvents
 			{
-				OnTokenValidated = context =>
-				{
-					String tokenId = context.SecurityToken.Id;
-					JwtService revokedTokensService = context.HttpContext.RequestServices.GetRequiredService<JwtService>();
-
-					if (revokedTokensService.IsTokenRevoked(tokenId))
-					{
-						context.Fail("This token has been revoked.");
-					}
-					return Task.CompletedTask;
-				}
-			};
+                OnMessageReceived = context =>
+                {
+                    
+					String? token = context.Request.Cookies[JwtService.ACCESS_TOKEN];
+                    if (!String.IsNullOrEmpty(token))
+                    {
+                        context.Token = token;
+                    }
+                    return Task.CompletedTask;
+                }
+            };
 		});
 
         // Authorization
@@ -256,10 +269,16 @@ public class Program
         });
 
         // Memory Cache
-        builder.Services.AddMemoryCache();
+        builder.Services.AddMemoryCache(options =>
+        {
+            // scan for expired entries every 5 mins
+            options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
+            // when over limit, remove 20% of cache entries
+            options.CompactionPercentage = 0.2; 
+        });
 
-		// Swagger
-		builder.Services.AddEndpointsApiExplorer();
+        // Swagger
+        builder.Services.AddEndpointsApiExplorer();
 		builder.Services.AddSwaggerGen(options =>
 		{
 			options.SwaggerDoc("v1", new OpenApiInfo { Title = "Pawfect Pet Adoption API", Version = "v1" });
@@ -276,17 +295,21 @@ public class Program
 			app.UseDeveloperExceptionPage();
 		}
 
-		app.UseHttpsRedirection();
+		// TODO
+		if (!app.Environment.IsDevelopment())
+		{
+            app.UseHttpsRedirection();
+        }
 
 		app.UseCors("Cors");
 
 		// Authentication
 		app.UseAuthentication();
 
-
 		// MIDDLEWARES
 		app.UseJwtRevocation();
-		app.UseErrorHandlingMiddleware();
+        app.UseVerifiedUserMiddleware();
+        app.UseErrorHandlingMiddleware();
 
         // Authorization
         app.UseAuthorization();

@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Services.AnimalTypeServices.Extentions
+﻿namespace Main_API.Services.AnimalTypeServices.Extentions
 {
 	public static class Extention
 	{

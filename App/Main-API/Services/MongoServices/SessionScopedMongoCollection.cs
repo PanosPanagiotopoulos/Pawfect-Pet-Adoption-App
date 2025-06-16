@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Search;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.MongoServices
+namespace Main_API.Services.MongoServices
 {
     public class SessionScopedMongoCollection<T> : IMongoCollection<T>
     {

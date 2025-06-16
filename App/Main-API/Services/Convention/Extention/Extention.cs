@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Services.BreedServices;
+﻿using Main_API.Services.BreedServices;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.Convention.Extention
+namespace Main_API.Services.Convention.Extention
 {
 	public static class Extention
 	{

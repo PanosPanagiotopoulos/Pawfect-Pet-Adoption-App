@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
-using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Services.Convention;
+using Main_API.Services.FilterServices;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using Main_API.Services.MongoServices;
 using MongoDB.Bson;
 using Microsoft.Extensions.Options;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
+using Main_API.Data.Entities.Types.Cache;
 using Microsoft.Extensions.Caching.Memory;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
+using Main_API.Exceptions;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
     public class AffiliatedRequirement : IAuthorizationRequirement
     {
@@ -75,7 +75,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
             }
 
             String userId = _claimsExtractor.CurrentUserId(context.User);
-            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("User is not authenticated.");
 
             String cacheKey = $"affiliated_{userId}_with_{affiliatedResource.AffiliatedFilterParams.RequestedFilters.GetHashCode()}";
             if (!_memoryCache.TryGetValue(cacheKey, out long? count))

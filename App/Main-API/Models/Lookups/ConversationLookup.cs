@@ -1,11 +1,11 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
+﻿namespace Main_API.Models.Lookups
 {
     using MongoDB.Bson;
     using MongoDB.Driver;
-    using Pawfect_Pet_Adoption_App_API.Data.Entities;
-    using Pawfect_Pet_Adoption_App_API.DevTools;
-    using Pawfect_Pet_Adoption_App_API.Query;
-    using Pawfect_Pet_Adoption_App_API.Query.Queries;
+    using Main_API.Data.Entities;
+    using Main_API.DevTools;
+    using Main_API.Query;
+    using Main_API.Query.Queries;
     using ZstdSharp.Unsafe;
 
     public class ConversationLookup : Lookup

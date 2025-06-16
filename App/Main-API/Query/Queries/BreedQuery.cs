@@ -1,16 +1,16 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.Breed;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.DevTools;
+using Main_API.Exceptions;
+using Main_API.Models.Breed;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.FilterServices;
+using Main_API.Services.MongoServices;
 
-namespace Pawfect_Pet_Adoption_App_API.Query.Queries
+namespace Main_API.Query.Queries
 {
 	public class BreedQuery : BaseQuery<Data.Entities.Breed>
 	{

@@ -1,8 +1,8 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+﻿using Main_API.Models.Lookups;
+using Main_API.Services.AuthenticationServices;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization
+namespace Main_API.Data.Entities.Types.Authorization
 {
     public class AuthContext
     {

@@ -2,19 +2,19 @@
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
-using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.DevTools;
+using Main_API.Exceptions;
+using Main_API.Models.Lookups;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.Convention;
+using Main_API.Services.FilterServices;
+using Main_API.Services.MongoServices;
 using System.Security.Claims;
 
 
-namespace Pawfect_Pet_Adoption_App_API.Query.Queries
+namespace Main_API.Query.Queries
 {
 	public class AdoptionApplicationQuery : BaseQuery<Data.Entities.AdoptionApplication>
 	{
@@ -152,7 +152,7 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
             {
                 ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
                 String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-                if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("No authenticated user found");
+                if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No authenticated user found");
 
                 FilterDefinition<BsonDocument> affiliatedFilter = await _authorizationContentResolver.BuildAffiliatedFilterParams(typeof(Data.Entities.AdoptionApplication));
                 authorizationFilters.Add(affiliatedFilter);
@@ -192,8 +192,9 @@ namespace Pawfect_Pet_Adoption_App_API.Query.Queries
 				if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.User))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.UserId));
 				if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.Animal))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.AnimalId));
 				if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.Shelter))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.ShelterId));
-			}
-			return [.. projectionFields];
+                if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.AttachedFiles))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.AttachedFilesIds));
+            }
+            return [.. projectionFields];
 		}
 
         

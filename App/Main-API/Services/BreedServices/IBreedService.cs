@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.Breed;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+﻿using Main_API.Models.Breed;
+using Main_API.Models.Lookups;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.BreedServices
+namespace Main_API.Services.BreedServices
 {
 	public interface IBreedService
 	{

@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+﻿using Main_API.DevTools;
+using Main_API.Models.Lookups;
 
-namespace Pawfect_Pet_Adoption_App_API.Builders
+namespace Main_API.Builders
 {
 	public interface IBuilder { }
 

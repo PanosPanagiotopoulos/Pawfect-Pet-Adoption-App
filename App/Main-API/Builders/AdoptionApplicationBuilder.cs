@@ -1,15 +1,15 @@
 ﻿using AutoMapper;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
-using Pawfect_Pet_Adoption_App_API.Models.Animal;
-using Pawfect_Pet_Adoption_App_API.Models.File;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.Shelter;
-using Pawfect_Pet_Adoption_App_API.Models.User;
-using Pawfect_Pet_Adoption_App_API.Query;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Models.AdoptionApplication;
+using Main_API.Models.Animal;
+using Main_API.Models.File;
+using Main_API.Models.Lookups;
+using Main_API.Models.Shelter;
+using Main_API.Models.User;
+using Main_API.Query;
 
-namespace Pawfect_Pet_Adoption_App_API.Builders
+namespace Main_API.Builders
 {
 	public class AutoAdoptionApplicationBuilder : Profile
 	{

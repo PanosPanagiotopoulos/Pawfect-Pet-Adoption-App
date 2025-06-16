@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.FilterServices
+namespace Main_API.Services.FilterServices
 {
     public interface IFilterBuilder
     {

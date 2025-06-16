@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication
+﻿namespace Main_API.Data.Entities.Types.Authentication
 {
 	public class CorsConfig
 	{

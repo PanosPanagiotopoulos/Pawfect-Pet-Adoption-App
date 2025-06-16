@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.Report;
+﻿using Main_API.Models.Report;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
+namespace Main_API.Services.ReportServices
 {
 	public interface IReportService
 	{

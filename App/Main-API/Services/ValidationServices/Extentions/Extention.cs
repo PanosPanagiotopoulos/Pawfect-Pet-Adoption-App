@@ -1,20 +1,20 @@
 ﻿using FluentValidation;
 using FluentValidation.AspNetCore;
 
-using Pawfect_Pet_Adoption_App_API.Models;
-using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
-using Pawfect_Pet_Adoption_App_API.Models.Animal;
-using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
-using Pawfect_Pet_Adoption_App_API.Models.Breed;
-using Pawfect_Pet_Adoption_App_API.Models.Conversation;
-using Pawfect_Pet_Adoption_App_API.Models.File;
-using Pawfect_Pet_Adoption_App_API.Models.Message;
-using Pawfect_Pet_Adoption_App_API.Models.Notification;
-using Pawfect_Pet_Adoption_App_API.Models.Report;
-using Pawfect_Pet_Adoption_App_API.Models.Shelter;
-using Pawfect_Pet_Adoption_App_API.Models.User;
+using Main_API.Models;
+using Main_API.Models.AdoptionApplication;
+using Main_API.Models.Animal;
+using Main_API.Models.AnimalType;
+using Main_API.Models.Breed;
+using Main_API.Models.Conversation;
+using Main_API.Models.File;
+using Main_API.Models.Message;
+using Main_API.Models.Notification;
+using Main_API.Models.Report;
+using Main_API.Models.Shelter;
+using Main_API.Models.User;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.ValidationServices.Extentions
+namespace Main_API.Services.ValidationServices.Extentions
 {
 	public static class Extention
 	{

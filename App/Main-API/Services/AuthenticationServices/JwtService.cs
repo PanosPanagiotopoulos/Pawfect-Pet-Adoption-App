@@ -1,14 +1,16 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.Types.Authentication;
+using Main_API.Data.Entities.Types.Cache;
+using Main_API.Models.User;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
     /// <summary>
     /// Μοναδική (singleton) υπηρεσία για τη διαχείριση του authentication
@@ -35,6 +37,11 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
             _memoryCache = memoryCache;
         }
 
+        public int JwtExpireAfterMinutes { get { return this._cacheConfiguration.JWTTokensCacheTime; } }
+
+        public static String ACCESS_TOKEN = "at_ppa";
+        public static String REFRESH_TOKEN = "rt_ppa";
+
         /// <summary>
         /// Δημιουργεί το JWT token.
         /// </summary>
@@ -45,7 +52,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
         /// <param name="isEmailVerified">Flag επιβεβαίωσης email.</param>
         /// <param name="isVerified">Flag επιβεβαίωσης χρήστη.</param>
         /// <returns>Ένα JWT token σε μορφή String ή null αν αποτύχει.</returns>
-        public String? GenerateJwtToken(String userId, String email, List<String> roles)
+        public String? GenerateJwtToken(String userId, String email, List<String> roles, Boolean isVerified)
         {
             String issuer = _jwtConfiguration.Issuer;
             List<String> audiences = _jwtConfiguration.Audiences;
@@ -69,7 +76,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                 new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(ClaimTypes.Email, email),
                 new Claim("jti", Guid.NewGuid().ToString()),
-                new Claim("iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+                new Claim("iat", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
+                new Claim("isVerified", isVerified.ToString(), ClaimValueTypes.Boolean)
             };
 
             // Add multiple roles 
@@ -99,6 +107,21 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
             String jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwtToken;
+        }
+
+        public RefreshToken GenerateRefreshToken(String userId, String ip)
+        {
+            String token = this.GenerateJwtSecretKey();
+
+           return new Data.Entities.RefreshToken
+            {
+                Id = MongoDB.Bson.ObjectId.GenerateNewId().ToString(),
+                Token = token,
+                LinkedTo = userId,
+                Ip = ip,
+                ExpiresAt = DateTime.UtcNow.AddHours(_jwtConfiguration.RefreshTokenExpiration),
+                CreatedAt = DateTime.UtcNow
+            };
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Runtime.Serialization;
 
-namespace Pawfect_Pet_Adoption_App_API.Exceptions
+namespace Main_API.Exceptions
 {
     /// <summary>
     /// Represents an exception thrown when a resource is not found.

@@ -1,7 +1,7 @@
 ﻿using MongoDB.Driver;
 using System.Linq.Expressions;
 
-namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
+namespace Main_API.Repositories.Interfaces
 {
     /// <summary>
     /// Γενική διεπαφή για την υλοποίηση λειτουργιών CRUD για όλα τα μοντέλα
@@ -49,5 +49,9 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Interfaces
         Task<T> FindAsync(Expression<Func<T, Boolean>> predicate, IClientSessionHandle session = null);
         Task<T> FindAsync(Expression<Func<T, Boolean>> predicate, List<String> fields, IClientSessionHandle session = null);
 
-	}
+        Task<List<T>> FindManyAsync(Expression<Func<T, Boolean>> predicate, IClientSessionHandle session = null);
+
+        Task<List<T>> FindManyAsync(Expression<Func<T, Boolean>> predicate, List<String> fields, IClientSessionHandle session = null);
+
+    }
 }

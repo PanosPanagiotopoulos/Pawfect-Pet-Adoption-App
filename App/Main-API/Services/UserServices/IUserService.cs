@@ -1,9 +1,9 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Models;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.User;
+﻿using Main_API.Data.Entities;
+using Main_API.Models;
+using Main_API.Models.Lookups;
+using Main_API.Models.User;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
+namespace Main_API.Services.UserServices
 {
 	public interface IUserService
 	{
@@ -100,13 +100,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
 		String ExtractUserCredential(Data.Entities.User user);
 
-		/// <summary>
-		/// Ανακτά τις πληροφορίες του χρήστη από το Google χρησιμοποιώντας το access token.
-		/// </summary>
-		/// <param name="accessToken">Το access token για την ανάκτηση των πληροφοριών του χρήστη.</param>
-		/// <returns>Το αντικείμενο GoogleUserInfo που περιέχει τις πληροφορίες του χρήστη.</returns>
-		/// <exception cref="InvalidOperationException">Εάν λείπει το access token.</exception>
-		Task<Data.Entities.User?> GetGoogleUser(String AuthorizationCode);
+        /// <summary>
+        /// Ανακτά τις πληροφορίες του χρήστη από το Google χρησιμοποιώντας το access token.
+        /// </summary>
+        /// <param name="">Το authorizationCode για την ανάκτηση των πληροφοριών του χρήστη.</param>
+        /// <returns>Το αντικείμενο GoogleUserInfo που περιέχει τις πληροφορίες του χρήστη.</returns>
+        /// <exception cref="InvalidOperationException">Εάν λείπει το access token.</exception>
+        Task<Data.Entities.User?> GetGoogleUser(String authorizationCode);
 
 		Task<(String, String)> RetrieveGoogleCredentials(String AuthorizationCode);
 		Task Delete(String id);

@@ -1,9 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.HelperModels;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.Shelter
+namespace Main_API.Models.Shelter
 {
     public class ShelterPersist
     {

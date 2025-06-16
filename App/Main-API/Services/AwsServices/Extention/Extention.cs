@@ -1,9 +1,9 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Aws;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.NotificationServices;
+﻿using Main_API.Data.Entities.Types.Authentication;
+using Main_API.Data.Entities.Types.Aws;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.NotificationServices;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AwsServices.Extention
+namespace Main_API.Services.AwsServices.Extention
 {
 	public static class Extention
 	{

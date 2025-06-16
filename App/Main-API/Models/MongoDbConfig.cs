@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Models
+﻿namespace Main_API.Models
 {
 	/// <summary>
 	/// Μοντέλο για setting της Mongo βασης στο σύστημα

@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels
+﻿namespace Main_API.Data.Entities.HelperModels
 {
     /// <summary>
     ///   Τα links των social media για το καταφύγιο.

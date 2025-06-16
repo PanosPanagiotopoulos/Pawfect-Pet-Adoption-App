@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+﻿using Main_API.Data.Entities.EnumTypes;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.Report
+namespace Main_API.Models.Report
 {
 	public class ReportPersist
 	{

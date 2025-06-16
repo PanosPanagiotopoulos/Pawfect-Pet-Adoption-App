@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask
+﻿namespace Main_API.BackgroundTasks.UnverifiedUserCleanupTask
 {
     public class UnverifiedUserCleanupTaskConfig
     {

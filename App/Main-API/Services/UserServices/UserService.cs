@@ -5,29 +5,29 @@ using Microsoft.Extensions.Options;
 
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models;
-using Pawfect_Pet_Adoption_App_API.Models.File;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.User;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.EmailServices;
-using Pawfect_Pet_Adoption_App_API.Services.FileServices;
-using Pawfect_Pet_Adoption_App_API.Services.HttpServices;
-using Pawfect_Pet_Adoption_App_API.Services.ShelterServices;
-using Pawfect_Pet_Adoption_App_API.Services.SmsServices;
+using Main_API.Builders;
+using Main_API.Censors;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Apis;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Data.Entities.Types.Cache;
+using Main_API.DevTools;
+using Main_API.Exceptions;
+using Main_API.Models;
+using Main_API.Models.File;
+using Main_API.Models.Lookups;
+using Main_API.Models.User;
+using Main_API.Query;
+using Main_API.Repositories.Interfaces;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.EmailServices;
+using Main_API.Services.FileServices;
+using Main_API.Services.HttpServices;
+using Main_API.Services.ShelterServices;
+using Main_API.Services.SmsServices;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
+namespace Main_API.Services.UserServices
 {
 	public class UserService : IUserService
 	{
@@ -383,7 +383,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			// TODO: HTTPS ?
 			using (HttpClient client = new HttpClient())
 			{
-				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "accessToken");
 
 				// People API endpoint with requested fields
 				String endpoint = "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,phoneNumbers,addresses,metadata";
@@ -592,12 +592,12 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 			lookup.PageSize = 1;
 			lookup.Offset = 0;
             lookup.Fields = fields;
-            List<Data.Entities.User> user = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync();
+            List<Data.Entities.User> user = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.None).CollectAsync();
 
 			if (user == null)
 				throw new NotFoundException("No user found with this id");
 
-			return (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).Build(user, fields)).FirstOrDefault();
+			return (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.None).Build(user, fields)).FirstOrDefault();
 		}
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }

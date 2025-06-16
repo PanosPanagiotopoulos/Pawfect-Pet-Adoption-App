@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Apis;
 
 using SendGrid;
 using SendGrid.Helpers.Mail;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.EmailServices
+namespace Main_API.Services.EmailServices
 {
 	public class EmailService : IEmailService
 	{

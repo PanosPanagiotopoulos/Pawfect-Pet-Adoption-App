@@ -1,9 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Query;
+using Main_API.Models.Lookups;
+using Main_API.Query;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.FilterServices
+namespace Main_API.Services.FilterServices
 {
     public class FilterBuilder : IFilterBuilder
     {

@@ -1,20 +1,20 @@
 ﻿using AutoMapper;
-using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
-using Pawfect_Pet_Adoption_App_API.Models.File;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
-using Pawfect_Pet_Adoption_App_API.Services.FileServices;
+using Main_API.Builders;
+using Main_API.Censors;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Exceptions;
+using Main_API.Models.AdoptionApplication;
+using Main_API.Models.File;
+using Main_API.Models.Lookups;
+using Main_API.Query;
+using Main_API.Repositories.Interfaces;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.Convention;
+using Main_API.Services.FileServices;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
+namespace Main_API.Services.AdoptionApplicationServices
 {
 	public class AdoptionApplicationService : IAdoptionApplicationService
 	{
@@ -85,7 +85,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 
                 ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
                 String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-                if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("No authenticated user found");
+                if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No authenticated user found");
 
                 data.Id = null;
 				data.UserId = userId;
@@ -126,14 +126,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
         {            
 			ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("No authenticated user found");
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No authenticated user found");
 
             String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
 
             foreach (Data.Entities.AdoptionApplication data in datas)
 			{
                 AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
-                lookup.ShelterIds = new List<String> { data.ShelterId };
+				lookup.ShelterIds = new List<String> { data.ShelterId };
                 AuthContext authContext =
                     _contextBuilder.OwnedFrom(lookup, data.UserId)
                                    .AffiliatedWith(lookup)
@@ -179,7 +179,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
 
 			ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
 			String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-			if (String.IsNullOrEmpty(userId)) throw new UnAuthenticatedException();
 
 			foreach (Data.Entities.File file in attachedFiles)
 			{

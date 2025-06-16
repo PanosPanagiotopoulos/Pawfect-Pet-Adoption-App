@@ -1,8 +1,8 @@
-﻿using Pawfect_Pet_Adoption_App_API.DevTools;
+﻿using Main_API.DevTools;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
     public class ClaimsExtractor
     {

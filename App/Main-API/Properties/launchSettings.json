@@ -1,21 +1,22 @@
 ﻿{
   "profiles": {
+    // TODO: IN PROD
+    "https": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "launchUrl": "swagger",
+      "applicationUrl": "https://localhost:7201",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development" // Or "Production"
+      }
+    },
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
       "launchUrl": "swagger",
       "applicationUrl": "http://localhost:7200",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development" // Or "Production"
-      }
-    },
-    "https": {
-      "commandName": "Project",
-      "dotnetRunMessages": true,
-      "launchBrowser": false,
-      "launchUrl": "swagger",
-      "applicationUrl": "https://localhost:7200;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development" // Or "Production"
       }

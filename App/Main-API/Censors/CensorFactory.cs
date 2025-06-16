@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace Pawfect_Pet_Adoption_App_API.Censors
+namespace Main_API.Censors
 {
     public class CensorFactory : ICensorFactory
     {

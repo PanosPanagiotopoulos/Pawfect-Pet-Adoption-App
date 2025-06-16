@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Files;
+﻿using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Files;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.File
+namespace Main_API.Models.File
 {
 	public class FilePersist
 	{

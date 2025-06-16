@@ -5,8 +5,8 @@
     "FromName": "%{SendGridFromName}%"
   },
   "SmsService": {
-    "Url": "%{SmsUrl}%",
     "ApiKey": "%{SmsApiKey}%",
+    "ApiSecret": "%{SmsApiSecret}%",
     "From": "%{SmsFrom}%"
   }
 }

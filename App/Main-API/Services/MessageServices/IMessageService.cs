@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.Message;
+﻿using Main_API.Models.Lookups;
+using Main_API.Models.Message;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices
+namespace Main_API.Services.MessageServices
 {
 	public interface IMessageService
 	{

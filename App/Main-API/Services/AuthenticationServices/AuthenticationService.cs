@@ -2,10 +2,10 @@
 
 using Newtonsoft.Json;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
+using Main_API.Data.Entities.Types.Apis;
+using Main_API.Data.Entities.Types.Authentication;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
 	public class AuthenticationService : IAuthenticationService
 	{

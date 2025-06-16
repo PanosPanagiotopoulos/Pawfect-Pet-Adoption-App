@@ -1,17 +1,17 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.DevTools;
+using Main_API.Exceptions;
+using Main_API.Models.AnimalType;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.FilterServices;
+using Main_API.Services.MongoServices;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Query.Queries
+namespace Main_API.Query.Queries
 {
 	public class FileQuery : BaseQuery<Data.Entities.File>
 	{

@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.DevTools;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.DevTools;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.User
+namespace Main_API.Models.User
 {
     public class UserValidator : AbstractValidator<UserPersist>
     {

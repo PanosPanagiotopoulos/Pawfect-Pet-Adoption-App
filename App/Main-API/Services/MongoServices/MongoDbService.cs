@@ -2,9 +2,9 @@
 
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Models;
+using Main_API.Models;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.MongoServices
+namespace Main_API.Services.MongoServices
 {
 	/// <summary>
 	///   Εισαγωγή της βάσης στο πρόγραμμα

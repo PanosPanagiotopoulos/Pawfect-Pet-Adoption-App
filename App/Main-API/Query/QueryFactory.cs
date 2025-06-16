@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Query.Queries;
+﻿using Main_API.Query.Queries;
 using System.Collections.Concurrent;
 
-namespace Pawfect_Pet_Adoption_App_API.Query
+namespace Main_API.Query
 {
     /// <summary>
     /// Factory for creating query objects using reflection

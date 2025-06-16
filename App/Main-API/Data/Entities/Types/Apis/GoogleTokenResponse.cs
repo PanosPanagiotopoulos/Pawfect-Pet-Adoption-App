@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis
+namespace Main_API.Data.Entities.Types.Apis
 {
 	// Payload JSON μοντέλο για την απάντηση του Google για τον χρήστη
 	public class GoogleTokenResponse

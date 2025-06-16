@@ -1,21 +1,21 @@
 ﻿using AutoMapper;
 
-using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.Report;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
+using Main_API.Builders;
+using Main_API.Censors;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Exceptions;
+using Main_API.Models.AdoptionApplication;
+using Main_API.Models.Lookups;
+using Main_API.Models.Report;
+using Main_API.Query;
+using Main_API.Query.Queries;
+using Main_API.Repositories.Implementations;
+using Main_API.Repositories.Interfaces;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.Convention;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.ReportServices
+namespace Main_API.Services.ReportServices
 {
 	public class ReportService : IReportService
 	{

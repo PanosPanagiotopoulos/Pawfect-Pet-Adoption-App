@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../common/services/base-http.service';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, Subject, shareReplay } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { User } from '../models/user/user.model';
 import {
@@ -10,26 +10,23 @@ import {
   RegisterPayload,
   OtpPayload,
 } from '../models/auth/auth.model';
-import { jwtDecode } from 'jwt-decode';
-import { JwtPayload } from '../common/models/jwt.model';
 import { SecureStorageService } from '../common/services/secure-storage.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private _loggedAccount: LoggedAccount | null = null;
   private readonly authStateSubject = new BehaviorSubject<boolean>(false);
   public authState$ = this.authStateSubject.asObservable();
+  private meRequest$: Observable<LoggedAccount> | null = null;
 
   constructor(
     private readonly installationConfiguration: InstallationConfigurationService,
     private readonly http: BaseHttpService,
     private readonly secureStorage: SecureStorageService
   ) {
-    // Initialize logged account from secure storage
-    this._loggedAccount = this.secureStorage.getItem<LoggedAccount>(this.installationConfiguration.storageAccountKey);
-    if (this._loggedAccount) {
+    const loggedAccount = this.secureStorage.getItem<LoggedAccount>(this.installationConfiguration.storageAccountKey);
+    if (loggedAccount) {
       this.authStateSubject.next(true);
     }
   }
@@ -72,6 +69,19 @@ export class AuthService {
     );
   }
 
+  refresh(): Observable<LoggedAccount> {
+    const url = `${this.apiBase}/refresh`;
+
+    return this.http.post<LoggedAccount>(url).pipe(
+      tap((response: LoggedAccount) => {
+        if (response.isVerified) {
+          this.setLoggedAccount(response);
+        }
+      }),
+      catchError((error: any) => throwError(error))
+    );
+  }
+
   logout(): Observable<void> {
     const url = `${this.apiBase}/logout`;
     return this.http.post<void>(url, {}).pipe(
@@ -86,20 +96,34 @@ export class AuthService {
   }
 
   me(): Observable<LoggedAccount> {
+    // If there's already a me request in progress, return that
+    if (this.meRequest$) {
+      return this.meRequest$;
+    }
+
+    // Create new me request
     const url = `${this.apiBase}/me`;
-    return this.http.post<LoggedAccount>(url).pipe(
+    this.meRequest$ = this.http.post<LoggedAccount>(url).pipe(
       tap((response: LoggedAccount) => {
         if (response.isVerified) {
           this.setLoggedAccount(response);
         } else {
           this.clearLoggedAccount();
         }
+        // Clear the request after completion
+        this.meRequest$ = null;
       }),
       catchError((error: any) => {
         this.clearLoggedAccount();
+        // Clear the request after error
+        this.meRequest$ = null;
         return throwError(error);
-      })
+      }),
+      // Share the result with all subscribers
+      shareReplay(1)
     );
+
+    return this.meRequest$;
   }
 
   register(registerData: RegisterPayload): Observable<User> {
@@ -173,56 +197,43 @@ export class AuthService {
   }
 
   // Token and Authentication Status Helpers
-
   isLoggedIn(): Observable<boolean> {
     return this.authState$;
   }
 
-  getUserEmail(): string | null {
-    const token = this.getToken();
-    if (!token) return null;
+  isLoggedInSync(): boolean {
+    return this.authStateSubject.value;
+  }
 
-    try {
-      const decoded: JwtPayload = jwtDecode<JwtPayload>(token);
-      return decoded.email;
-    } catch (error) {
-      console.error('Error decoding JWT token:', error);
-      return null;
-    }
+  getUserEmail(): string | null {
+    return this.loadLoggedAccount()?.email ?? null;
   }
 
   hasPermission(permission: string): boolean {
-    const permissions = this._loggedAccount?.permissions || [];
+    const permissions = this.loadLoggedAccount()?.permissions || [];
     return permissions.includes(permission);
   }
 
   hasAnyPermission(permissions: string[]): boolean {
-    const userPermissions = this._loggedAccount?.permissions || [];
+    const userPermissions = this.loadLoggedAccount()?.permissions || [];
     return permissions.some((permission) => userPermissions.includes(permission));
   }
 
   getUserRoles(): string[] | null {
-    return this._loggedAccount?.roles || null;
+    return this.loadLoggedAccount()?.roles || null;
   }
 
   private setLoggedAccount(account: LoggedAccount): void {
-    this._loggedAccount = account;
     this.secureStorage.setItem(this.installationConfiguration.storageAccountKey, account);
     this.authStateSubject.next(true);
   }
 
   private clearLoggedAccount(): void {
-    this._loggedAccount = null;
     this.secureStorage.removeItem(this.installationConfiguration.storageAccountKey);
     this.authStateSubject.next(false);
   }
 
-  private loadLoggedAccount(): void {
-    this._loggedAccount = this.secureStorage.getItem<LoggedAccount>(this.installationConfiguration.storageAccountKey);
-  }
-
-  getToken(): string | undefined {
-    this.loadLoggedAccount();
-    return this._loggedAccount?.token;
+  private loadLoggedAccount(): LoggedAccount | null {
+    return this.secureStorage.getItem<LoggedAccount>(this.installationConfiguration.storageAccountKey);
   }
 }

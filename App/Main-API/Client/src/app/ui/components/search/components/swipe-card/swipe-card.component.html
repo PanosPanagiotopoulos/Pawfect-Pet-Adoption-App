@@ -55,7 +55,7 @@
               class="w-8 h-8 rounded-full flex items-center justify-center shadow-lg" 
               [ngClass]="{'bg-blue-500/25': animal.gender === 1, 'bg-pink-500/25': animal.gender === 2}">
               <ng-icon 
-                [name]="animal.gender === 1 ? 'lucideMars' : 'lucideVenus'" 
+                [name]="animal.gender === 1 ? 'lucideMale' : 'lucideFemale'" 
                 [size]="'18'" 
                 [class]="animal.gender === 1 ? 'text-blue-400 stroke-[2.5px]' : 'text-pink-400 stroke-[2.5px]'">
               </ng-icon>

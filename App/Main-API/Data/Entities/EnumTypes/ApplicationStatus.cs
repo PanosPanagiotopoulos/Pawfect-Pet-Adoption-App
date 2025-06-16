@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes
+﻿namespace Main_API.Data.Entities.EnumTypes
 {
     /// <summary>
     /// Οι πιθανές καταστάσεις μιας αίτησης υιοθεσίας

@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.File;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+﻿using Main_API.Models.File;
+using Main_API.Models.Lookups;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
+namespace Main_API.Services.FileServices
 {
 	public interface IFileService
 	{

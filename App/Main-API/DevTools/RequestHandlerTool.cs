@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Serilog;
 
-namespace Pawfect_Pet_Adoption_App_API.DevTools
+namespace Main_API.DevTools
 {
     /// <summary>
     /// Μια κλάση που παρέχει μεθόδους και εργαλεία για την

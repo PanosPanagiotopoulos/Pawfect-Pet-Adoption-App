@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Authorization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
     public class PermissionPolicyProvider
     {

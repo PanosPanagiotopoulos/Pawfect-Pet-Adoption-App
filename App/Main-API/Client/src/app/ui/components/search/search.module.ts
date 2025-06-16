@@ -11,8 +11,6 @@ import { AnimalCardComponent } from './components/animal-card/animal-card.compon
 import { SavedAnimalsGridComponent } from './components/saved-animals-grid/saved-animals-grid.component';
 import { LucideAngularModule } from 'lucide-angular';
 import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
-import { AuthGuard } from 'src/app/common/guards/auth.guard';
-import { Permission } from 'src/app/common/enum/permission.enum';
 import { InstructionsModalComponent } from 'src/app/common/ui/instructions-modal/instructions-modal.component';
 
 @NgModule({

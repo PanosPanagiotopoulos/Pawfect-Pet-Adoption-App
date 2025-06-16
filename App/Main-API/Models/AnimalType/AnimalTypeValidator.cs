@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-namespace Pawfect_Pet_Adoption_App_API.Models.AnimalType
+namespace Main_API.Models.AnimalType
 {
     public class AnimalTypeValidator : AbstractValidator<AnimalTypePersist>
     {

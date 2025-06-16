@@ -1,8 +1,8 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.DevTools;
+﻿using Main_API.Data.Entities.Types.Authorization;
+using Main_API.DevTools;
 using System.Linq;
 
-namespace Pawfect_Pet_Adoption_App_API.Censors
+namespace Main_API.Censors
 {
     public interface ICensor 
     {

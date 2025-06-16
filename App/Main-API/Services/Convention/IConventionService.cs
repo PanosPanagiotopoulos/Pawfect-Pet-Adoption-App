@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Files;
+﻿using Main_API.Data.Entities.Types.Files;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.Convention
+namespace Main_API.Services.Convention
 {
 	public interface IConventionService
 	{

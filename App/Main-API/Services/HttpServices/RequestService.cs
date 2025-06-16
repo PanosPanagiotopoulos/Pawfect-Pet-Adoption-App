@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
+using Main_API.Data.Entities.Types.Authentication;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.HttpServices
+namespace Main_API.Services.HttpServices
 {
 	public class RequestService
 	{

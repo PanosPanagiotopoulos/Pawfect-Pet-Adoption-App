@@ -17,7 +17,7 @@ export interface OtpPayload {
 }
 
 export interface LoggedAccount {
-  token: string;
+  email: string;
   phone: string;
   roles: string[];
   permissions: string[];

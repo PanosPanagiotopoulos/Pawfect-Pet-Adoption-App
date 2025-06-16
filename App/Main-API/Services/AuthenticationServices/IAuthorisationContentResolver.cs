@@ -1,9 +1,9 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
+using Main_API.Data.Entities.Types.Authorization;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
     public interface IAuthorizationContentResolver
     {

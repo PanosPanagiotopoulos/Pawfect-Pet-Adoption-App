@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization
+﻿namespace Main_API.Data.Entities.Types.Authorization
 {
     public class PermissionPolicyProviderConfig
     {

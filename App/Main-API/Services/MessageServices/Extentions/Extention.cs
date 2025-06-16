@@ -1,5 +1,5 @@
 ﻿
-namespace Pawfect_Pet_Adoption_App_API.Services.MessageServices.Extentions
+namespace Main_API.Services.MessageServices.Extentions
 {
 	public static class Extention
 	{

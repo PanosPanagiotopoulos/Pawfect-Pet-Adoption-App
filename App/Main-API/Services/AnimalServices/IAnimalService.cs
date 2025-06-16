@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.Animal;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+﻿using Main_API.Models.Animal;
+using Main_API.Models.Lookups;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
+namespace Main_API.Services.AnimalServices
 {
 	public interface IAnimalService
 	{

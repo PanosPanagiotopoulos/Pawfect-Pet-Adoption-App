@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-namespace Pawfect_Pet_Adoption_App_API.Models.Breed
+using Main_API.DevTools;
+namespace Main_API.Models.Breed
 {
     public class BreedValidator : AbstractValidator<BreedPersist>
     {

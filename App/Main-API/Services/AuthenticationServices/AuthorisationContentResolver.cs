@@ -2,18 +2,18 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Data.Entities.Types.Cache;
+using Main_API.Exceptions;
+using Main_API.Models.Lookups;
+using Main_API.Query;
+using Main_API.Query.Queries;
+using Main_API.Services.Convention;
 using System.Collections.Concurrent;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
     public class AuthorizationContentResolver : IAuthorizationContentResolver
     {
@@ -89,10 +89,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
         {
             ClaimsPrincipal claimsPrincipal = this.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("No claims id found");
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No claims id found");
 
             String shelterId = await this.CurrentPrincipalShelter();
-            if (!_conventionService.IsValidId(shelterId)) throw new UnAuthenticatedException("No shelter found for the current user");
 
             // Check cache
             (Type EntityType, String UserId) cacheKey = (EntityType: entityType, UserId: userId);
@@ -105,10 +104,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
             {
                 case nameof(AdoptionApplication):
                     {
-                        filter = builder.Or(
-                            builder.Eq(nameof(AdoptionApplication.UserId), new ObjectId(userId)),
-                            builder.Eq(nameof(AdoptionApplication.ShelterId), new ObjectId(shelterId))
-                        );
+                        filter = builder.Eq(nameof(AdoptionApplication.UserId), new ObjectId(userId));
+
+                        if (!String.IsNullOrEmpty(shelterId))
+                        {
+                            filter = builder.Or(
+                                filter,
+                                builder.Eq(nameof(AdoptionApplication.ShelterId), new ObjectId(shelterId))
+                            );
+                        }
 
                         break;
                     }
@@ -152,7 +156,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
         {
             ClaimsPrincipal claimsPrincipal = this.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("No claims id found");
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No claims id found");
 
             // Check cache
             (Type EntityType, String UserId) cacheKey = (EntityType: entityType, UserId: userId);
@@ -197,7 +201,14 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                         filter = builder.Eq(nameof(Data.Entities.Message.SenderId), new ObjectId(userId));
                         break;
                     }
-            }
+
+                case nameof(Data.Entities.User):
+                    {
+                        // Filter for File.OwnerId to equal userId
+                        filter = builder.Eq(nameof(Data.Entities.User.Id), new ObjectId(userId));
+                        break;
+                    }
+             }
 
             // Cache the result
             _ownedFilterCache.TryAdd(cacheKey, filter);

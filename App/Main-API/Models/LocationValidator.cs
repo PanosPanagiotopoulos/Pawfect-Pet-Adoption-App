@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 
-namespace Pawfect_Pet_Adoption_App_API.Models
+namespace Main_API.Models
 {
     public class LocationValidator : AbstractValidator<Location>
     {

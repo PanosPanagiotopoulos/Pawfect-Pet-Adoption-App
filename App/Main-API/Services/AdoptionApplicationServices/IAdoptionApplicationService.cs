@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.AdoptionApplication;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+﻿using Main_API.Models.AdoptionApplication;
+using Main_API.Models.Lookups;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices
+namespace Main_API.Services.AdoptionApplicationServices
 {
 	public interface IAdoptionApplicationService
 	{

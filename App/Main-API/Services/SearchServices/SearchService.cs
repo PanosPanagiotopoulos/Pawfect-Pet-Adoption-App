@@ -1,10 +1,10 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
-using Pawfect_Pet_Adoption_App_API.Models.Animal;
+﻿using Main_API.Data.Entities.Types.Apis;
+using Main_API.Models.Animal;
 
 using System.Text;
 using System.Text.Json;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.SearchServices
+namespace Main_API.Services.SearchServices
 {
 	public class SearchService
 	{

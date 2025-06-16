@@ -1,15 +1,15 @@
-﻿using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Implementations;
-using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Transactions;
+﻿using Main_API.Builders;
+using Main_API.Censors;
+using Main_API.Models.Lookups;
+using Main_API.Query;
+using Main_API.Query.Implementations;
+using Main_API.Query.Interfaces;
+using Main_API.Query.Queries;
+using Main_API.Repositories.Implementations;
+using Main_API.Repositories.Interfaces;
+using Main_API.Transactions;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
+namespace Main_API.Services.QueryServices.Extentions
 {
 	public static class Extention
 	{
@@ -18,7 +18,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 			services.AddScoped<IQueryFactory, QueryFactory>();
             services.AddScoped<IBuilderFactory, BuilderFactory>();
             services.AddScoped<ICensorFactory, CensorFactory>();
-
 
             services.AddAutoMapper(
 				typeof(AutoUserBuilder),
@@ -47,6 +46,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.QueryServices.Extentions
 			services.AddScoped<IConversationRepository, ConversationRepository>();
 			services.AddScoped<INotificationRepository, NotificationRepository>();
 			services.AddScoped<IFileRepository, FileRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
             // Mongo Session Filter
             services.AddScoped<MongoTransactionFilter>();

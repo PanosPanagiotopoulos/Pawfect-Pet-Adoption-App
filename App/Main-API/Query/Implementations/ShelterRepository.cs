@@ -1,9 +1,9 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+﻿using Main_API.Data.Entities;
+using Main_API.Repositories.Interfaces;
+using Main_API.Services.MongoServices;
 
 
-namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
+namespace Main_API.Repositories.Implementations
 {
 	public class ShelterRepository : BaseMongoRepository<Shelter>, IShelterRepository
 	{

@@ -1,0 +1,27 @@
+{
+  "UserFields": {
+    "External": [
+      "Id",
+      "FullName",
+      "Phone",
+      "Location",
+      "CreatedAt"
+    ],
+    "Owner": [
+      "Id",
+      "Email",
+      "Password",
+      "FullName",
+      "Roles",
+      "Phone",
+      "Location",
+      "AuthProvider",
+      "AuthProviderId",
+      "IsVerified",
+      "HasPhoneVerified",
+      "HasEmailVerified",
+      "CreatedAt",
+      "UpdatedAt"
+    ]
+  }
+}

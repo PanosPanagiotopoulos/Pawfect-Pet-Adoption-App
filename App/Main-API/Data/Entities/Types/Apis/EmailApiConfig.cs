@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis
+﻿namespace Main_API.Data.Entities.Types.Apis
 {
 	public class EmailApiConfig
 	{

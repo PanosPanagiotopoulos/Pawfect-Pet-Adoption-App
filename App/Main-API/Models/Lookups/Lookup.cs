@@ -1,12 +1,12 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
+using Main_API.Censors;
+using Main_API.Query;
+using Main_API.Query.Queries;
 using System.Collections;
 using System.Reflection;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.Lookups
+namespace Main_API.Models.Lookups
 {
 	public abstract class Lookup
 	{

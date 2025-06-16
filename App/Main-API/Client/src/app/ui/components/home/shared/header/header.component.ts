@@ -89,7 +89,9 @@ export class HeaderComponent extends BaseComponent {
         next: () => {
           this.isUserMenuOpen = false;
           const currentUrl = this.router.url;
-          this.router.navigateByUrl(currentUrl);
+          this.router.navigateByUrl(currentUrl).then(() => {
+            window.location.reload();
+          });
           this.snackbarService.showSuccess({
             message: 'Αποσυνδεθήκατε με επιτυχία',
             subMessage: 'Ελπίζουμε να σας δούμε σύντομα!'
@@ -97,7 +99,9 @@ export class HeaderComponent extends BaseComponent {
         },
         error: (error) => {
           console.error('Logout error:', error);
-          this.router.navigate(['/']);
+          this.router.navigate(['/']).then(() => {
+            window.location.reload();
+          });
           this.snackbarService.showError({
             message: 'Παρουσιάστηκε σφάλμα κατά την αποσύνδεση',
             subMessage: 'Παρακαλώ δοκιμάστε ξανά'

@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
 
-using Newtonsoft.Json;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Main_API.Data.Entities.Types.Apis;
+using Vonage.Request;
+using Vonage;
 
-using System.Text;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
+namespace Main_API.Services.SmsServices
 {
 	public class SmsService : ISmsService
 	{
@@ -25,13 +25,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 
 		public async Task SendSmsAsync(String phoneNumber, String message)
 		{
-			String? smsServiceUrl = _configuration.Url;
-			String? apiKey = _configuration.ApiKey;
-
-			if (String.IsNullOrWhiteSpace(smsServiceUrl) || String.IsNullOrEmpty(apiKey))
-				throw new Exception("Wrong configuration data found");
-
-
 			// Κατασκευάζουμε τον αριθμό τηλεφώνου μόνο με με τα νούμερα του και στην αρχή τον κωδικό της χώρας για την υπηρεσία
 			String cleanedPhonenumber = ISmsService.ParsePhoneNumber(phoneNumber);
 
@@ -39,42 +32,23 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 			if (String.IsNullOrEmpty(fromPhonenumber))
 				throw new ArgumentException("From phone configuration not found at SMS Service");
 
-			// Κατασκευή payload για το SMS API
-			var payload = new
+            Credentials credentials = Credentials.FromApiKeyAndSecret(_configuration.ApiKey, _configuration.ApiSecret);
+			VonageClient client = new VonageClient(credentials);
+
+            Vonage.Messaging.SendSmsResponse response = await client.SmsClient.SendAnSmsAsync(new Vonage.Messaging.SendSmsRequest()
 			{
-				messages = new[]
-				{
-					new
-					{
-						destinations = new[]
-						{
-							new { to = phoneNumber}
-						},
-                        // Τωρινό Sender ID απο την υπηρεσία
-                        from = fromPhonenumber,
-						text = message
-					}
-				}
-			};
+				To = cleanedPhonenumber,
+                From = fromPhonenumber,
+                Text = message
+            });
 
-			// Serialize το payload to JSON
-			StringContent content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+            // Check response
+            if (response.Messages == null || response.Messages == null || response.Messages.Count() == 0)
+                throw new InvalidOperationException($"No response received from SMS service for number: {cleanedPhonenumber}");
 
-			// Set up the HTTP client request
-			using (HttpClient client = new HttpClient())
-			{
-				client.DefaultRequestHeaders.Clear();
-				client.DefaultRequestHeaders.Add("Authorization", $"App {apiKey}");
-				client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-				HttpResponseMessage response = await client.PostAsync(smsServiceUrl, content);
-
-				if (!response.IsSuccessStatusCode)
-				{
-					String errorContent = await response.Content.ReadAsStringAsync();
-					throw new InvalidOperationException("$Failed to send SMS. Status Code: {response.StatusCode}, Response: {errorContent}");
-				}
-			}
-		}
+            Vonage.Messaging.SmsResponseMessage messageResponse = response.Messages[0];
+            if (messageResponse.Status != "0")
+                throw new InvalidOperationException($"Failed to send SMS to {cleanedPhonenumber}. Status: {messageResponse.Status}, Error: {messageResponse.ErrorText ?? "Unknown error"}");
+        }
 	}
 }

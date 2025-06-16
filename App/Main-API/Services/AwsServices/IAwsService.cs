@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Services.AwsServices
+﻿namespace Main_API.Services.AwsServices
 {
 	public interface IAwsService
 	{

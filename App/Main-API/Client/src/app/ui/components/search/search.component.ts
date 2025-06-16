@@ -2,7 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/co
 import { FormControl, FormGroup, FormBuilder } from '@angular/forms';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AnimalService } from 'src/app/services/animal.service';
-import { Animal } from 'src/app/models/animal/animal.model';
+import { AdoptionStatus, Animal } from 'src/app/models/animal/animal.model';
 import { Breed } from 'src/app/models/breed/breed.model';
 import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
 import { AnimalLookup } from 'src/app/lookup/animal-lookup';
@@ -141,6 +141,7 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
       const lookup: AnimalLookup = {
         offset: this.currentOffset, 
         pageSize: this.pageSize,
+        adoptionStatuses: [AdoptionStatus.Available, AdoptionStatus.Pending],
         query: query,
         fields: [
           nameof<Animal>(x => x.id),

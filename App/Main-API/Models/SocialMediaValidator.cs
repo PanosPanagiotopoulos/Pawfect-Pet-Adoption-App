@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.Logging;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels;
+using Main_API.Data.Entities.HelperModels;
 using System.Text.RegularExpressions;
 
-namespace Pawfect_Pet_Adoption_App_API.Models
+namespace Main_API.Models
 {
     public class SocialMediaValidator : AbstractValidator<SocialMedia>
     {

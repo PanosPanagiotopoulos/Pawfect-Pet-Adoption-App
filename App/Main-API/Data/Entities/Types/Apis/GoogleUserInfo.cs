@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis
+namespace Main_API.Data.Entities.Types.Apis
 {
 	// Μοντέλο JSON για τα δεδομένα χρήστη του Google
 	public class GoogleUserInfo

@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-namespace Pawfect_Pet_Adoption_App_API.Models.Conversation
+using Main_API.DevTools;
+namespace Main_API.Models.Conversation
 {
     public class ConversationValidator : AbstractValidator<ConversationPersist>
     {

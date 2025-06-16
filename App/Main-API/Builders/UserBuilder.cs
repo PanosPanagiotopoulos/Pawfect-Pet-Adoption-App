@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.User;
-using Pawfect_Pet_Adoption_App_API.Query;
-namespace Pawfect_Pet_Adoption_App_API.Builders
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Models.Lookups;
+using Main_API.Models.User;
+using Main_API.Query;
+namespace Main_API.Builders
 {
 	public class AutoUserBuilder : Profile
 	{

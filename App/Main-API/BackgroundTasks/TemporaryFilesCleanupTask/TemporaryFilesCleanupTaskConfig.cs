@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.TemporaryFilesCleanupTask
+﻿namespace Main_API.BackgroundTasks.TemporaryFilesCleanupTask
 {
     public class TemporaryFilesCleanupTaskConfig
     {

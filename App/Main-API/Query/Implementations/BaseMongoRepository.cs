@@ -1,10 +1,10 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using Main_API.Repositories.Interfaces;
+using Main_API.Services.MongoServices;
 using System.Linq.Expressions;
 
-namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
+namespace Main_API.Repositories.Implementations
 {
     public class BaseMongoRepository<T> : IMongoRepository<T> where T : class
     {
@@ -156,6 +156,35 @@ namespace Pawfect_Pet_Adoption_App_API.Repositories.Implementations
                 ? _collection.Find(session, predicate)
                 : _collection.Find(predicate);
             return await finder.Project<T>(projection).FirstOrDefaultAsync();
+        }
+
+        public async Task<List<T>> FindManyAsync(Expression<Func<T, Boolean>> predicate, IClientSessionHandle session = null)
+        {
+            IFindFluent<T, T> finder = session != null
+                ? _collection.Find(session, predicate)
+                : _collection.Find(predicate);
+
+            return await finder.ToListAsync();
+        }
+
+        /// <summary>
+        /// Returns all documents that match the predicate, projecting only the specified fields.
+        /// </summary>
+        public async Task<List<T>> FindManyAsync(Expression<Func<T, Boolean>> predicate, List<String> fields, IClientSessionHandle session = null)
+        {
+            if (fields == null || fields.Count == 0)
+                throw new ArgumentException("Projection fields list cannot be null or empty.", nameof(fields));
+
+            // Build projection
+            ProjectionDefinition<T> projection = Builders<T>.Projection.Include(fields[0]);
+            foreach (String field in fields.Skip(1))
+                projection = projection.Include(field);
+
+            IFindFluent<T, T> finder = session != null
+                ? _collection.Find(session, predicate)
+                : _collection.Find(predicate);
+
+            return await finder.Project<T>(projection).ToListAsync();
         }
 
         private static String GetEntityId(T entity)

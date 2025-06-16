@@ -1,26 +1,26 @@
 ﻿using Amazon.S3.Transfer;
 using AutoMapper;
 
-using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.Animal;
-using Pawfect_Pet_Adoption_App_API.Models.File;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.BreedServices;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
-using Pawfect_Pet_Adoption_App_API.Services.FileServices;
+using Main_API.Builders;
+using Main_API.Censors;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Exceptions;
+using Main_API.Models.Animal;
+using Main_API.Models.File;
+using Main_API.Models.Lookups;
+using Main_API.Query;
+using Main_API.Query.Queries;
+using Main_API.Repositories.Implementations;
+using Main_API.Repositories.Interfaces;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.BreedServices;
+using Main_API.Services.Convention;
+using Main_API.Services.FileServices;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
+namespace Main_API.Services.AnimalServices
 {
 	public class AnimalService : IAnimalService
 	{
@@ -157,7 +157,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AnimalServices
 
             ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-            if (String.IsNullOrEmpty(userId)) throw new UnAuthenticatedException();
 
             List<FilePersist> persistModels = new List<FilePersist>();
 			foreach (Data.Entities.File file in attachedFiles)

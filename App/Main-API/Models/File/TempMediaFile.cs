@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.File
+namespace Main_API.Models.File
 {
 	public class TempMediaFile
 	{

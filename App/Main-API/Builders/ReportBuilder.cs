@@ -1,15 +1,15 @@
 ﻿using Amazon.Runtime;
 using AutoMapper;
 
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.Report;
-using Pawfect_Pet_Adoption_App_API.Models.User;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Services.UserServices;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Models.Lookups;
+using Main_API.Models.Report;
+using Main_API.Models.User;
+using Main_API.Query;
+using Main_API.Services.UserServices;
 
-namespace Pawfect_Pet_Adoption_App_API.Builders
+namespace Main_API.Builders
 {
 	public class AutoReportBuilder : Profile
 	{

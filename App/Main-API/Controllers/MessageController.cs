@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Controllers
+﻿namespace Main_API.Controllers
 {
 	public class MessageController
 	{

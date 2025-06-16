@@ -1,8 +1,8 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+﻿using Main_API.Data.Entities.EnumTypes;
 
 using System.Text.RegularExpressions;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
+namespace Main_API.Services.SmsServices
 {
 	public interface ISmsService
 	{
@@ -48,7 +48,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 		// SMS templates
 		public static readonly Dictionary<SmsType, String> SmsTemplates = new Dictionary<SmsType, String>
 		{
-			{ SmsType.OTP, "Ο κωδικός OTP σου είναι : {0}" }
+			{ SmsType.OTP, "Your one time password is : {0}" }
 		};
 
 
@@ -65,42 +65,40 @@ namespace Pawfect_Pet_Adoption_App_API.Services.SmsServices
 		static int GenerateOtp() { return new Random().Next(100000, 999999); }
 
 
-		// Αναλύει έναν αριθμό τηλεφώνου για να κρατήσει μόνο τα ψηφία του, συμπεριλαμβανομένου του κωδικού χώρας στην αρχή.
-		// Επικυρώνει το μήκος του αριθμού τηλεφώνου με βάση τον δοθέντα κωδικό χώρας.
+        // Αναλύει έναν αριθμό τηλεφώνου για να κρατήσει μόνο τα ψηφία του, συμπεριλαμβανομένου του κωδικού χώρας στην αρχή.
+        // Επικυρώνει το μήκος του αριθμού τηλεφώνου με βάση τον δοθέντα κωδικό χώρας.
 
-		// <param name="phoneNumber">Ο αριθμός τηλεφώνου σε οποιαδήποτε μορφή.</param>
-		// <returns>Ο καθαρισμένος αριθμός τηλεφώνου μόνο με αριθμούς, αν είναι έγκυρος.</returns>
-		// <exception cref="ArgumentException">Προκαλείται όταν ο αριθμός τηλεφώνου είναι άκυρος ή κενός.</exception>
-		// <exception cref="FormatException">Προκαλείται όταν η μορφή του αριθμού τηλεφώνου είναι άκυρη.</exception>
-		static String ParsePhoneNumber(String phoneNumber)
-		{
-			if (String.IsNullOrWhiteSpace(phoneNumber))
-			{
-				throw new ArgumentException("Ο Αριθμός τηλεφώνου είναι null ή άδειο String.", nameof(phoneNumber));
-			}
+        // <param name="phoneNumber">Ο αριθμός τηλεφώνου σε οποιαδήποτε μορφή.</param>
+        // <returns>Ο καθαρισμένος αριθμός τηλεφώνου μόνο με αριθμούς, αν είναι έγκυρος.</returns>
+        // <exception cref="ArgumentException">Προκαλείται όταν ο αριθμός τηλεφώνου είναι άκυρος ή κενός.</exception>
+        // <exception cref="FormatException">Προκαλείται όταν η μορφή του αριθμού τηλεφώνου είναι άκυρη.</exception>
+        static String ParsePhoneNumber(String phoneNumber)
+        {
+            if (String.IsNullOrWhiteSpace(phoneNumber))
+                throw new ArgumentException("Ο αριθμός τηλεφώνου είναι null ή κενός.", nameof(phoneNumber));
 
-			// Αφαιρούμε τους non-digit characters
-			String cleanedNumber = Regex.Replace(phoneNumber, @"\D", "");
+            // keep only digits
+            String cleanedNumber = Regex.Replace(phoneNumber, @"\D", "");
 
-			// Τσεκάρουμε αν το String που απέμεινε έχει σωστό length για την χώρα του code του
-			foreach (String countryCode in CountryCodeLengths.Keys)
-			{
-				if (cleanedNumber.StartsWith(countryCode))
-				{
-					int expectedLength = CountryCodeLengths[countryCode] + countryCode.Length;
+            foreach (String countryCode in CountryCodeLengths.Keys)
+            {
+                if (cleanedNumber.StartsWith(countryCode))
+                {
+                    int expectedLength = CountryCodeLengths[countryCode] + countryCode.Length;
 
-					if (cleanedNumber.Length == expectedLength)
-					{
-						return cleanedNumber;
-					}
-					else
-					{
-						throw new FormatException($"Ο Αριθμός τηλεφώνου είναι λάθος για κωδικό χώρας +{countryCode}. Απαιτούμενο μήκος: {expectedLength - countryCode.Length}, Δοσμένο μήκος: {cleanedNumber.Length - countryCode.Length}");
-					}
-				}
-			}
+                    if (cleanedNumber.Length == expectedLength)
+                    {
+                        return $"+{cleanedNumber}";
+                    }
 
-			throw new FormatException("Ο αριθμός τηλεφώνου δεν έχει σωστό κωδικό.");
-		}
-	}
+                    throw new FormatException(
+                        $"Ο αριθμός τηλεφώνου δεν είναι σωστός για κωδικό χώρας +{countryCode}. " +
+                        $"Αναμενόμενο μήκος: {expectedLength - countryCode.Length}, " +
+                        $"Δοσμένο μήκος: {cleanedNumber.Length - countryCode.Length}");
+                }
+            }
+
+            throw new FormatException("Ο αριθμός τηλεφώνου δεν περιέχει έγκυρο διεθνή κωδικό χώρας.");
+        }
+    }
 }

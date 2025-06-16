@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Services.AwsServices;
+using Main_API.BackgroundTasks.UnverifiedUserCleanupTask;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Query.Queries;
+using Main_API.Query;
+using Main_API.Repositories.Interfaces;
+using Main_API.Query.Interfaces;
+using Main_API.Services.AwsServices;
 
-namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.TemporaryFilesCleanupTask
+namespace Main_API.BackgroundTasks.TemporaryFilesCleanupTask
 {
     public class TemporaryFilesCleanupTask : BackgroundService
     {
@@ -65,16 +65,16 @@ namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.TemporaryFilesCleanupTask
         {
             using (IServiceScope serviceScope = _serviceProvider.CreateScope())
             {
-                QueryFactory queryFactory = serviceScope.ServiceProvider.GetRequiredService<QueryFactory>();
+                IQueryFactory queryFactory = serviceScope.ServiceProvider.GetRequiredService<IQueryFactory>();
                 FileQuery fileQuery = queryFactory.Query<FileQuery>();
                 fileQuery.Offset = 1;
                 fileQuery.PageSize = _config.BatchSize;
-                fileQuery.Fields = [nameof(Data.Entities.File.Id), nameof(Data.Entities.File.OwnerId)];
+                fileQuery.Fields = [nameof(Data.Entities.File.Id), nameof(Data.Entities.File.OwnerId), nameof(Data.Entities.File.AwsKey)];
                 fileQuery.FileSaveStatuses = [FileSaveStatus.Temporary];
                 fileQuery.CreatedTill = DateTime.UtcNow.AddMinutes(-_config.MinutesPrior);
 
-                IFileRepository fileRepository = _serviceProvider.GetRequiredService<IFileRepository>();
-                IAwsService awsService = _serviceProvider.GetRequiredService<IAwsService>();
+                IFileRepository fileRepository = serviceScope.ServiceProvider.GetRequiredService<IFileRepository>();
+                IAwsService awsService = serviceScope.ServiceProvider.GetRequiredService<IAwsService>();
                 IMongoClient mongoClient = serviceScope.ServiceProvider.GetRequiredService<IMongoClient>();
                 while (true)
                 {
@@ -91,7 +91,7 @@ namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.TemporaryFilesCleanupTask
                             }
 
                             // Get the aws keys of the files
-                            List<String> keys = [..filesToCleanup.Select(file => { return awsService.ConstructAwsKey(file.Id, file.OwnerId); })];
+                            List<String> keys = [..filesToCleanup.Select(file => file.AwsKey)];
                             // Delete the files from aws
                             Dictionary<String, Boolean> results = await awsService.DeleteAsync(keys);
 

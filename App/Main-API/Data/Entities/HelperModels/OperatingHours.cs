@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Data.Entities.HelperModels
+﻿namespace Main_API.Data.Entities.HelperModels
 {
     /// <summary>
     ///   Οι ώρες λειτουργίας του καταφυγίου

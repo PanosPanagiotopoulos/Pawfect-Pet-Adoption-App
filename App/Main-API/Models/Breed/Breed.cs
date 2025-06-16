@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.AnimalType;
+﻿using Main_API.Models.AnimalType;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.Breed
+namespace Main_API.Models.Breed
 {
 	public class Breed
 	{

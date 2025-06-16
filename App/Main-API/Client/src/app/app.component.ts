@@ -12,6 +12,7 @@ export class AppComponent implements OnInit {
   constructor(private authService: AuthService) {}
   
   ngOnInit(): void {
+    // The me() request will be shared with the auth guard
     this.authService.me().subscribe();
   }
 

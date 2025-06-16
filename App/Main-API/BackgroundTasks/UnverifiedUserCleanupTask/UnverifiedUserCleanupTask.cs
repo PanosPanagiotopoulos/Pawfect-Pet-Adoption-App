@@ -1,22 +1,26 @@
 ﻿using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Query;
+using Main_API.Query.Queries;
+using Main_API.Repositories.Interfaces;
 using System;
+using Main_API.Query.Interfaces;
+using Main_API.Services.AwsServices;
 
-namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask
+namespace Main_API.BackgroundTasks.UnverifiedUserCleanupTask
 {
     public class UnverifiedUserCleanupTask : BackgroundService
     {
         private readonly ILogger<UnverifiedUserCleanupTask> _logging;
         private readonly IServiceProvider _serviceProvider;
         private readonly UnverifiedUserCleanupTaskConfig _config;
-        public UnverifiedUserCleanupTask(
+        public UnverifiedUserCleanupTask
+        (
             ILogger<UnverifiedUserCleanupTask> logging,
             IOptions<UnverifiedUserCleanupTaskConfig> config,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider
+        )
         {
             _logging = logging;
             _config = config.Value;
@@ -63,7 +67,7 @@ namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask
         {
             using (IServiceScope serviceScope = _serviceProvider.CreateScope())
             {
-                QueryFactory queryFactory = serviceScope.ServiceProvider.GetRequiredService<QueryFactory>();
+                IQueryFactory queryFactory = serviceScope.ServiceProvider.GetRequiredService<IQueryFactory>();
                 UserQuery userQuery = queryFactory.Query<UserQuery>();
                 userQuery.Offset = 1;
                 userQuery.PageSize = _config.BatchSize;
@@ -72,7 +76,10 @@ namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask
                 userQuery.Roles = [UserRole.User];
                 userQuery.CreatedTill = DateTime.UtcNow.AddDays(-_config.DaysPrior);
 
-                IUserRepository userRepository = _serviceProvider.GetRequiredService<IUserRepository>();
+                IUserRepository userRepository = serviceScope.ServiceProvider.GetRequiredService<IUserRepository>();
+                IShelterRepository shelterRepository = serviceScope.ServiceProvider.GetRequiredService<IShelterRepository>();
+                IFileRepository fileRepository = serviceScope.ServiceProvider.GetRequiredService<IFileRepository>();
+                IAwsService awsService = serviceScope.ServiceProvider.GetRequiredService<IAwsService>();
                 IMongoClient mongoClient = serviceScope.ServiceProvider.GetRequiredService<IMongoClient>();
                 while (true)
                 {
@@ -81,14 +88,32 @@ namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask
                         session.StartTransaction();
                         try
                         {
-                            List<String> usersToCleanup = [..(await userQuery.CollectAsync())?.Select(user => user.Id)];
-                            if (usersToCleanup == null || usersToCleanup.Count == 0)
+                            var usersToCleanup = (await userQuery.CollectAsync())?.Select(user => new { user.Id, user.ShelterId, user.ProfilePhotoId });
+                            if (usersToCleanup == null || usersToCleanup.Count() == 0)
                             {
                                 await session.CommitTransactionAsync();
                                 break;
                             }
 
-                            await userRepository.DeleteAsync(usersToCleanup, session);
+                            // Cleanup users
+                            await userRepository.DeleteAsync([..usersToCleanup.Select(user => user.Id)], session);
+
+                            // Cleanup shelters
+                            if (usersToCleanup.Any(user => !String.IsNullOrEmpty(user.ShelterId)))
+                            {
+                                await shelterRepository.DeleteAsync([.. usersToCleanup.Where(user => !String.IsNullOrEmpty(user.ShelterId)).Select(user => user.ShelterId)], session);
+                            }
+
+                            // Cleanup files
+                            if (usersToCleanup.Any(user => !String.IsNullOrEmpty(user.ProfilePhotoId)))
+                            {
+                                List<String> fileIds = [.. usersToCleanup.Where(u => !String.IsNullOrEmpty(u.ProfilePhotoId)).Select(u => u.ProfilePhotoId)];
+                                List<Data.Entities.File> profilePhotos = await fileRepository.FindManyAsync(file => fileIds.Contains(file.Id), new List<String>() { nameof(Data.Entities.File.AwsKey) }, session);
+
+                                await awsService.DeleteAsync([..profilePhotos.Select(pf => pf.AwsKey)]);
+                                await fileRepository.DeleteAsync(fileIds, session);
+                            }
+
                             await session.CommitTransactionAsync();
                         }
                         catch (Exception ex)

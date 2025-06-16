@@ -3,14 +3,14 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Cache;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
-using Pawfect_Pet_Adoption_App_API.Services.FilterServices;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Data.Entities.Types.Cache;
+using Main_API.Exceptions;
+using Main_API.Services.Convention;
+using Main_API.Services.FilterServices;
+using Main_API.Services.MongoServices;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
     public class OwnedRequirement : IAuthorizationRequirement
     {
@@ -54,7 +54,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, OwnedRequirement requirement)
         {
             String userId = _claimsExtractor.CurrentUserId(context.User);
-            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("User is not authenticated.");
 
             OwnedResource ownedResource = requirement.Resource;
             if (ownedResource == null)

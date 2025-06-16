@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Pawfect_Pet_Adoption_App_API.DevTools
+namespace Main_API.DevTools
 {
     /// <summary>
     /// Provides helper methods for JSON serialization.

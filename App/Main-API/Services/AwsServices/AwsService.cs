@@ -3,9 +3,9 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Options;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Aws;
+using Main_API.Data.Entities.Types.Aws;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AwsServices
+namespace Main_API.Services.AwsServices
 {
 	public class AwsService : IAwsService
 	{

@@ -1,9 +1,9 @@
 ﻿using MongoDB.Driver;
 using MongoDB.Driver.Linq;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.MongoServices;
 
-namespace Pawfect_Pet_Adoption_App_API.Query.Queries
+namespace Main_API.Query.Queries
 {
 	public interface IQuery {
         public int Offset { get; set; } 

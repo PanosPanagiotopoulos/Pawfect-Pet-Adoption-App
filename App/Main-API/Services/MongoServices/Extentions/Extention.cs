@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Services.MongoServices.Extentions
+﻿namespace Main_API.Services.MongoServices.Extentions
 {
 	public static class Extention
 	{

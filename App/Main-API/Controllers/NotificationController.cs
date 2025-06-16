@@ -1,19 +1,19 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Models.Notification;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Services.NotificationServices;
-using Pawfect_Pet_Adoption_App_API.Transactions;
+using Main_API.Builders;
+using Main_API.Censors;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.DevTools;
+using Main_API.Exceptions;
+using Main_API.Models.Lookups;
+using Main_API.Models.Notification;
+using Main_API.Query;
+using Main_API.Services.NotificationServices;
+using Main_API.Transactions;
 using System.Linq;
 using System.Reflection;
 
-namespace Pawfect_Pet_Adoption_App_API.Controllers
+namespace Main_API.Controllers
 {
 	[ApiController]
 	[Route("api/notifications")]

@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-using Pawfect_Pet_Adoption_App_API.Models.Shelter;
-using Pawfect_Pet_Adoption_App_API.Models.User;
+using Main_API.Models.Shelter;
+using Main_API.Models.User;
 
-namespace Pawfect_Pet_Adoption_App_API.Models
+namespace Main_API.Models
 {
 
 	// Μοντέλο για την initial εγγραφή χρήστη ενώς χρήστη στο σύστημα στο σύστημα

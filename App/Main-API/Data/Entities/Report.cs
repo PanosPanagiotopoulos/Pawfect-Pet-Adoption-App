@@ -1,8 +1,8 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.EnumTypes;
 
-namespace Pawfect_Pet_Adoption_App_API.Data.Entities
+namespace Main_API.Data.Entities
 {
     /// <summary>
     /// Το μοντέλο μιας αναφοράς στο σύστημα

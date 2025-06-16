@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Query.Queries;
+﻿using Main_API.Query.Queries;
 
-namespace Pawfect_Pet_Adoption_App_API.Query
+namespace Main_API.Query
 {
     /// <summary>
     /// Interface for the query factory

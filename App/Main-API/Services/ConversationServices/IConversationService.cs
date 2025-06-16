@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.Conversation;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+﻿using Main_API.Models.Conversation;
+using Main_API.Models.Lookups;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.ConversationServices
+namespace Main_API.Services.ConversationServices
 {
 	public interface IConversationService
 	{

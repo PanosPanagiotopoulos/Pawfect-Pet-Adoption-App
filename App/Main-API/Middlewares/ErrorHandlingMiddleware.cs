@@ -1,11 +1,11 @@
 ﻿using MongoDB.Driver;
 using Newtonsoft.Json;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Middleware;
+using Main_API.DevTools;
+using Main_API.Exceptions;
+using Main_API.Middleware;
 using System.Net;
 
-namespace Pawfect_Pet_Adoption_App_API.Middlewares
+namespace Main_API.Middlewares
 {
     public class ErrorHandlingMiddleware
     {

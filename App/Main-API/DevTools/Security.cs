@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.DevTools
+﻿namespace Main_API.DevTools
 {
 	using Serilog;
 

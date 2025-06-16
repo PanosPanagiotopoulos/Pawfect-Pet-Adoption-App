@@ -1,12 +1,12 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Services.AwsServices;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
-using Pawfect_Pet_Adoption_App_API.Services.MongoServices;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.DevTools;
+using Main_API.Services.AwsServices;
+using Main_API.Services.Convention;
+using Main_API.Services.MongoServices;
 using System.Threading.Tasks;
 
 public class Seeder
@@ -117,7 +117,7 @@ public class Seeder
         IMongoCollection<Animal> animalsCollection = this._dbService.GetCollection<Animal>();
         IMongoCollection<Shelter> sheltersCollection = this._dbService.GetCollection<Shelter>();
         IMongoCollection<User> usersCollection = this._dbService.GetCollection<User>();
-        IMongoCollection<Pawfect_Pet_Adoption_App_API.Data.Entities.File> filesCollection = this._dbService.GetCollection<Pawfect_Pet_Adoption_App_API.Data.Entities.File>();
+        IMongoCollection<Main_API.Data.Entities.File> filesCollection = this._dbService.GetCollection<Main_API.Data.Entities.File>();
 
         // Seed animal photos
         List<Animal> animals = animalsCollection.Find(FilterDefinition<Animal>.Empty).ToList();
@@ -134,7 +134,7 @@ public class Seeder
         if (animalFilePaths.Length < 2 * animals.Count)
             throw new Exception($"Not enough photos in {animalFilesDirectory}. Need {2 * animals.Count}, found {animalFilePaths.Length}.");
 
-        List<Pawfect_Pet_Adoption_App_API.Data.Entities.File> fileEntities = new List<Pawfect_Pet_Adoption_App_API.Data.Entities.File>();
+        List<Main_API.Data.Entities.File> fileEntities = new List<Main_API.Data.Entities.File>();
         Dictionary<String, List<String>> animalPhotoIds = new Dictionary<String, List<String>>();
         int animalFileIndex = 0;
         foreach (Animal animal in animals)
@@ -167,7 +167,7 @@ public class Seeder
                 String sourceUrl = await _awsService.UploadAsync(formFile, key);
 
                 // Create the File entity
-                Pawfect_Pet_Adoption_App_API.Data.Entities.File fileEntity = new Pawfect_Pet_Adoption_App_API.Data.Entities.File
+                Main_API.Data.Entities.File fileEntity = new Main_API.Data.Entities.File
                 {
                     Id = fileId,
                     Filename = fileName,
@@ -229,7 +229,7 @@ public class Seeder
             String sourceUrl = await _awsService.UploadAsync(formFile, key);
 
             // Create the File entity for the user profile picture
-            Pawfect_Pet_Adoption_App_API.Data.Entities.File fileEntity = new Pawfect_Pet_Adoption_App_API.Data.Entities.File
+            Main_API.Data.Entities.File fileEntity = new Main_API.Data.Entities.File
             {
                 Id = fileId,
                 Filename = fileName,
@@ -326,10 +326,10 @@ public class Seeder
 
     private async Task UnseedFiles()
     {
-        IMongoCollection<Pawfect_Pet_Adoption_App_API.Data.Entities.File> filesCollection = this._dbService.GetCollection<Pawfect_Pet_Adoption_App_API.Data.Entities.File>();
+        IMongoCollection<Main_API.Data.Entities.File> filesCollection = this._dbService.GetCollection<Main_API.Data.Entities.File>();
 
         // Retrieve all files
-        List<Pawfect_Pet_Adoption_App_API.Data.Entities.File> files = filesCollection.Find(FilterDefinition<Pawfect_Pet_Adoption_App_API.Data.Entities.File>.Empty).ToList();
+        List<Main_API.Data.Entities.File> files = filesCollection.Find(FilterDefinition<Main_API.Data.Entities.File>.Empty).ToList();
         if (files.Count == 0)  return;
 
         // Construct AWS keys for deletion
@@ -344,6 +344,6 @@ public class Seeder
             Console.WriteLine($"Failed to delete {failedDeletions.Count} files from AWS: {String.Join(", ", failedDeletions.Select(r => r.Key))}");
 
         // Delete all files from MongoDB
-        await filesCollection.DeleteManyAsync(FilterDefinition<Pawfect_Pet_Adoption_App_API.Data.Entities.File>.Empty);
+        await filesCollection.DeleteManyAsync(FilterDefinition<Main_API.Data.Entities.File>.Empty);
     }
 }

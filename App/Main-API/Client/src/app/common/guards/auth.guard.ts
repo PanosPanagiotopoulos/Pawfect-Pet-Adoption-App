@@ -3,6 +3,8 @@ import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { Permission } from '../enum/permission.enum';
 import { SnackbarService } from '../services/snackbar.service';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -14,43 +16,54 @@ export class AuthGuard implements CanActivate {
     private snackbarService: SnackbarService
   ) {}
 
-  canActivate(route: ActivatedRouteSnapshot): boolean {
+  canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
     // Get required permissions from route data
     const requiredPermissions = route.data['permissions'] as Permission[];
-    
     // If no permissions are required, allow access
     if (!requiredPermissions || requiredPermissions.length === 0) {
-      return true;
+      return of(true);
     }
 
-    const userLoggedIn: boolean = !!this.authService.getToken();
-    if (!userLoggedIn) {
-      // Show unauthorized error snackbar with custom message
-      this.snackbarService.showError({
-        message: 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα',
-        subMessage: 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
+    // First check if we have a token
+    if (!this.authService.isLoggedInSync()) {
+      // If we have no token, try to get user data
+      return this.authService.me().pipe(
+        map(() => {
+          // After me() completes, check permissions
+          if (!this.authService.hasAnyPermission(requiredPermissions)) {
+            this.showUnauthorizedMessage(true);
+            return false;
+          }
+          return true;
+        }),
+        catchError(() => {
+          this.showUnauthorizedMessage();
+          return of(false);
+        })
+      );
+    }
+
+    // If we already have user data, check permissions
+    if (!this.authService.hasAnyPermission(requiredPermissions)) {
+      this.showUnauthorizedMessage(true);
+      return of(false);
+    }
+
+    return of(true);
+  }
+
+  private showUnauthorizedMessage(isLoggedIn: boolean = false): void {
+    this.snackbarService.showError({
+      message: isLoggedIn ? 'Δεν έχετε τα απαραίτητα δικαιώματα για αυτή τη σελίδα' : 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα',
+      subMessage: isLoggedIn ? 'Θα σας μεταφέρουμε στη σελίδα 404' : 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
+    });
+
+    // Navigate to appropriate page after a short delay
+    setTimeout(() => {
+      const redirectUrl = isLoggedIn ? '/404' : '/auth/login';
+      this.router.navigate([redirectUrl], {
+        queryParams: { returnUrl: this.router.url }
       });
-    }
-
-    // Check if user has any of the required permissions
-    if (userLoggedIn && !this.authService.hasAnyPermission(requiredPermissions)) {
-      // Show unauthorized error snackbar with custom message
-      this.snackbarService.showError({
-        message: 'Δεν έχετε τα απαραίτητα δικαιώματα για αυτή τη σελίδα',
-        subMessage: this.authService.getToken() ? 'Θα σας μεταφέρουμε στη σελίδα 404' : 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
-      });
-
-      // Navigate to 404 page after a short delay to allow the snackbar to be seen
-      setTimeout(() => {
-        const redirectUrl = this.authService.getToken() ? '/404' : '/auth/login';
-        this.router.navigate([redirectUrl], {
-              queryParams: { returnUrl: this.router.url }
-            });
-      }, 1000);
-
-      return false;
-    }
-
-    return true;
+    }, 1000);
   }
 } 

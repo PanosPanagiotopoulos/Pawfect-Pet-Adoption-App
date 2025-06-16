@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+﻿using Main_API.Data.Entities.Types.Apis;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.EmailServices.Extention
+namespace Main_API.Services.EmailServices.Extention
 {
 	public static class Extention
 	{

@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.Animal;
-using Pawfect_Pet_Adoption_App_API.Models.User;
+﻿using Main_API.Models.Animal;
+using Main_API.Models.User;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.Conversation
+namespace Main_API.Models.Conversation
 {
 	public class Conversation
 	{

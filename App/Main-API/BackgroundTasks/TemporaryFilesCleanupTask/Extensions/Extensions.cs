@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask;
+﻿using Main_API.BackgroundTasks.UnverifiedUserCleanupTask;
 
-namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.TemporaryFilesCleanupTask.Extensions
+namespace Main_API.BackgroundTasks.TemporaryFilesCleanupTask.Extensions
 {
     public static class Extention
     {

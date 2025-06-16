@@ -1,13 +1,13 @@
-﻿using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Query.Implementations;
-using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Repositories.Implementations;
-using Pawfect_Pet_Adoption_App_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Transactions;
+﻿using Main_API.Builders;
+using Main_API.Censors;
+using Main_API.Query.Implementations;
+using Main_API.Query.Interfaces;
+using Main_API.Query;
+using Main_API.Repositories.Implementations;
+using Main_API.Repositories.Interfaces;
+using Main_API.Transactions;
 
-namespace Pawfect_Pet_Adoption_App_API.BackgroundTasks.UnverifiedUserCleanupTask.Extensions
+namespace Main_API.BackgroundTasks.UnverifiedUserCleanupTask.Extensions
 {
     public static class Extention
     {

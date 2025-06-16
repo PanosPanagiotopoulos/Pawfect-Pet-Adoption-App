@@ -2,23 +2,23 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Builders;
-using Pawfect_Pet_Adoption_App_API.Censors;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Files;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
-using Pawfect_Pet_Adoption_App_API.Models.File;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Query.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
-using Pawfect_Pet_Adoption_App_API.Services.AwsServices;
-using Pawfect_Pet_Adoption_App_API.Services.Convention;
+using Main_API.Builders;
+using Main_API.Censors;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.EnumTypes;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Data.Entities.Types.Files;
+using Main_API.Exceptions;
+using Main_API.Models.File;
+using Main_API.Models.Lookups;
+using Main_API.Query;
+using Main_API.Query.Interfaces;
+using Main_API.Services.AuthenticationServices;
+using Main_API.Services.AwsServices;
+using Main_API.Services.Convention;
 using System.Linq;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
+namespace Main_API.Services.FileServices
 {
 	public class FileService : IFileService
 	{
@@ -65,19 +65,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
             _filesConfig = filesConfig.Value;
 		}
 
-		//public async Task<IEnumerable<FileDto>> QueryFilesAsync(FileLookup fileLookup)
-		//{
-		//	if (fileLookup.FileSaveStatuses == null)
-		//		fileLookup.FileSaveStatuses = new List<FileSaveStatus>() { FileSaveStatus.Permanent };
-
-		//	if (!fileLookup.FileSaveStatuses.Contains(FileSaveStatus.Permanent))
-		//		fileLookup.FileSaveStatuses.Add(FileSaveStatus.Permanent);
-
-		//	List<Data.Entities.File> queriedFiles = await fileLookup.EnrichLookup(_fileQuery).CollectAsync();
-
-		//	return await _fileBuilder.SetLookup(fileLookup).BuildDto(queriedFiles, fileLookup.Fields.ToList());
-		//}
-
 		public async Task<Models.File.File> Persist(FilePersist persist, List<String> fields)
 		{
 			return (await this.Persist(new List<FilePersist>() { persist }, fields)).FirstOrDefault();
@@ -86,9 +73,9 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 		{
 			if (persists.All(persist => !String.IsNullOrEmpty(persist.OwnerId)))
 			{
-				OwnedResource ownedResource = _authorizationContentResolver.BuildOwnedResource(new FileLookup(), [.. persists.Select(x => x.OwnerId)]);
-				if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.CreateFiles))
-					throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
+				//OwnedResource ownedResource = _authorizationContentResolver.BuildOwnedResource(new FileLookup(), [.. persists.Select(x => x.OwnerId)]);
+				//if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.CreateFiles))
+				//	throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
 			}
 
             Boolean isUpdate = persists.Select(f => f.Id).Any(_conventionService.IsValidId);
@@ -140,8 +127,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
 			lookup.PageSize = 1;
 			lookup.Fields = fields;
 
-            return await _builderFactory.Builder<FileBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-										.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), fields);
+            return await _builderFactory.Builder<FileBuilder>().Authorise(AuthorizationFlags.None)
+										.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.None).CollectAsync(), fields);
         }
 
 		public async Task<Models.File.FilePersist> SaveTemporarily(IFormFile file) => (await this.SaveTemporarily(new List<IFormFile>() { file })).FirstOrDefault();

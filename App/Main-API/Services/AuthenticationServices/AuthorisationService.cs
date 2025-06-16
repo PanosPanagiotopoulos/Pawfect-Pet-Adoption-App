@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Exceptions;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Exceptions;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
+namespace Main_API.Services.AuthenticationServices
 {
     public class AuthorizationService : IAuthorizationService
     {
@@ -31,8 +31,8 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                 throw new ArgumentException("No permissions provided to check.");
 
             ClaimsPrincipal user = _authorizationContentResolver.CurrentPrincipal();
-            if (user == null) throw new UnAuthenticatedException("User is not authenticated.");
-
+            if (user == null) throw new ForbiddenException("User is not authenticated.");
+                
             List<String> userRoles = _claimsExtractor.CurrentUserRoles(user) ?? new List<String>();
 
             return await Task.FromResult(_permissionProvider.HasAnyPermission(userRoles, permissions));
@@ -44,7 +44,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                 throw new ArgumentException("Invalid affiliated resource provided.");
 
             ClaimsPrincipal user = _authorizationContentResolver.CurrentPrincipal();
-            if (user == null) throw new UnAuthenticatedException("User is not authenticated.");
+            if (user == null) throw new ForbiddenException("User is not authenticated.");
 
             resource.AffiliatedRoles = _authorizationContentResolver.AffiliatedRolesOf(permissions);
 
@@ -58,7 +58,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices
                 throw new ArgumentException("Invalid affiliated resource provided.");
 
             ClaimsPrincipal user = _authorizationContentResolver.CurrentPrincipal();
-            if (user == null) throw new UnAuthenticatedException("User is not authenticated.");
+            if (user == null) throw new ForbiddenException("User is not authenticated.");
 
             AuthorizationResult authorizationResult = await _authorizationService.AuthorizeAsync(user, resource, new OwnedRequirement(resource));
             return authorizationResult.Succeeded;

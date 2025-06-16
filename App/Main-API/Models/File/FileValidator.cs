@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Files;
-using Pawfect_Pet_Adoption_App_API.DevTools;
+using Main_API.Data.Entities.Types.Files;
+using Main_API.DevTools;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.File
+namespace Main_API.Models.File
 {
 	public class FileValidator : AbstractValidator<FilePersist>
 	{

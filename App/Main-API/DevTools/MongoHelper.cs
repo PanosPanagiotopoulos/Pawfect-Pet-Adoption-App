@@ -2,7 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 
-namespace Pawfect_Pet_Adoption_App_API.DevTools
+namespace Main_API.DevTools
 {
     public static class MongoHelper
     {

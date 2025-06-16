@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Models.Conversation
+﻿namespace Main_API.Models.Conversation
 {
     public class ConversationPersist
     {

@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Pawfect_Pet_Adoption_App_API.Data.Entities;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authentication;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_API.Models.Lookups;
+using Main_API.Data.Entities;
+using Main_API.Data.Entities.Types.Authentication;
+using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Models.Lookups;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices.Extentions
+namespace Main_API.Services.AuthenticationServices.Extentions
 {
 	public static class Extention
 	{

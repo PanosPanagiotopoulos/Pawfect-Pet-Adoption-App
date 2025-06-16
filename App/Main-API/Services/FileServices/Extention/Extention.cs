@@ -1,9 +1,9 @@
 ﻿
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Files;
-using Pawfect_Pet_Adoption_App_API.Services.AdoptionApplicationServices;
+using Main_API.Data.Entities.Types.Apis;
+using Main_API.Data.Entities.Types.Files;
+using Main_API.Services.AdoptionApplicationServices;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.FileServices.Extention
+namespace Main_API.Services.FileServices.Extention
 {
 	public static class Extention
 	{

@@ -1,8 +1,8 @@
-﻿using Pawfect_Pet_Adoption_App_API.Services.AuthenticationServices;
+﻿using Main_API.Services.AuthenticationServices;
 
 using System.IdentityModel.Tokens.Jwt;
 
-namespace Pawfect_Pet_Adoption_App_API.Middleware
+namespace Main_API.Middleware
 {
 	/// <summary>
 	/// Middleware to check if a JWT token has been revoked.
@@ -20,56 +20,30 @@ namespace Pawfect_Pet_Adoption_App_API.Middleware
 			_jwtService = jwtService;
 		}
 
-		public async Task InvokeAsync(HttpContext context)
-		{
-			// Check if the user is authenticated
-			if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
-			{
-				// Extract the token from the Authorization header
-				String? authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
+        public async Task InvokeAsync(HttpContext context)
+        {
+            if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
+            {
+                String? token = context.Request.Cookies[JwtService.ACCESS_TOKEN];
+                if (!String.IsNullOrEmpty(token))
+                {
+                    JwtSecurityToken jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+                    String? tokenId = jwtToken.Id;
+                    if (!String.IsNullOrEmpty(tokenId))
+                    {
+                        if (_jwtService.IsTokenRevoked(tokenId))
+                        {
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            await context.Response.WriteAsync("Forbidden: Token has been revoked.");
+                            return;
+                        }
+                    }
+                }
+            }
 
-				if (!String.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-				{
-					String token = authHeader.Substring("Bearer ".Length).Trim();
-
-					try
-					{
-						// Read the JWT token
-						JwtSecurityToken jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
-
-						// Extract the JTI (JWT ID) claim
-						String? tokenId = jwtToken.Id;
-
-						if (!String.IsNullOrEmpty(tokenId))
-						{
-							// Check if the token is revoked
-							if (_jwtService.IsTokenRevoked(tokenId))
-							{
-								_logger.LogWarning("Revoked token detected. TokenId: {TokenId}", tokenId);
-								context.Response.StatusCode = StatusCodes.Status403Forbidden;
-								await context.Response.WriteAsync("Forbidden: Token has been revoked.");
-								return;
-							}
-						}
-						else
-						{
-							_logger.LogWarning("JWT token does not contain a JTI claim.");
-						}
-					}
-					catch (Exception ex)
-					{
-						_logger.LogError(ex, "Error processing JWT token in revocation middleware.");
-						context.Response.StatusCode = StatusCodes.Status400BadRequest;
-						await context.Response.WriteAsync("Bad Request: Invalid JWT token.");
-						return;
-					}
-				}
-			}
-
-			// Call the next middleware in the pipeline
-			await _next(context);
-		}
-	}
+            await _next(context);
+        }
+    }
 
 	/// <summary>
 	/// Extension method to add the JwtRevocationMiddleware to the application pipeline.
