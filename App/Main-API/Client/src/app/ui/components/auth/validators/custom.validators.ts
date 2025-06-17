@@ -17,13 +17,23 @@ export class CustomValidators {
 
       const errors: ValidationErrors = {};
 
-      if (!isLongEnough) errors['minlength'] = { requiredLength: 8 };
-      if (!hasUpperCase) errors['uppercase'] = true;
-      if (!hasLowerCase) errors['lowercase'] = true;
-      if (!hasNumber) errors['number'] = true;
-      if (!hasSpecialChar) errors['specialChar'] = true;
+      if (!isLongEnough) {
+        errors['minlength'] = { requiredLength: 8, actualLength: control.value.length };
+      }
+      if (!hasUpperCase) {
+        errors['uppercase'] = { message: 'At least one uppercase letter required' };
+      }
+      if (!hasLowerCase) {
+        errors['lowercase'] = { message: 'At least one lowercase letter required' };
+      }
+      if (!hasNumber) {
+        errors['number'] = { message: 'At least one number required' };
+      }
+      if (!hasSpecialChar) {
+        errors['specialChar'] = { message: 'At least one special character required' };
+      }
 
-      return Object.keys(errors).length ? errors : null;
+      return Object.keys(errors).length > 0 ? errors : null;
     };
   }
 
@@ -39,7 +49,7 @@ export class CustomValidators {
       }
 
       if (control.value !== matchControl.value) {
-        return { mismatch: true };
+        return { mismatch: { message: 'Passwords do not match' } };
       }
 
       return null;

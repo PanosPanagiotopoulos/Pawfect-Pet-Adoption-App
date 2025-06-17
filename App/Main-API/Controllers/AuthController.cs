@@ -134,12 +134,12 @@
 
             RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString);
             if (refreshToken == null || refreshToken.ExpiresAt < DateTime.UtcNow)
-                return Unauthorized("Invalid or expired refresh token");
+                return BadRequest("Invalid or expired refresh token");
 
             // ** ACCOUNT ** //
             String userId = refreshToken.LinkedTo;
             Data.Entities.User user = await _userService.RetrieveUserAsync(userId, null);
-            if (user == null) return Unauthorized("User not found");
+            if (user == null) return NotFound("User not found");
 
             List<String> userRoles = [.. user.Roles.Select(roleEnum => roleEnum.ToString())];
 

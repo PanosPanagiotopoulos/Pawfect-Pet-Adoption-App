@@ -306,6 +306,16 @@ export class SignupComponent
         CustomValidators.matchValidator('password'),
       ]);
 
+    // Subscribe to password changes to update confirm password validation
+    this.registrationForm
+      .get('password')
+      ?.valueChanges.subscribe(() => {
+        const confirmPasswordControl = this.registrationForm.get('confirmPassword');
+        if (confirmPasswordControl) {
+          confirmPasswordControl.updateValueAndValidity();
+        }
+      });
+
     // Subscribe to isShelter changes to update validations
     this.registrationForm
       .get('isShelter')

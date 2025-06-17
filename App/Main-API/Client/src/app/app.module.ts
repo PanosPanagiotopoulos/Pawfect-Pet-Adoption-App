@@ -44,6 +44,8 @@ import {
   lucideBuilding,
   lucideCircle,
   lucideCircleHelp,
+  lucideEye,
+  lucideEyeOff,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -118,7 +120,9 @@ export function initializeApp(
       lucideRuler, 
       lucideBuilding,
       lucideCircleHelp,
-      lucideCircle
+      lucideCircle,
+      lucideEye,
+      lucideEyeOff,
     }),
     HeaderComponent,
   ],

@@ -43,9 +43,14 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
             });
             
             setTimeout(() => {
+              const currentUrl = this.router.url;
+              const urlParams = new URLSearchParams(window.location.search);
+              const returnUrl = urlParams.get('returnUrl') || currentUrl;
+              
               this.router.navigate(['/auth/login'], {
-                queryParams: { returnUrl: this.router.url }
+                queryParams: { returnUrl: returnUrl }
               });
+              debugger;
             }, 500);
 
             return throwError(() => refreshError);

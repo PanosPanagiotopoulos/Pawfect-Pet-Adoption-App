@@ -61,9 +61,16 @@ export class AuthGuard implements CanActivate {
     // Navigate to appropriate page after a short delay
     setTimeout(() => {
       const redirectUrl = isLoggedIn ? '/404' : '/auth/login';
+      
+      // Extract the returnUrl query parameter from the current URL
+      const currentUrl = this.router.url;
+      const urlParams = new URLSearchParams(window.location.search);
+      const returnUrl = urlParams.get('returnUrl') || currentUrl;
+      
       this.router.navigate([redirectUrl], {
-        queryParams: { returnUrl: this.router.url }
+        queryParams: { returnUrl: returnUrl }
       });
+      debugger;
     }, 1000);
   }
 } 
