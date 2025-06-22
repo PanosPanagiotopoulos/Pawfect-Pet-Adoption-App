@@ -14,7 +14,7 @@ import { AuthService } from '../../services/auth.service';
 
 @Injectable()
 export class UnauthorizedInterceptor implements HttpInterceptor {
-  private readonly excludedRoutes = ['/auth/login', '/auth/sign-up', '/search', '/home', '/', '/404', ''];
+  private readonly excludedRoutes = ['/auth/login', '/auth/sign-up', '/auth/google/callback', '/search', '/home', '/', '/404', ''];
 
   constructor(
     private router: Router,
@@ -28,10 +28,12 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (error.status !== 401 || this.excludedRoutes.includes(this.router.url)) {
+        if (
+          error.status !== 401 ||
+          this.excludedRoutes.some(route => this.router.url.startsWith(route))
+        ) {
           return throwError(() => error);
         }
-
         return this.authService.refresh().pipe(
           switchMap(() => {
             return next.handle(request.clone());
@@ -41,17 +43,14 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
               message: 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα',
               subMessage: 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
             });
-            
             setTimeout(() => {
               const currentUrl = this.router.url;
               const urlParams = new URLSearchParams(window.location.search);
               const returnUrl = urlParams.get('returnUrl') || currentUrl;
-              
               this.router.navigate(['/auth/login'], {
                 queryParams: { returnUrl: returnUrl }
               });
             }, 500);
-
             return throwError(() => refreshError);
           })
         );

@@ -348,25 +348,21 @@ namespace Main_API.Services.UserServices
 
 				return true;
 		}
-		public async Task<(String, String)> RetrieveGoogleCredentials(String AuthorizationCode)
+		public async Task<(String, String)> RetrieveGoogleCredentials(String authorizationCode)
 		{
-			GoogleTokenResponse tokenResponse = await _authenticationService.ExchangeCodeForAccessToken(AuthorizationCode);
-			if (tokenResponse == null)
-				throw new InvalidOperationException("Failed to exchange code for access token");
-
-            Data.Entities.User userInfo = await this.GetGoogleUser(tokenResponse?.AccessToken);
+            Data.Entities.User userInfo = await this.GetGoogleUser(authorizationCode);
 			if (userInfo == null)
 				throw new InvalidOperationException("Failed to retrieve google user data");
 
 			return (userInfo.Email, userInfo.AuthProviderId);
 		}
 
-		public async Task<Data.Entities.User> GetGoogleUser(String AuthorizationCode)
+		public async Task<Data.Entities.User> GetGoogleUser(String authorizationCode)
 		{
-			if (String.IsNullOrEmpty(AuthorizationCode))
+			if (String.IsNullOrEmpty(authorizationCode))
 				throw new ArgumentException("No access code given to get google user");
 
-			GoogleTokenResponse tokenResponse = await _authenticationService.ExchangeCodeForAccessToken(AuthorizationCode);
+			GoogleTokenResponse tokenResponse = await _authenticationService.ExchangeCodeForAccessToken(authorizationCode);
 			if (tokenResponse == null)
 				throw new ArgumentException("Failed to exchange Google authorization code for access token.");
 
@@ -383,7 +379,7 @@ namespace Main_API.Services.UserServices
 			// TODO: HTTPS ?
 			using (HttpClient client = new HttpClient())
 			{
-				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", "accessToken");
+				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", $"{accessToken}");
 
 				// People API endpoint with requested fields
 				String endpoint = "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,phoneNumbers,addresses,metadata";

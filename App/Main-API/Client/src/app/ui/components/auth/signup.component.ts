@@ -678,8 +678,6 @@ export class SignupComponent
         };
       }
 
-      console.log('Registration payload:\n', payload);
-
       this.authService.register(payload).subscribe({
         next: (user: User) => {
           this.userId = user.id!;

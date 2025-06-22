@@ -304,7 +304,14 @@ public class Program
 			app.UseHttpsRedirection();
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
-		}
+            app.MapFallbackToFile("index.html", new StaticFileOptions
+            {
+                OnPrepareResponse = ctx =>
+                {
+                    ctx.Context.Response.Headers["Cache-Control"] = "private, max-age=3600";
+                }
+            });
+        }
 
 		app.UseCors("Cors");
 
@@ -321,18 +328,6 @@ public class Program
 		app.UseAuthorization();
 
 		app.MapControllers();
-
-		// Fallback for SPA routing
-		if (app.Environment.IsProduction())
-		{ 
-			app.MapFallbackToFile("index.html", new StaticFileOptions
-			{
-				OnPrepareResponse = ctx =>
-				{
-					ctx.Context.Response.Headers["Cache-Control"] = "private, max-age=3600";
-				}
-			});
-		}
     }
 
 	public static void SeedData(IHost app)

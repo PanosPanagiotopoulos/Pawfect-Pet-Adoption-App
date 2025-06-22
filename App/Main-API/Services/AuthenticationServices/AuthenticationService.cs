@@ -48,7 +48,10 @@ namespace Main_API.Services.AuthenticationServices
 				}
 
 				String responseContent = await response.Content.ReadAsStringAsync();
-				return JsonConvert.DeserializeObject<GoogleTokenResponse>(responseContent);
+				if (String.IsNullOrEmpty(responseContent))
+                    throw new InvalidOperationException("Failed to exchange google access code for token");
+
+                return JsonConvert.DeserializeObject<GoogleTokenResponse>(responseContent);
 			}
 		}
 	}
