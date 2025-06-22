@@ -48,7 +48,7 @@ namespace Main_API.DevTools
 							if (value != null && HasPlaceholder(value))
 							{
 								String resolvedValue = ReplacePlaceholderValue(value, envVars);
-								section[$"{i}"] = resolvedValue; // ✅ Correctly replaces indexed list values
+								section[$"{i}"] = resolvedValue;
 							}
 						}
 					}

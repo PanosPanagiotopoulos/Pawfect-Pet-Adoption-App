@@ -4,7 +4,7 @@
 			"Key": "%{JwtKey}%",
 			"Issuer": "%{JwtIssuer}%",
 			"Audiences": [ "%{FrontendUrl}%", "%{BackendUrl}%", "%{BackendUrlSecure}%" ],
-			"RefreshTokenExpiration": 12 // 5 hours
+			"RefreshTokenExpiration": 6 // 6 hours
 		},
 		"Google": {
 			"ClientId": "%{GoogleClientId}%",

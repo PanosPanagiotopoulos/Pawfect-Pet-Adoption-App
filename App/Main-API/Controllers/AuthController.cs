@@ -106,8 +106,8 @@
                 throw new InvalidOperationException("Failed to create refresh token");
 
 			// ** COOKIES ** //
-			_cookiesService.AddCookie(JwtService.ACCESS_TOKEN, token, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
-            _cookiesService.AddCookie(JwtService.REFRESH_TOKEN, refreshToken.Token, refreshToken.ExpiresAt);
+			_cookiesService.SetCookie(JwtService.ACCESS_TOKEN, token, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
+            _cookiesService.SetCookie(JwtService.REFRESH_TOKEN, refreshToken.Token, refreshToken.ExpiresAt);
 
 			// ** ACCOUNT SERVE ** //
             return Ok(
@@ -128,7 +128,7 @@
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken()
         {
-            String? refreshTokenString = Request.Cookies[JwtService.REFRESH_TOKEN];
+            String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);
             if (String.IsNullOrEmpty(refreshTokenString))
                 return BadRequest("Refresh token is missing");
 
@@ -148,7 +148,7 @@
                 throw new InvalidOperationException("Failed to create token");
 
 			// ** COOKIES ** //
-            _cookiesService.AddCookie(JwtService.ACCESS_TOKEN, newAccessToken, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
+            _cookiesService.SetCookie(JwtService.ACCESS_TOKEN, newAccessToken, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
 
             return Ok(new LoggedAccount
             {
@@ -171,7 +171,7 @@
         public async Task<IActionResult> Logout()
         {
             // Extract access token from cookie
-            String? token = Request.Cookies[JwtService.ACCESS_TOKEN];
+            String? token = _cookiesService.GetCookie(JwtService.ACCESS_TOKEN);
             if (String.IsNullOrEmpty(token)) return Unauthorized("Access token is missing");
 
             // Validate and parse the token
@@ -198,9 +198,9 @@
 
             // Revoke the token
             _jwtService.RevokeToken(tokenId, expiration.Value);
-
+				
             // Handle refresh token deletion
-            String? refreshTokenString = Request.Cookies[JwtService.REFRESH_TOKEN];
+            String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);
             if (!String.IsNullOrEmpty(refreshTokenString))
             {
                 RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString);
@@ -226,8 +226,8 @@
             String userId = _claimsExtractor.CurrentUserId(currentUser);
             if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
 
-            // ** TOKENS ** //
-            String? token = Request.Cookies[JwtService.ACCESS_TOKEN];
+            // ** TOKENS ** //	
+            String? token = _cookiesService.GetCookie(JwtService.ACCESS_TOKEN);
             if (String.IsNullOrEmpty(token))
                 throw new UnAuthenticatedException("No access token found for the user");
 

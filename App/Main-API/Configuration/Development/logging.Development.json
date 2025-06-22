@@ -1,20 +1,11 @@
 {
   "Serilog": {
     "Properties": {
-      "Application": "ImageEditorAPI",
+      "Application": "PawfectAPI",
       "Scope": 0
     },
     "MinimumLevel": {
       "Default": "Debug"
-      //"Override": {
-      //  "Microsoft.EntityFrameworkCore.Database.Command": "Warning",
-      //  "Microsoft": "Warning",
-      //  "IdentityServer4": "Warning",
-      //  "Cite": "Warning",
-      //  "Microsoft.AspNetCore.Localization": "Error",
-      //  "Cite.BPMS": "Debug",
-      //  "audit": "Information"
-      //}
     },
     "WriteTo": [
       {

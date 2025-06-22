@@ -1,32 +1,22 @@
 import { Injectable } from '@angular/core';
-import { BaseHttpService } from './base-http.service';
-import { Observable, forkJoin, map, tap, catchError, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { map, catchError, shareReplay } from 'rxjs/operators';
+import { environment as envDev } from 'src/environments/environment';
+import { environment as envProd } from 'src/environments/environment.production';
 
-interface InstallationConfig {
-  appServiceAddress?: string;
-  disableAuth?: boolean;
-  googleClientId?: string;
-  googleClientSecret?: string;
-  baseGoogleEndpoint?: string;
-  redirectUri?: string;
-  storageAccountKey: string;
-  encryptKey: string;
-}
-
-interface EnvironmentConfig {
-  googleClientId: string;
-  googleClientSecret: string;
-  baseGoogleEndpoint: string;
-  redirectPath: string;
-  storageAccountKey: string;
-  encryptKey: string;
+interface AppConfig {
+  production: boolean;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class InstallationConfigurationService {
-  constructor(private readonly http: BaseHttpService) {}
+  private configLoaded = false;
+  private config: any;
+
+  constructor(private readonly http: HttpClient) {}
 
   private _appServiceAddress: string = './';
   get appServiceAddress(): string {
@@ -41,11 +31,6 @@ export class InstallationConfigurationService {
   private _googleClientId: string = '';
   get googleClientId(): string {
     return this._googleClientId;
-  }
-
-  private _googleClientSecret: string = '';
-  get googleClientSecret(): string {
-    return this._googleClientSecret;
   }
 
   private _baseGoogleEndpoint: string = '';
@@ -68,63 +53,49 @@ export class InstallationConfigurationService {
     return this._encryptKey;
   }
 
-  loadConfig(): Observable<InstallationConfig> {
-    // Load both configuration files in parallel
-    const configFile$ = this.http
-      .get<InstallationConfig>('configs/config.json')
-      .pipe(
-        catchError((error) => {
-          console.warn('Failed to load config.json:', error);
-          return of({} as InstallationConfig);
-        })
-      );
+  private _mainAppApiKey: string = '';
+  get mainAppApiKey(): string {
+    return this._mainAppApiKey;
+  }
 
-    const environmentFile$ = this.http
-      .get<EnvironmentConfig>('configs/environment.json')
-      .pipe(
-        catchError((error) => {
-          console.warn('Failed to load environment.json:', error);
-          return of({} as EnvironmentConfig);
-        })
-      );
+  private readonly config$ = this.http.get<AppConfig>('/configs/config.json').pipe(
+    map((appConfig) => {
+      this.applyRuntimeConfig(appConfig);
+      return appConfig;
+    }),
+    catchError((error) => {
+      console.log('Failed to load config.json, using dev environment\n', JSON.stringify(error, null, 2));
+      const fallback: AppConfig = { production: false };
+      this.applyRuntimeConfig(fallback);
+      return of(fallback);
+    }),
+    shareReplay(1) // Cache the response for all future subscribers
+  );
 
-    return forkJoin({
-      config: configFile$,
-      environment: environmentFile$,
-    }).pipe(
-      map((result) => {
-        // Construct the full redirectUri using the redirectPath from environment
-        const redirectUri = result.environment.redirectPath
-          ? `${window.location.origin}${result.environment.redirectPath}`
-          : '';
+  loadConfig(): Observable<AppConfig> {
+    return this.config$;
+  }
 
-        // Combine the configurations
-        const combinedConfig: InstallationConfig = {
-          ...result.config,
-          googleClientId: result.environment.googleClientId,
-          googleClientSecret: result.environment.googleClientSecret,
-          baseGoogleEndpoint: result.environment.baseGoogleEndpoint,
-          redirectUri: redirectUri,
-          encryptKey: result.environment.encryptKey,
-          storageAccountKey: result.environment.storageAccountKey,
-        };
-        return combinedConfig;
-      }),
-      tap((config: InstallationConfig) => {
-        // Set all configuration values with fallbacks
-        this._appServiceAddress = config.appServiceAddress ?? './';
-        this._disableAuth = config.disableAuth ?? false;
-        this._googleClientId = config.googleClientId ?? '';
-        this._googleClientSecret = config.googleClientSecret ?? '';
-        this._baseGoogleEndpoint = config.baseGoogleEndpoint ?? '';
-        this._redirectUri = config.redirectUri ?? '';
-        this._storageAccountKey = config.storageAccountKey ?? '';
-        this._encryptKey = config.encryptKey ?? '';
-      }),
-      catchError((error) => {
-        console.error('Error loading configuration:', error);
-        return of({} as InstallationConfig);
-      })
-    );
+  isConfigLoaded(): boolean {
+    return this.configLoaded;
+  }
+
+  waitForConfig(): Promise<void> {
+    return this.loadConfig().toPromise().then(() => {});
+  }
+
+  private applyRuntimeConfig(appConfig: AppConfig): void {
+    const envConfig = appConfig.production ? envProd : envDev;
+
+    this.config = envConfig;
+    this._appServiceAddress = envConfig.appServiceAddress;
+    this._disableAuth = envConfig.disableAuth;
+    this._googleClientId = envConfig.googleClientId;
+    this._baseGoogleEndpoint = envConfig.baseGoogleEndpoint;
+    this._redirectUri = `${window.location.origin}${envConfig.redirectPath}`;
+    this._storageAccountKey = envConfig.storageAccountKey;
+    this._encryptKey = envConfig.encryptKey;
+    this._mainAppApiKey = envConfig.mainAppApiKey;
+    this.configLoaded = true;
   }
 }

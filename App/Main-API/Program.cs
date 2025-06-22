@@ -42,6 +42,7 @@ using Serilog;
 using System.Text;
 using Main_API.BackgroundTasks.RefreshTokensCleanupTask.Extensions;
 using Pawfect_Pet_Adoption_App_API.Middlewares;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 
 public class Program
 {
@@ -56,9 +57,15 @@ public class Program
 
 		ConfigureServices(builder);
 
-		WebApplication app = builder.Build();
+        // Include frontend files in production
+        if (builder.Environment.IsProduction())
+        {
+            builder.WebHost.UseWebRoot("wwwroot");
+        }
 
-		if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
+        WebApplication app = builder.Build();
+
+        if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
 			SeedData(app);
 
 		Configure(app);
@@ -72,13 +79,15 @@ public class Program
 		IWebHostEnvironment env = builder.Environment;
 		IConfigurationBuilder configBuilder = new ConfigurationBuilder();
 
+
+		String configPath = Path.Join(Configuration, env.IsDevelopment() ? "Development" : "Production");
 		String[] configurationPaths = new String[]
 		{
-			Path.Combine(env.ContentRootPath, Configuration),
+			Path.Combine(env.ContentRootPath, configPath),
 		};
 
 		// Add configuration files for each section
-		AddConfigurationFiles(configBuilder, configurationPaths, "cache", env);
+		//AddConfigurationFiles(configBuilder, configurationPaths, "cache", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "apis", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "auth", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "cors", env);
@@ -86,15 +95,18 @@ public class Program
 		AddConfigurationFiles(configBuilder, configurationPaths, "logging", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "aws", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "files", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "cache", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "permissions", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "background_tasks", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "profile-fields", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "api-keys", env);
 
 
-        // Load environment variables from 'environment.json'
+        // Load environment variables
+        String envFileName = env.IsDevelopment() ? "environment.Development.json" : "environment.json";
         foreach (String path in configurationPaths)
 		{
-			String envFilePath = Path.Combine(path, "environment.json");
+            String envFilePath = Path.Combine(path, envFileName);
 			if (File.Exists(envFilePath))
 			{
 				configBuilder.AddJsonFile(envFilePath, optional: false, reloadOnChange: true);
@@ -112,28 +124,22 @@ public class Program
 		builder.Configuration.AddConfiguration(configuration);
 	}
 
-	private static void AddConfigurationFiles(IConfigurationBuilder configBuilder, String[] paths, String baseFileName, IWebHostEnvironment env)
-	{
-		// List of configuration file patterns
-		(String FileName, Boolean Optional)[] configFiles = new[]
-		{
-			(FileName: $"{baseFileName}.json", Optional: false),
-			(FileName: $"{baseFileName}.override.json", Optional: true),
-			(FileName: $"{baseFileName}.{env.EnvironmentName}.json", Optional: true),
-			(FileName: $"{baseFileName}.override.{env.EnvironmentName}.json", Optional: true),
-		};
+    private static void AddConfigurationFiles(IConfigurationBuilder configBuilder, String[] paths, String baseFileName, IWebHostEnvironment env)
+    {
+        String fileName = env.IsDevelopment()
+            ? $"{baseFileName}.Development.json"
+            : $"{baseFileName}.json";
 
-		foreach ((String fileName, Boolean optional) in configFiles)
-		{
-			foreach (String path in paths)
-			{
-				String fullPath = Path.Combine(path, fileName);
-				configBuilder.AddJsonFile(fullPath, optional: optional, reloadOnChange: true);
-			}
-		}
-	}
 
-	public static void ConfigureServices(WebApplicationBuilder builder)
+
+        foreach (String path in paths)
+        {
+            String fullPath = Path.Combine(path, fileName);
+			configBuilder.AddJsonFile(fullPath, optional: false, reloadOnChange: true);
+        }
+    }
+
+    public static void ConfigureServices(WebApplicationBuilder builder)
 	{
 		// Logger configuration
 		builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
@@ -149,6 +155,8 @@ public class Program
 		builder.Services.Configure<CacheConfig>(builder.Configuration.GetSection("Cache"));
 		// Cors Configuration
 		builder.Services.Configure<CorsConfig>(builder.Configuration.GetSection("Cors"));
+        // Api Keys Configuration
+        builder.Services.Configure<ApiKeyConfig>(builder.Configuration.GetSection("ApiKeys"));
 
         // HttpContextAccessor
         builder.Services.AddHttpContextAccessor();
@@ -182,11 +190,6 @@ public class Program
         .AddRefreshTokenCleanupTask(builder.Configuration.GetSection("BackgroundTasks:RefreshTokenCleanupTask"))
         .AddCookiesServices();
 
-        //builder.WebHost.ConfigureKestrel(serverOptions =>
-        //{
-        //    serverOptions.ListenAnyIP(7200); // for HTTP
-        //    serverOptions.ListenAnyIP(7201, listenOptions => listenOptions.UseHttps()); // for HTTPS
-        //});
 
         // CORS
         List<String> allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<List<String>>() ?? new List<String>();
@@ -296,10 +299,12 @@ public class Program
 		}
 
 		// TODO
-		if (!app.Environment.IsDevelopment())
+		if (app.Environment.IsProduction())
 		{
-            app.UseHttpsRedirection();
-        }
+			app.UseHttpsRedirection();
+			app.UseDefaultFiles();
+			app.UseStaticFiles();
+		}
 
 		app.UseCors("Cors");
 
@@ -307,15 +312,28 @@ public class Program
 		app.UseAuthentication();
 
 		// MIDDLEWARES
+		app.UseApiKeyMiddleware();
 		app.UseJwtRevocation();
-        app.UseVerifiedUserMiddleware();
-        app.UseErrorHandlingMiddleware();
+		app.UseVerifiedUserMiddleware();
+		app.UseErrorHandlingMiddleware();
 
-        // Authorization
-        app.UseAuthorization();
+		// Authorization
+		app.UseAuthorization();
 
 		app.MapControllers();
-	}
+
+		// Fallback for SPA routing
+		if (app.Environment.IsProduction())
+		{ 
+			app.MapFallbackToFile("index.html", new StaticFileOptions
+			{
+				OnPrepareResponse = ctx =>
+				{
+					ctx.Context.Response.Headers["Cache-Control"] = "private, max-age=3600";
+				}
+			});
+		}
+    }
 
 	public static void SeedData(IHost app)
 	{

@@ -50,7 +50,6 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
               this.router.navigate(['/auth/login'], {
                 queryParams: { returnUrl: returnUrl }
               });
-              debugger;
             }, 500);
 
             return throwError(() => refreshError);

@@ -16,7 +16,7 @@ namespace Main_API.Services.CookiesServices
             _env = env;
         }
 
-        public void AddCookie(String key, String value, DateTime expireAt)
+        public void SetCookie(String key, String value, DateTime expireAt)
         {
             HttpResponse response = this.GetResponse();
             response.Cookies.Append(key, value, BuildOptions(expireAt));
@@ -26,6 +26,14 @@ namespace Main_API.Services.CookiesServices
         {
             HttpResponse response = this.GetResponse();
             response.Cookies.Delete(key);
+        }
+
+        public String GetCookie(String key)
+        {
+            HttpRequest request = _ctxAccessor.HttpContext?.Request ?? throw new InvalidOperationException("No active HttpContext.");
+            if (request.Cookies.TryGetValue(key, out String value))
+                return value;
+            return null;
         }
 
         private CookieOptions BuildOptions(DateTime expiresUtc) =>

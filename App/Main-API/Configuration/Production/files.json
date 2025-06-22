@@ -1,0 +1,85 @@
+{
+  "Files": {
+	"MaxRetryCount": 3,
+	"InitialRetryDelayMs": 1000,
+	"MaxFileSizeBytes": 10485760,
+	"BatchSize": 7,
+	"AllowedFileTypes": [
+	  {
+		"FileType": "PDF",
+		"MimeTypes": [ "application/pdf" ],
+		"Extensions": [ ".pdf" ]
+	  },
+	  {
+		"FileType": "JPG",
+		"MimeTypes": [ "image/jpeg" ],
+		"Extensions": [ ".jpg" ]
+	  },
+	  {
+		"FileType": "JPEG",
+		"MimeTypes": [ "image/jpeg" ],
+		"Extensions": [ ".jpeg" ]
+	  },
+	  {
+		"FileType": "PNG",
+		"MimeTypes": [ "image/png" ],
+		"Extensions": [ ".png" ]
+	  },
+	  {
+		"FileType": "GIF",
+		"MimeTypes": [ "image/gif" ],
+		"Extensions": [ ".gif" ]
+	  },
+	  {
+		"FileType": "MP4",
+		"MimeTypes": [ "video/mp4" ],
+		"Extensions": [ ".mp4" ]
+	  },
+	  {
+		"FileType": "MOV",
+		"MimeTypes": [ "video/quicktime" ],
+		"Extensions": [ ".mov" ]
+	  },
+	  {
+		"FileType": "AVI",
+		"MimeTypes": [ "video/x-msvideo" ],
+		"Extensions": [ ".avi" ]
+	  },
+	  {
+		"FileType": "MP3",
+		"MimeTypes": [ "audio/mpeg" ],
+		"Extensions": [ ".mp3" ]
+	  },
+	  {
+		"FileType": "WAV",
+		"MimeTypes": [ "audio/wav" ],
+		"Extensions": [ ".wav" ]
+	  },
+	  {
+		"FileType": "FLAC",
+		"MimeTypes": [ "audio/flac" ],
+		"Extensions": [ ".flac" ]
+	  },
+	  {
+		"FileType": "OGG",
+		"MimeTypes": [ "audio/ogg", "video/ogg" ],
+		"Extensions": [ ".ogg" ]
+	  },
+	  {
+		"FileType": "WEBM",
+		"MimeTypes": [ "video/webm", "audio/webm" ],
+		"Extensions": [ ".webm" ]
+	  },
+	  {
+		"FileType": "WMV",
+		"MimeTypes": [ "video/x-ms-wmv" ],
+		"Extensions": [ ".wmv" ]
+	  },
+	  {
+		"FileType": "EXCEL",
+		"MimeTypes": [ "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ],
+		"Extensions": [ ".xlsx" ]
+	  }
+	]
+  }
+}

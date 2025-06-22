@@ -9,6 +9,7 @@ import { SignupStep } from './signup.component';
 import { LoggedAccount } from 'src/app/models/auth/auth.model';
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
 import { SnackbarService } from 'src/app/common/services/snackbar.service';
+import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
 
 @Component({
   selector: 'app-login',
@@ -25,7 +26,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly errorHandler: ErrorHandlerService,
-    private readonly snackbarService: SnackbarService
+    private readonly snackbarService: SnackbarService,
+    private readonly secureStorageService: SecureStorageService
   ) {
     super();
     this.loginForm = this.fb.group({
@@ -45,11 +47,11 @@ export class LoginComponent extends BaseComponent implements OnInit {
     this.route.queryParams.subscribe((params: any) => {
       if (params['mode'] === 'google') {
         const googleAuthCode: string | null =
-          sessionStorage.getItem('googleAuthCode');
+        this.secureStorageService.getItem<string>('googleAuthCode');
 
         if (googleAuthCode) {
-          sessionStorage.removeItem('googleAuthCode');
-          sessionStorage.removeItem('googleAuthOrigin');
+          this.secureStorageService.removeItem('googleAuthCode');
+          this.secureStorageService.removeItem('googleAuthOrigin');
           this.isLoading = true;
           this.processGoogleLogin(googleAuthCode);
         }
@@ -61,12 +63,12 @@ export class LoginComponent extends BaseComponent implements OnInit {
     this.authService.loginWithGoogle(authCode).subscribe({
       next: (response: LoggedAccount) => {
         if (response && !response.isPhoneVerified) {
-          sessionStorage.setItem('unverifiedPhone', this.authService.getUserEmail()!);
+          this.secureStorageService.setItem('unverifiedPhone', this.authService.getUserEmail()!);
           this.navigateToPhoneVerification();
         }
 
         if (response && !response.isEmailVerified) {
-          sessionStorage.setItem('unverifiedEmail', this.authService.getUserEmail()!);
+          this.secureStorageService.setItem('unverifiedEmail', this.authService.getUserEmail()!);
           this.navigateToEmailVerification();
         } else {
           const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
@@ -95,12 +97,12 @@ export class LoginComponent extends BaseComponent implements OnInit {
       this.authService.login(email, password).subscribe({
         next: (response) => {
           if (response && !response.isPhoneVerified) {
-            sessionStorage.setItem('unverifiedPhone', response.phone);
+            this.secureStorageService.setItem('unverifiedPhone', response.phone);
             this.navigateToPhoneVerification();
           }
 
           if (response && !response.isEmailVerified) {
-            sessionStorage.setItem('unverifiedEmail', email);
+            this.secureStorageService.setItem('unverifiedEmail', email);
             this.navigateToEmailVerification();
           } else {
             this.snackbarService.showSuccess({
@@ -151,7 +153,7 @@ export class LoginComponent extends BaseComponent implements OnInit {
       .subscribe({
         next: (response) => {
           if (response && !response.isEmailVerified) {
-            sessionStorage.setItem('unverifiedEmail', this.authService.getUserEmail()!);
+            this.secureStorageService.setItem('unverifiedEmail', this.authService.getUserEmail()!);
             this.navigateToEmailVerification();
           } else {
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';

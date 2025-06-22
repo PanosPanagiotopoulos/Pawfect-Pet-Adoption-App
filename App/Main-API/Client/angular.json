@@ -5,25 +5,24 @@
   "projects": {
     "pawfect-match-angular": {
       "projectType": "application",
-      "schematics": {},
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/pawfect-match-angular",
+            "outputPath": "../wwwroot",
             "index": "src/index.html",
-            "browser": "src/main.ts",
+            "main": "src/main.ts",
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/configs/config.json",
-              "src/configs/environment.json"
+              "src/configs"
             ],
+            "baseHref": "/",
             "styles": ["src/styles.css"],
             "scripts": []
           },
@@ -41,12 +40,16 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractLicenses": true
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "outputHashing": "none"
             }
           },
           "defaultConfiguration": "production"
@@ -71,8 +74,7 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/configs/config.json",
-              "src/configs/environment.json"
+              "src/configs"
             ],
             "styles": ["src/styles.css"],
             "scripts": []

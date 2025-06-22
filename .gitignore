@@ -9,7 +9,7 @@ App/Main-API/Client/out-tsc/
 
 # Environment and Configuration Files
 App/Main-API/Client/.env
-App/Main-API/Client/src/configs/
+App/Main-API/Client/src/environments
 App/Main-API/Client/prompt.MD
 
 App/Main-API/Client/package-lock.json
@@ -58,6 +58,9 @@ App/Main-API/*.manifest
 App/Main-API/*.nupkg
 App/Main-API/*.local
 App/Main-API/*.config
+App/Main-API/wwwroot/
+App/Main-API/Configuration/Development/environment.Development.json
+App/Main-API/Configuration/Production/environment.json
 App/Main-API/logs/
 App/Main-API/PawfectUser_accessKeys.csv
 

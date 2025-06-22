@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
 import { Router } from '@angular/router';
+import { SecureStorageService } from '../common/services/secure-storage.service';
 
 export interface GoogleOAuthConfig {
   clientId: string;
@@ -19,7 +20,8 @@ export class GoogleAuthService {
 
   constructor(
     private readonly installationConfig: InstallationConfigurationService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly secureStorageService: SecureStorageService
   ) {}
 
   getAuthUrl(isSignup: boolean = false, state: string = ''): string {
@@ -89,7 +91,7 @@ export class GoogleAuthService {
 
       const origin: string | null = decodedState.origin as string;
       // Store the auth code temporarily
-      sessionStorage.setItem('googleAuthCode', code);
+      this.secureStorageService.setItem('googleAuthCode', code);
 
       // Redirect back to the original page
       this.router.navigate(
@@ -117,14 +119,14 @@ export class GoogleAuthService {
 
   // Helper method to check if we have a pending Google auth code
   hasPendingAuth(): boolean {
-    return !!sessionStorage.getItem('googleAuthCode');
+    return !!this.secureStorageService.getItem<string>('googleAuthCode');
   }
 
   // Get and clear the pending auth code
   getPendingAuthCode(): string | null {
-    const code = sessionStorage.getItem('googleAuthCode');
+    const code = this.secureStorageService.getItem<string>('googleAuthCode');
     if (code) {
-      sessionStorage.removeItem('googleAuthCode');
+      this.secureStorageService.removeItem('googleAuthCode');
     }
     return code;
   }

@@ -26,6 +26,7 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
 import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
 import { UserRole } from 'src/app/common/enum/user-role.enum';
 import { User } from 'src/app/models/user/user.model';
+import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
 interface LocationFormGroup extends FormGroup {
   controls: {
     city: AbstractControl;
@@ -157,7 +158,8 @@ export class SignupComponent
     private readonly logService: LogService,
     private readonly errorHandler: ErrorHandlerService,
     private readonly router: Router,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly secureStorageService: SecureStorageService
   ) {
     super();
     this.initializeForms();
@@ -168,12 +170,12 @@ export class SignupComponent
       if (params['mode'] === 'google') {
         // Get the Google auth code from session storage
         const googleAuthCode: string | null =
-          sessionStorage.getItem('googleAuthCode');
+        this.secureStorageService.getItem<string>('googleAuthCode');
 
         if (googleAuthCode) {
           // Clear the code from session storage to prevent reuse
-          sessionStorage.removeItem('googleAuthCode');
-          sessionStorage.removeItem('googleAuthOrigin');
+          this.secureStorageService.removeItem('googleAuthCode');
+          this.secureStorageService.removeItem('googleAuthOrigin');
 
           // Call the login with Google method
           this.isExternalProviderLoading = true;
@@ -185,16 +187,16 @@ export class SignupComponent
     const state = history.state;
 
     const existingPhone: string | null =
-      sessionStorage.getItem('unverifiedPhone');
+    this.secureStorageService.getItem<string>('unverifiedPhone');
     if (existingPhone) {
       this.registrationForm.get('phone')?.setValue(existingPhone);
-      sessionStorage.removeItem('unverifiedPhone');
+      this.secureStorageService.removeItem('unverifiedPhone');
     }
     const existingEmail: string | null =
-      sessionStorage.getItem('unverifiedEmail');
+    this.secureStorageService.getItem<string>('unverifiedEmail');
     if (existingEmail) {
       this.registrationForm.get('email')?.setValue(existingEmail);
-      sessionStorage.removeItem('unverifiedEmail');
+      this.secureStorageService.removeItem('unverifiedEmail');
     }
 
     if (state && state.step === SignupStep.OtpVerification && state.fromLogin) {

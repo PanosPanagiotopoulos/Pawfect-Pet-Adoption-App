@@ -25,10 +25,15 @@ export class AuthService {
     private readonly http: BaseHttpService,
     private readonly secureStorage: SecureStorageService
   ) {
-    const loggedAccount = this.secureStorage.getItem<LoggedAccount>(this.installationConfiguration.storageAccountKey);
-    if (loggedAccount) {
-      this.authStateSubject.next(true);
-    }
+    // Initialize auth state after configuration is loaded
+    this.installationConfiguration.waitForConfig().then(() => {
+      const loggedAccount = this.secureStorage.getItem<LoggedAccount>(this.installationConfiguration.storageAccountKey);
+      if (loggedAccount) {
+        this.authStateSubject.next(true);
+      }
+    }).catch(error => {
+      console.warn('Failed to load configuration, skipping auth state initialization:', error);
+    });
   }
 
   private get apiBase(): string {

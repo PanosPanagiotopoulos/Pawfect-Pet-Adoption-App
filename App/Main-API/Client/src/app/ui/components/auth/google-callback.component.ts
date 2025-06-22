@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { GoogleAuthService } from '../../../services/google-auth.service';
 import { CommonModule } from '@angular/common';
 import { NgIconsModule } from '@ng-icons/core';
+import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
 
 @Component({
   selector: 'app-google-callback',
@@ -75,7 +76,8 @@ export class GoogleCallbackComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly googleAuthService: GoogleAuthService
+    private readonly googleAuthService: GoogleAuthService,
+    private readonly secureStorageService: SecureStorageService
   ) {}
 
   ngOnInit() {
@@ -102,11 +104,11 @@ export class GoogleCallbackComponent implements OnInit {
       const decodedState = JSON.parse(atob(state));
 
       // Store the auth code temporarily
-      sessionStorage.setItem('googleAuthCode', code);
+      this.secureStorageService.setItem('googleAuthCode', code);
 
       // Store original path for potential return
       if (decodedState.origin) {
-        sessionStorage.setItem('googleAuthOrigin', decodedState.origin);
+        this.secureStorageService.setItem('googleAuthOrigin', decodedState.origin);
       }
 
       // Handle the callback
@@ -134,9 +136,9 @@ export class GoogleCallbackComponent implements OnInit {
   }
 
   returnToPrevious(): void {
-    const origin = sessionStorage.getItem('googleAuthOrigin');
+    const origin = this.secureStorageService.getItem<string>('googleAuthOrigin');
     if (origin) {
-      sessionStorage.removeItem('googleAuthOrigin');
+      this.secureStorageService.removeItem('googleAuthOrigin');
       this.router.navigate([origin]);
     } else {
       this.router.navigate(['/auth/login']);

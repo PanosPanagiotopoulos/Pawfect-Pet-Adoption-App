@@ -60,6 +60,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ErrorHandlerService } from './common/services/error-handler.service';
 import { CookiesInterceptor } from './common/tools/cookies.interceptor';
+import { ApiKeyInterceptor } from './common/tools/api-key.interceptor';
 
 export function initializeApp(
   installationConfigService: InstallationConfigurationService
@@ -138,6 +139,11 @@ export function initializeApp(
     {
       provide: HTTP_INTERCEPTORS,
       useClass: CookiesInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ApiKeyInterceptor,
       multi: true,
     },
     {
