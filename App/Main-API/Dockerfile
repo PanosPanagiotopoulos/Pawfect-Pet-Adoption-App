@@ -10,7 +10,7 @@ COPY Client/package*.json ./
 RUN npm ci --legacy-peer-deps       
 
 COPY Client/ ./
-RUN ng build pawfect-match-angular
+RUN ng build --base-href=/ pawfect-match-angular
 
 RUN mkdir -p /static && cp -r ../wwwroot/* /static/
 
@@ -33,6 +33,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
 
 COPY --from=server-build /app/publish .
+COPY --from=client-build /static ./wwwroot
+
 
 ENV ASPNETCORE_ENVIRONMENT=Production \
     ASPNETCORE_URLS=http://+:8080

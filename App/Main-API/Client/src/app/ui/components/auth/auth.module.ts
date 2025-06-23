@@ -57,7 +57,7 @@ import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-ban
       { path: 'login', component: LoginComponent },
       { path: 'sign-up', component: SignupComponent },
       { path: 'verified', component: VerifiedComponent },
-      { path: 'google/callback', component: GoogleCallbackComponent },
+      { path: 'google/callback-page', component: GoogleCallbackComponent },
       {
         path: 'reset-password-request',
         component: ResetPasswordRequestComponent,

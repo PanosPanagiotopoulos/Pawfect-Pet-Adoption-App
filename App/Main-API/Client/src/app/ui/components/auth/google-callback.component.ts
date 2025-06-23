@@ -81,9 +81,9 @@ export class GoogleCallbackComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    debugger;
     const queryParams = new URLSearchParams(window.location.search);
 
+    console.log(JSON.stringify(queryParams, null, 2));
     // Check for error parameter from Google
     const errorCode = queryParams.get('error');
     if (errorCode) {
