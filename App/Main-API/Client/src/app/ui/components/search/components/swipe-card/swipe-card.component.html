@@ -34,7 +34,7 @@
         <!-- Type Badge -->
         <div class="absolute top-4 left-4 px-3 py-1.5 bg-primary-500/90 backdrop-blur-sm rounded-full text-white text-sm font-medium shadow-lg">
           <ng-icon name="lucidePawPrint" [size]="'16'" class="mr-1.5 stroke-[2.5px]"></ng-icon>
-          {{ animal.animalType?.name || 'Άγνωστο' }}
+          {{ animal.animalType?.name || ('APP.SEARCH.UNKNOWN' | translate) }}
         </div>
 
         <!-- Info Button -->
@@ -63,7 +63,7 @@
           </div>
           <div class="flex items-center space-x-2">
             <ng-icon name="lucideCake" [size]="'18'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
-            <span class="text-lg font-medium text-primary-400">{{ animal.age }} ετών</span>
+            <span class="text-lg font-medium text-primary-400">{{ animal.age }} {{ 'APP.SEARCH.YEARS_OLD' | translate }}</span>
           </div>
         </div>
 
@@ -93,7 +93,7 @@
         <!-- Description -->
         <div class="flex-1 overflow-hidden">
           <p class="text-sm text-gray-300 line-clamp-3 leading-relaxed">
-            {{ animal.description || 'Δεν υπάρχει διαθέσιμη περιγραφή.' }}
+            {{ animal.description || ('APP.SEARCH.NO_DESCRIPTION' | translate) }}
           </p>
         </div>
 
@@ -131,8 +131,8 @@
       <div class="w-20 h-20 mx-auto bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-full flex items-center justify-center">
         <ng-icon name="lucideHeart" [size]="'40'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
       </div>
-      <p class="text-lg text-gray-400">Δεν υπάρχουν άλλα ζώα</p>
-      <p class="text-sm text-gray-500">Δοκιμάστε να αλλάξετε τα κριτήρια αναζήτησης</p>
+      <p class="text-lg text-gray-400">{{ 'APP.SEARCH.NO_MORE_ANIMALS' | translate }}</p>
+      <p class="text-sm text-gray-500">{{ 'APP.SEARCH.NO_MORE_ANIMALS_SUBTITLE' | translate }}</p>
     </div>
   </div>
 

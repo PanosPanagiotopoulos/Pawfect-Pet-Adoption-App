@@ -1,6 +1,7 @@
 import { VerificationStatus } from 'src/app/common/enum/verification-status';
 import { Animal } from '../animal/animal.model';
 import { User } from '../user/user.model';
+import { AdoptionApplication } from '../adoption-application/adoption-application.model';
 
 // Shelter Models
 export interface Shelter {
@@ -14,6 +15,7 @@ export interface Shelter {
   verificationStatus?: VerificationStatus;
   verifiedBy?: string;
   animals?: Animal[];
+  receivedAdoptionApplications: AdoptionApplication[];
 }
 
 export interface ShelterPersist {

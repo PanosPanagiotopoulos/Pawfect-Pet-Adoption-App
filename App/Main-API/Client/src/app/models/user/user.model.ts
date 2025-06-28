@@ -2,6 +2,7 @@ import { Shelter } from '../shelter/shelter.model';
 import { File } from '../file/file.model';
 import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
 import { UserRole } from 'src/app/common/enum/user-role.enum';
+import { AdoptionApplication } from '../adoption-application/adoption-application.model';
 
 export interface User {
   id?: string;
@@ -19,6 +20,7 @@ export interface User {
   hasEmailVerified?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  requestedAdoptionApplications: AdoptionApplication[];
 }
 
 export interface UserPersist {

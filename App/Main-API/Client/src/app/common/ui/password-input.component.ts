@@ -9,11 +9,12 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ValidationMessageComponent } from 'src/app/common/ui/validation-message.component';
 import { NgIconsModule } from '@ng-icons/core';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-password-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent, NgIconsModule],
+  imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent, NgIconsModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div [formGroup]="form" class="relative group mb-10">
@@ -59,7 +60,7 @@ import { NgIconsModule } from '@ng-icons/core';
         class="absolute right-3 top-1/2 transform -translate-y-1/2 
                text-gray-400 hover:text-white transition-colors duration-200
                focus:outline-none focus:ring-0 rounded"
-        [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+        [attr.aria-label]="showPassword ? ('APP.UI_COMPONENTS.PASSWORD_INPUT.HIDE_PASSWORD' | translate) : ('APP.UI_COMPONENTS.PASSWORD_INPUT.SHOW_PASSWORD' | translate)"
       >
         <ng-icon 
           [name]="showPassword ? 'lucideEyeOff' : 'lucideEye'" 

@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NgIconsModule } from '@ng-icons/core';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 export interface ErrorDetails {
   title?: string;
@@ -11,7 +12,7 @@ export interface ErrorDetails {
 @Component({
   selector: 'app-error-message-banner',
   standalone: true,
-  imports: [CommonModule, NgIconsModule],
+  imports: [CommonModule, NgIconsModule, TranslatePipe],
   template: `
     <div
       *ngIf="error"
@@ -53,7 +54,7 @@ export interface ErrorDetails {
             (click)="clearError()"
             class="p-1.5 rounded-lg transition-all duration-200"
           >
-            <span class="sr-only">Dismiss</span>
+            <span class="sr-only">{{ 'APP.UI_COMPONENTS.PET_DETAILS.DISMISS' | translate }}</span>
             <ng-icon name="lucideX" [size]="'16'" class="opacity-70 hover:opacity-100"></ng-icon>
           </button>
         </div>

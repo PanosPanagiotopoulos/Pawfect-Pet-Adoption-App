@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
+import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { Permission } from '../enum/permission.enum';
 import { SnackbarService } from '../services/snackbar.service';
+import { TranslationService } from '../services/translation.service';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -13,63 +14,60 @@ export class AuthGuard implements CanActivate {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private snackbarService: SnackbarService
+    private snackbarService: SnackbarService,
+    private translate: TranslationService
   ) {}
 
-  canActivate(route: ActivatedRouteSnapshot): Observable<boolean> {
-    // Get required permissions from route data
+  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
     const requiredPermissions = route.data['permissions'] as Permission[];
-    // If no permissions are required, allow access
+    const attemptedUrl = state.url; // ✅ Accurate route user tried to access
+
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return of(true);
     }
 
-    // First check if we have a token
     if (!this.authService.isLoggedInSync()) {
-      // If we have no token, try to get user data
       return this.authService.me().pipe(
         map(() => {
-          // After me() completes, check permissions
           if (!this.authService.hasAnyPermission(requiredPermissions)) {
-            this.showUnauthorizedMessage(true);
+            this.redirectUnauthorized(true, attemptedUrl);
             return false;
           }
           return true;
         }),
         catchError(() => {
-          this.showUnauthorizedMessage();
+          this.redirectUnauthorized(false, attemptedUrl);
           return of(false);
         })
       );
     }
 
-    // If we already have user data, check permissions
     if (!this.authService.hasAnyPermission(requiredPermissions)) {
-      this.showUnauthorizedMessage(true);
+      this.redirectUnauthorized(true, attemptedUrl);
       return of(false);
     }
 
     return of(true);
   }
 
-  private showUnauthorizedMessage(isLoggedIn: boolean = false): void {
+  private redirectUnauthorized(isLoggedIn: boolean, attemptedUrl: string): void {
+    const messageKey = isLoggedIn
+      ? 'APP.SERVICES.AUTH_GUARD.INSUFFICIENT_PERMISSIONS'
+      : 'APP.SERVICES.AUTH_GUARD.LOGIN_REQUIRED';
+
+    const subMessageKey = isLoggedIn
+      ? 'APP.SERVICES.AUTH_GUARD.REDIRECT_TO_404'
+      : 'APP.SERVICES.AUTH_GUARD.REDIRECT_TO_LOGIN';
+
     this.snackbarService.showError({
-      message: isLoggedIn ? 'Δεν έχετε τα απαραίτητα δικαιώματα για αυτή τη σελίδα' : 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα',
-      subMessage: isLoggedIn ? 'Θα σας μεταφέρουμε στη σελίδα 404' : 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
+      message: this.translate.translate(messageKey),
+      subMessage: this.translate.translate(subMessageKey),
     });
 
-    // Navigate to appropriate page after a short delay
-    setTimeout(() => {
-      const redirectUrl = isLoggedIn ? '/404' : '/auth/login';
-      
-      // Extract the returnUrl query parameter from the current URL
-      const currentUrl = this.router.url;
-      const urlParams = new URLSearchParams(window.location.search);
-      const returnUrl = urlParams.get('returnUrl') || currentUrl;
-      
-      this.router.navigate([redirectUrl], {
-        queryParams: { returnUrl: returnUrl }
-      });
-    }, 1000);
+    const redirectUrl = isLoggedIn ? '/404' : '/auth/login';
+
+    this.router.navigate([redirectUrl], {
+      queryParams: { returnUrl: attemptedUrl }
+    });
   }
-} 
+}

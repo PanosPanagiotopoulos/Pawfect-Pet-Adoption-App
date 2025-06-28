@@ -47,7 +47,7 @@
           class="mt-2 text-sm text-center"
           [class]="currentStep >= step.value ? 'text-white' : 'text-gray-400'"
         >
-          {{ step.label }}
+          {{ step.label | translate }}
         </span>
       </div>
     </div>
@@ -82,7 +82,7 @@
             class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"
           ></div>
         </label>
-        <span class="text-gray-300">Εγγραφή ως Καταφύγιο</span>
+        <span class="text-gray-300">{{ 'APP.AUTH.SIGNUP.REGISTER_AS_SHELTER' | translate }}</span>
       </div>
 
       <!-- Google Sign In Section -->
@@ -91,22 +91,23 @@
           <div class="w-full border-t border-gray-600"></div>
         </div>
         <div class="relative flex justify-center text-sm">
-          <span class="px-2 text-gray-400 bg-gray-900/95">ή συνεχίστε με</span>
+          <span class="px-2 text-gray-400 bg-gray-900/95">{{ 'APP.AUTH.COMMON.OR_CONTINUE_WITH' | translate }}</span>
         </div>
       </div>
 
       <app-google-login-button
         [isLoading]="isExternalProviderLoading"
         [isSignup]="true"
+        [text]="'APP.COMMONS.GOOGLE-BUTTON-TEXT' | translate"
       ></app-google-login-button>
 
       <div class="text-center text-sm">
-        <span class="text-gray-400">Έχετε ήδη λογαριασμό;</span>
+        <span class="text-gray-400">{{ 'APP.AUTH.SIGNUP.ALREADY_HAVE_ACCOUNT' | translate }}</span>
         <a
           routerLink="/auth/login"
           class="ml-1 text-primary-400 hover:text-primary-300 transition-colors"
         >
-          Σύνδεση
+          {{ 'APP.AUTH.SIGNUP.LOGIN' | translate }}
         </a>
       </div>
     </div>
@@ -148,10 +149,8 @@
       <app-error-message-banner [error]="error"></app-error-message-banner>
 
       <div class="text-center">
-        <h2 class="text-2xl font-bold text-white mb-2">Επαλήθευση Τηλεφώνου</h2>
-        <p class="text-gray-400 mb-8">
-          Εισάγετε τον 6ψήφιο κωδικό που στάλθηκε στο τηλέφωνό σας
-        </p>
+        <h2 class="text-2xl font-bold text-white mb-2">{{ 'APP.AUTH.SIGNUP.OTP_TITLE' | translate }}</h2>
+        <p class="text-gray-400 mb-8">{{ 'APP.AUTH.SIGNUP.OTP_DESC' | translate }}</p>
       </div>
 
       <form [formGroup]="otpForm" (ngSubmit)="onSubmitOtp()" class="space-y-6">
@@ -159,7 +158,7 @@
           [form]="otpForm"
           controlName="otp"
           label=""
-          hint="Εισάγετε τον 6ψήφιο κωδικό επαλήθευσης"
+          hint="{{ 'APP.AUTH.SIGNUP.OTP_HINT' | translate }}"
           [length]="6"
           (completed)="onOtpCompleted($event)"
         ></app-otp-input>
@@ -171,11 +170,7 @@
             [disabled]="resendOtpTimer > 0"
             class="text-primary-400 hover:text-primary-300 transition-colors disabled:text-gray-600"
           >
-            {{
-              resendOtpTimer > 0
-                ? "Επαναποστολή κωδικού σε " + resendOtpTimer + " δευτερόλεπτα"
-                : "Επαναποστολή κωδικού"
-            }}
+            {{ resendOtpTimer > 0 ? ('APP.AUTH.SIGNUP.RESEND_CODE_IN' | translate) + ' ' + resendOtpTimer + ' ' + ('APP.AUTH.SIGNUP.SECONDS' | translate) : ('APP.AUTH.SIGNUP.RESEND_CODE' | translate) }}
           </button>
         </div>
 
@@ -186,7 +181,7 @@
           icon="lucideUser"
           (buttonClick)="onSubmitOtp()"
         >
-          Επαλήθευση OTP
+          {{ 'APP.AUTH.SIGNUP.OTP_VERIFY' | translate }}
         </app-auth-button>
       </form>
     </div>
@@ -206,39 +201,39 @@
         </div>
 
         <h2 class="text-2xl font-bold text-white mb-3">
-          {{ fromLogin ? 'Email Verification Required' : 'Registration Completed!' }}
+          {{ fromLogin ? ('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_REQUIRED' | translate) : ('APP.AUTH.SIGNUP.REGISTRATION_COMPLETED' | translate) }}
         </h2>
         
         <p class="text-gray-300 mb-6">
           <ng-container *ngIf="fromLogin">
-            Your account exists, but your email is not verified. We've sent a verification email to {{ registrationForm.get('email')?.value || 'your email' }}. Please verify your email to log in.
+            {{ 'APP.AUTH.SIGNUP.EMAIL_NOT_VERIFIED' | translate }} {{ registrationForm.get('email')?.value || ('APP.AUTH.SIGNUP.YOUR_EMAIL' | translate) }}. {{ 'APP.AUTH.SIGNUP.PLEASE_VERIFY_EMAIL_TO_LOGIN' | translate }}
           </ng-container>
           <ng-container *ngIf="!fromLogin">
-            We've sent a verification email to {{ registrationForm.get('email')?.value || 'your email' }}. Please verify your email to complete your registration.
+            {{ 'APP.AUTH.SIGNUP.EMAIL_SENT' | translate }} {{ registrationForm.get('email')?.value || ('APP.AUTH.SIGNUP.YOUR_EMAIL' | translate) }}. {{ 'APP.AUTH.SIGNUP.PLEASE_VERIFY_EMAIL_TO_COMPLETE' | translate }}
           </ng-container>
         </p>
 
         <!-- Verification Steps -->
         <div class="bg-white/5 rounded-xl p-6 mb-6">
-          <h3 class="text-lg font-semibold text-white mb-4">Follow these steps to verify your email:</h3>
+          <h3 class="text-lg font-semibold text-white mb-4">{{ 'APP.AUTH.SIGNUP.VERIFY_EMAIL_STEPS_TITLE' | translate }}</h3>
           <div class="space-y-4">
             <div class="flex items-start space-x-3">
               <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-500/20 flex items-center justify-center">
                 <span class="text-primary-400 text-sm font-medium">1</span>
               </div>
-              <p class="text-gray-300">Check your inbox for an email from Pawfect</p>
+              <p class="text-gray-300">{{ 'APP.AUTH.SIGNUP.VERIFY_EMAIL_STEP1' | translate }}</p>
             </div>
             <div class="flex items-start space-x-3">
               <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-500/20 flex items-center justify-center">
                 <span class="text-primary-400 text-sm font-medium">2</span>
               </div>
-              <p class="text-gray-300">Click the verification link in the email to activate your account</p>
+              <p class="text-gray-300">{{ 'APP.AUTH.SIGNUP.VERIFY_EMAIL_STEP2' | translate }}</p>
             </div>
             <div class="flex items-start space-x-3">
               <div class="flex-shrink-0 w-6 h-6 rounded-full bg-primary-500/20 flex items-center justify-center">
                 <span class="text-primary-400 text-sm font-medium">3</span>
               </div>
-              <p class="text-gray-300">If you don't see the email, check your spam or junk folder</p>
+              <p class="text-gray-300">{{ 'APP.AUTH.SIGNUP.VERIFY_EMAIL_STEP3' | translate }}</p>
             </div>
           </div>
         </div>
@@ -254,14 +249,14 @@
           >
             <ng-icon *ngIf="!isLoading" name="lucideRefreshCw" [size]="'20'"></ng-icon>
             <ng-icon *ngIf="isLoading" name="lucideLoader2" [size]="'20'" class="animate-spin"></ng-icon>
-            <span>{{ isLoading ? 'Sending...' : 'Resend Verification Email' }}</span>
+            <span>{{ isLoading ? ('APP.AUTH.SIGNUP.SENDING' | translate) : ('APP.AUTH.SIGNUP.RESEND_VERIFICATION_EMAIL' | translate) }}</span>
           </button>
 
           <a
             routerLink="/auth/login"
             class="block w-full px-4 py-3 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-all duration-300 text-center"
           >
-            Go to Login
+            {{ 'APP.AUTH.SIGNUP.GO_TO_LOGIN' | translate }}
           </a>
         </div>
       </div>

@@ -23,6 +23,7 @@ import {
   ErrorMessageBannerComponent,
   ErrorDetails,
 } from 'src/app/common/ui/error-message-banner.component';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-shelter-info',
@@ -35,6 +36,7 @@ import {
     TextAreaInputComponent,
     NgIconsModule,
     ErrorMessageBannerComponent,
+    TranslatePipe
   ],
   templateUrl: './shelter-info.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

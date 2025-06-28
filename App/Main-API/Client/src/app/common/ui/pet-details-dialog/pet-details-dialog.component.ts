@@ -4,13 +4,15 @@ import { NgIconsModule } from '@ng-icons/core';
 import { Animal } from 'src/app/models/animal/animal.model';
 import { UtilsService } from '../../services/utils.service';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { TranslationService } from 'src/app/common/services/translation.service';
+import { TranslatePipe } from '../../tools/translate.pipe';
 
 @Component({
   selector: 'app-pet-details-dialog',
   templateUrl: './pet-details-dialog.component.html',
   styleUrls: ['./pet-details-dialog.component.scss'],
   standalone: true,
-  imports: [CommonModule, NgIconsModule],
+  imports: [CommonModule, NgIconsModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('dialogAnimation', [
@@ -52,7 +54,8 @@ export class PetDetailsDialogComponent {
 
   constructor(
     private utilsService: UtilsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {}
 
   ngOnChanges(changes: SimpleChanges) {
@@ -88,10 +91,10 @@ export class PetDetailsDialogComponent {
 
   getAdoptionStatusLabel(status: number): string {
     switch (status) {
-      case 1: return 'Διαθέσιμο';
-      case 2: return 'Σε αναμονή';
-      case 3: return 'Υιοθετημένο';
-      default: return 'Άγνωστο';
+      case 1: return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.AVAILABLE');
+      case 2: return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.IN_PROGRESS');
+      case 3: return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.ADOPTED');
+      default: return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.AVAILABLE');
     }
   }
 

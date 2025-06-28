@@ -1,9 +1,14 @@
 ﻿using AutoMapper;
 
 using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Exceptions;
+using Main_API.Models.AdoptionApplication;
 using Main_API.Models.Lookups;
 using Main_API.Models.User;
 using Main_API.Query;
+using Main_API.Services.AuthenticationServices;
+using System.Security.Claims;
+using ZstdSharp;
 namespace Main_API.Builders
 {
 	public class AutoUserBuilder : Profile
@@ -29,6 +34,7 @@ namespace Main_API.Builders
 	{
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
+
         public UserBuilder
 		(
 			IQueryFactory queryFactory, IBuilderFactory builderFactory
@@ -58,6 +64,10 @@ namespace Main_API.Builders
 				? (await CollectFiles(entities, foreignEntitiesFields[nameof(Models.User.User.ProfilePhoto)]))
 				: null;
 
+            Dictionary<String, List<Models.AdoptionApplication.AdoptionApplication>>? adoptionApplicationsMap = foreignEntitiesFields.ContainsKey(nameof(Models.User.User.RequestedAdoptionApplications))
+               ? (await CollectAdoptionApplications(entities, foreignEntitiesFields[nameof(Models.User.User.RequestedAdoptionApplications)]))
+               : null;
+
             List<Models.User.User> result = new List<Models.User.User>();
 			foreach (Data.Entities.User e in entities)
 			{
@@ -75,11 +85,13 @@ namespace Main_API.Builders
 				if (nativeFields.Contains(nameof(Models.User.User.HasEmailVerified))) dto.HasEmailVerified = e.HasEmailVerified;
 				if (nativeFields.Contains(nameof(Models.User.User.CreatedAt))) dto.CreatedAt = e.CreatedAt;
 				if (nativeFields.Contains(nameof(Models.User.User.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
+
 				if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
 				if (fileMap != null && fileMap.ContainsKey(e.Id)) dto.ProfilePhoto = fileMap[e.Id];
+                if (adoptionApplicationsMap != null && adoptionApplicationsMap.ContainsKey(e.Id)) dto.RequestedAdoptionApplications = adoptionApplicationsMap[e.Id];
 
 
-				result.Add(dto);
+                result.Add(dto);
 			}
 
 			return await Task.FromResult(result);
@@ -144,5 +156,27 @@ namespace Main_API.Builders
 
 			return users.ToDictionary(x => x.Id, x => fileDtoMap.GetValueOrDefault(x.ProfilePhotoId ?? ""));
 		}
-	}
+
+		private async Task<Dictionary<String, List<AdoptionApplication>>> CollectAdoptionApplications(List<Data.Entities.User> users, List<String> adoptionApplicationFields)
+		{
+            if (users.Count == 0 || adoptionApplicationFields.Count == 0) return null;
+
+            AdoptionApplicationLookup animalLookup = new AdoptionApplicationLookup();
+            animalLookup.Offset = 1;
+            animalLookup.PageSize = 100000;
+            animalLookup.UserIds = [..users.Select(x => x.Id)];
+            animalLookup.Fields = adoptionApplicationFields;
+
+            List<Data.Entities.AdoptionApplication> adoptionApplications = await animalLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
+
+            List<Models.AdoptionApplication.AdoptionApplication> adoptionApplicationDtos = await _builderFactory.Builder<AdoptionApplicationBuilder>().Authorise(this._authorise).Build(adoptionApplications, adoptionApplicationFields);
+
+            if (adoptionApplicationDtos == null || adoptionApplicationDtos.Count == 0) { return null; }
+
+            Dictionary<String, Models.AdoptionApplication.AdoptionApplication> adoptionApplicationDtoMap = adoptionApplicationDtos.ToDictionary(x => x.Id);
+
+            return adoptionApplicationDtos.GroupBy(a => a.User!.Id).ToDictionary(g => g.Key, g => g.ToList());
+        }
+
+    }
 }

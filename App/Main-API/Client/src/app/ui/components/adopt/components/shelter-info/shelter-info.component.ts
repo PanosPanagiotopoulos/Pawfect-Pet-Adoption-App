@@ -1,5 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 @Component({
   selector: 'app-shelter-info',
@@ -57,7 +59,7 @@ import { Shelter } from 'src/app/models/shelter/shelter.model';
           <div class="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center group-hover:bg-primary-500/20 transition-colors">
             <ng-icon name="lucideGlobe" [size]="'18'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
           </div>
-          <span class="text-gray-300 group-hover:text-white transition-colors">Ιστοσελίδα</span>
+          <span class="text-gray-300 group-hover:text-white transition-colors">{{ 'APP.ADOPT.WEBSITE' | translate }}</span>
         </a>
 
         <!-- Social Media -->
@@ -96,7 +98,7 @@ import { Shelter } from 'src/app/models/shelter/shelter.model';
       <div class="space-y-3">
         <div class="flex items-center space-x-3">
           <ng-icon name="lucideClock" [size]="'24'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
-          <h4 class="text-lg font-medium text-white">Ώρες Λειτουργίας</h4>
+          <h4 class="text-lg font-medium text-white">{{ 'APP.ADOPT.OPERATING_HOURS' | translate }}</h4>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <ng-container *ngFor="let day of getDays()">
@@ -118,21 +120,23 @@ import { Shelter } from 'src/app/models/shelter/shelter.model';
 export class ShelterInfoComponent {
   @Input() shelter!: Shelter;
 
+  constructor(private translationService: TranslationService) {}
+
   getDays() {
     return [
-      { key: 'monday', label: 'Δευτέρα' },
-      { key: 'tuesday', label: 'Τρίτη' },
-      { key: 'wednesday', label: 'Τετάρτη' },
-      { key: 'thursday', label: 'Πέμπτη' },
-      { key: 'friday', label: 'Παρασκευή' },
-      { key: 'saturday', label: 'Σάββατο' },
-      { key: 'sunday', label: 'Κυριακή' }
+      { key: 'monday', label: this.translationService.translate('APP.ADOPT.DAYS.MONDAY') },
+      { key: 'tuesday', label: this.translationService.translate('APP.ADOPT.DAYS.TUESDAY') },
+      { key: 'wednesday', label: this.translationService.translate('APP.ADOPT.DAYS.WEDNESDAY') },
+      { key: 'thursday', label: this.translationService.translate('APP.ADOPT.DAYS.THURSDAY') },
+      { key: 'friday', label: this.translationService.translate('APP.ADOPT.DAYS.FRIDAY') },
+      { key: 'saturday', label: this.translationService.translate('APP.ADOPT.DAYS.SATURDAY') },
+      { key: 'sunday', label: this.translationService.translate('APP.ADOPT.DAYS.SUNDAY') }
     ];
   }
 
   formatHours(hours: string): string {
     if (!hours || hours === 'closed') {
-      return 'Κλειστό';
+      return this.translationService.translate('APP.ADOPT.CLOSED');
     }
     const [open, close] = hours.split(',');
     return `${open} - ${close}`;

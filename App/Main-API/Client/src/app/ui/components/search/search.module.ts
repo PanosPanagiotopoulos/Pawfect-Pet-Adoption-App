@@ -12,6 +12,7 @@ import { SavedAnimalsGridComponent } from './components/saved-animals-grid/saved
 import { LucideAngularModule } from 'lucide-angular';
 import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
 import { InstructionsModalComponent } from 'src/app/common/ui/instructions-modal/instructions-modal.component';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { InstructionsModalComponent } from 'src/app/common/ui/instructions-modal
     NgIconsModule,
     RouterModule,
     InstructionsModalComponent,
+    TranslatePipe,
     RouterModule.forChild([
       { 
         path: '', 

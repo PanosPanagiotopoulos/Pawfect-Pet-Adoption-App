@@ -11,15 +11,31 @@ import { catchError, switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { SnackbarService } from '../services/snackbar.service';
 import { AuthService } from '../../services/auth.service';
+import { SecureStorageService } from '../services/secure-storage.service';
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class UnauthorizedInterceptor implements HttpInterceptor {
   private readonly excludedRoutes = ['/auth/login', '/auth/sign-up', '/auth/google/callback', '/search', '/home', '/', '/404', ''];
+  private readonly LANG_STORAGE_KEY = 'pawfect-language';
+
+  private readonly fallbackMessages = {
+    loginRequired: {
+      en: 'Oops! It looks like you need to log in first',
+      gr: 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα'
+    },
+    redirectMessage: {
+      en: 'We\'ll redirect you to the login page',
+      gr: 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
+    }
+  };
 
   constructor(
     private router: Router,
     private snackbarService: SnackbarService,
-    private authService: AuthService
+    private authService: AuthService,
+    private secureStorageService: SecureStorageService
   ) {}
 
   intercept(
@@ -34,27 +50,37 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
         ) {
           return throwError(() => error);
         }
+
         return this.authService.refresh().pipe(
           switchMap(() => {
             return next.handle(request.clone());
           }),
           catchError((refreshError) => {
             this.snackbarService.showError({
-              message: 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα',
-              subMessage: 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
+              message: this.getFallbackMessage('loginRequired'),
+              subMessage: this.getFallbackMessage('redirectMessage')
             });
-            setTimeout(() => {
-              const currentUrl = this.router.url;
-              const urlParams = new URLSearchParams(window.location.search);
-              const returnUrl = urlParams.get('returnUrl') || currentUrl;
-              this.router.navigate(['/auth/login'], {
-                queryParams: { returnUrl: returnUrl }
-              });
-            }, 500);
+
+            const attemptedUrl = window.location.pathname + window.location.search + window.location.hash;
+
+            this.router.navigate(['/auth/login'], {
+              queryParams: { returnUrl: attemptedUrl }
+            });
+
             return throwError(() => refreshError);
           })
         );
       })
     );
+  }
+
+  private getFallbackMessage(messageType: 'loginRequired' | 'redirectMessage'): string {
+    const currentLang = this.getCurrentLanguage();
+    return this.fallbackMessages[messageType][currentLang] || this.fallbackMessages[messageType].gr;
+  }
+
+  private getCurrentLanguage(): 'en' | 'gr' {
+    const stored = this.secureStorageService.getItem<string>(this.LANG_STORAGE_KEY);
+    return (stored === 'en' || stored === 'gr') ? stored : 'en';
   }
 }

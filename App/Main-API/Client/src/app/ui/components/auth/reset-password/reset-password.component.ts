@@ -10,6 +10,8 @@ import { NgIconsModule } from '@ng-icons/core';
 import { CustomValidators } from '../validators/custom.validators';
 import { User } from 'src/app/models/user/user.model';
 import { LogService } from 'src/app/common/services/log.service';
+import { TranslationService } from 'src/app/common/services/translation.service';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-reset-password',
@@ -20,6 +22,7 @@ import { LogService } from 'src/app/common/services/log.service';
     FormInputComponent,
     AuthButtonComponent,
     NgIconsModule,
+    TranslatePipe
   ],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-900 pt-6">
@@ -43,11 +46,11 @@ import { LogService } from 'src/app/common/services/log.service';
             <span
               class="bg-gradient-to-r from-primary-400 via-secondary-400 to-accent-400 bg-clip-text text-transparent animate-gradient"
             >
-              Νέος Κωδικός
+              {{ 'APP.AUTH.RESET_PASSWORD.TITLE' | translate }}
             </span>
           </h2>
           <p class="mt-2 text-gray-400">
-            Εισάγετε τον νέο σας κωδικό πρόσβασης
+            {{ 'APP.AUTH.RESET_PASSWORD.INSTRUCTIONS' | translate }}
           </p>
         </div>
 
@@ -61,7 +64,7 @@ import { LogService } from 'src/app/common/services/log.service';
           >
             <div class="flex items-center">
               <ng-icon name="lucideCheck" class="mr-2" [size]="'20'"></ng-icon>
-              <p>Ο κωδικός σας άλλαξε με επιτυχία!</p>
+              <p>{{ 'APP.AUTH.RESET_PASSWORD.SUCCESS' | translate }}</p>
             </div>
           </div>
 
@@ -76,7 +79,7 @@ import { LogService } from 'src/app/common/services/log.service';
                 class="mr-2 mt-0.5"
                 [size]="'20'"
               ></ng-icon>
-              <p>{{ errorMessage }}</p>
+              <p>{{ 'APP.AUTH.RESET_PASSWORD.ERROR' | translate }}</p>
             </div>
           </div>
 
@@ -91,24 +94,24 @@ import { LogService } from 'src/app/common/services/log.service';
               [form]="resetForm"
               controlName="password"
               type="password"
-              placeholder="Νέος κωδικός πρόσβασης"
+              [placeholder]="'APP.AUTH.RESET_PASSWORD.PASSWORD_PLACEHOLDER' | translate"
             ></app-form-input>
 
             <app-form-input
               [form]="resetForm"
               controlName="confirmPassword"
               type="password"
-              placeholder="Επιβεβαίωση κωδικού"
+              [placeholder]="'APP.AUTH.RESET_PASSWORD.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
             ></app-form-input>
 
             <div class="text-sm text-gray-400 space-y-1">
-              <p>Ο κωδικός πρέπει να περιέχει:</p>
+              <p>{{ 'APP.AUTH.RESET_PASSWORD.REQUIREMENTS_TITLE' | translate }}</p>
               <ul class="list-disc list-inside pl-4">
-                <li>Τουλάχιστον 8 χαρακτήρες</li>
-                <li>Ένα κεφαλαίο γράμμα</li>
-                <li>Ένα πεζό γράμμα</li>
-                <li>Έναν αριθμό</li>
-                <li>Έναν ειδικό χαρακτήρα</li>
+                <li>{{ 'APP.AUTH.RESET_PASSWORD.REQUIREMENT_MIN' | translate }}</li>
+                <li>{{ 'APP.AUTH.RESET_PASSWORD.REQUIREMENT_UPPER' | translate }}</li>
+                <li>{{ 'APP.AUTH.RESET_PASSWORD.REQUIREMENT_LOWER' | translate }}</li>
+                <li>{{ 'APP.AUTH.RESET_PASSWORD.REQUIREMENT_NUMBER' | translate }}</li>
+                <li>{{ 'APP.AUTH.RESET_PASSWORD.REQUIREMENT_SPECIAL' | translate }}</li>
               </ul>
             </div>
 
@@ -119,29 +122,19 @@ import { LogService } from 'src/app/common/services/log.service';
                 [disabled]="resetForm.invalid"
                 icon="lucideCheck"
               >
-                Αλλαγή Κωδικού
+                {{ 'APP.AUTH.RESET_PASSWORD.SUBMIT' | translate }}
               </app-auth-button>
             </div>
           </form>
 
           <!-- Add a button to go back when there's an error -->
-          <div *ngIf="errorMessage" class="text-center">
+          <div *ngIf="errorMessage || isSuccess" class="text-center">
             <button
               type="button"
               (click)="navigateToLogin()"
               class="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300"
             >
-              Μετάβαση στη Σύνδεση
-            </button>
-          </div>
-
-          <div *ngIf="isSuccess" class="text-center">
-            <button
-              type="button"
-              (click)="navigateToLogin()"
-              class="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300"
-            >
-              Μετάβαση στη Σύνδεση
+              {{ 'APP.AUTH.RESET_PASSWORD.BACK_TO_LOGIN' | translate }}
             </button>
           </div>
         </div>
@@ -162,12 +155,13 @@ export class ResetPasswordComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly logService: LogService,
     private readonly route: ActivatedRoute,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly translationService: TranslationService
   ) {
     this.resetForm = this.fb.group({
       password: [
         '',
-        [Validators.required, CustomValidators.passwordValidator()],
+        [Validators.required, CustomValidators.passwordValidator(translationService)],
       ],
       confirmPassword: ['', [Validators.required]],
     });
@@ -176,7 +170,7 @@ export class ResetPasswordComponent implements OnInit {
       .get('confirmPassword')
       ?.setValidators([
         Validators.required,
-        CustomValidators.matchValidator('password'),
+        CustomValidators.matchValidator('password', translationService),
       ]);
   }
 
@@ -184,7 +178,7 @@ export class ResetPasswordComponent implements OnInit {
     this.token = this.route.snapshot.queryParamMap.get('token');
 
     if (!this.token) {
-      this.errorMessage = 'Μη έγκυρος σύνδεσμος επαναφοράς κωδικού.';
+      this.errorMessage = this.translationService.translate('APP.AUTH.RESET_PASSWORD.ERROR');
     }
 
     this.authService.verifyResetPasswordToken(this.token!).subscribe(
@@ -196,7 +190,7 @@ export class ResetPasswordComponent implements OnInit {
       (error) => {
         this.isLoading = false;
         console.error('Email verification error:', error);
-        this.errorMessage = 'Το email επιβεβαίωσης δεν ισχύει πια.';
+        this.errorMessage = this.translationService.translate('APP.AUTH.RESET_PASSWORD.ERROR');
       }
     );
   }
@@ -215,8 +209,7 @@ export class ResetPasswordComponent implements OnInit {
         },
         error: (error) => {
           this.isLoading = false;
-          this.errorMessage =
-            'Παρουσιάστηκε σφάλμα κατά την αλλαγή του κωδικού. Παρακαλώ δοκιμάστε ξανά.';
+          this.errorMessage = this.translationService.translate('APP.AUTH.RESET_PASSWORD.ERROR');
           console.error('Reset password error:', error);
         },
       });

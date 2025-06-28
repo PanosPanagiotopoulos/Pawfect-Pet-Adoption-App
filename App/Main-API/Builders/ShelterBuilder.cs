@@ -3,6 +3,7 @@
 using Main_API.Data.Entities;
 using Main_API.Data.Entities.HelperModels;
 using Main_API.Data.Entities.Types.Authorization;
+using Main_API.Models.AdoptionApplication;
 using Main_API.Models.Animal;
 using Main_API.Models.Lookups;
 using Main_API.Models.Shelter;
@@ -69,6 +70,10 @@ namespace Main_API.Builders
 				? (await CollectAnimals(entities, foreignEntitiesFields[nameof(Models.Shelter.Shelter.Animals)]))
 				: null;
 
+            Dictionary<String, List<Models.AdoptionApplication.AdoptionApplication>>? adoptionApplicationsMap = foreignEntitiesFields.ContainsKey(nameof(Models.Shelter.Shelter.ReceivedAdoptionApplications))
+               ? (await CollectAdoptionApplications(entities, foreignEntitiesFields[nameof(Models.Shelter.Shelter.ReceivedAdoptionApplications)]))
+               : null;
+
             List<Models.Shelter.Shelter> result = new List<Models.Shelter.Shelter>();
 			foreach (Data.Entities.Shelter e in entities)
 			{
@@ -81,10 +86,12 @@ namespace Main_API.Builders
 				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.OperatingHours))) dto.OperatingHours = e.OperatingHours;
 				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.VerificationStatus))) dto.VerificationStatus = e.VerificationStatus;
 				if (nativeFields.Contains(nameof(Models.Shelter.Shelter.VerifiedBy))) dto.VerifiedBy = e.VerifiedById;
+
 				if (userMap != null && userMap.ContainsKey(e.Id)) dto.User = userMap[e.Id];
 				if (animalsMap != null && animalsMap.ContainsKey(e.Id)) dto.Animals = animalsMap[e.Id];
+                if (adoptionApplicationsMap != null && adoptionApplicationsMap.ContainsKey(e.Id)) dto.ReceivedAdoptionApplications = adoptionApplicationsMap[e.Id];
 
-				result.Add(dto);
+                result.Add(dto);
 			}
 
 			return await Task.FromResult(result);
@@ -146,5 +153,26 @@ namespace Main_API.Builders
 			// Ταίριασμα του προηγούμενου Dictionary με τα shelters δημιουργώντας ένα Dictionary : [ ShelterId -> List<AnimalId> ] 
 			return animalDtos.GroupBy(a => a.Shelter!.Id).ToDictionary(g => g.Key, g => g.ToList());
 		}
-	}
+
+        private async Task<Dictionary<String, List<Models.AdoptionApplication.AdoptionApplication>>> CollectAdoptionApplications(List<Data.Entities.Shelter> shelters, List<String> adoptionApplicationFields)
+        {
+            if (shelters.Count == 0 || adoptionApplicationFields.Count == 0) return null;
+
+            AdoptionApplicationLookup animalLookup = new AdoptionApplicationLookup();
+            animalLookup.Offset = 1;
+            animalLookup.PageSize = 100000;
+            animalLookup.ShelterIds = [.. shelters.Select(x => x.Id)];
+            animalLookup.Fields = adoptionApplicationFields;
+
+            List<Data.Entities.AdoptionApplication> adoptionApplications = await animalLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
+
+            List<Models.AdoptionApplication.AdoptionApplication> adoptionApplicationDtos = await _builderFactory.Builder<AdoptionApplicationBuilder>().Authorise(this._authorise).Build(adoptionApplications, adoptionApplicationFields);
+
+            if (adoptionApplicationDtos == null || adoptionApplicationDtos.Count == 0) { return null; }
+
+            Dictionary<String, Models.AdoptionApplication.AdoptionApplication> adoptionApplicationDtoMap = adoptionApplicationDtos.ToDictionary(x => x.Id);
+
+            return adoptionApplicationDtos.GroupBy(a => a.Shelter!.Id).ToDictionary(g => g.Key, g => g.ToList());
+        }
+    }
 }

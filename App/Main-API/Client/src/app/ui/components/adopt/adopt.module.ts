@@ -15,6 +15,7 @@ import { FormErrorSummaryComponent } from 'src/app/common/ui/form-error-summary.
 import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
 import { AuthGuard } from 'src/app/common/guards/auth.guard';
 import { Permission } from 'src/app/common/enum/permission.enum';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @NgModule({
   declarations: [
@@ -32,6 +33,7 @@ import { Permission } from 'src/app/common/enum/permission.enum';
     ErrorMessageBannerComponent,
     FormErrorSummaryComponent,
     PetDetailsDialogComponent,
+    TranslatePipe,
     RouterModule.forChild([
       { 
         path: ':id', 

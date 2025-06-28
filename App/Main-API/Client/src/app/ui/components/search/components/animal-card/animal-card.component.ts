@@ -3,6 +3,7 @@ import { Animal } from 'src/app/models/animal/animal.model';
 import { Router } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { UtilsService } from 'src/app/common/services/utils.service';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-animal-card',
@@ -41,7 +42,7 @@ import { UtilsService } from 'src/app/common/services/utils.service';
         <!-- Name and Age -->
         <div class="flex items-center justify-between mb-3">
           <h3 *ngIf="animal.name" class="text-xl font-semibold text-white">{{ animal.name }}</h3>
-          <span *ngIf="animal.age" class="text-base font-medium text-primary-400">{{ animal.age }} ετών</span>
+          <span *ngIf="animal.age" class="text-base font-medium text-primary-400">{{ animal.age }} {{ 'APP.SEARCH.YEARS_OLD' | translate }}</span>
         </div>
         
         <!-- Details -->
@@ -55,7 +56,7 @@ import { UtilsService } from 'src/app/common/services/utils.service';
         </div>
 
         <!-- Description Preview -->
-        <p class="mt-3 text-sm text-gray-400 line-clamp-2">{{ animal.description || 'Περιγραφή μη διαθέσιμη' }}</p>
+        <p class="mt-3 text-sm text-gray-400 line-clamp-2">{{ animal.description || ('APP.SEARCH.NO_DESCRIPTION' | translate) }}</p>
 
         <!-- Adopt Button (visible on hover) -->
         <div class="absolute inset-x-0 bottom-0 p-5 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-gray-900 via-gray-900/95 to-transparent">
@@ -63,7 +64,7 @@ import { UtilsService } from 'src/app/common/services/utils.service';
             (click)="navigateToAdoption($event)"
             class="w-full py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white text-base font-medium rounded-lg hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
           >
-            Υιοθέτησε με τώρα!
+            {{ 'APP.SEARCH.ADOPT_ME_NOW' | translate }}
           </button>
         </div>
       </div>
@@ -92,7 +93,7 @@ import { UtilsService } from 'src/app/common/services/utils.service';
           style({ opacity: 1, transform: 'translateY(0)' }))
       ])
     ])
-  ]
+  ],
 })
 export class AnimalCardComponent {
   @Input() animal!: Animal;

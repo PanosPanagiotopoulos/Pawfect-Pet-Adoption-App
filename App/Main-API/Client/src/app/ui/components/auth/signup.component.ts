@@ -27,6 +27,8 @@ import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
 import { UserRole } from 'src/app/common/enum/user-role.enum';
 import { User } from 'src/app/models/user/user.model';
 import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
+import { TranslationService } from 'src/app/common/services/translation.service';
+
 interface LocationFormGroup extends FormGroup {
   controls: {
     city: AbstractControl;
@@ -159,7 +161,8 @@ export class SignupComponent
     private readonly errorHandler: ErrorHandlerService,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
-    private readonly secureStorageService: SecureStorageService
+    private readonly secureStorageService: SecureStorageService,
+    private readonly translationService: TranslationService
   ) {
     super();
     this.initializeForms();
@@ -240,7 +243,7 @@ export class SignupComponent
       email: ['', [Validators.required, Validators.email]],
       password: [
         '',
-        [Validators.required, CustomValidators.passwordValidator()],
+        [Validators.required, CustomValidators.passwordValidator(this.translationService)],
       ],
       confirmPassword: ['', [Validators.required]],
       fullName: ['', [Validators.required, Validators.minLength(5)]],
@@ -305,7 +308,7 @@ export class SignupComponent
       .get('confirmPassword')
       ?.setValidators([
         Validators.required,
-        CustomValidators.matchValidator('password'),
+        CustomValidators.matchValidator('password', this.translationService),
       ]);
 
     // Subscribe to password changes to update confirm password validation
@@ -393,12 +396,12 @@ export class SignupComponent
       {
         value: SignupStep.PersonalInfo,
         displayNumber: 1,
-        label: 'Προσωπικά Στοιχεία',
+        label: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO_STEP'),
       },
       {
         value: SignupStep.AccountDetails,
         displayNumber: 2,
-        label: 'Λογαριασμός',
+        label: this.translationService.translate('APP.AUTH.SIGNUP.ACCOUNT_DETAILS_STEP'),
       },
     ];
 
@@ -407,14 +410,14 @@ export class SignupComponent
       steps.push({
         value: SignupStep.ShelterInfo,
         displayNumber: 3,
-        label: 'Καταφύγιο',
+        label: this.translationService.translate('APP.AUTH.SIGNUP.SHELTER_INFO_STEP'),
       });
     }
 
     steps.push({
       value: SignupStep.OtpVerification,
       displayNumber: this.showShelterInfo ? 4 : 3,
-      label: 'Επαλήθευση',
+      label: this.translationService.translate('APP.AUTH.SIGNUP.OTP_VERIFICATION'),
     });
 
     return steps;
@@ -780,9 +783,8 @@ export class SignupComponent
           error: (error: HttpErrorResponse) => {
             this.isLoading = false;
             this.error = {
-              title: 'Λάθος κωδικός',
-              message:
-                'Ο κωδικός OTP δεν είναι έγκυρος. Παρακαλώ δοκιμάστε ξανά.',
+              title: this.translationService.translate('APP.AUTH.SIGNUP.OTP_ERROR_TITLE'),
+              message: this.translationService.translate('APP.AUTH.SIGNUP.OTP_ERROR_MESSAGE'),
               type: 'error',
             };
             console.error('OTP verification error:', error);
@@ -813,9 +815,8 @@ export class SignupComponent
         },
         error: (error: HttpErrorResponse) => {
           this.error = {
-            title: 'Αποτυχία αποστολής OTP',
-            message:
-              'Παρουσιάστηκε σφάλμα κατά την αποστολή του κωδικού. Παρακαλώ δοκιμάστε ξανά.',
+            title: this.translationService.translate('APP.AUTH.SIGNUP.RESEND_OTP_ERROR_TITLE'),
+            message: this.translationService.translate('APP.AUTH.SIGNUP.RESEND_OTP_ERROR_MESSAGE'),
             type: 'error',
           };
           console.error('Resend OTP error:', error);
@@ -832,17 +833,16 @@ export class SignupComponent
       next: () => {
         this.isLoading = false;
         this.error = {
-          title: 'Επιτυχής αποστολή',
-          message: 'Το email επαλήθευσης στάλθηκε επιτυχώς.',
+          title: this.translationService.translate('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_SENT_TITLE'),
+          message: this.translationService.translate('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_SENT_MESSAGE'),
           type: 'info',
         };
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
         this.error = {
-          title: 'Αποτυχία αποστολής email',
-          message:
-            'Παρουσιάστηκε σφάλμα κατά την αποστολή του email. Παρακαλώ δοκιμάστε ξανά.',
+          title: this.translationService.translate('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_RESEND_ERROR_TITLE'),
+          message: this.translationService.translate('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_RESEND_ERROR_MESSAGE'),
           type: 'error',
         };
         console.error('Resend email verification error:', error);

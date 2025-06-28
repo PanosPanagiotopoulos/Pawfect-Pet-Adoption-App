@@ -11,34 +11,35 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { PasswordInputComponent } from 'src/app/common/ui/password-input.component';
 import { NgIconsModule } from '@ng-icons/core';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-account-details',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PasswordInputComponent, NgIconsModule],
+  imports: [CommonModule, ReactiveFormsModule, PasswordInputComponent, NgIconsModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div [formGroup]="form" class="space-y-6" #formContainer>
-      <h2 class="text-2xl font-bold text-white mb-6">Στοιχεία Λογαριασμού</h2>
+      <h2 class="text-2xl font-bold text-white mb-6">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.TITLE' | translate }}</h2>
 
       <ng-container>
         <app-password-input
           [form]="form"
           controlName="password"
-          placeholder="Κωδικός πρόσβασης"
+          [placeholder]="'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.PASSWORD_PLACEHOLDER' | translate"
         >
         </app-password-input>
 
         <app-password-input
           [form]="form"
           controlName="confirmPassword"
-          placeholder="Επιβεβαίωση κωδικού"
+          [placeholder]="'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
         >
         </app-password-input>
 
         <!-- Password requirements info -->
         <div class="bg-white/5 backdrop-blur-sm rounded-xl p-4 space-y-3">
-          <h4 class="text-sm font-medium text-white">Απαιτήσεις κωδικού:</h4>
+          <h4 class="text-sm font-medium text-white">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.PASSWORD_REQUIREMENTS_TITLE' | translate }}</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div class="flex items-center space-x-2">
               <ng-icon 
@@ -47,7 +48,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 [class]="isPasswordRequirementMet('minlength') ? 'text-green-400' : 'text-red-400'"
                 class="stroke-[2.5px]">
               </ng-icon>
-              <span class="text-sm text-gray-300">Τουλάχιστον 8 χαρακτήρες</span>
+              <span class="text-sm text-gray-300">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.REQ_MINLENGTH' | translate }}</span>
             </div>
             <div class="flex items-center space-x-2">
               <ng-icon 
@@ -56,7 +57,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 [class]="isPasswordRequirementMet('uppercase') ? 'text-green-400' : 'text-red-400'"
                 class="stroke-[2.5px]">
               </ng-icon>
-              <span class="text-sm text-gray-300">Ένα κεφαλαίο γράμμα</span>
+              <span class="text-sm text-gray-300">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.REQ_UPPERCASE' | translate }}</span>
             </div>
             <div class="flex items-center space-x-2">
               <ng-icon 
@@ -65,7 +66,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 [class]="isPasswordRequirementMet('lowercase') ? 'text-green-400' : 'text-red-400'"
                 class="stroke-[2.5px]">
               </ng-icon>
-              <span class="text-sm text-gray-300">Ένα πεζό γράμμα</span>
+              <span class="text-sm text-gray-300">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.REQ_LOWERCASE' | translate }}</span>
             </div>
             <div class="flex items-center space-x-2">
               <ng-icon 
@@ -74,7 +75,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 [class]="isPasswordRequirementMet('number') ? 'text-green-400' : 'text-red-400'"
                 class="stroke-[2.5px]">
               </ng-icon>
-              <span class="text-sm text-gray-300">Έναν αριθμό</span>
+              <span class="text-sm text-gray-300">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.REQ_NUMBER' | translate }}</span>
             </div>
             <div class="flex items-center space-x-2">
               <ng-icon 
@@ -83,7 +84,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 [class]="isPasswordRequirementMet('specialChar') ? 'text-green-400' : 'text-red-400'"
                 class="stroke-[2.5px]">
               </ng-icon>
-              <span class="text-sm text-gray-300">Έναν ειδικό χαρακτήρα</span>
+              <span class="text-sm text-gray-300">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.REQ_SPECIAL_CHAR' | translate }}</span>
             </div>
             <div class="flex items-center space-x-2">
               <ng-icon 
@@ -92,7 +93,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 [class]="isPasswordRequirementMet('mismatch') ? 'text-green-400' : 'text-red-400'"
                 class="stroke-[2.5px]">
               </ng-icon>
-              <span class="text-sm text-gray-300">Οι κωδικοί ταιριάζουν</span>
+              <span class="text-sm text-gray-300">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.REQ_MATCH' | translate }}</span>
             </div>
           </div>
         </div>
@@ -100,6 +101,7 @@ import { NgIconsModule } from '@ng-icons/core';
 
       <ng-template #externalProvider>
         <div class="text-center text-gray-400 py-8">
+          <p>{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.GOOGLE_LINKED' | translate }}</p>
           <p>Ο λογαριασμός σας είναι συνδεδεμένος με το Google.</p>
           <p>Δεν απαιτείται κωδικός πρόσβασης.</p>
         </div>

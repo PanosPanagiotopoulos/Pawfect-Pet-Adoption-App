@@ -3,6 +3,7 @@ import { MAT_SNACK_BAR_DATA, MatSnackBarRef } from '@angular/material/snack-bar'
 import { NgIconsModule } from '@ng-icons/core';
 import { lucideCheck, lucideCircle, lucideTriangle, lucideX } from '@ng-icons/lucide';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 export interface CustomSnackbarData {
   message: string;
@@ -14,7 +15,7 @@ export interface CustomSnackbarData {
 @Component({
   selector: 'app-custom-snackbar',
   standalone: true,
-  imports: [CommonModule, NgIconsModule],
+  imports: [CommonModule, NgIconsModule, TranslatePipe],
   template: `
     <div class="flex items-center gap-3 p-4" [ngClass]="getContainerClass()">
       <!-- Icon -->
@@ -35,7 +36,7 @@ export interface CustomSnackbarData {
       <button
         (click)="snackBarRef.dismiss()"
         class="p-1 rounded-full hover:bg-white/10 transition-colors duration-200"
-        aria-label="Close"
+        [attr.aria-label]="'APP.UI_COMPONENTS.PET_DETAILS.CLOSE' | translate"
       >
         <ng-icon
           name="lucideX"

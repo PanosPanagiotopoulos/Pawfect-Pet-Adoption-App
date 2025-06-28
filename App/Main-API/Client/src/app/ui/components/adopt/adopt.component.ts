@@ -13,6 +13,8 @@ import { Shelter } from 'src/app/models/shelter/shelter.model';
 import { File } from 'src/app/models/file/file.model';
 import { User } from 'src/app/models/user/user.model';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 @Component({
   selector: 'app-adopt',
@@ -68,7 +70,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
             (click)="loadAnimal()"
             class="mt-6 px-6 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300"
           >
-            Δοκιμάστε ξανά
+            {{ 'APP.ADOPT.TRY_AGAIN' | translate }}
           </button>
         </div>
 
@@ -77,8 +79,8 @@ import { trigger, transition, style, animate } from '@angular/animations';
           <div @fadeInLeft class="space-y-8">
             <!-- Adoption Header -->
             <div class="text-center mb-8">
-              <h1 class="text-3xl font-bold text-white mb-2">Ώρα για Υιοθεσία!</h1>
-              <p class="text-gray-400">Ένα νέο μέλος της οικογένειάς σας σας περιμένει</p>
+              <h1 class="text-3xl font-bold text-white mb-2">{{ 'APP.ADOPT.TITLE' | translate }}</h1>
+              <p class="text-gray-400">{{ 'APP.ADOPT.SUBTITLE' | translate }}</p>
             </div>
 
             <!-- Animal Info Card -->
@@ -98,7 +100,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
                 <div class="flex justify-between items-start">
                   <div class="flex items-center space-x-3">
                     <ng-icon name="lucideHeartPulse" [size]="'24'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
-                    <h2 class="text-2xl font-bold text-white">Στοιχεία Κατοικιδίου</h2>
+                    <h2 class="text-2xl font-bold text-white">{{ 'APP.ADOPT.PET_DETAILS_TITLE' | translate }}</h2>
                   </div>
                   <button 
                     (click)="openDialog()"
@@ -134,7 +136,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
                   <div class="grid grid-cols-2 gap-4">
                     <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center space-x-2 group-hover:bg-white/15 transition-all duration-300">
                       <ng-icon name="lucideCake" [size]="'18'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
-                      <span class="text-gray-300">{{ animal.age }} ετών</span>
+                      <span class="text-gray-300">{{ animal.age }} {{ 'APP.ADOPT.AGE_YEARS' | translate }}</span>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center space-x-2 group-hover:bg-white/15 transition-all duration-300">
                       <ng-icon name="lucideScale" [size]="'18'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
@@ -142,7 +144,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center space-x-2 group-hover:bg-white/15 transition-all duration-300">
                       <ng-icon name="lucideActivity" [size]="'18'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
-                      <span class="text-gray-300">{{ animal.healthStatus || 'Καλή κατάσταση' }}</span>
+                      <span class="text-gray-300">{{ animal.healthStatus || ('APP.ADOPT.GOOD_CONDITION' | translate) }}</span>
                     </div>
                     <div class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center space-x-2 group-hover:bg-white/15 transition-all duration-300">
                       <ng-icon name="lucideHeart" [size]="'18'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
@@ -152,7 +154,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 
                   <!-- Description -->
                   <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                    <p class="text-gray-300 text-sm leading-relaxed">{{ animal.description || 'Δεν υπάρχει διαθέσιμη περιγραφή.' }}</p>
+                    <p class="text-gray-300 text-sm leading-relaxed">{{ animal.description || ('APP.ADOPT.NO_DESCRIPTION' | translate) }}</p>
                   </div>
                 </div>
               </div>
@@ -168,7 +170,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
               >
                 <div class="flex items-center space-x-3">
                   <ng-icon name="lucideHouse" [size]="'24'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
-                  <h2 class="text-2xl font-bold text-white">Στοιχεία Καταφυγίου</h2>
+                  <h2 class="text-2xl font-bold text-white">{{ 'APP.ADOPT.SHELTER_DETAILS_TITLE' | translate }}</h2>
                 </div>
                 <ng-icon 
                   [name]="isShelterInfoOpen ? 'lucideChevronUp' : 'lucideChevronDown'" 
@@ -193,7 +195,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
             <div class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-primary-500/30 transition-all duration-300">
               <div class="flex items-center space-x-3 mb-6">
                 <ng-icon name="lucideHeart" [size]="'24'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
-                <h2 class="text-2xl font-bold text-white">Αίτηση Υιοθεσίας</h2>
+                <h2 class="text-2xl font-bold text-white">{{ 'APP.ADOPT.ADOPTION_APPLICATION_TITLE' | translate }}</h2>
               </div>
               <app-adoption-form 
                 [animal]="animal"
@@ -215,26 +217,23 @@ import { trigger, transition, style, animate } from '@angular/animations';
   animations: [
     trigger('fadeInLeft', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateX(-20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+        style({ opacity: 0, transform: 'translateX(-50px)' }),
+        animate('0.6s ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
       ])
     ]),
     trigger('fadeInRight', [
       transition(':enter', [
-        style({ opacity: 0, transform: 'translateX(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+        style({ opacity: 0, transform: 'translateX(50px)' }),
+        animate('0.6s ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
       ])
     ]),
     trigger('slideDown', [
       transition(':enter', [
         style({ height: 0, opacity: 0 }),
-        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)', 
-          style({ height: '*', opacity: 1 }))
+        animate('0.3s ease-out', style({ height: '*', opacity: 1 }))
       ]),
       transition(':leave', [
-        style({ height: '*', opacity: 1 }),
-        animate('300ms cubic-bezier(0.4, 0, 0.2, 1)', 
-          style({ height: 0, opacity: 0 }))
+        animate('0.3s ease-in', style({ height: 0, opacity: 0 }))
       ])
     ])
   ]
@@ -250,7 +249,8 @@ export class AdoptComponent extends BaseComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private animalService: AnimalService,
-    private errorHandler: ErrorHandlerService
+    private errorHandler: ErrorHandlerService,
+    private translationService: TranslationService
   ) {
     super();
   }
@@ -273,8 +273,8 @@ export class AdoptComponent extends BaseComponent implements OnInit {
     id = !id ? this.route.snapshot.params['id'] : id;
     if (!id) {
       this.error = {
-        title: 'Δεν βρέθηκε το κατοικίδιο',
-        message: 'Παρακαλώ ελέγξτε τον σύνδεσμο ή δοκιμάστε ξανά αργότερα.',
+        title: this.translationService.translate('APP.ADOPT.ERRORS.PET_NOT_FOUND_TITLE'),
+        message: this.translationService.translate('APP.ADOPT.ERRORS.PET_NOT_FOUND_MESSAGE'),
         type: 'error'
       };
       this.isLoading = false;
@@ -337,13 +337,13 @@ export class AdoptComponent extends BaseComponent implements OnInit {
   getAdoptionStatusLabel(status?: number): string {
     switch (status) {
       case 1:
-        return 'Διαθέσιμο';
+        return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.AVAILABLE');
       case 2:
-        return 'Σε εξέλιξη';
+        return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.IN_PROGRESS');
       case 3:
-        return 'Υιοθετημένο';
+        return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.ADOPTED');
       default:
-        return 'Διαθέσιμο';
+        return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.AVAILABLE');
     }
   }
 }

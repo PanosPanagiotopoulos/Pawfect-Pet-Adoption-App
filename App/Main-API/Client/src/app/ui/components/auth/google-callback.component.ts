@@ -4,11 +4,13 @@ import { GoogleAuthService } from '../../../services/google-auth.service';
 import { CommonModule } from '@angular/common';
 import { NgIconsModule } from '@ng-icons/core';
 import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 @Component({
   selector: 'app-google-callback',
   standalone: true,
-  imports: [CommonModule, NgIconsModule],
+  imports: [CommonModule, NgIconsModule, TranslatePipe],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-900">
       <!-- Background elements -->
@@ -34,7 +36,7 @@ import { SecureStorageService } from 'src/app/common/services/secure-storage.ser
             <div
               class="w-16 h-16 mx-auto border-4 border-primary-500 border-t-transparent rounded-full animate-spin"
             ></div>
-            <p class="text-gray-400">Επεξεργασία σύνδεσης Google...</p>
+            <p class="text-gray-400">{{ 'APP.AUTH.GOOGLE.PROCESSING' | translate }}</p>
           </div>
 
           <!-- Error State -->
@@ -51,7 +53,7 @@ import { SecureStorageService } from 'src/app/common/services/secure-storage.ser
 
             <div>
               <h2 class="text-2xl font-bold text-white mb-2">
-                Σφάλμα Σύνδεσης
+                {{ 'APP.AUTH.GOOGLE.ERROR_TITLE' | translate }}
               </h2>
               <p class="text-red-400">{{ error }}</p>
             </div>
@@ -61,7 +63,7 @@ import { SecureStorageService } from 'src/app/common/services/secure-storage.ser
                 (click)="returnToPrevious()"
                 class="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
               >
-                Επιστροφή στη Σύνδεση
+                {{ 'APP.AUTH.GOOGLE.BACK_TO_LOGIN' | translate }}
               </button>
             </div>
           </div>
@@ -77,7 +79,8 @@ export class GoogleCallbackComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly googleAuthService: GoogleAuthService,
-    private readonly secureStorageService: SecureStorageService
+    private readonly secureStorageService: SecureStorageService,
+    private readonly translationService: TranslationService
   ) {}
 
   ngOnInit() {
@@ -96,7 +99,7 @@ export class GoogleCallbackComponent implements OnInit {
     const state = queryParams.get('state');
 
     if (!code || !state) {
-      this.error = 'Μη έγκυρη απάντηση από το Google. Παρακαλώ δοκιμάστε ξανά.';
+      this.error = this.translationService.translate('APP.AUTH.GOOGLE.INVALID_RESPONSE');
       return;
     }
 
@@ -116,23 +119,20 @@ export class GoogleCallbackComponent implements OnInit {
       this.googleAuthService.handleAuthCallback(queryParams);
     } catch (e) {
       console.error('Error processing callback:', e);
-      this.error =
-        'Σφάλμα κατά την επεξεργασία της απάντησης. Παρακαλώ δοκιμάστε ξανά.';
+      this.error = this.translationService.translate('APP.AUTH.GOOGLE.PROCESSING_ERROR');
     }
   }
 
   private handleError(errorCode: string): void {
     switch (errorCode) {
       case 'access_denied':
-        this.error =
-          'Η πρόσβαση δεν επιτράπηκε. Παρακαλώ επιτρέψτε την πρόσβαση για να συνεχίσετε.';
+        this.error = this.translationService.translate('APP.AUTH.GOOGLE.ACCESS_DENIED');
         break;
       case 'invalid_request':
-        this.error = 'Μη έγκυρο αίτημα. Παρακαλώ δοκιμάστε ξανά.';
+        this.error = this.translationService.translate('APP.AUTH.GOOGLE.INVALID_REQUEST');
         break;
       default:
-        this.error =
-          'Παρουσιάστηκε σφάλμα κατά τη σύνδεση. Παρακαλώ δοκιμάστε ξανά.';
+        this.error = this.translationService.translate('APP.AUTH.GOOGLE.GENERIC_ERROR');
     }
   }
 

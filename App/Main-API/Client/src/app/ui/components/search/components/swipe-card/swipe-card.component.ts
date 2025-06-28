@@ -1,8 +1,8 @@
-
 import { Component, Input, Output, EventEmitter, ElementRef, ViewChild, AfterViewInit, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { Animal } from 'src/app/models/animal/animal.model';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { UtilsService } from 'src/app/common/services/utils.service';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 @Component({
   selector: 'app-swipe-card',
@@ -96,7 +96,8 @@ export class SwipeCardComponent implements AfterViewInit, OnChanges {
 
   constructor(
     private utilsService: UtilsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {}
 
   ngAfterViewInit() {
@@ -200,28 +201,22 @@ export class SwipeCardComponent implements AfterViewInit, OnChanges {
     this.cardState = 'default';
   }
 
-  private getPoint(event: MouseEvent | TouchEvent) {
+  private getPoint(event: MouseEvent | TouchEvent): { x: number; y: number } {
     if (event instanceof MouseEvent) {
       return { x: event.clientX, y: event.clientY };
     } else {
-      return {
-        x: event.touches[0].clientX,
-        y: event.touches[0].clientY
-      };
+      const touch = event.touches[0] || event.changedTouches[0];
+      return { x: touch.clientX, y: touch.clientY };
     }
   }
 
   getTransform(): string {
-    if (!this.isDragging && this.cardState === 'default') return '';
-    
-    const rotate = (this.deltaX / 100) * this.MAX_ROTATION;
-    const clampedRotation = Math.max(Math.min(rotate, this.MAX_ROTATION), -this.MAX_ROTATION);
-    
-    return `translate(${this.deltaX}px, ${this.deltaY}px) rotate(${clampedRotation}deg)`;
+    const rotation = (this.deltaX / 150) * this.MAX_ROTATION;
+    return `translate(${this.deltaX}px, ${this.deltaY}px) rotate(${rotation}deg)`;
   }
 
   getOpacity(): number {
-    return Math.max(1 - Math.abs(this.deltaX) / 400, 0);
+    return Math.max(0.5, 1 - Math.abs(this.deltaX) / 300);
   }
 
   getCardState(): string {
@@ -240,19 +235,22 @@ export class SwipeCardComponent implements AfterViewInit, OnChanges {
     const img = event.target as HTMLImageElement;
     img.src = '/assets/placeholder.jpg';
   }
-  
+
   private updateCurrentImageUrl() {
-    this.isLoading = true;
-    if (this.animal?.attachedPhotos?.length) {
-      this.loadImage().finally(() => {
-        this.isLoading = false; 
+    if (this.animal && this.animal.attachedPhotos && this.animal.attachedPhotos.length > 0) {
+      const photo = this.animal.attachedPhotos[this.currentImageIndex];
+      if (photo && photo.sourceUrl) {
+        this.currentImageUrl = photo.sourceUrl;
+        this.isLoading = false;
         this.cdr.markForCheck();
-      });
-    } else {
-      this.currentImageUrl = 'assets/placeholder.jpg';
-      this.isLoading = false;
-      this.cdr.markForCheck();
+        return;
+      }
     }
+    
+    // Fallback to placeholder
+    this.currentImageUrl = '/assets/placeholder.jpg';
+    this.isLoading = false;
+    this.cdr.markForCheck();
   }
 
   async loadImage() {
@@ -269,11 +267,15 @@ export class SwipeCardComponent implements AfterViewInit, OnChanges {
   }
 
   getAdoptionStatusLabel(status: number): string {
-    switch(status) {
-      case 1: return 'Διαθέσιμο';
-      case 2: return 'Σε αναμονή';
-      case 3: return 'Υιοθετημένο';
-      default: return 'Άγνωστο';
+    switch (status) {
+      case 1:
+        return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.AVAILABLE');
+      case 2:
+        return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.IN_PROGRESS');
+      case 3:
+        return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.ADOPTED');
+      default:
+        return this.translationService.translate('APP.ADOPT.ADOPTION_STATUS.AVAILABLE');
     }
   }
 }

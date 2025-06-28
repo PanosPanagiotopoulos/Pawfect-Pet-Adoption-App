@@ -2,11 +2,12 @@ import { Component, Input } from '@angular/core';
 import { NgIconsModule } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
 import { AnimationDirective } from '../shared/directives/animation.directive';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-feature-card',
   standalone: true,
-  imports: [CommonModule, NgIconsModule, AnimationDirective],
+  imports: [CommonModule, NgIconsModule, AnimationDirective, TranslatePipe],
   template: `
     <div
       appAnimation

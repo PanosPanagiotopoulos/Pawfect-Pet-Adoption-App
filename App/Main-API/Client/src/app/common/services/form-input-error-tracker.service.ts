@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AbstractControl, FormGroup } from '@angular/forms';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { TranslationService } from './translation.service';
 
 export interface ValidationErrorInfo {
   controlName: string;
@@ -17,7 +18,7 @@ export class FormInputErrorTrackerService {
   private errorsSubject = new BehaviorSubject<ValidationErrorInfo[]>([]);
   public errors$: Observable<ValidationErrorInfo[]> = this.errorsSubject.asObservable();
 
-  constructor() {}
+  constructor(private translate: TranslationService) {}
 
   /**
    * Track validation errors in a form group
@@ -117,21 +118,25 @@ export class FormInputErrorTrackerService {
     
     switch (errorType) {
       case 'required':
-        return `Το πεδίο "${fieldName}" είναι υποχρεωτικό`;
+        return this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.REQUIRED_FIELD').replace('{field}', fieldName);
       case 'minlength':
-        return `Το πεδίο "${fieldName}" πρέπει να έχει τουλάχιστον ${errorValue.requiredLength} χαρακτήρες`;
+        return this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.MIN_LENGTH')
+          .replace('{field}', fieldName)
+          .replace('{length}', errorValue.requiredLength);
       case 'maxlength':
-        return `Το πεδίο "${fieldName}" δεν μπορεί να υπερβαίνει τους ${errorValue.requiredLength} χαρακτήρες`;
+        return this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.MAX_LENGTH')
+          .replace('{field}', fieldName)
+          .replace('{length}', errorValue.requiredLength);
       case 'email':
-        return `Παρακαλώ εισάγετε ένα έγκυρο email`;
+        return this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.EMAIL_INVALID');
       case 'pattern':
-        return `Το πεδίο "${fieldName}" δεν έχει έγκυρη μορφή`;
+        return this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.PATTERN_INVALID').replace('{field}', fieldName);
       case 'invalidTimeRange':
-        return `Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος`;
+        return this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.INVALID_TIME_RANGE');
       case 'invalidSocialMedia':
-        return `Η διεύθυνση ${fieldName} δεν είναι έγκυρη`;
+        return this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.INVALID_SOCIAL_MEDIA').replace('{field}', fieldName);
       default:
-        return `Το πεδίο "${fieldName}" περιέχει σφάλμα`;
+        return this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_ERROR').replace('{field}', fieldName);
     }
   }
 
@@ -144,20 +149,20 @@ export class FormInputErrorTrackerService {
       .replace(/([A-Z])/g, ' $1')
       .replace(/^./, str => str.toUpperCase());
     
-    // Special cases
+    // Special cases - use translation keys
     const specialCases: {[key: string]: string} = {
-      'shelterName': 'Όνομα Καταφυγίου',
-      'description': 'Περιγραφή',
-      'website': 'Ιστοσελίδα',
-      'facebook': 'Facebook',
-      'instagram': 'Instagram',
-      'monday': 'Δευτέρα',
-      'tuesday': 'Τρίτη',
-      'wednesday': 'Τετάρτη',
-      'thursday': 'Πέμπτη',
-      'friday': 'Παρασκευή',
-      'saturday': 'Σάββατο',
-      'sunday': 'Κυριακή'
+      'shelterName': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.SHELTER_NAME'),
+      'description': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.DESCRIPTION'),
+      'website': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.WEBSITE'),
+      'facebook': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.FACEBOOK'),
+      'instagram': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.INSTAGRAM'),
+      'monday': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.MONDAY'),
+      'tuesday': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.TUESDAY'),
+      'wednesday': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.WEDNESDAY'),
+      'thursday': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.THURSDAY'),
+      'friday': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.FRIDAY'),
+      'saturday': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.SATURDAY'),
+      'sunday': this.translate.translate('APP.UI_COMPONENTS.FORM_ERROR_TRACKER.FIELD_NAMES.SUNDAY')
     };
     
     return specialCases[controlName] || formatted;

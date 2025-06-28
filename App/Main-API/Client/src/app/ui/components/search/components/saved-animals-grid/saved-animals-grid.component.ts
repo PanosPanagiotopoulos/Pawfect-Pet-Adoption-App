@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { Animal } from 'src/app/models/animal/animal.model';
 import { AnimalCardComponent } from '../animal-card/animal-card.component';
 import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-saved-animals-grid',
   template: `
     <div class="space-y-8 lg:space-y-10">
-      <h2 *ngIf="animals?.length" class="text-2xl lg:text-3xl font-bold text-white">Αποθηκευμένα Κατοικίδια</h2>
+      <h2 *ngIf="animals?.length" class="text-2xl lg:text-3xl font-bold text-white">{{ 'APP.SEARCH.SAVED_PETS' | translate }}</h2>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 max-w-[1600px] mx-auto">
         <app-animal-card
@@ -26,7 +27,7 @@ import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/
     </div>
   `,
   standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SavedAnimalsGridComponent {
   @Input() animals: Animal[] = [];

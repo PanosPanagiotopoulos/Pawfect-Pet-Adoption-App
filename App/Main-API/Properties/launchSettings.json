@@ -4,7 +4,7 @@
       "commandName": "Project",
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Production" // Development or Production
+        "ASPNETCORE_ENVIRONMENT": "Development" // Development or Production
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7201"
@@ -13,7 +13,7 @@
       "commandName": "Project",
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Production" // Development or Production
+        "ASPNETCORE_ENVIRONMENT": "Development" // Development or Production
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:7200"

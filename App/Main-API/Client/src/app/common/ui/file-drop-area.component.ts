@@ -15,6 +15,8 @@ import { NgIconsModule } from '@ng-icons/core';
 import { ValidationMessageComponent } from './validation-message.component';
 import { FileItem, FilePersist } from 'src/app/models/file/file.model';
 import { FileService } from 'src/app/services/file.service';
+import { TranslationService } from 'src/app/common/services/translation.service';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-file-drop-area',
@@ -24,6 +26,7 @@ import { FileService } from 'src/app/services/file.service';
     ReactiveFormsModule,
     NgIconsModule,
     ValidationMessageComponent,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -82,7 +85,13 @@ import { FileService } from 'src/app/services/file.service';
       <div *ngIf="selectedFiles.length > 0" class="mt-4 space-y-2">
         <div class="text-sm font-medium text-gray-400 mb-2">
           {{ selectedFiles.length }}
-          {{ selectedFiles.length === 1 ? 'αρχείο' : 'αρχεία' }} επιλεγμένα
+          <ng-container *ngIf="selectedFiles.length === 1; else multipleFiles">
+            {{ 'APP.UI_COMPONENTS.FILE_DROP.FILES_SELECTED_SINGLE' | translate }}
+          </ng-container>
+          <ng-template #multipleFiles>
+            {{ 'APP.UI_COMPONENTS.FILE_DROP.FILES_SELECTED_MULTIPLE' | translate }}
+          </ng-template>
+          {{ 'APP.UI_COMPONENTS.FILE_DROP.SELECTED' | translate }}
         </div>
 
         <div class="max-h-40 overflow-y-auto custom-scrollbar">
@@ -108,7 +117,7 @@ import { FileService } from 'src/app/services/file.service';
               type="button"
               class="p-1 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
               (click)="removeFile(i)"
-              aria-label="Remove file"
+              [attr.aria-label]="'APP.UI_COMPONENTS.FILE_DROP.REMOVE_FILE' | translate"
             >
               <ng-icon name="lucideX" [size]="'16'"></ng-icon>
             </button>
@@ -166,11 +175,11 @@ import { FileService } from 'src/app/services/file.service';
 export class FileDropAreaComponent {
   @Input() form!: FormGroup;
   @Input() controlName!: string;
-  @Input() label: string = 'Επιλογή αρχείων';
+  @Input() label: string = '';
   @Input() hint?: string;
   @Input() accept: string = '*/*';
   @Input() multiple: boolean = false;
-  @Input() maxFileSize: number = 5 * 1024 * 1024;
+  @Input() maxFileSize: number = 10 * 1024 * 1024;
   @Input() maxFiles: number = 5;
   @Output() filesChange = new EventEmitter<FileItem[]>();
 
@@ -183,8 +192,14 @@ export class FileDropAreaComponent {
 
   constructor(
     private cdr: ChangeDetectorRef,
-    private fileService: FileService
-  ) {}
+    private fileService: FileService,
+    private translate: TranslationService
+  ) {
+    // Set default label if not provided
+    if (!this.label) {
+      this.label = this.translate.translate('APP.UI_COMPONENTS.FILE_DROP.DEFAULT_LABEL');
+    }
+  }
 
   get isInvalid(): boolean {
     const control = this.form.get(this.controlName);
@@ -193,17 +208,19 @@ export class FileDropAreaComponent {
 
   get dragDropText(): string {
     return this.multiple
-      ? 'Σύρετε και αφήστε αρχεία εδώ ή κάντε κλικ για επιλογή'
-      : 'Σύρετε και αφήστε ένα αρχείο εδώ ή κάντε κλικ για επιλογή';
+      ? this.translate.translate('APP.UI_COMPONENTS.FILE_DROP.DRAG_DROP_MULTIPLE')
+      : this.translate.translate('APP.UI_COMPONENTS.FILE_DROP.DRAG_DROP_SINGLE');
   }
 
   get acceptText(): string {
-    if (this.accept === '*/*') return 'Αποδεκτοί όλοι οι τύποι αρχείων';
+    if (this.accept === '*/*') {
+      return this.translate.translate('APP.UI_COMPONENTS.FILE_DROP.ACCEPT_ALL_TYPES');
+    }
     const types = this.accept
       .split(',')
       .map((type) => type.trim().replace('.', '').toUpperCase())
       .join(', ');
-    return `Αποδεκτοί τύποι: ${types}`;
+    return this.translate.translate('APP.UI_COMPONENTS.FILE_DROP.ACCEPT_TYPES').replace('{types}', types);
   }
 
   @HostListener('window:dragover', ['$event'])
@@ -252,7 +269,7 @@ export class FileDropAreaComponent {
 
     if (this.multiple) {
       if (this.selectedFiles.length + newFiles.length > this.maxFiles) {
-        this.setError(`Μπορείτε να επιλέξετε μέχρι ${this.maxFiles} αρχεία`);
+        this.setError(this.translate.translate('APP.UI_COMPONENTS.FILE_DROP.MAX_FILES_ERROR').replace('{max}', this.maxFiles.toString()));
         return;
       }
     } else {
@@ -261,7 +278,7 @@ export class FileDropAreaComponent {
 
     const oversizedFiles = newFiles.filter(file => file.size > this.maxFileSize);
     if (oversizedFiles.length > 0) {
-      this.setError(`Το μέγιστο μέγεθος αρχείου είναι ${this.formatFileSize(this.maxFileSize)}`);
+      this.setError(this.translate.translate('APP.UI_COMPONENTS.FILE_DROP.MAX_FILE_SIZE_ERROR').replace('{size}', this.formatFileSize(this.maxFileSize)));
       return;
     }
 

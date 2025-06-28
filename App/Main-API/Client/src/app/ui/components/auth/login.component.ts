@@ -10,6 +10,7 @@ import { LoggedAccount } from 'src/app/models/auth/auth.model';
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
 import { SnackbarService } from 'src/app/common/services/snackbar.service';
 import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 @Component({
   selector: 'app-login',
@@ -27,7 +28,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly errorHandler: ErrorHandlerService,
     private readonly snackbarService: SnackbarService,
-    private readonly secureStorageService: SecureStorageService
+    private readonly secureStorageService: SecureStorageService,
+    private readonly translationService: TranslationService
   ) {
     super();
     this.loginForm = this.fb.group({
@@ -106,8 +108,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
             this.navigateToEmailVerification();
           } else {
             this.snackbarService.showSuccess({
-              message: 'Επιτυχής σύνδεση!',
-              subMessage: 'Καλώς ήρθατε πίσω!'
+              message: this.translationService.translate('APP.AUTH.LOGIN.SUCCESS'),
+              subMessage: this.translationService.translate('APP.AUTH.LOGIN.WELCOME_BACK')
             });
             const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
             this.router.navigateByUrl(returnUrl);

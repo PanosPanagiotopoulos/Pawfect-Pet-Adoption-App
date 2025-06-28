@@ -25,7 +25,7 @@
         
         <!-- Type Badge -->
         <div class="absolute top-4 left-4 px-3 py-1.5 bg-primary-500/90 backdrop-blur-sm rounded-full text-white text-sm font-medium shadow-lg">
-          {{ animal.animalType?.name || 'Άγνωστο' }}
+          {{ animal.animalType?.name || ('APP.UI_COMPONENTS.PET_DETAILS.UNKNOWN' | translate) }}
         </div>
 
         <!-- Close Button -->
@@ -70,7 +70,7 @@
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <span class="text-lg text-primary-400">{{ animal.age }} ετών</span>
+              <span class="text-lg text-primary-400">{{ animal.age }} {{ 'APP.UI_COMPONENTS.PET_DETAILS.YEARS_OLD' | translate }}</span>
               <span *ngIf="animal.weight" class="text-gray-400">•</span>
               <span *ngIf="animal.weight" class="text-gray-400">{{ animal.weight }} kg</span>
               <span *ngIf="animal.adoptionStatus" class="text-gray-400">•</span>
@@ -89,45 +89,45 @@
         <!-- Details Cards Grid -->
         <div class="grid grid-cols-2 gap-4">
           <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">
-            <div class="text-sm text-gray-400 mb-1">Είδος</div>
-            <div class="text-white font-medium">{{ animal.animalType?.name || 'Μη διαθέσιμο' }}</div>
+            <div class="text-sm text-gray-400 mb-1">{{ 'APP.UI_COMPONENTS.PET_DETAILS.SPECIES' | translate }}</div>
+            <div class="text-white font-medium">{{ animal.animalType?.name || ('APP.UI_COMPONENTS.PET_DETAILS.NOT_AVAILABLE' | translate) }}</div>
           </div>
           <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">
-            <div class="text-sm text-gray-400 mb-1">Φυλή</div>
-            <div class="text-white font-medium">{{ animal.breed?.name || animal.breed || 'Μη διαθέσιμο' }}</div>
+            <div class="text-sm text-gray-400 mb-1">{{ 'APP.UI_COMPONENTS.PET_DETAILS.BREED' | translate }}</div>
+            <div class="text-white font-medium">{{ animal.breed?.name || animal.breed || ('APP.UI_COMPONENTS.PET_DETAILS.NOT_AVAILABLE' | translate) }}</div>
           </div>
           <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">
-            <div class="text-sm text-gray-400 mb-1">Φύλο</div>
+            <div class="text-sm text-gray-400 mb-1">{{ 'APP.UI_COMPONENTS.PET_DETAILS.GENDER' | translate }}</div>
             <div class="flex items-center space-x-2">
-              <span class="text-white font-medium">{{ animal.gender === 1 ? 'Αρσενικό' : 'Θηλυκό' }}</span>
+              <span class="text-white font-medium">{{ animal.gender === 1 ? ('APP.UI_COMPONENTS.PET_DETAILS.MALE' | translate) : ('APP.UI_COMPONENTS.PET_DETAILS.FEMALE' | translate) }}</span>
             </div>
           </div>
           <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">
-            <div class="text-sm text-gray-400 mb-1">Ηλικία</div>
+            <div class="text-sm text-gray-400 mb-1">{{ 'APP.UI_COMPONENTS.PET_DETAILS.AGE' | translate }}</div>
             <div class="text-white font-medium">
-              {{ animal.age || 'Μη διαθέσιμη' }} ετών
+              {{ animal.age || ('APP.UI_COMPONENTS.PET_DETAILS.NOT_AVAILABLE' | translate) }} {{ 'APP.UI_COMPONENTS.PET_DETAILS.YEARS_OLD' | translate }}
             </div>
           </div>
           <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">
-            <div class="text-sm text-gray-400 mb-1">Βάρος</div>
+            <div class="text-sm text-gray-400 mb-1">{{ 'APP.UI_COMPONENTS.PET_DETAILS.WEIGHT' | translate }}</div>
             <div class="text-white font-medium">
-              {{ animal.weight ? (animal.weight + ' kg') : 'Μη διαθέσιμο' }}
+              {{ animal.weight ? (animal.weight + ' kg') : ('APP.UI_COMPONENTS.PET_DETAILS.NOT_AVAILABLE' | translate) }}
             </div>
           </div>
           <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">
-            <div class="text-sm text-gray-400 mb-1">Όνομα Καταφυγίου</div>
+            <div class="text-sm text-gray-400 mb-1">{{ 'APP.UI_COMPONENTS.PET_DETAILS.SHELTER_NAME' | translate }}</div>
             <div class="text-white font-medium">
-              {{ animal.shelter?.shelterName || 'Μη διαθέσιμη' }}
+              {{ animal.shelter?.shelterName || ('APP.UI_COMPONENTS.PET_DETAILS.NOT_AVAILABLE' | translate) }}
             </div>
           </div>
           <div *ngIf="animal.shelter" class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 col-span-2 transition-colors shadow-sm">
-            <div class="text-sm text-gray-400 mb-1">Κατάσταση Υγείας</div>
+            <div class="text-sm text-gray-400 mb-1">{{ 'APP.UI_COMPONENTS.PET_DETAILS.HEALTH_STATUS' | translate }}</div>
             <div class="text-white font-medium">
-              {{ animal.healthStatus || 'Μη διαθέσιμο' }}
+              {{ animal.healthStatus || ('APP.UI_COMPONENTS.PET_DETAILS.NOT_AVAILABLE' | translate) }}
             </div>
           </div>
           <div *ngIf="animal.createdAt" class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 col-span-2 transition-colors shadow-sm">
-            <div class="text-sm text-gray-400 mb-1">Καταχωρήθηκε</div>
+            <div class="text-sm text-gray-400 mb-1">{{ 'APP.UI_COMPONENTS.PET_DETAILS.REGISTERED_ON' | translate }}</div>
             <div class="text-white font-medium">
               {{ animal.createdAt | date:'dd/MM/yyyy' }}
             </div>
@@ -136,22 +136,22 @@
 
         <!-- Description Section with Enhanced Visibility -->
         <div class="bg-white/5 hover:bg-white/8 rounded-2xl p-4 transition-colors shadow-sm">
-          <h3 class="text-lg font-medium text-white mb-2">Περιγραφή</h3>
+          <h3 class="text-lg font-medium text-white mb-2">{{ 'APP.UI_COMPONENTS.PET_DETAILS.DESCRIPTION' | translate }}</h3>
           <p class="text-white leading-relaxed">
-            {{ animal.description || 'Δεν υπάρχει διαθέσιμη περιγραφή.' }}
+            {{ animal.description || ('APP.UI_COMPONENTS.PET_DETAILS.NO_DESCRIPTION' | translate) }}
           </p>
         </div>
 
         <!-- More Photos -->
         <div *ngIf="animal.attachedPhotos && animal.attachedPhotos.length > 0" class="space-y-3">
-          <h3 class="text-lg font-medium text-white">Περισσότερες φωτογραφίες</h3>
+          <h3 class="text-lg font-medium text-white">{{ 'APP.UI_COMPONENTS.PET_DETAILS.MORE_PHOTOS' | translate }}</h3>
           <div class="grid grid-cols-3 gap-2">
             <div *ngFor="let photo of animal.attachedPhotos; let i = index"
                  class="aspect-square rounded-xl overflow-hidden cursor-pointer relative group"
                  [class.ring-2]="currentImageIndex === i"
                  [class.ring-primary-500]="currentImageIndex === i"
                  (click)="changeImage(i)">
-              <img [src]="photo.sourceUrl" [alt]="'Photo ' + (i + 1)" class="w-full h-full object-cover" />
+              <img [src]="photo.sourceUrl" [alt]="('APP.UI_COMPONENTS.PET_DETAILS.PHOTO' | translate) + ' ' + (i + 1)" class="w-full h-full object-cover" />
               <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </div>
           </div>

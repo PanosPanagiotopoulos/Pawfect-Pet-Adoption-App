@@ -1,8 +1,9 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_SNACK_BAR_DATA, MatSnackBarRef } from '@angular/material/snack-bar';
 import { NgIconsModule } from '@ng-icons/core';
 import { lucidePawPrint, lucideX } from '@ng-icons/lucide';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 export interface WarningSnackbarData {
   message: string;
@@ -13,7 +14,8 @@ export interface WarningSnackbarData {
 @Component({
   selector: 'app-warning-snackbar',
   standalone: true,
-  imports: [CommonModule, NgIconsModule],
+  imports: [CommonModule, NgIconsModule, TranslatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex items-center gap-3 p-3 sm:p-4 bg-gray-800/95 border-l-4 border-amber-500 rounded-lg shadow-lg max-w-[90vw] sm:max-w-md">
       <!-- Icon -->
@@ -27,7 +29,7 @@ export interface WarningSnackbarData {
       <!-- Message -->
       <div class="flex-1 min-w-0">
         <p class="text-sm font-medium text-white truncate">
-          {{ data.message || 'Warning' }}
+          {{ data.message || ('APP.UI_COMPONENTS.WARNING_SNACKBAR.DEFAULT_MESSAGE' | translate) }}
         </p>
         <p *ngIf="data.subMessage" class="text-xs text-gray-400 mt-1 truncate">
           {{ data.subMessage }}
@@ -38,7 +40,7 @@ export interface WarningSnackbarData {
       <button
         (click)="snackBarRef.dismiss()"
         class="p-1 rounded-full hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/20 flex-shrink-0"
-        aria-label="Close"
+        [attr.aria-label]="'APP.UI_COMPONENTS.WARNING_SNACKBAR.CLOSE' | translate"
       >
         <ng-icon
           name="lucideX"

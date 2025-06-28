@@ -7,6 +7,7 @@ import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 export interface OperatingHours {
   day: string;
@@ -23,7 +24,8 @@ export interface OperatingHours {
     FormsModule,
     MatFormFieldModule,
     MatInputModule,
-    NgxMaterialTimepickerModule
+    NgxMaterialTimepickerModule,
+    TranslatePipe
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -44,7 +46,7 @@ export interface OperatingHours {
               class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"
             ></div>
           </label>
-          <span class="ml-3 text-sm text-gray-300">{{ isClosed ? 'Κλειστό' : 'Ανοιχτό' }}</span>
+          <span class="ml-3 text-sm text-gray-300">{{ isClosed ? ('APP.UI_COMPONENTS.TIME_PICKER.CLOSED' | translate) : ('APP.UI_COMPONENTS.TIME_PICKER.OPEN' | translate) }}</span>
         </div>
       </div>
       
@@ -52,13 +54,13 @@ export interface OperatingHours {
       <div *ngIf="!isClosed" class="time-picker-container" [class.mobile]="isMobile">
         <div class="flex-1">
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Ώρα ανοίγματος</mat-label>
+            <mat-label>{{ 'APP.UI_COMPONENTS.TIME_PICKER.OPENING_TIME' | translate }}</mat-label>
             <input matInput
                   [formControl]="openTimeControl"
                   [ngxTimepicker]="openPicker"
                   readonly
-                  placeholder="Επιλέξτε ώρα"
-                  [attr.aria-label]="'Ώρα ανοίγματος για ' + day">
+                  [placeholder]="'APP.UI_COMPONENTS.TIME_PICKER.SELECT_TIME' | translate"
+                  [attr.aria-label]="('APP.UI_COMPONENTS.TIME_PICKER.OPENING_TIME_LABEL' | translate).replace('{day}', day)">
             <ngx-material-timepicker #openPicker
                                     [format]="24"
                                     (timeSet)="onTimeChange()">
@@ -66,17 +68,17 @@ export interface OperatingHours {
           </mat-form-field>
         </div>
 
-        <span class="mx-4 text-gray-400 self-center" *ngIf="!isMobile">έως</span>
+        <span class="mx-4 text-gray-400 self-center" *ngIf="!isMobile">{{ 'APP.UI_COMPONENTS.TIME_PICKER.TO' | translate }}</span>
 
         <div class="flex-1">
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Ώρα κλεισίματος</mat-label>
+            <mat-label>{{ 'APP.UI_COMPONENTS.TIME_PICKER.CLOSING_TIME' | translate }}</mat-label>
             <input matInput
                   [formControl]="closeTimeControl"
                   [ngxTimepicker]="closePicker"
                   readonly
-                  placeholder="Επιλέξτε ώρα"
-                  [attr.aria-label]="'Ώρα κλεισίματος για ' + day">
+                  [placeholder]="'APP.UI_COMPONENTS.TIME_PICKER.SELECT_TIME' | translate"
+                  [attr.aria-label]="('APP.UI_COMPONENTS.TIME_PICKER.CLOSING_TIME_LABEL' | translate).replace('{day}', day)">
             <ngx-material-timepicker #closePicker
                                     [format]="24"
                                     (timeSet)="onTimeChange()">

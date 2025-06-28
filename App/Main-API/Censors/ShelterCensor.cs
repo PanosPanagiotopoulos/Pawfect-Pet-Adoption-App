@@ -9,17 +9,20 @@ namespace Main_API.Censors
         private readonly IAuthorizationService _authorizationService;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
+        private readonly IAuthorizationContentResolver _authorizationContentResolver;
 
         public ShelterCensor
         (
             IAuthorizationService AuthorizationService,
             ICensorFactory censorFactory,
-            AuthContextBuilder contextBuilder
+            AuthContextBuilder contextBuilder,
+            IAuthorizationContentResolver authorizationContentResolver
         )
         {
             _authorizationService = AuthorizationService;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _authorizationContentResolver = authorizationContentResolver;
         }
         public override async Task<List<String>> Censor(List<String> fields, AuthContext context)
         {
@@ -40,6 +43,14 @@ namespace Main_API.Censors
             AuthContext animalContext = _contextBuilder.OwnedFrom(new AnimalLookup(), context.CurrentUserId).AffiliatedWith(new AnimalLookup()).Build();
             censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<AnimalCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Shelter.Shelter.Animals)), animalContext), nameof(Models.Shelter.Shelter.Animals)));
 
+
+            String shelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
+            AdoptionApplicationLookup adoptionApplicationLookup = new AdoptionApplicationLookup()
+            {
+                ShelterIds = !String.IsNullOrWhiteSpace(shelterId) ? [shelterId] : null
+            };
+            AuthContext adoptionApplicationContext = _contextBuilder.OwnedFrom(new AdoptionApplicationLookup(), context.CurrentUserId).AffiliatedWith(adoptionApplicationLookup).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<AdoptionApplicationCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Shelter.Shelter.ReceivedAdoptionApplications)), adoptionApplicationContext), nameof(Models.Shelter.Shelter.ReceivedAdoptionApplications)));
             return censoredFields;
         }
 

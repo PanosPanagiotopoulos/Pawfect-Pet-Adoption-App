@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { TranslationService } from 'src/app/common/services/translation.service';
 interface Feature {
   icon: string;
   title: string;
@@ -16,30 +17,30 @@ interface Feature {
 export class HomeComponent {
   currentYear = new Date().getFullYear();
 
+  constructor(public translate: TranslationService) {}
+
   features: Feature[] = [
     {
       icon: 'lucideSearch',
-      title: 'Αναζήτηση Κατοικιδίων',
-      description:
-        'Βρείτε τον τέλειο σύντροφο ανάμεσα στην προσεκτικά επιλεγμένη συλλογή αγαπημένων κατοικιδίων μας',
+      // i18n: Feature title and description
+      title: this.translate.translate('APP.HOME-PAGE.FEATURE_SEARCH_TITLE'),
+      description: this.translate.translate('APP.HOME-PAGE.FEATURE_SEARCH_DESC'),
       bgColor: 'bg-gradient-to-br from-primary-500/20 to-primary-400/20',
       iconColor: 'text-primary-400',
       gradientClass: 'feature-card-primary',
     },
     {
       icon: 'lucideHeart',
-      title: 'Αντιστοίχιση & Σύνδεση',
-      description:
-        'Το έξυπνο σύστημα αντιστοίχισής μας σας βοηθά να βρείτε και να επικοινωνήσετε με το αρμόδιο καταφύγιο για να υιοθετήσετε το κατοικίδιο για τον τρόπο ζωής σας',
+      title: this.translate.translate('APP.HOME-PAGE.FEATURE_MATCH_TITLE'),
+      description: this.translate.translate('APP.HOME-PAGE.FEATURE_MATCH_DESC'),
       bgColor: 'bg-gradient-to-br from-secondary-500/20 to-secondary-400/20',
       iconColor: 'text-secondary-400',
       gradientClass: 'feature-card-secondary',
     },
     {
       icon: 'lucideMessageCircle',
-      title: 'Υιοθεσία & Αγάπη',
-      description:
-        'Ξεκινήστε το ταξίδι της αγάπης και της συντροφικότητας με το νέο σας τετράποδο φίλο',
+      title: this.translate.translate('APP.HOME-PAGE.FEATURE_ADOPT_TITLE'),
+      description: this.translate.translate('APP.HOME-PAGE.FEATURE_ADOPT_DESC'),
       bgColor: 'bg-gradient-to-br from-accent-500/20 to-accent-400/20',
       iconColor: 'text-accent-400',
       gradientClass: 'feature-card-accent',

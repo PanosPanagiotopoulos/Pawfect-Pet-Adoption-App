@@ -15,6 +15,8 @@ import { UserService } from 'src/app/services/user.service';
 import { nameof } from 'ts-simple-nameof';
 import { File } from 'src/app/models/file/file.model';
 import { SnackbarService } from 'src/app/common/services/snackbar.service';
+import { TranslationService, SupportedLanguage, LanguageOption } from 'src/app/common/services/translation.service';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-header',
@@ -28,6 +30,7 @@ import { SnackbarService } from 'src/app/common/services/snackbar.service';
     UserAvatarComponent,
     DropdownComponent,
     DropdownItemComponent,
+    TranslatePipe
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
@@ -38,14 +41,24 @@ export class HeaderComponent extends BaseComponent {
   isLoggedIn = false;
 
   currentUser?: User = undefined;
+  currentLanguage: SupportedLanguage;
+  supportedLanguages: LanguageOption[];
+  showLangDropdown = false;
 
   constructor(
     private authService: AuthService,
     private userService: UserService,
     private router: Router,
-    private snackbarService: SnackbarService
+    private snackbarService: SnackbarService,
+    private translationService: TranslationService
   ) {
     super();
+    this.currentLanguage = this.translationService.getLanguage();
+    this.supportedLanguages = this.translationService.supportedLanguages;
+    this.translationService.getLanguage$().pipe(takeUntil(this._destroyed)).subscribe(lang => {
+      this.currentLanguage = lang;
+    });
+    document.addEventListener('click', this.handleOutsideClick.bind(this));
 
     authService.isLoggedIn().subscribe((isLoggedInFlag: boolean) => {
       if (isLoggedInFlag) {
@@ -69,6 +82,13 @@ export class HeaderComponent extends BaseComponent {
       this.isLoggedIn = isLoggedInFlag;
       this.currentUser = undefined;
     });
+  }
+
+  handleOutsideClick(event: MouseEvent) {
+    const dropdown = document.querySelector('.relative[role="group"][aria-label="Language switcher"]');
+    if (this.showLangDropdown && dropdown && !dropdown.contains(event.target as Node)) {
+      this.showLangDropdown = false;
+    }
   }
 
   toggleMobileMenu(): void {
@@ -121,5 +141,23 @@ export class HeaderComponent extends BaseComponent {
 
   isLoginRoute(): boolean {
     return this.router.url === '/auth/login';
+  }
+
+  setLanguage(lang: SupportedLanguage): void {
+    this.translationService.setLanguage(lang);
+  }
+
+  selectLanguageDropdown(lang: SupportedLanguage): void {
+    this.setLanguage(lang);
+    this.showLangDropdown = false;
+  }
+
+  get currentLanguageObj(): LanguageOption | undefined {
+    return this.supportedLanguages.find(l => l.code === this.currentLanguage);
+  }
+
+  override ngOnDestroy() {
+    super.ngOnDestroy();
+    document.removeEventListener('click', this.handleOutsideClick.bind(this));
   }
 }

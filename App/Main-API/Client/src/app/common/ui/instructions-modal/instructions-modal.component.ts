@@ -2,11 +2,12 @@ import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, OnChan
 import { CommonModule } from '@angular/common';
 import { NgIconsModule } from '@ng-icons/core';
 import { animate, style, transition, trigger } from '@angular/animations';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-instructions-modal',
   standalone: true,
-  imports: [CommonModule, NgIconsModule],
+  imports: [CommonModule, NgIconsModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div *ngIf="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 top-20" (click)="onClose()">
@@ -35,7 +36,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
 
         <!-- Content -->
         <div class="p-6 sm:p-8">
-          <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6 bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">Καλώς ήρθατε!</h2>
+          <h2 class="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-6 bg-gradient-to-r from-primary-400 to-accent-400 bg-clip-text text-transparent">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.WELCOME' | translate }}</h2>
           
           <div class="space-y-3 sm:space-y-4">
             <!-- Search Instructions -->
@@ -44,8 +45,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
                 <ng-icon name="lucideSearch" [size]="'20'" class="text-primary-400 sm:scale-110"></ng-icon>
               </div>
               <div>
-                <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-primary-400 transition-colors duration-300">Αναζήτηση</h3>
-                <p class="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors duration-300">Περιγράψτε το ιδανικό σας κατοικίδιο στο πεδίο αναζήτησης.</p>
+                <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-primary-400 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.SEARCH_TITLE' | translate }}</h3>
+                <p class="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.SEARCH_DESCRIPTION' | translate }}</p>
               </div>
             </div>
 
@@ -55,8 +56,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
                 <ng-icon name="lucidePawPrint" [size]="'20'" class="text-secondary-400 sm:scale-110"></ng-icon>
               </div>
               <div>
-                <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-secondary-400 transition-colors duration-300">Σαρώστε</h3>
-                <p class="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors duration-300">Σαρώστε δεξιά για να αποθηκεύσετε τα αγαπημένα σας ή αριστερά για να δείτε το επόμενο.</p>
+                <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-secondary-400 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.SWIPE_TITLE' | translate }}</h3>
+                <p class="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.SWIPE_DESCRIPTION' | translate }}</p>
               </div>
             </div>
 
@@ -66,8 +67,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
                 <ng-icon name="lucideHeart" [size]="'20'" class="text-accent-400 sm:scale-110"></ng-icon>
               </div>
               <div>
-                <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-accent-400 transition-colors duration-300">Αποθηκευμένα Κατοικίδια</h3>
-                <p class="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors duration-300">Τα αποθηκευμένα κατοικίδια εμφανίζονται στο κάτω μέρος της σελίδας. Μπορείτε να τα δείτε όλα μαζί.</p>
+                <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-accent-400 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.SAVED_PETS_TITLE' | translate }}</h3>
+                <p class="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.SAVED_PETS_DESCRIPTION' | translate }}</p>
               </div>
             </div>
 
@@ -77,8 +78,8 @@ import { animate, style, transition, trigger } from '@angular/animations';
                 <ng-icon name="lucideHouse" [size]="'20'" class="text-green-400 sm:scale-110"></ng-icon>
               </div>
               <div>
-                <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-green-400 transition-colors duration-300">Υιοθέτηση</h3>
-                <p class="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors duration-300">Πατήστε το κουμπί "Υιοθέτησε με τώρα!" για να ξεκινήσετε τη διαδικασία υιοθέτησης του κατοικιδίου σας.</p>
+                <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 group-hover:text-green-400 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.ADOPTION_TITLE' | translate }}</h3>
+                <p class="text-sm sm:text-base text-gray-300 group-hover:text-gray-200 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.ADOPTION_DESCRIPTION' | translate }}</p>
               </div>
             </div>
 
@@ -88,13 +89,13 @@ import { animate, style, transition, trigger } from '@angular/animations';
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-2 group-hover:bg-red-500/30 transition-all duration-300 transform group-hover:scale-110">
                   <ng-icon name="lucideX" [size]="'24'" class="text-red-400 sm:scale-110"></ng-icon>
                 </div>
-                <span class="text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300">Παράλειψη</span>
+                <span class="text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.SKIP' | translate }}</span>
               </div>
               <div class="flex flex-col items-center group">
                 <div class="w-12 h-12 sm:w-16 sm:h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-2 group-hover:bg-green-500/30 transition-all duration-300 transform group-hover:scale-110">
                   <ng-icon name="lucideHeart" [size]="'24'" class="text-green-400 sm:scale-110"></ng-icon>
                 </div>
-                <span class="text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300">Αποθήκευση</span>
+                <span class="text-xs sm:text-sm text-gray-400 group-hover:text-gray-300 transition-colors duration-300">{{ 'APP.UI_COMPONENTS.INSTRUCTIONS_MODAL.SAVE' | translate }}</span>
               </div>
             </div>
           </div>

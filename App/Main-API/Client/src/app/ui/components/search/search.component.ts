@@ -17,6 +17,7 @@ import { File } from 'src/app/models/file/file.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
 import { ChangeDetectorRef } from '@angular/core';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 interface SearchSuggestion {
   text: string;
@@ -43,28 +44,7 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
   error: ErrorDetails | null = null;
 
   // Search suggestions
-  searchSuggestions: SearchSuggestion[] = [
-    { 
-      text: 'Φιλικό προς παιδιά',
-      query: 'Ένα ήρεμο και φιλικό κατοικίδιο που αγαπάει τα παιδιά',
-      icon: 'lucideHeart'
-    },
-    { 
-      text: 'Μικρό μέγεθος',
-      query: 'Ένα μικρόσωμο κατοικίδιο κατάλληλο για διαμέρισμα',
-      icon: 'lucideDog'
-    },
-    { 
-      text: 'Ενεργητικό',
-      query: 'Ένα ενεργητικό κατοικίδιο για τρέξιμο και παιχνίδι',
-      icon: 'lucideActivity'
-    },
-    { 
-      text: 'Ήσυχο',
-      query: 'Ένα ήσυχο και ήρεμο κατοικίδιο',
-      icon: 'lucideMoon'
-    }
-  ];
+  searchSuggestions: SearchSuggestion[] = [];
 
   // Pagination related properties
   pageSize = 20;
@@ -88,12 +68,37 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
     private route: ActivatedRoute,
     private router: Router,
     private secureStorage: SecureStorageService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
   ) {
     super();
     this.searchForm = this.fb.group({
       searchQuery: this.searchControl
     });
+    
+    // Initialize search suggestions with translated text
+    this.searchSuggestions = [
+      { 
+        text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY'),
+        query: this.translationService.translate('APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY_QUERY'),
+        icon: 'lucideHeart'
+      },
+      { 
+        text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.SMALL_SIZE'),
+        query: this.translationService.translate('APP.SEARCH.SUGGESTIONS.SMALL_SIZE_QUERY'),
+        icon: 'lucideDog'
+      },
+      { 
+        text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.ACTIVE'),
+        query: this.translationService.translate('APP.SEARCH.SUGGESTIONS.ACTIVE_QUERY'),
+        icon: 'lucideActivity'
+      },
+      { 
+        text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.QUIET'),
+        query: this.translationService.translate('APP.SEARCH.SUGGESTIONS.QUIET_QUERY'),
+        icon: 'lucideMoon'
+      }
+    ];
   }
 
   ngOnInit() {
@@ -183,8 +188,8 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
         error: (error: any) => {
           this.isLoading = false;
           this.error = {
-            title: 'Σφάλμα Αναζήτησης',
-            message: 'Δεν ήταν δυνατή η αναζήτηση κατοικιδίων. Παρακαλώ δοκιμάστε ξανά.'
+            title: this.translationService.translate('APP.SEARCH.ERRORS.SEARCH_ERROR_TITLE'),
+            message: this.translationService.translate('APP.SEARCH.ERRORS.SEARCH_ERROR_MESSAGE')
           };
           this.cdr.markForCheck();
         }

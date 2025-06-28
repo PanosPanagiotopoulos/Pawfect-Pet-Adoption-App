@@ -1,10 +1,12 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ValidationErrorInfo } from './form-input-error-tracker.service';
+import { ValidationErrorInfo } from '../services/form-input-error-tracker.service';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+
 @Component({
   selector: 'app-form-error-summary',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div *ngIf="errors.length > 0" 
@@ -12,7 +14,7 @@ import { ValidationErrorInfo } from './form-input-error-tracker.service';
          role="alert"
          aria-live="assertive">
       <h3 class="text-red-400 font-medium mb-2 flex items-center">
-        <span class="mr-2">⚠️</span> {{ title }}
+        <span class="mr-2">⚠️</span> {{ title | translate }}
       </h3>
       <ul class="list-disc list-inside text-sm text-red-400 space-y-1">
         <li *ngFor="let error of errors" 
@@ -36,7 +38,7 @@ import { ValidationErrorInfo } from './form-input-error-tracker.service';
 })
 export class FormErrorSummaryComponent {
   @Input() errors: ValidationErrorInfo[] = [];
-  @Input() title: string = 'Παρακαλώ διορθώστε τα παρακάτω σφάλματα:';
+  @Input() title: string = 'APP.UI_COMPONENTS.FORM_ERROR.DEFAULT_TITLE';
 
   scrollToError(error: ValidationErrorInfo): void {
     if (error.element) {

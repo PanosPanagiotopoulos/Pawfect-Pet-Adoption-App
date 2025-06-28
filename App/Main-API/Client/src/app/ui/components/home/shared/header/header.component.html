@@ -37,8 +37,51 @@
 
       <!-- Navigation Links - Desktop -->
       <div class="hidden md:flex items-center space-x-8">
-        <app-nav-link routerLink="/about">Σχετικά</app-nav-link>
-        <app-nav-link routerLink="/contact">Επικοινωνία</app-nav-link>
+        <app-nav-link routerLink="/about">{{ 'APP.COMMONS.ABOUT_US' | translate }}</app-nav-link>
+        <app-nav-link routerLink="/contact">{{ 'APP.COMMONS.CONTACT' | translate }}</app-nav-link>
+
+        <!-- Language Switcher Dropdown -->
+        <div class="relative" role="group" aria-label="Language switcher">
+          <button (click)="showLangDropdown = !showLangDropdown"
+                  class="flex items-center gap-1 px-3 py-1 rounded-md bg-primary-700 text-white font-medium text-sm hover:bg-primary-800 transition-colors outline-none focus:ring-0"
+                  aria-haspopup="listbox"
+                  [attr.aria-expanded]="showLangDropdown">
+            <span *ngIf="currentLanguageObj">
+              <span *ngIf="currentLanguageObj.flag" aria-hidden="true" class="text-base">{{ currentLanguageObj.flag }}</span>
+              <span> {{ currentLanguageObj.label }}</span>
+            </span>
+            <svg class="ml-1 w-4 h-4 text-white opacity-80" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <ul class="absolute left-1/2 -translate-x-1/2 mt-1 w-36 bg-primary-700 rounded-md z-50 border border-primary-800 py-1 text-white transition-all duration-200 ease-in-out pointer-events-none"
+              [class.opacity-100]="showLangDropdown"
+              [class.opacity-0]="!showLangDropdown"
+              [class.transform]="true"
+              [class.scale-100]="showLangDropdown"
+              [class.scale-95]="!showLangDropdown"
+              [class.pointer-events-auto]="showLangDropdown"
+              [class.pointer-events-none]="!showLangDropdown"
+              role="listbox">
+            <li *ngFor="let lang of supportedLanguages"
+                (click)="selectLanguageDropdown(lang.code)"
+                [class.bg-primary-600]="currentLanguage === lang.code"
+                [class.bg-primary-700]="currentLanguage !== lang.code"
+                [class.text-white]="currentLanguage === lang.code"
+                [class.text-gray-300]="currentLanguage !== lang.code"
+                [class.border-l-4]="currentLanguage === lang.code"
+                [class.border-primary-400]="currentLanguage === lang.code"
+                class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-primary-600 focus:bg-primary-600 transition-all duration-200 text-sm relative"
+                [attr.aria-selected]="currentLanguage === lang.code"
+                role="option">
+              <span *ngIf="lang.flag" aria-hidden="true" class="text-base">{{ lang.flag }}</span>
+              <span class="font-medium">{{ lang.label }}</span>
+              <ng-icon *ngIf="currentLanguage === lang.code" 
+                      name="lucideCheck" 
+                      class="ml-auto text-primary-300" 
+                      [size]="'16'">
+              </ng-icon>
+            </li>
+          </ul>
+        </div>
 
         <!-- Show login button or user menu -->
         <ng-container *ngIf="!isLoggedIn; else userMenu">
@@ -52,7 +95,7 @@
               class="mr-2 group-hover:rotate-12 transition-transform duration-300" 
               [size]="'20'"
             ></ng-icon>
-            Σύνδεση
+            {{ 'APP.COMMONS.LOGIN' | translate }}
           </button>
         </ng-container>
 
@@ -69,10 +112,10 @@
               routerLink="/profile"
               icon="lucideUser"
               (click)="isUserMenuOpen = false"
-              >Προφίλ</app-dropdown-item
+              >{{ 'APP.COMMONS.PROFILE' | translate }}</app-dropdown-item
             >
             <app-dropdown-item (click)="logout()" icon="lucideLogOut"
-              >Αποσύνδεση</app-dropdown-item
+              >{{ 'APP.COMMONS.LOGOUT' | translate }}</app-dropdown-item
             >
           </app-dropdown>
         </ng-template>
@@ -99,6 +142,9 @@
     [isOpen]="isMobileMenuOpen"
     [isLoggedIn]="isLoggedIn"
     [currentUser]="currentUser"
+    [currentLanguage]="currentLanguage"
+    [supportedLanguages]="supportedLanguages"
+    (languageChange)="setLanguage($event)"
     (close)="closeMobileMenu()"
     (logout)="logout()"
   >

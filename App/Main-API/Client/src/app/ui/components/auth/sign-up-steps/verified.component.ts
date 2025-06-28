@@ -4,6 +4,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { UserRoundCogIcon } from 'lucide-angular';
 import { UserRole } from 'src/app/common/enum/user-role.enum';
 import { User } from 'src/app/models/user/user.model';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 @Component({
   selector: 'app-verified',
@@ -31,7 +32,7 @@ import { User } from 'src/app/models/user/user.model';
             <div
               class="w-16 h-16 mx-auto rounded-full border-4 border-primary-500 border-t-transparent animate-spin"
             ></div>
-            <p class="text-gray-400">Επαλήθευση email σε εξέλιξη...</p>
+            <p class="text-gray-400">{{ 'APP.AUTH.VERIFIED.LOADING' | translate }}</p>
           </div>
 
           <!-- Success State -->
@@ -45,7 +46,9 @@ import { User } from 'src/app/models/user/user.model';
                 class="text-white"
               ></ng-icon>
             </div>
-            <h2 class="text-2xl font-bold text-white">Επιτυχής Επαλήθευση!</h2>
+            <h2 class="text-2xl font-bold text-white">
+              {{ 'APP.AUTH.VERIFIED.SUCCESS_TITLE' | translate }}
+            </h2>
             <p class="text-gray-400">
               {{ getVerificationMessage() }}
             </p>
@@ -62,7 +65,9 @@ import { User } from 'src/app/models/user/user.model';
                 class="text-red-500"
               ></ng-icon>
             </div>
-            <h2 class="text-2xl font-bold text-white">Σφάλμα Επαλήθευσης</h2>
+            <h2 class="text-2xl font-bold text-white">
+              {{ 'APP.AUTH.VERIFIED.ERROR_TITLE' | translate }}
+            </h2>
             <p class="text-red-400">{{ error }}</p>
           </div>
 
@@ -72,7 +77,7 @@ import { User } from 'src/app/models/user/user.model';
               (click)="navigateToLogin()"
               class="w-full px-4 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
             >
-              Επιστροφή στην Σύνδεση
+              {{ 'APP.AUTH.VERIFIED.BACK_TO_LOGIN' | translate }}
             </button>
           </div>
         </div>
@@ -89,7 +94,8 @@ export class VerifiedComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly translationService: TranslationService
   ) {}
 
   ngOnInit(): void {
@@ -111,7 +117,7 @@ export class VerifiedComponent implements OnInit {
     }
 
     if (!token) {
-      this.error = 'Δεν έχετε επαληθέυση τον λογαριασμό σας.';
+      this.error = this.translationService.translate('APP.AUTH.VERIFIED.NO_TOKEN');
       this.isLoading = false;
       return;
     }
@@ -127,16 +133,16 @@ export class VerifiedComponent implements OnInit {
         this.isVerified = false;
         this.isLoading = false;
         console.error('Email verification error:', error);
-        this.error = 'Το email επιβεβαίωσης δεν ισχύει πια.';
+        this.error = this.translationService.translate('APP.AUTH.VERIFIED.INVALID_TOKEN');
       }
     );
   }
 
   getVerificationMessage(): string {
     if (this.userRoles?.includes(UserRole.Shelter)) {
-      return 'Η επαλήθευση ολοκληρώθηκε. Ένας διαχειριστής θα εξετάσει την εγγραφή σας. Παρακολουθείτε το email σας για ενημερώσεις.';
+      return this.translationService.translate('APP.AUTH.VERIFIED.SHELTER_MESSAGE');
     }
-    return 'Το email σας έχει επαληθευτεί επιτυχώς.';
+    return this.translationService.translate('APP.AUTH.VERIFIED.USER_MESSAGE');
   }
 
   navigateToLogin(): void {
@@ -154,7 +160,7 @@ export class VerifiedComponent implements OnInit {
         this.isVerified = false;
         this.isLoading = false;
         console.error('Email verification error:', error);
-        this.error = 'Αποτυχία επιβεβαίωσης χρήστη';
+        this.error = this.translationService.translate('APP.AUTH.VERIFIED.USER_VERIFY_ERROR');
       }
     );
   }

@@ -50,5 +50,7 @@ namespace Main_API.Models.Shelter
 		public String? VerifiedBy { get; set; }
 
 		public List<Animal.Animal>? Animals { get; set; }
+
+		public List<AdoptionApplication.AdoptionApplication> ReceivedAdoptionApplications { get; set; }
 	}
 }

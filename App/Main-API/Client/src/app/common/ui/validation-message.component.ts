@@ -1,11 +1,12 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl } from '@angular/forms';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-validation-message',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -15,23 +16,21 @@ import { AbstractControl } from '@angular/forms';
       class="absolute -bottom-6 left-0 text-sm text-red-400 transition-all duration-300"
     >
       <!-- Required field -->
-      <div *ngIf="control?.errors?.['required']">{{ field }} απαιτείται</div>
+      <div *ngIf="control?.errors?.['required']">{{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.REQUIRED' | translate }}</div>
 
       <!-- Email validation -->
       <div *ngIf="control?.errors?.['email']">
-        Παρακαλώ εισάγετε έναν έγκυρο email (π.χ., user&#64;domain.com)
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.EMAIL_INVALID' | translate }}
       </div>
 
       <!-- Min length -->
       <div *ngIf="control?.errors?.['minlength']">
-        {{ field }} πρέπει να έχει τουλάχιστον
-        {{ control?.errors?.['minlength']?.requiredLength }} χαρακτήρες
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.MIN_LENGTH' | translate}}
       </div>
 
       <!-- Max length -->
       <div *ngIf="control?.errors?.['maxlength']">
-        {{ field }} δεν μπορεί να υπερβαίνει τους
-        {{ control?.errors?.['maxlength']?.requiredLength }} χαρακτήρες
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.MAX_LENGTH' | translate }}
       </div>
 
       <!-- Pattern validation -->
@@ -39,57 +38,56 @@ import { AbstractControl } from '@angular/forms';
         <ng-container [ngSwitch]="field.toLowerCase()">
           <!-- Phone number -->
           <ng-container *ngSwitchCase="'αριθμός τηλεφώνου'">
-            Παρακαλώ εισάγετε έναν έγκυρο αριθμό τηλεφώνου (μόνο αριθμοί)
+            {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.PHONE_PATTERN' | translate }}
           </ng-container>
 
           <!-- ZIP code -->
           <ng-container *ngSwitchCase="'ταχυδρομικός κώδικας'">
-            Παρακαλώ εισάγετε έναν έγκυρο ταχυδρομικό κώδικα (π.χ., 12345)
+            {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.ZIP_PATTERN' | translate }}
           </ng-container>
 
           <!-- Operating hours -->
           <ng-container *ngSwitchCase="'ώρες λειτουργίας'">
-            Παρακαλώ εισάγετε έγκυρες ώρες λειτουργίας σε μορφή 24ώρου (π.χ.,
-            09:00,17:00)
+            {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.HOURS_PATTERN' | translate }}
           </ng-container>
 
           <!-- Default pattern message -->
           <ng-container *ngSwitchDefault>
-            Μη έγκυρη μορφή για {{ field }}
+            {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.DEFAULT_PATTERN' | translate }}
           </ng-container>
         </ng-container>
       </div>
 
       <!-- Password validation -->
       <div *ngIf="control?.errors?.['uppercase']">
-        Ο κωδικός πρέπει να περιέχει τουλάχιστον ένα κεφαλαίο γράμμα
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.PASSWORD_UPPERCASE' | translate }}
       </div>
       <div *ngIf="control?.errors?.['lowercase']">
-        Ο κωδικός πρέπει να περιέχει τουλάχιστον ένα πεζό γράμμα
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.PASSWORD_LOWERCASE' | translate }}
       </div>
       <div *ngIf="control?.errors?.['number']">
-        Ο κωδικός πρέπει να περιέχει τουλάχιστον έναν αριθμό
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.PASSWORD_NUMBER' | translate }}
       </div>
       <div *ngIf="control?.errors?.['specialChar']">
-        Ο κωδικός πρέπει να περιέχει τουλάχιστον έναν ειδικό χαρακτήρα
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.PASSWORD_SPECIAL_CHAR' | translate }}
       </div>
 
       <!-- Password match validation -->
-      <div *ngIf="control?.errors?.['mismatch']">Οι κωδικοί δεν ταιριάζουν</div>
+      <div *ngIf="control?.errors?.['mismatch']">{{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.PASSWORD_MISMATCH' | translate }}</div>
 
       <!-- Social media validation -->
       <div *ngIf="control?.errors?.['invalidSocialMedia']">
-        Παρακαλώ εισάγετε έγκυρο link {{ field }}
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.INVALID_SOCIAL' | translate }}
       </div>
 
       <!-- Operating hours validation -->
       <div *ngIf="control?.errors?.['invalidTimeRange']">
-        Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.INVALID_TIME_RANGE' | translate }}
       </div>
 
       <!-- Role validation -->
       <div *ngIf="control?.errors?.['invalidRole']">
-        Ο ρόλος του χρήστη δεν είναι έγκυρος
+        {{ 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.INVALID_ROLE' | translate }}
       </div>
 
       <!-- Custom error message -->
@@ -101,7 +99,7 @@ import { AbstractControl } from '@angular/forms';
 })
 export class ValidationMessageComponent {
   @Input() control?: AbstractControl | null;
-  @Input() field: string = 'Αυτό το πεδίο';
+  @Input() field: string = 'APP.UI_COMPONENTS.VALIDATION_MESSAGE.DEFAULT_FIELD';
   @Input() customError?: string;
   @Input() id?: string;
   @Input() showImmediately: boolean = false;

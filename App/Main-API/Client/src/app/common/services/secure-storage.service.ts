@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as CryptoJS from 'crypto-js';
 import { InstallationConfigurationService } from './installation-configuration.service';
-import { LoggedAccount } from 'src/app/models/auth/auth.model';
 
 @Injectable({
   providedIn: 'root'

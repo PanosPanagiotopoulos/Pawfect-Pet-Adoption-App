@@ -49,6 +49,8 @@ namespace Main_API.Censors
             AuthContext shelterContext = _contextBuilder.OwnedFrom(new ShelterLookup(), context.CurrentUserId).AffiliatedWith(new ShelterLookup()).Build();
             censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<ShelterCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.User.User.Shelter)), shelterContext), nameof(Models.User.User.Shelter)));
 
+            AuthContext adoptionApplicationContext = _contextBuilder.OwnedFrom(new AdoptionApplicationLookup(), context.CurrentUserId).AffiliatedWith(new AdoptionApplicationLookup()).Build();
+            censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<AdoptionApplicationCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.User.User.RequestedAdoptionApplications)), adoptionApplicationContext), nameof(Models.User.User.RequestedAdoptionApplications)));
 
             // Create the file lookup for the profile photo censoring
             FileLookup fileLookup = new FileLookup();

@@ -9,6 +9,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { FormInputComponent } from 'src/app/common/ui/form-input.component';
 import { AuthButtonComponent } from '../shared/auth-button/auth-button.component';
 import { NgIconsModule } from '@ng-icons/core';
+import { TranslationService } from 'src/app/common/services/translation.service';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-reset-password-request',
@@ -19,6 +21,7 @@ import { NgIconsModule } from '@ng-icons/core';
     FormInputComponent,
     AuthButtonComponent,
     NgIconsModule,
+    TranslatePipe
   ],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-900 pt-6">
@@ -42,11 +45,11 @@ import { NgIconsModule } from '@ng-icons/core';
             <span
               class="bg-gradient-to-r from-primary-400 via-secondary-400 to-accent-400 bg-clip-text text-transparent animate-gradient"
             >
-              Επαναφορά Κωδικού
+              {{ 'APP.AUTH.RESET_PASSWORD_REQUEST.TITLE' | translate }}
             </span>
           </h2>
           <p class="mt-2 text-gray-400">
-            Εισάγετε το email σας για να λάβετε οδηγίες επαναφοράς
+            {{ 'APP.AUTH.RESET_PASSWORD_REQUEST.INSTRUCTIONS' | translate }}
           </p>
         </div>
 
@@ -60,7 +63,7 @@ import { NgIconsModule } from '@ng-icons/core';
           >
             <div class="flex items-center">
               <ng-icon name="lucideCheck" class="mr-2" [size]="'20'"></ng-icon>
-              <p>Οι οδηγίες επαναφοράς στάλθηκαν στο email σας.</p>
+              <p>{{ 'APP.AUTH.RESET_PASSWORD_REQUEST.SUCCESS' | translate }}</p>
             </div>
           </div>
 
@@ -75,7 +78,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 class="mr-2 mt-0.5"
                 [size]="'20'"
               ></ng-icon>
-              <p>{{ errorMessage }}</p>
+              <p>{{ 'APP.AUTH.RESET_PASSWORD_REQUEST.ERROR' | translate }}</p>
             </div>
           </div>
 
@@ -88,7 +91,7 @@ import { NgIconsModule } from '@ng-icons/core';
               [form]="resetForm"
               controlName="email"
               type="email"
-              placeholder="Διεύθυνση Email"
+              [placeholder]="'APP.AUTH.RESET_PASSWORD_REQUEST.EMAIL_PLACEHOLDER' | translate"
             ></app-form-input>
 
             <div class="space-y-4">
@@ -98,7 +101,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 [disabled]="resetForm.invalid"
                 icon="lucideMail"
               >
-                Αποστολή Οδηγιών
+                {{ 'APP.AUTH.RESET_PASSWORD_REQUEST.SUBMIT' | translate }}
               </app-auth-button>
 
               <button
@@ -106,7 +109,7 @@ import { NgIconsModule } from '@ng-icons/core';
                 (click)="navigateToLogin()"
                 class="w-full px-4 py-3 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-all duration-300"
               >
-                Επιστροφή στη Σύνδεση
+                {{ 'APP.AUTH.RESET_PASSWORD_REQUEST.BACK_TO_LOGIN' | translate }}
               </button>
             </div>
           </form>
@@ -124,7 +127,8 @@ export class ResetPasswordRequestComponent extends BaseComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private translationService: TranslationService
   ) {
     super();
     this.resetForm = this.fb.group({
@@ -148,8 +152,7 @@ export class ResetPasswordRequestComponent extends BaseComponent {
           },
           error: (error) => {
             this.isLoading = false;
-            this.errorMessage =
-              'Παρουσιάστηκε σφάλμα κατά την αποστολή των οδηγιών. Παρακαλώ δοκιμάστε ξανά.';
+            this.errorMessage = this.translationService.translate('APP.AUTH.RESET_PASSWORD_REQUEST.ERROR');
             console.error('Reset password request error:', error);
           },
         });

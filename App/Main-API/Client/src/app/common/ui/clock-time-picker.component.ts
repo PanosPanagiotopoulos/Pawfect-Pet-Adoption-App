@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgIconsModule } from '@ng-icons/core';
 import { lucideClock, lucideX } from '@ng-icons/lucide';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-clock-time-picker',
   standalone: true,
-  imports: [CommonModule, FormsModule, NgIconsModule],
+  imports: [CommonModule, FormsModule, NgIconsModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="mb-4 border border-gray-700/50 rounded-xl p-4 hover:border-gray-600/70 transition-colors">
@@ -27,14 +28,14 @@ import { lucideClock, lucideX } from '@ng-icons/lucide';
               class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"
             ></div>
           </label>
-          <span class="ml-3 text-sm text-gray-300">{{ isClosed ? 'Κλειστό' : 'Ανοιχτό' }}</span>
+          <span class="ml-3 text-sm text-gray-300">{{ isClosed ? ('APP.UI_COMPONENTS.PET_DETAILS.CLOSED' | translate) : ('APP.UI_COMPONENTS.PET_DETAILS.OPEN' | translate) }}</span>
         </div>
       </div>
       
       <!-- Time selection (shown only when not closed) -->
       <div *ngIf="!isClosed" class="flex items-center justify-between">
         <div class="flex items-center space-x-2">
-          <span class="text-gray-400 text-sm">{{ openTime || 'Επιλέξτε ώρα' }}</span>
+          <span class="text-gray-400 text-sm">{{ openTime || ('APP.UI_COMPONENTS.PET_DETAILS.SELECT_TIME' | translate) }}</span>
           <button 
             (click)="openTimePicker('open')" 
             class="p-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors"
@@ -45,10 +46,10 @@ import { lucideClock, lucideX } from '@ng-icons/lucide';
           </button>
         </div>
         
-        <span class="text-gray-400 mx-2">έως</span>
+        <span class="text-gray-400 mx-2">{{ 'APP.UI_COMPONENTS.PET_DETAILS.TO' | translate }}</span>
         
         <div class="flex items-center space-x-2">
-          <span class="text-gray-400 text-sm">{{ closeTime || 'Επιλέξτε ώρα' }}</span>
+          <span class="text-gray-400 text-sm">{{ closeTime || ('APP.UI_COMPONENTS.PET_DETAILS.SELECT_TIME' | translate) }}</span>
           <button 
             (click)="openTimePicker('close')" 
             class="p-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors"
@@ -77,11 +78,11 @@ import { lucideClock, lucideX } from '@ng-icons/lucide';
           </button>
           
           <h3 class="text-xl font-semibold text-white mb-4">
-            {{ currentPickerType === 'open' ? 'Επιλογή ώρας ανοίγματος' : 'Επιλογή ώρας κλεισίματος' }}
+            {{ currentPickerType === 'open' ? ('APP.UI_COMPONENTS.PET_DETAILS.OPENING_TIME_SELECTION' | translate) : ('APP.UI_COMPONENTS.PET_DETAILS.CLOSING_TIME_SELECTION' | translate) }}
           </h3>
           
           <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-400 mb-2">Επιλέξτε ώρα</label>
+            <label class="block text-sm font-medium text-gray-400 mb-2">{{ 'APP.UI_COMPONENTS.PET_DETAILS.SELECT_HOUR' | translate }}</label>
             <input 
               type="time" 
               [(ngModel)]="tempTime" 
@@ -96,7 +97,7 @@ import { lucideClock, lucideX } from '@ng-icons/lucide';
               class="px-4 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-white/5 transition-all"
               type="button"
             >
-              Ακύρωση
+              {{ 'APP.UI_COMPONENTS.PET_DETAILS.CANCEL' | translate }}
             </button>
             <button 
               (click)="confirmTimeSelection()" 
@@ -104,7 +105,7 @@ import { lucideClock, lucideX } from '@ng-icons/lucide';
                      hover:shadow-lg hover:shadow-primary-500/20 transition-all"
               type="button"
             >
-              Επιβεβαίωση
+              {{ 'APP.UI_COMPONENTS.PET_DETAILS.CONFIRM' | translate }}
             </button>
           </div>
         </div>
@@ -201,30 +202,22 @@ export class ClockTimePickerComponent implements OnInit {
 
   validateTimeRange() {
     if (this.openTime && this.closeTime) {
-      if (this.openTime >= this.closeTime) {
-        this.error = 'Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος';
-        return false;
-      } else {
-        this.error = null;
-        return true;
+      const openTime = new Date(`2000-01-01T${this.openTime}`);
+      const closeTime = new Date(`2000-01-01T${this.closeTime}`);
+      
+      if (closeTime <= openTime) {
+        this.error = 'Closing time must be after opening time';
+        return;
       }
-    } else if ((this.openTime && !this.closeTime) || (!this.openTime && this.closeTime)) {
-      // If only one time is provided
-      this.error = 'Πρέπει να συμπληρώσετε και τις δύο ώρες';
-      return false;
-    } else if (!this.isModified) {
-      // If no times are provided and component hasn't been modified, it's valid
-      this.error = null;
-      return true;
     }
-    return true;
+    this.error = null;
   }
 
   emitTimeChange(openTime: string, closeTime: string) {
     this.timeChange.emit({
       day: this.day,
-      openTime,
-      closeTime
+      openTime: openTime,
+      closeTime: closeTime
     });
   }
 }

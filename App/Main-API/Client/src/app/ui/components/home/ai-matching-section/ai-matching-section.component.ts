@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { NgIconsModule } from '@ng-icons/core';
 import { AnimationDirective } from '../shared/directives/animation.directive';
 import { lucideHeart, lucideMessageCircle } from '@ng-icons/lucide';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-ai-matching-section',
   standalone: true,
-  imports: [CommonModule, NgIconsModule, AnimationDirective],
+  imports: [CommonModule, NgIconsModule, AnimationDirective, TranslatePipe],
   template: `
     <div
       appAnimation
@@ -23,7 +24,7 @@ import { lucideHeart, lucideMessageCircle } from '@ng-icons/lucide';
             class="text-3xl md:text-4xl font-bold gradient-text"
             style="transform: translateX(-50px);"
           >
-            Αντιστοίχιση με Τεχνητή Νοημοσύνη
+            {{ 'APP.HOME-PAGE.AI_MATCHING' | translate }}
           </h2>
           <div class="space-y-4 md:space-y-6">
             <div
@@ -41,11 +42,10 @@ import { lucideHeart, lucideMessageCircle } from '@ng-icons/lucide';
               </div>
               <div class="ml-4">
                 <h3 class="text-lg md:text-xl font-semibold text-white">
-                  Αντιστοίχιση Προτιμήσεων
+                  {{ 'APP.HOME-PAGE.PREFERENCES_MATCHING' | translate }}
                 </h3>
                 <p class="mt-2 text-sm md:text-base text-gray-400">
-                  Το σύστημά μας χρησιμοποιεί έξυπνες τεχνικές και τεχνητή νοημοσύνη για να αναλύσει τις προτιμήσεις σας 
-                  και να βρει το κατάλληλο κατοικίδιο για εσάς
+                  {{ 'APP.HOME-PAGE.PREFERENCES_MATCHING_DESC' | translate }}
                 </p>
               </div>
             </div>
@@ -64,10 +64,10 @@ import { lucideHeart, lucideMessageCircle } from '@ng-icons/lucide';
               </div>
               <div class="ml-4">
                 <h3 class="text-lg md:text-xl font-semibold text-white">
-                  Άμεση Επικοινωνία
+                  {{ 'APP.HOME-PAGE.INSTANT_COMMUNICATION' | translate }}
                 </h3>
                 <p class="mt-2 text-sm md:text-base text-gray-400">
-                  Συνδεθείτε απευθείας με καταφύγια και ιδιοκτήτες κατοικιδίων μέσω του ασφαλούς συστήματος μηνυμάτων μας
+                  {{ 'APP.HOME-PAGE.INSTANT_COMMUNICATION_DESC' | translate }}
                 </p>
               </div>
             </div>

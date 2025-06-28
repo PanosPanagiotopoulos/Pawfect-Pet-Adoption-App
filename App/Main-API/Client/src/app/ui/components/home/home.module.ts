@@ -10,6 +10,7 @@ import { FeatureCardComponent } from './feature-card/feature-card.component';
 import { HeaderComponent } from './shared/header/header.component';
 import { AnimationDirective } from './shared/directives/animation.directive';
 import { NotFoundComponent } from '../not-found/not-found.component';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @NgModule({
   declarations: [HomeComponent],
@@ -26,6 +27,7 @@ import { NotFoundComponent } from '../not-found/not-found.component';
     HeroSectionComponent,
     AiMatchingSectionComponent,
     AnimationDirective,
+    TranslatePipe
   ],
   exports: [HomeComponent],
 })

@@ -2,11 +2,12 @@ import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, Change
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ValidationMessageComponent } from './validation-message.component';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-otp-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent],
+  imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div [formGroup]="form" class="relative group mb-10">
@@ -15,7 +16,7 @@ import { ValidationMessageComponent } from './validation-message.component';
         [for]="controlName"
         class="block text-sm font-medium text-gray-400 mb-2"
       >
-        {{ label }}
+        {{ label | translate }}
       </label>
 
       <!-- Hidden input for form control -->
@@ -78,7 +79,7 @@ import { ValidationMessageComponent } from './validation-message.component';
 export class OtpInputComponent implements AfterViewInit {
   @Input() form!: FormGroup;
   @Input() controlName!: string;
-  @Input() label: string = 'Κωδικός OTP';
+  @Input() label: string = 'APP.UI_COMPONENTS.OTP_INPUT.DEFAULT_LABEL';
   @Input() hint?: string;
   @Input() length: number = 6;
   @Output() completed = new EventEmitter<string>();

@@ -19,5 +19,6 @@ namespace Main_API.Models.User
 		public Boolean? HasEmailVerified { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
-	}
+        public List<AdoptionApplication.AdoptionApplication> RequestedAdoptionApplications { get; set; }
+    }
 }

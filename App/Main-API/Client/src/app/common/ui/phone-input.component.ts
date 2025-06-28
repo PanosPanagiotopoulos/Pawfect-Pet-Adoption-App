@@ -139,7 +139,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
             class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white 
                    placeholder-gray-500 focus:border-primary-500/50 focus:ring-2 
                    focus:ring-primary-500/20 focus:outline-none transition-all duration-300"
-            placeholder="Αριθμός τηλεφώνου"
+            [placeholder]="phonePlaceholder"
             (input)="onPhoneNumberInput($event)"
             (blur)="onPhoneBlur()"
             [readOnly]="readonly"
@@ -171,7 +171,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
         <app-validation-message
           [id]="phoneNumberControl + '-error'"
           [control]="form.get(phoneNumberControl)"
-          field="Αριθμός τηλεφώνου"
+          field="phoneFieldLabel"
           [showImmediately]="true"
         >
         </app-validation-message>
@@ -215,6 +215,8 @@ export class PhoneInputComponent implements OnInit, OnDestroy {
   @Input() countryCodeControl: string = 'countryCode';
   @Input() phoneNumberControl: string = 'phoneNumber';
   @Input() readonly?: boolean = false;
+  @Input() phonePlaceholder: string = 'Αριθμός τηλεφώνου';
+  @Input() phoneFieldLabel: string = 'Αριθμός τηλεφώνου';
   @Output() phoneChange = new EventEmitter<string>();
 
   isOpen = false;

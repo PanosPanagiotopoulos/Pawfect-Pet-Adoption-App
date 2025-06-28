@@ -18,6 +18,8 @@ import { GoogleSignupLoadingComponent } from './google-signup-loading.component'
 import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-banner.component';
 import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
 import { FileItem } from 'src/app/models/file/file.model';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 interface ValidationError {
   field: string;
@@ -37,6 +39,7 @@ interface ValidationError {
     NgIconsModule,
     GoogleSignupLoadingComponent,
     ErrorMessageBannerComponent,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -66,18 +69,17 @@ interface ValidationError {
           </div>
           <div>
             <h3 class="text-primary-400 font-medium">
-              Έχουμε συμπληρώσει κάποια στοιχεία από το Google
+              {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.GOOGLE_POPULATED_TITLE' | translate }}
             </h3>
             <p class="text-gray-400 text-sm mt-1">
-              Τα πεδία που έχουν συμπληρωθεί αυτόματα είναι επισημασμένα και δεν
-              μπορούν να αλλαχθούν.
+              {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.GOOGLE_POPULATED_DESC' | translate }}
             </p>
           </div>
         </div>
       </div>
 
       <h2 class="text-2xl sm:text-3xl font-bold text-white mb-6">
-        Προσωπικές Πληροφορίες
+        {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.TITLE' | translate }}
       </h2>
 
       <!-- Form Fields -->
@@ -88,7 +90,7 @@ interface ValidationError {
             [form]="form"
             controlName="fullName"
             type="text"
-            placeholder="Ονοματεπώνυμο"
+            [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.FULL_NAME_PLACEHOLDER' | translate"
             [readonly]="form.get('fullName')?.disabled"
           ></app-form-input>
           <div *ngIf="form.get('fullName')?.disabled" class="google-hint">
@@ -97,7 +99,7 @@ interface ValidationError {
             >
               <span class="text-primary-600 text-xs font-bold">G</span>
             </div>
-            <span>Από Google</span>
+            <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
           </div>
         </div>
 
@@ -106,7 +108,7 @@ interface ValidationError {
             [form]="form"
             controlName="email"
             type="email"
-            placeholder="Email"
+            [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.EMAIL_PLACEHOLDER' | translate"
             [readonly]="form.get('email')?.disabled"
           ></app-form-input>
           <div *ngIf="form.get('email')?.disabled" class="google-hint">
@@ -115,7 +117,7 @@ interface ValidationError {
             >
               <span class="text-primary-600 text-xs font-bold">G</span>
             </div>
-            <span>Από Google</span>
+            <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
           </div>
         </div>
 
@@ -124,6 +126,8 @@ interface ValidationError {
             [form]="form"
             countryCodeControl="countryCode"
             phoneNumberControl="phoneNumber"
+            [phonePlaceholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHONE_PLACEHOLDER' | translate"
+            [phoneFieldLabel]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHONE_PLACEHOLDER' | translate"
             [readonly]="
               form.get('phoneNumber')?.disabled ||
               form.get('countryCode')?.disabled
@@ -142,13 +146,15 @@ interface ValidationError {
             >
               <span class="text-primary-600 text-xs font-bold">G</span>
             </div>
-            <span>Από Google</span>
+            <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
           </div>
         </div>
 
         <!-- Location Information -->
         <div class="space-y-6">
-          <h3 class="text-lg font-medium text-white">Πληροφορίες Τοποθεσίας</h3>
+          <h3 class="text-lg font-medium text-white">
+            {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.LOCATION_TITLE' | translate }}
+          </h3>
 
           <div
             class="grid grid-cols-1 sm:grid-cols-2 gap-x-[1px] gap-y-2 sm:gap-x-2"
@@ -158,7 +164,7 @@ interface ValidationError {
                 [form]="getLocationForm()"
                 controlName="city"
                 type="text"
-                placeholder="Πόλη"
+                [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.CITY_PLACEHOLDER' | translate"
                 [readonly]="getLocationForm().get('city')?.disabled"
               ></app-form-input>
               <div
@@ -170,7 +176,7 @@ interface ValidationError {
                 >
                   <span class="text-primary-600 text-xs font-bold">G</span>
                 </div>
-                <span>Από Google</span>
+                <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
               </div>
             </div>
 
@@ -179,7 +185,7 @@ interface ValidationError {
                 [form]="getLocationForm()"
                 controlName="zipCode"
                 type="text"
-                placeholder="Ταχυδρομικός Κώδικας"
+                [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.ZIP_PLACEHOLDER' | translate"
                 [readonly]="getLocationForm().get('zipCode')?.disabled"
               ></app-form-input>
               <div
@@ -191,7 +197,7 @@ interface ValidationError {
                 >
                   <span class="text-primary-600 text-xs font-bold">G</span>
                 </div>
-                <span>Από Google</span>
+                <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
               </div>
             </div>
           </div>
@@ -204,7 +210,7 @@ interface ValidationError {
                 [form]="getLocationForm()"
                 controlName="address"
                 type="text"
-                placeholder="Διεύθυνση"
+                [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.ADDRESS_PLACEHOLDER' | translate"
                 [readonly]="getLocationForm().get('address')?.disabled"
               ></app-form-input>
               <div
@@ -225,7 +231,7 @@ interface ValidationError {
                 [form]="getLocationForm()"
                 controlName="number"
                 type="text"
-                placeholder="Αριθμός"
+                [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.NUMBER_PLACEHOLDER' | translate"
                 [readonly]="getLocationForm().get('number')?.disabled"
               ></app-form-input>
               <div
@@ -245,15 +251,17 @@ interface ValidationError {
 
         <!-- Profile Picture Section -->
         <div class="space-y-6">
-          <h3 class="text-lg font-medium text-white">Φωτογραφία Προφίλ</h3>
+          <h3 class="text-lg font-medium text-white">
+            {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.PROFILE_PHOTO_TITLE' | translate }}
+          </h3>
           <app-file-drop-area
             [form]="form"
             controlName="profilePhoto"
-            label="Επιλογή Φωτογραφίας"
-            hint="Ανεβάστε μια φωτογραφία προφίλ (μέγιστο μέγεθος: 2MB)"
+            [label]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHOTO_LABEL' | translate"
+            [hint]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHOTO_HINT' | translate"
             accept=".jpg,.jpeg,.png"
             [multiple]="false"
-            [maxFileSize]="2 * 1024 * 1024"
+            [maxFileSize]="10 * 1024 * 1024"
             (filesChange)="onProfilePhotoChange($event)"
           ></app-file-drop-area>
 
@@ -297,13 +305,13 @@ interface ValidationError {
               *ngIf="photoUploadSuccess"
               class="text-sm text-green-400 animate-fadeIn"
             >
-              Η φωτογραφία φορτώθηκε επιτυχώς
+              {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.PHOTO_SUCCESS' | translate }}
             </div>
             <div
               *ngIf="photoUploadError"
               class="text-sm text-red-400 animate-fadeIn"
             >
-              {{ photoUploadError }}
+              {{ photoUploadError | translate }}
             </div>
           </div>
         </div>
@@ -318,7 +326,7 @@ interface ValidationError {
                  hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 
                  transform hover:-translate-y-1"
         >
-          Επόμενο
+          {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.NEXT' | translate }}
         </button>
       </div>
       <div
@@ -326,7 +334,7 @@ interface ValidationError {
         class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 my-4 animate-fadeIn"
       >
         <h3 class="text-red-400 font-medium mb-2 flex items-center">
-          <span class="mr-2">⚠️</span> Παρακαλώ διορθώστε τα παρακάτω σφάλματα:
+          <span class="mr-2">⚠️</span> {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.ERROR_SUMMARY_TITLE' | translate }}
         </h3>
         <ul class="list-disc list-inside text-sm text-red-400 space-y-1">
           <li
@@ -334,7 +342,7 @@ interface ValidationError {
             class="cursor-pointer hover:underline"
             (click)="scrollToErrorField(error)"
           >
-            {{ error.message }}
+            {{ error.message | translate }}
           </li>
         </ul>
       </div>
@@ -392,7 +400,10 @@ export class PersonalInfoComponent {
   validationErrors: ValidationError[] = [];
   showErrorSummary = false;
 
-  constructor(private cdr: ChangeDetectorRef) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService
+  ) {}
 
   getLocationForm(): FormGroup {
     return this.form.get('location') as FormGroup;
@@ -401,109 +412,95 @@ export class PersonalInfoComponent {
   onNext(): void {
     this.validationErrors = [];
     this.showErrorSummary = false;
-    this.error = undefined;
 
     if (this.form.valid) {
       this.next.emit();
     } else {
       this.markFormGroupTouched(this.form);
       this.collectValidationErrors();
-      this.showErrorSummary = this.validationErrors.length > 0;
+      this.showErrorSummary = true;
       this.scrollToFirstError();
+      this.cdr.markForCheck();
     }
   }
 
   onPhoneChange(phone: string): void {
-    this.form.get('phone')?.setValue(phone);
+    // Handle phone number change if needed
   }
 
   onProfilePhotoChange(files: FileItem[]): void {
+    if (files.length === 0) {
+      this.profilePhotoPreview = null;
+      this.photoUploadSuccess = false;
+      this.photoUploadError = null;
+      return;
+    }
+
+    const fileItem = files[0];
+    const file = fileItem.file;
+    this.isPhotoLoading = true;
     this.photoUploadSuccess = false;
     this.photoUploadError = null;
-    if (files.length > 0) {
-      const profilePhoto: FileItem = files[0];
 
-      if (!profilePhoto.file.type.match('image.*')) {
-        this.photoUploadError =
-          'Μη έγκυρος τύπος αρχείου. Επιτρέπονται μόνο εικόνες.';
-        this.profilePhotoPreview = null;
-        this.form.get('profilePhoto')?.setErrors({ invalidType: true });
-        this.cdr.markForCheck();
-        return;
-      }
-
-      if (profilePhoto.file.size > 2 * 1024 * 1024) {
-        this.photoUploadError =
-          'Το μέγεθος της εικόνας δεν πρέπει να υπερβαίνει τα 2MB.';
-        this.profilePhotoPreview = null;
-        this.form.get('profilePhoto')?.setErrors({ invalidSize: true });
-        this.cdr.markForCheck();
-        return;
-      }
-
-      this.isPhotoLoading = true;
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.isPhotoLoading = false;
+      this.photoUploadError = this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.INVALID_FILE_TYPE');
       this.cdr.markForCheck();
-
-      this.createImagePreview(profilePhoto.file);
-
-      this.form.get('profilePhoto')?.setValue(profilePhoto.persistedId);
-      this.form.get('profilePhoto')?.updateValueAndValidity();
-    } else {
-      this.profilePhotoPreview = null;
-      this.cdr.markForCheck();
+      return;
     }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      this.isPhotoLoading = false;
+      this.photoUploadError = this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.INVALID_FILE_SIZE');
+      this.cdr.markForCheck();
+      return;
+    }
+
+    this.createImagePreview(file);
   }
 
   hasGooglePopulatedFields(): boolean {
-    const disabledControls = [
-      this.form.get('fullName')?.disabled,
-      this.form.get('email')?.disabled,
-      this.form.get('phoneNumber')?.disabled,
-      this.form.get('countryCode')?.disabled,
-      this.getLocationForm()?.get('city')?.disabled,
-      this.getLocationForm()?.get('zipCode')?.disabled,
-      this.getLocationForm()?.get('address')?.disabled,
-      this.getLocationForm()?.get('number')?.disabled,
-    ];
+    const fullNameDisabled = this.form.get('fullName')?.disabled;
+    const emailDisabled = this.form.get('email')?.disabled;
+    const phoneDisabled = this.form.get('phoneNumber')?.disabled;
+    const countryCodeDisabled = this.form.get('countryCode')?.disabled;
+    const locationForm = this.getLocationForm();
+    const cityDisabled = locationForm.get('city')?.disabled;
+    const zipCodeDisabled = locationForm.get('zipCode')?.disabled;
 
-    return disabledControls.some((isDisabled) => isDisabled === true);
+    return !!(
+      fullNameDisabled ||
+      emailDisabled ||
+      phoneDisabled ||
+      countryCodeDisabled ||
+      cityDisabled ||
+      zipCodeDisabled
+    );
   }
 
   removeProfilePhoto(): void {
-    this.form.get('profilePhoto')?.setValue(null);
     this.profilePhotoPreview = null;
     this.photoUploadSuccess = false;
     this.photoUploadError = null;
-
-    const fileInput =
-      this.formContainer.nativeElement.querySelector('input[type="file"]');
-    if (fileInput) {
-      fileInput.value = '';
-    }
-
+    this.form.patchValue({ profilePhoto: null });
     this.cdr.markForCheck();
   }
 
   private createImagePreview(file: File): void {
-    if (!file.type.match('image.*')) {
-      this.isPhotoLoading = false;
-      return;
-    }
-
     const reader = new FileReader();
 
-    reader.onload = (e: any) => {
-      setTimeout(() => {
-        this.isPhotoLoading = false;
-        this.profilePhotoPreview = e.target.result;
-        this.photoUploadSuccess = true;
-        this.cdr.markForCheck();
-      }, 800);
+    reader.onload = () => {
+      this.profilePhotoPreview = reader.result as string;
+      this.isPhotoLoading = false;
+      this.photoUploadSuccess = true;
+      this.cdr.markForCheck();
     };
 
     reader.onerror = () => {
       this.isPhotoLoading = false;
-      this.photoUploadError = 'Σφάλμα κατά τη φόρτωση της εικόνας.';
+      this.photoUploadError = this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.PHOTO_LOAD_ERROR');
       this.cdr.markForCheck();
     };
 
@@ -531,13 +528,13 @@ export class PersonalInfoComponent {
       if (fullNameControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'fullName',
-          message: 'Το ονοματεπώνυμο είναι υποχρεωτικό',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.FULL_NAME_REQUIRED'),
           element,
         });
       } else if (fullNameControl.errors?.['minlength']) {
         this.validationErrors.push({
           field: 'fullName',
-          message: 'Το ονοματεπώνυμο πρέπει να έχει τουλάχιστον 5 χαρακτήρες',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.FULL_NAME_MINLENGTH'),
           element,
         });
       }
@@ -549,13 +546,13 @@ export class PersonalInfoComponent {
       if (emailControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'email',
-          message: 'Το email είναι υποχρεωτικό',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.EMAIL_REQUIRED'),
           element,
         });
       } else if (emailControl.errors?.['email']) {
         this.validationErrors.push({
           field: 'email',
-          message: 'Παρακαλώ εισάγετε ένα έγκυρο email',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.EMAIL_INVALID'),
           element,
         });
       }
@@ -568,13 +565,13 @@ export class PersonalInfoComponent {
       if (phoneControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'phoneNumber',
-          message: 'Ο αριθμός τηλεφώνου είναι υποχρεωτικός',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.PHONE_REQUIRED'),
           element,
         });
       } else if (phoneControl.errors?.['pattern']) {
         this.validationErrors.push({
           field: 'phoneNumber',
-          message: 'Παρακαλώ εισάγετε έναν έγκυρο αριθμό τηλεφώνου',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.PHONE_INVALID'),
           element,
         });
       }
@@ -588,7 +585,7 @@ export class PersonalInfoComponent {
       if (cityControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'city',
-          message: 'Η πόλη είναι υποχρεωτική',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.CITY_REQUIRED'),
           element,
         });
       }
@@ -600,13 +597,13 @@ export class PersonalInfoComponent {
       if (zipCodeControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'zipCode',
-          message: 'Ο ταχυδρομικός κώδικας είναι υποχρεωτικός',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.ZIP_REQUIRED'),
           element,
         });
       } else if (zipCodeControl.errors?.['pattern']) {
         this.validationErrors.push({
           field: 'zipCode',
-          message: 'Παρακαλώ εισάγετε έναν έγκυρο ταχυδρομικό κώδικα',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.ZIP_INVALID'),
           element,
         });
       }
@@ -618,7 +615,7 @@ export class PersonalInfoComponent {
       if (addressControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'address',
-          message: 'Η διεύθυνση είναι υποχρεωτική',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.ADDRESS_REQUIRED'),
           element,
         });
       }
@@ -630,13 +627,13 @@ export class PersonalInfoComponent {
       if (numberControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'number',
-          message: 'Ο αριθμός είναι υποχρεωτικός',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.NUMBER_REQUIRED'),
           element,
         });
       } else if (numberControl.errors?.['pattern']) {
         this.validationErrors.push({
           field: 'number',
-          message: 'Παρακαλώ εισάγετε έναν έγκυρο αριθμό',
+          message: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.NUMBER_INVALID'),
           element,
         });
       }

@@ -10,6 +10,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ValidationMessageComponent } from './validation-message.component';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-time-input',
@@ -19,6 +20,7 @@ import { ValidationMessageComponent } from './validation-message.component';
     ReactiveFormsModule,
     FormsModule,
     ValidationMessageComponent,
+    TranslatePipe,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -45,7 +47,7 @@ import { ValidationMessageComponent } from './validation-message.component';
           ></div>
         </label>
         <span class="ml-3 text-sm text-gray-300">{{
-          isClosed ? 'Κλειστό' : 'Ανοιχτό'
+          isClosed ? ('APP.UI_COMPONENTS.TIME_INPUT.CLOSED' | translate) : ('APP.UI_COMPONENTS.TIME_INPUT.OPEN' | translate)
         }}</span>
       </div>
 
@@ -62,14 +64,14 @@ import { ValidationMessageComponent } from './validation-message.component';
                    placeholder-gray-500 focus:border-primary-500/50 focus:ring-2 
                    focus:ring-primary-500/20 focus:outline-none transition-all duration-300"
             [class.border-red-500]="isTimeInvalid"
-            [attr.aria-label]="'Ώρα ανοίγματος για ' + controlName"
+            [attr.aria-label]="('APP.UI_COMPONENTS.TIME_INPUT.OPENING_TIME_LABEL' | translate).replace('{day}', controlName)"
             [attr.aria-invalid]="isTimeInvalid"
             [attr.aria-describedby]="controlName + '-error'"
           />
-          <div class="text-xs text-gray-500 mt-1">Ώρα ανοίγματος</div>
+          <div class="text-xs text-gray-500 mt-1">{{ 'APP.UI_COMPONENTS.TIME_INPUT.OPENING_TIME' | translate }}</div>
         </div>
 
-        <span class="text-gray-400">έως</span>
+        <span class="text-gray-400">{{ 'APP.UI_COMPONENTS.TIME_INPUT.TO' | translate }}</span>
 
         <div class="flex-1">
           <input
@@ -82,11 +84,11 @@ import { ValidationMessageComponent } from './validation-message.component';
                    placeholder-gray-500 focus:border-primary-500/50 focus:ring-2 
                    focus:ring-primary-500/20 focus:outline-none transition-all duration-300"
             [class.border-red-500]="isTimeInvalid"
-            [attr.aria-label]="'Ώρα κλεισίματος για ' + controlName"
+            [attr.aria-label]="('APP.UI_COMPONENTS.TIME_INPUT.CLOSING_TIME_LABEL' | translate).replace('{day}', controlName)"
             [attr.aria-invalid]="isTimeInvalid"
             [attr.aria-describedby]="controlName + '-error'"
           />
-          <div class="text-xs text-gray-500 mt-1">Ώρα κλεισίματος</div>
+          <div class="text-xs text-gray-500 mt-1">{{ 'APP.UI_COMPONENTS.TIME_INPUT.CLOSING_TIME' | translate }}</div>
         </div>
       </div>
 
@@ -94,7 +96,7 @@ import { ValidationMessageComponent } from './validation-message.component';
       <app-validation-message
         [id]="controlName + '-error'"
         [control]="form.get(controlName)"
-        field="Ώρες λειτουργίας"
+        [field]="'APP.UI_COMPONENTS.TIME_INPUT.OPERATING_HOURS' | translate"
         [showImmediately]="true"
       >
       </app-validation-message>

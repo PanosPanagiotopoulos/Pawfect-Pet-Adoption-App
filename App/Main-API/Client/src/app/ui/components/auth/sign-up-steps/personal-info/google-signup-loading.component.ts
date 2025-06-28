@@ -1,10 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-google-signup-loading',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
     <div
       *ngIf="isLoading"
@@ -16,7 +17,7 @@ import { CommonModule } from '@angular/common';
         <div
           class="w-16 h-16 mx-auto border-4 border-primary-500 border-t-transparent rounded-full animate-spin"
         ></div>
-        <p class="text-gray-400">Λήψη στοιχείων από Google...</p>
+        <p class="text-gray-400">{{ 'APP.GOOGLE_SIGNUP.LOADING_MESSAGE' | translate }}</p>
       </div>
     </div>
   `,

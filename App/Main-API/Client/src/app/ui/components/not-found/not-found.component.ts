@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { NgIconsModule } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-not-found',
   standalone: true,
-  imports: [CommonModule, RouterLink, NgIconsModule],
+  imports: [CommonModule, RouterLink, NgIconsModule, TranslatePipe],
   template: `
     <div class="min-h-screen flex items-center justify-center bg-gray-900 relative overflow-hidden">
       <!-- Background elements -->
@@ -30,10 +31,10 @@ import { CommonModule } from '@angular/common';
 
         <!-- Message -->
         <h2 class="text-2xl sm:text-3xl font-semibold text-white mb-4">
-          Ωχ! Χάθηκε το κατοικίδιο...
+          {{ 'APP.NOT_FOUND.TITLE' | translate }}
         </h2>
         <p class="text-gray-400 text-lg mb-8 max-w-md mx-auto">
-          Η σελίδα που ψάχνετε έχει χαθεί στο διαδίκτυο. Ας επιστρέψουμε στην αρχική!
+          {{ 'APP.NOT_FOUND.DESCRIPTION' | translate }}
         </p>
 
         <!-- Home Button -->
@@ -42,7 +43,7 @@ import { CommonModule } from '@angular/common';
           class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1"
         >
           <span class="mr-2">🏠</span>
-          Επιστροφή στην Αρχική
+          {{ 'APP.NOT_FOUND.HOME_BUTTON' | translate }}
         </a>
       </div>
 

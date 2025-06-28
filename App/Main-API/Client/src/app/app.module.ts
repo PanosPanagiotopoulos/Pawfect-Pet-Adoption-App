@@ -61,11 +61,17 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ErrorHandlerService } from './common/services/error-handler.service';
 import { CookiesInterceptor } from './common/tools/cookies.interceptor';
 import { ApiKeyInterceptor } from './common/tools/api-key.interceptor';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { TranslationService } from './common/services/translation.service';
 
 export function initializeApp(
-  installationConfigService: InstallationConfigurationService
+  installationConfigService: InstallationConfigurationService,
+  translationService: TranslationService
 ) {
-  return () => installationConfigService.loadConfig().toPromise();
+  return () => Promise.all([
+    installationConfigService.loadConfig().toPromise(),
+    translationService.initialize().toPromise()
+  ]);
 }
 
 @NgModule({
@@ -126,14 +132,16 @@ export function initializeApp(
       lucideEyeOff,
     }),
     HeaderComponent,
+    TranslatePipe,
   ],
   providers: [
     InstallationConfigurationService,
+    TranslationService,
     BaseHttpService,
     {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,
-      deps: [InstallationConfigurationService],
+      deps: [InstallationConfigurationService, TranslationService],
       multi: true,
     },
     {

@@ -5,13 +5,14 @@ import { AdoptionApplicationService } from 'src/app/services/adoption-applicatio
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
 import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
 import { File, FileItem } from 'src/app/models/file/file.model';
-import { ValidationErrorInfo, FormInputErrorTrackerService } from 'src/app/common/ui/form-input-error-tracker.service';
+import { ValidationErrorInfo, FormInputErrorTrackerService } from 'src/app/common/services/form-input-error-tracker.service';
 import { AdoptionApplication, AdoptionApplicationPersist } from 'src/app/models/adoption-application/adoption-application.model';
 import { nameof } from 'ts-simple-nameof';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
 import { Breed } from 'src/app/models/breed/breed.model';
 import { User } from 'src/app/models/user/user.model';
 import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-adoption-form',
@@ -39,7 +40,7 @@ import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
       <app-form-error-summary 
         *ngIf="showErrorSummary"
         [errors]="validationErrors"
-        title="Παρακαλώ διορθώστε τα παρακάτω σφάλματα:"
+        [title]="'APP.ADOPT.ERROR_SUMMARY_TITLE' | translate"
       ></app-form-error-summary>
 
       <!-- Application Form -->
@@ -49,20 +50,20 @@ import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
           <app-text-area-input
             [form]="applicationForm"
             controlName="applicationDetails"
-            label="Γιατί θέλετε να υιοθετήσετε αυτό το κατοικίδιο;"
+            [label]="'APP.ADOPT.WHY_ADOPT_QUESTION' | translate"
             [rows]="4"
-            hint="Περιγράψτε γιατί πιστεύετε ότι είστε ο κατάλληλος για να υιοθετήσετε αυτό το κατοικίδιο"
+            [hint]="'APP.ADOPT.WHY_ADOPT_HINT' | translate"
           ></app-text-area-input>
 
           <!-- Supporting Documents -->
           <app-file-drop-area
             [form]="applicationForm"
             controlName="attachedFiles"
-            label="Υποστηρικτικά Έγγραφα"
-            hint="Προσθέστε έγγραφα που υποστηρίζουν την αίτησή σας (προαιρετικό)"
+            [label]="'APP.ADOPT.SUPPORTING_DOCUMENTS' | translate"
+            [hint]="'APP.ADOPT.SUPPORTING_DOCUMENTS_HINT' | translate"
             [multiple]="true"
             accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            [maxFileSize]="5 * 1024 * 1024"
+            [maxFileSize]="10 * 1024 * 1024"
             [maxFiles]="3"
             (filesChange)="onFilesChange($event)"
           ></app-file-drop-area>
@@ -77,7 +78,7 @@ import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
                      transform hover:-translate-y-1 disabled:opacity-70 disabled:transform-none 
                      disabled:hover:shadow-none"
             >
-              <span [class.opacity-0]="isSubmitting">Υποβολή Αίτησης</span>
+              <span [class.opacity-0]="isSubmitting">{{ 'APP.ADOPT.SUBMIT_APPLICATION' | translate }}</span>
               
               <!-- Loading Spinner -->
               <div

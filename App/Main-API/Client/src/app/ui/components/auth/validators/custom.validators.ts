@@ -1,7 +1,8 @@
 import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { TranslationService } from 'src/app/common/services/translation.service';
 
 export class CustomValidators {
-  static passwordValidator(): ValidatorFn {
+  static passwordValidator(translationService: TranslationService): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) {
         return null;
@@ -21,23 +22,23 @@ export class CustomValidators {
         errors['minlength'] = { requiredLength: 8, actualLength: control.value.length };
       }
       if (!hasUpperCase) {
-        errors['uppercase'] = { message: 'At least one uppercase letter required' };
+        errors['uppercase'] = { message: translationService.translate('APP.AUTH.VALIDATORS.UPPERCASE_REQUIRED') };
       }
       if (!hasLowerCase) {
-        errors['lowercase'] = { message: 'At least one lowercase letter required' };
+        errors['lowercase'] = { message: translationService.translate('APP.AUTH.VALIDATORS.LOWERCASE_REQUIRED') };
       }
       if (!hasNumber) {
-        errors['number'] = { message: 'At least one number required' };
+        errors['number'] = { message: translationService.translate('APP.AUTH.VALIDATORS.NUMBER_REQUIRED') };
       }
       if (!hasSpecialChar) {
-        errors['specialChar'] = { message: 'At least one special character required' };
+        errors['specialChar'] = { message: translationService.translate('APP.AUTH.VALIDATORS.SPECIAL_CHAR_REQUIRED') };
       }
 
       return Object.keys(errors).length > 0 ? errors : null;
     };
   }
 
-  static matchValidator(matchTo: string): ValidatorFn {
+  static matchValidator(matchTo: string, translationService: TranslationService): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.parent) {
         return null;
@@ -49,7 +50,7 @@ export class CustomValidators {
       }
 
       if (control.value !== matchControl.value) {
-        return { mismatch: { message: 'Passwords do not match' } };
+        return { mismatch: { message: translationService.translate('APP.AUTH.VALIDATORS.PASSWORDS_DONT_MATCH') } };
       }
 
       return null;

@@ -19,10 +19,10 @@
         <span
           class="bg-gradient-to-r from-primary-400 via-secondary-400 to-accent-400 bg-clip-text text-transparent animate-gradient"
         >
-          Καλώς ήρθατε
+          {{ 'APP.AUTH.LOGIN.WELCOME' | translate }}
         </span>
       </h2>
-      <p class="mt-2 text-gray-400">Συνδεθείτε στον λογαριασμό σας</p>
+      <p class="mt-2 text-gray-400">{{ 'APP.AUTH.LOGIN.SIGNIN_TO_ACCOUNT' | translate }}</p>
     </div>
 
     <!-- Login Form -->
@@ -37,7 +37,7 @@
               [form]="loginForm"
               controlName="email"
               type="email"
-              placeholder="Διεύθυνση Email"
+              [placeholder]="'APP.AUTH.LOGIN.EMAIL_PLACEHOLDER' | translate"
             ></app-form-input>
           </div>
 
@@ -46,7 +46,7 @@
               [form]="loginForm"
               controlName="password"
               type="password"
-              placeholder="Κωδικός πρόσβασης"
+              [placeholder]="'APP.AUTH.LOGIN.PASSWORD_PLACEHOLDER' | translate"
             ></app-form-input>
           </div>
         </div>
@@ -57,7 +57,7 @@
               routerLink="/auth/reset-password-request"
               class="text-primary-400 hover:text-primary-300 transition-colors"
             >
-              Ξεχάσατε τον κωδικό σας;
+              {{ 'APP.AUTH.LOGIN.FORGOT_PASSWORD' | translate }}
             </a>
           </div>
         </div>
@@ -71,7 +71,7 @@
               [disabled]="loginForm.invalid"
               icon="lucideUser"
             >
-              Σύνδεση
+              {{ 'APP.AUTH.LOGIN.LOGIN' | translate }}
             </app-auth-button>
           </div>
 
@@ -82,7 +82,7 @@
             </div>
             <div class="relative flex justify-center text-sm">
               <span class="px-2 text-gray-400 bg-gray-900/95"
-                >ή συνεχίστε με</span
+                >{{ 'APP.AUTH.LOGIN.OR_CONTINUE_WITH' | translate }}</span
               >
             </div>
           </div>
@@ -91,18 +91,19 @@
             <app-google-login-button
               [isLoading]="isLoading"
               (login)="loginWithGoogle()"
+              [text]="'APP.COMMONS.GOOGLE-BUTTON-TEXT' | translate"
             ></app-google-login-button>
           </div>
         </div>
       </form>
 
       <div class="text-center text-sm">
-        <span class="text-gray-400">Δεν έχετε λογαριασμό;</span>
+        <span class="text-gray-400">{{ 'APP.AUTH.LOGIN.NO_ACCOUNT' | translate }}</span>
         <a
           routerLink="/auth/sign-up"
           class="ml-1 text-primary-400 hover:text-primary-300 transition-colors"
         >
-          Εγγραφή
+          {{ 'APP.AUTH.LOGIN.SIGN_UP' | translate }}
         </a>
       </div>
     </div>
