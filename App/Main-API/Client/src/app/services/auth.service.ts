@@ -45,6 +45,8 @@ export class AuthService {
     const url = `${this.apiBase}/login`;
     const payload: LoginPayload = { email, password, loginProvider: 1 };
 
+    this.secureStorage.removeItem(this.installationConfiguration.storageAccountKey);
+
     return this.http.post<LoggedAccount>(url, payload).pipe(
       tap((response: LoggedAccount) => {
         if (response.isVerified) {
@@ -63,6 +65,8 @@ export class AuthService {
       loginProvider: 2,
       providerAccessCode: code,
     };
+    
+    this.secureStorage.removeItem(this.installationConfiguration.storageAccountKey);
 
     return this.http.post<LoggedAccount>(url, payload).pipe(
       tap((response: LoggedAccount) => {

@@ -46,6 +46,22 @@ export class AnimalService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
+  getAnimalsByShelter(
+    shelterId: string,
+    reqFields: string[] = []
+  ): Observable<Animal[]> {
+    const url = `${this.apiBase}/shelter/${shelterId}`;
+    let params = new HttpParams();
+    reqFields.forEach(field => {
+      params = params.append('fields', field);
+    });
+    const options = { params };
+
+    return this.http
+      .get<Animal[]>(url, options)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
   persist(item: AnimalPersist, reqFields: string[] = []): Observable<Animal> {
     const url = `${this.apiBase}/persist`;
     let params = new HttpParams();

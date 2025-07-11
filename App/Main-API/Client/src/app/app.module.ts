@@ -29,6 +29,7 @@ import {
   lucideHeartPulse,
   lucideScale,
   lucideActivity,
+  lucideMapPinXInside,
   lucideMoon,
   lucideFacebook,
   lucideInstagram,
@@ -46,10 +47,16 @@ import {
   lucideCircleHelp,
   lucideEye,
   lucideEyeOff,
+  lucideShapes,
+  lucideVenetianMask,
+  lucideCakeSlice,
+  lucideFileText,
+  lucideMap,
+  lucideInbox,
+  lucidePencil,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
-import { HomeModule } from './ui/components/home/home.module';
 import { InstallationConfigurationService } from './common/services/installation-configuration.service';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { UnauthorizedInterceptor } from 'src/app/common/tools/unauthorised.interceptor';
@@ -63,6 +70,7 @@ import { CookiesInterceptor } from './common/tools/cookies.interceptor';
 import { ApiKeyInterceptor } from './common/tools/api-key.interceptor';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from './common/services/translation.service';
+import { LucideAngularModule, LucideMapPin, LucideUser, LucideFile, LucideCheck, LucideBuilding, LucidePawPrint, LucideAlertCircle, LucideInstagram, LucideFacebook, LucidePlus, LucideMailbox, LucideEye } from 'lucide-angular';
 
 export function initializeApp(
   installationConfigService: InstallationConfigurationService,
@@ -106,6 +114,8 @@ export function initializeApp(
       lucideUpload,
       lucideFile,
       lucideCheck,
+      lucidePencil,
+      lucideMapPinXInside,
       lucideTriangle,
       lucidePawPrint,
       lucideCake,
@@ -114,6 +124,8 @@ export function initializeApp(
       lucideScale,
       lucideActivity,
       lucideMoon,
+      lucideFileText,
+      lucideInbox,
       lucideFacebook,
       lucideInstagram,
       lucideGlobe,
@@ -130,6 +142,14 @@ export function initializeApp(
       lucideCircle,
       lucideEye,
       lucideEyeOff,
+      lucideShapes,
+      lucideVenetianMask,
+      lucideCakeSlice,
+      map: lucideMap,
+      eyeOff: lucideEyeOff,
+      file: lucideFile,
+      inbox: lucideInbox,
+      pencil: lucidePencil,
     }),
     HeaderComponent,
     TranslatePipe,

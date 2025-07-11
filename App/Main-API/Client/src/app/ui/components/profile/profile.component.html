@@ -1,0 +1,338 @@
+<div class="min-h-screen relative overflow-hidden bg-gray-900">
+  <!-- Background elements (copied from home.component.html) -->
+  <div class="fixed inset-0 z-0 pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"></div>
+    <div class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"></div>
+    <!-- Animated gradient orbs -->
+    <div class="absolute top-0 left-0 w-[800px] h-[800px] bg-gradient-to-br from-primary-600/5 to-accent-600/5 rounded-full blur-3xl animate-float-1 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute top-1/2 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-secondary-600/5 to-primary-600/5 rounded-full blur-3xl animate-float-2 translate-x-1/2"></div>
+    <div class="absolute bottom-0 left-1/2 w-[700px] h-[700px] bg-gradient-to-tr from-accent-600/5 to-secondary-600/5 rounded-full blur-3xl animate-float-3 -translate-x-1/2 translate-y-1/2"></div>
+  </div>
+  <!-- Main Content -->
+  <main class="relative z-10">
+    <!-- Loading State -->
+    <ng-container *ngIf="isLoading">
+      <div class="container mx-auto px-4 py-8">
+        <!-- Skeleton Profile Header -->
+        <div class="backdrop-blur-md bg-white/70 rounded-lg shadow-md p-6 mb-8 animate-pulse">
+          <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+            <!-- Skeleton Profile Photo -->
+            <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-gray-200"></div>
+            <!-- Skeleton Info -->
+            <div class="flex-1 text-center md:text-left space-y-2">
+              <div class="h-8 w-48 bg-gradient-to-r from-primary-200 via-secondary-200 to-accent-200 rounded mx-auto md:mx-0 animate-pulse"></div>
+              <div class="h-4 w-32 bg-gray-200 rounded mx-auto md:mx-0"></div>
+              <div class="h-4 w-24 bg-gray-200 rounded mx-auto md:mx-0"></div>
+              <div class="h-4 w-40 bg-gray-200 rounded mx-auto md:mx-0"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Skeleton Tabs Layout -->
+        <div class="flex flex-col md:flex-row gap-8">
+          <!-- Skeleton Vertical Tabs (desktop) / Horizontal (mobile) -->
+          <nav class="md:w-64 flex-shrink-0 space-y-2 flex md:flex-col flex-row overflow-x-auto md:overflow-x-visible">
+            <div class="h-10 w-32 md:w-full bg-gray-200 rounded-l-lg mb-2"></div>
+            <div class="h-10 w-32 md:w-full bg-gray-200 rounded-l-lg mb-2"></div>
+            <div class="h-10 w-24 md:w-3/4 bg-gray-200 rounded-l-lg mb-2"></div>
+          </nav>
+          <!-- Skeleton Tab Content -->
+          <section class="flex-1 backdrop-blur-md bg-white/70 rounded-xl shadow-lg p-6 min-h-[400px] animate-pulse">
+            <div class="space-y-4">
+              <div class="h-8 w-1/2 bg-gradient-to-r from-primary-200 via-secondary-200 to-accent-200 rounded animate-pulse"></div>
+              <div class="h-4 w-full bg-gray-200 rounded"></div>
+              <div class="h-4 w-5/6 bg-gray-200 rounded"></div>
+              <div class="h-4 w-2/3 bg-gray-200 rounded"></div>
+              <div class="h-4 w-1/2 bg-gray-200 rounded"></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="flex items-center justify-center min-h-screen">
+      <div class="text-center">
+        <div class="text-red-600 text-xl mb-4">
+          <ng-icon name="lucideAlertCircle" class="w-12 h-12 mx-auto mb-4" aria-label="Error"></ng-icon>
+          {{ 'APP.PROFILE-PAGE.ERRORS.PROFILE_LOAD_ERROR' | translate }}
+        </div>
+        <button 
+          mat-raised-button 
+          color="primary" 
+          (click)="loadProfile()">
+          {{ 'APP.PROFILE-PAGE.ACTIONS.TRY_AGAIN' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div *ngIf="!isLoading && !error && profileUser" class="container mx-auto px-4 py-8">
+      
+      <!-- Profile Header -->
+      <div class="backdrop-blur-md bg-white/70 rounded-lg shadow-md p-6 mb-8">
+        <div class="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
+          <!-- Profile Photo -->
+          <div class="relative">
+            <img 
+              [src]="profileUser.profilePhoto?.sourceUrl || 'assets/placeholder.jpg'" 
+              [alt]="profileUser.fullName"
+              class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-white shadow-lg">
+            <div *ngIf="profileUser.isVerified" 
+                 class="absolute -bottom-2 -right-2 bg-blue-500 text-white rounded-full p-1">
+                 <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 shadow-md border-2 border-white ring-2 ring-primary-300 animate-pulse-slow" matTooltip="Verified Account">
+                  <ng-icon name="lucideCheck" class="w-4 h-4 text-white" aria-label="Verified"></ng-icon>
+                </span>
+            </div>
+          </div>
+
+          <!-- Profile Info -->
+          <div class="flex-1 text-center md:text-left">
+            <h1 class="text-2xl md:text-3xl font-bold gradient-text mb-2">
+              {{ profileUser.fullName }}
+            </h1>
+            <!-- Location with Google Maps Static Preview -->
+            <div *ngIf="profileUser.location" class="flex items-center justify-center md:justify-start text-gray-600 mb-2 gap-2">
+              <ng-icon name="lucideMapPin" class="w-5 h-5 text-primary-500 mr-2 flex-shrink-0" aria-label="Location"></ng-icon>
+              <a
+                [href]="getGoogleMapsLink(profileUser.location)"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="underline hover:text-primary-600 transition-colors"
+                aria-label="Open location in Google Maps"
+              >
+                {{ profileUser.location.address }}{{ profileUser.location.number ? ' ' + profileUser.location.number : '' }},
+                {{ profileUser.location.city }}{{ profileUser.location.zipCode ? ' ' + profileUser.location.zipCode : '' }}
+              </a>
+            </div>
+            <!-- Shelter Badge -->
+            <div *ngIf="profileUser.roles?.includes(UserRole.Shelter)" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
+              <ng-icon name="lucideBuilding" class="w-4 h-4 mr-1" aria-label="Shelter"></ng-icon>
+              <span>{{ 'APP.PROFILE-PAGE.SHELTER.BADGE' | translate }}</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div *ngIf="!isOwnProfile" class="flex space-x-2">
+            <button 
+              mat-raised-button 
+              color="primary"
+              [routerLink]="['/adopt']">
+              {{ 'APP.PROFILE-PAGE.ACTIONS.ADOPT_PET' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Tabs Layout -->
+      <div class="flex flex-col md:flex-row gap-8">
+        <!-- Tabs: vertical on desktop, horizontal on mobile -->
+        <nav class="md:w-64 flex-shrink-0">
+          <ul class="flex md:flex-col flex-row gap-2 md:gap-3 overflow-x-auto md:overflow-x-visible whitespace-nowrap px-1 sticky top-0 z-20 bg-transparent">
+            <li *ngFor="let tab of tabs; let i = index" class="flex-shrink-0 min-w-[120px] md:min-w-0">
+              <button
+                class="w-full flex items-center gap-2 px-4 py-3 rounded-lg md:rounded-l-xl md:rounded-t-lg transition-colors duration-200 text-left font-medium text-gray-700 hover:bg-primary-50 focus:outline-none min-w-[120px] md:min-w-0 md:shadow-none md:border-l-4 md:border-transparent"
+                [ngClass]="{
+                  'bg-gradient-to-r from-primary-100 to-accent-100 text-primary-700 shadow-md border-l-4 border-primary-500 md:shadow-lg md:border-primary-500': selectedTabIndex === i,
+                  'bg-white/90 md:bg-white md:border md:border-gray-200 md:shadow-sm': selectedTabIndex !== i
+                }"
+                (click)="onTabChange(i)"
+                [attr.aria-selected]="selectedTabIndex === i"
+                [attr.aria-controls]="'profile-tab-' + i"
+                [id]="'profile-tab-btn-' + i"
+                type="button"
+              >
+                <ng-icon [name]="tab.icon" class="w-5 h-5" [attr.aria-label]="tab.labelKey | translate"></ng-icon>
+                <span class="text-primary-700">{{ tab.labelKey | translate }}</span>
+              </button>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Tab Content -->
+        <section class="flex-1 backdrop-blur-md bg-white/70 rounded-xl shadow-lg p-6 min-h-[400px] animate-fadeIn" [attr.id]="'profile-tab-' + selectedTabIndex">
+          <h2 class="text-2xl font-bold text-primary-700 mb-6">{{ (tabs[selectedTabIndex].labelKey || '') | translate }}</h2>
+          <!-- Personal Info Tab -->
+          <ng-container *ngIf="tabs[selectedTabIndex]?.component === 'personal-info'">
+            <div *ngIf="tabs[selectedTabIndex]?.component === 'personal-info' || tabs[selectedTabIndex]?.component === 'shelter-info'"
+                 class="inline-block w-auto mx-auto gap-y-4 px-2 sm:px-0">
+              <mat-card class="mb-4 p-3 sm:p-4 rounded-xl shadow-lg bg-white/80 inline-block w-auto mx-auto">
+                <mat-card-content>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                    <div class="flex flex-col gap-4">
+                      <div class="flex items-center gap-3">
+                      <ng-icon name="lucideUser" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Full Name"></ng-icon>
+                      <div>
+                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.FULL_NAME' | translate }}</div>
+                          <div class="text-lg font-semibold text-gray-900">{{ profileUser.fullName }}</div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-3">
+                      <ng-icon name="lucideMail" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Email"></ng-icon>
+                      <div>
+                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.EMAIL' | translate }}</div>
+                          <div class="text-lg font-semibold text-gray-900">{{ profileUser.email }}</div>
+                        </div>
+                      </div>
+                      <div *ngIf="profileUser.phone" class="flex items-center gap-3">
+                      <ng-icon name="lucidePhone" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Phone"></ng-icon>
+                      <div>
+                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.PHONE' | translate }}</div>
+                          <div class="text-lg font-semibold text-gray-900">{{ profileUser.phone }}</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div *ngIf="profileUser.location" class="flex flex-col gap-2">
+                      <div class="flex items-center gap-3">
+                        <ng-icon name="lucideMapPin" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Location"></ng-icon>
+                        <div class="flex flex-col">
+                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.LOCATION' | translate }}</div>
+                          <a
+                            [href]="getGoogleMapsLink(profileUser.location)"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-lg font-semibold text-primary-700 underline hover:text-primary-500 transition-colors"
+                            aria-label="Open location in Google Maps"
+                          >
+                            {{ profileUser.location.address }}{{ profileUser.location.number ? ' ' + profileUser.location.number : '' }},
+                            {{ profileUser.location.city }}{{ profileUser.location.zipCode ? ' ' + profileUser.location.zipCode : '' }}
+                          </a>
+                        </div>
+                        <button type="button" (click)="togglePersonalMap()"
+                          class="ml-2 flex items-center justify-center p-2 rounded-md bg-gradient-to-r from-primary-100 to-accent-100 text-primary-700 shadow hover:from-primary-200 hover:to-accent-200 focus:outline-none focus:ring-2 focus:ring-primary-400 transition w-8 h-8 min-w-0"
+                          aria-label="Show/hide map">
+                          <ng-icon *ngIf="!showPersonalMap" name="lucideMapPinXInside" class="w-5 h-5" aria-hidden="true"></ng-icon>
+                          <ng-icon *ngIf="showPersonalMap" name="lucideEyeOff" class="w-5 h-5" aria-hidden="true"></ng-icon>
+                        </button>
+                      </div>
+                      <div class="mt-2 flex justify-center w-full">
+                        <iframe
+                          *ngIf="personalMapUrl"
+                          [src]="personalMapUrl"
+                          width="100%"
+                          height="220"
+                          class="rounded-lg border border-primary-200 shadow w-full max-w-md"
+                          allowfullscreen=""
+                          loading="lazy"
+                          referrerpolicy="no-referrer-when-downgrade"
+                          aria-label="Google Maps location"
+                        ></iframe>
+                      </div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </ng-container>
+          <!-- Adoption Applications Tab -->
+          <ng-container *ngIf="tabs[selectedTabIndex]?.component === 'adoption-applications'">
+            <div class="-mx-6 -my-6 p-0 h-full flex flex-col"><app-profile-adoption-applications tabType="adoption-applications" (viewDetails)="onViewApplication($event)" class="flex-1 h-full" ></app-profile-adoption-applications></div>
+          </ng-container>
+          <!-- My Animals Tab -->
+          <ng-container *ngIf="tabs[selectedTabIndex]?.component === 'my-animals'">
+            <app-profile-animals [shelterId]="profileUser && profileUser.shelter ? profileUser.shelter.id ?? null : null" (viewDetails)="onViewAnimal($event)"></app-profile-animals>
+          </ng-container>
+          <!-- Shelter Info Tab -->
+          <ng-container *ngIf="tabs[selectedTabIndex]?.component === 'shelter-info'">
+            <div *ngIf="profileUser.shelter" class="inline-block w-full mx-auto gap-y-4 px-2 sm:px-0">
+              <mat-card class="mb-4 p-4 sm:p-6 rounded-xl shadow-lg bg-white/80 w-full mx-auto">
+                <mat-card-content>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                    <div class="flex flex-col gap-4">
+                      <div class="flex items-center gap-3">
+                        <div class="relative w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-primary-500/20 to-accent-500/20 group">
+                        <img *ngIf="profileUser.shelter.user?.profilePhoto?.sourceUrl"
+                          [src]="profileUser.shelter.user?.profilePhoto?.sourceUrl"
+                          [alt]="profileUser.shelter.shelterName"
+                          class="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110" />
+                        <ng-icon *ngIf="!profileUser.shelter.user?.profilePhoto?.sourceUrl"
+                          name="lucideHouse"
+                            [size]="'28'"
+                          class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-primary-400 stroke-[2.5px]">
+                        </ng-icon>
+                      </div>
+                      <div>
+                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.SHELTER_INFO.TITLE' | translate }}</div>
+                          <div class="text-lg font-semibold text-gray-900">{{ profileUser.shelter.shelterName }}</div>
+                          <div class="text-sm text-gray-500">{{ profileUser.shelter.description }}</div>
+                    </div>
+                      </div>
+                      <div class="flex flex-wrap gap-2 items-center mt-2">
+                      <a *ngIf="profileUser.shelter.website" [href]="profileUser.shelter.website" target="_blank" rel="noopener" class="flex items-center gap-2 text-primary-600 hover:underline">
+                        <ng-icon name="lucideGlobe" class="w-5 h-5" aria-label="Website"></ng-icon>
+                        <span>{{ 'APP.ADOPT.WEBSITE' | translate }}</span>
+                      </a>
+                      <a *ngIf="profileUser.shelter.socialMedia?.facebook" [href]="profileUser.shelter.socialMedia?.facebook" target="_blank" rel="noopener" class="flex items-center gap-2 text-blue-600 hover:underline">
+                        <ng-icon name="lucideFacebook" class="w-5 h-5" aria-label="Facebook"></ng-icon>
+                        <span>Facebook</span>
+                      </a>
+                      <a *ngIf="profileUser.shelter.socialMedia?.instagram" [href]="profileUser.shelter.socialMedia?.instagram" target="_blank" rel="noopener" class="flex items-center gap-2 text-pink-500 hover:underline">
+                        <ng-icon name="lucideInstagram" class="w-5 h-5" aria-label="Instagram"></ng-icon>
+                        <span>Instagram</span>
+                      </a>
+                      </div>
+                    </div>
+                    <div *ngIf="profileUser.shelter.user?.location" class="flex flex-col gap-2">
+                      <div class="flex items-center gap-3">
+                        <ng-icon name="lucideMapPin" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Location"></ng-icon>
+                        <div class="flex flex-col">
+                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.LOCATION' | translate }}</div>
+                          <span class="text-lg font-semibold text-primary-700">
+                            {{ profileUser.shelter.user?.location?.address }}{{ profileUser.shelter.user?.location?.number ? ' ' + profileUser.shelter.user?.location?.number : '' }},
+                            {{ profileUser.shelter.user?.location?.city }}{{ profileUser.shelter.user?.location?.zipCode ? ' ' + profileUser.shelter.user?.location?.zipCode : '' }}
+                          </span>
+                        </div>
+                        <button type="button" (click)="toggleShelterMap()"
+                          class="ml-2 flex items-center justify-center p-2 rounded-md bg-gradient-to-r from-primary-100 to-accent-100 text-primary-700 shadow hover:from-primary-200 hover:to-accent-200 focus:outline-none focus:ring-2 focus:ring-primary-400 transition w-8 h-8 min-w-0"
+                          [matTooltip]="showShelterMap ? ('APP.PROFILE-PAGE.SHELTER_INFO.HIDE_MAP' | translate) : ('APP.PROFILE-PAGE.SHELTER_INFO.SHOW_MAP' | translate)"
+                          matTooltipPosition="below"
+                          matTooltipClass="tooltip-center"
+                          aria-label="Show/hide map">
+                          <ng-icon *ngIf="!showShelterMap" name="lucideMap" class="w-5 h-5" aria-hidden="true"></ng-icon>
+                          <ng-icon *ngIf="showShelterMap" name="lucideEyeOff" class="w-5 h-5" aria-hidden="true"></ng-icon>
+                        </button>
+                      </div>
+                      <div *ngIf="showShelterMap" class="mt-2 flex justify-center w-full">
+                        <iframe
+                          *ngIf="shelterMapUrl"
+                          [src]="shelterMapUrl"
+                          width="100%"
+                          height="220"
+                          class="rounded-lg border border-primary-200 shadow w-full max-w-md"
+                          allowfullscreen=""
+                          loading="lazy"
+                          referrerpolicy="no-referrer-when-downgrade"
+                          aria-label="Google Maps shelter location"
+                        ></iframe>
+                      </div>
+                    </div>
+                    </div>
+                    <!-- Operating Hours -->
+                  <div *ngIf="profileUser.shelter.operatingHours" class="mt-6">
+                    <div class="flex items-center gap-2 mb-2">
+                        <ng-icon name="lucideClock" class="w-5 h-5 text-primary-500" aria-label="Operating hours"></ng-icon>
+                        <span class="font-medium text-gray-900">{{ 'APP.ADOPT.OPERATING_HOURS' | translate }}</span>
+                      </div>
+                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
+                        <ng-container *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']">
+                          <div class="px-3 py-2 bg-white/60 rounded-lg flex justify-between items-center text-sm sm:text-base w-auto min-w-fit max-w-full whitespace-nowrap shadow-sm border border-primary-100">
+                            <span class="capitalize text-gray-700">{{ 'APP.ADOPT.DAYS.' + day.toUpperCase() | translate }}</span>
+                            <span class="text-gray-700 ml-4">{{ getOperatingHourByDay(profileUser.shelter.operatingHours, day) }}</span>
+                          </div>
+                        </ng-container>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </ng-container>
+          <!-- Received Applications Tab -->
+          <ng-container *ngIf="tabs[selectedTabIndex]?.component === 'received-applications'">
+            <div class="-mx-6 -my-6 p-0 h-full flex flex-col"><app-profile-adoption-applications tabType="received-applications" (viewDetails)="onViewApplication($event)" class="flex-1 h-full" ></app-profile-adoption-applications></div>
+          </ng-container>
+          <!-- Add other tab content as needed -->
+        </section>
+      </div>
+    </div>
+  </main>
+</div> 

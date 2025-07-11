@@ -142,9 +142,18 @@ namespace Main_API.Builders
             // Δημιουργία ενός Dictionary με τον τύπο String ως κλειδί και το "Dto model" ως τιμή : [ UserId -> UserDto ]
             Dictionary<String, Models.User.User> userDtoMap = userDtos.ToDictionary(x => x.Id);
 
-			// Ταίριασμα του προηγούμενου Dictionary με τα applications δημιουργώντας ένα Dictionary : [ ApplicationId -> UserId ] 
-			return applications.ToDictionary(x => x.Id, x => userDtoMap[x.UserId]);
-		}
+            Dictionary<String, Models.User.User> result = new();
+
+            foreach (Data.Entities.AdoptionApplication app in applications)
+            {
+                if (userDtoMap.TryGetValue(app.UserId, out Models.User.User userDto))
+                {
+                    result[app.Id] = userDto;
+                }
+            }
+
+            return result;
+        }
 
 		private async Task<Dictionary<String, Models.Shelter.Shelter>> CollectShelters(List<Data.Entities.AdoptionApplication> applications, List<String> shelterFields)
 		{

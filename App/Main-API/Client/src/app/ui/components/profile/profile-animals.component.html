@@ -1,0 +1,70 @@
+<!-- Skeleton Loader -->
+<div *ngIf="isLoading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+  <div *ngFor="let _ of skeletonRows" class="rounded-3xl bg-white/10 p-4 animate-pulse">
+    <div class="w-full aspect-[4/3] rounded-2xl bg-gray-300/20 mb-4"></div>
+    <div class="h-6 w-3/4 bg-gray-300/20 rounded mb-4"></div>
+    <div class="h-4 w-1/2 bg-gray-300/20 rounded"></div>
+  </div>
+</div>
+
+<!-- Error State -->
+<div *ngIf="error && !isLoading" class="text-center py-8">
+  <ng-icon name="lucideAlertCircle" class="w-16 h-16 text-red-400 mx-auto mb-4" aria-label="Error"></ng-icon>
+  <p class="text-red-500 mb-4">{{ error | translate }}</p>
+  <button mat-raised-button color="primary" (click)="loadAnimals()">
+    {{ 'APP.PROFILE-PAGE.ACTIONS.TRY_AGAIN' | translate }}
+  </button>
+</div>
+
+<!-- No Animals State -->
+<div *ngIf="!isLoading && !error && (!animals || animals.length === 0)" class="text-center py-8">
+  <ng-icon name="lucidePawPrint" class="w-16 h-16 text-gray-400 mx-auto mb-4"></ng-icon>
+  <p class="text-gray-500">
+    {{ 'APP.PROFILE-PAGE.MY_ANIMALS.NO_ANIMALS' | translate }}
+  </p>
+  <button mat-raised-button color="accent" (click)="onAddAnimalClick()" class="mt-4">
+    {{ 'APP.PROFILE-PAGE.MY_ANIMALS.ADD_FIRST_ANIMAL' | translate }}
+  </button>
+</div>
+
+<!-- Animals Grid -->
+<div *ngIf="!isLoading && !error && animals && animals.length > 0">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+    <mat-card *ngFor="let animal of animals"
+      (click)="onCardClick(animal)"
+      class="group relative overflow-hidden bg-gradient-to-br from-gray-800/95 to-gray-900/95 backdrop-blur-lg border border-gray-200 shadow-2xl rounded-3xl transition-transform duration-300 hover:scale-[1.03] hover:shadow-2xl flex flex-col min-h-[380px] max-w-xl mx-auto p-0 cursor-pointer">
+      <div class="relative w-full aspect-[4/3] overflow-hidden rounded-t-3xl">
+        <img
+          [src]="animal.attachedPhotos?.[0]?.sourceUrl || 'assets/placeholder.jpg'"
+          [alt]="animal.name"
+          class="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105 rounded-t-3xl"
+          loading="lazy"
+          (error)="onImageError($event)"
+          style="max-height: 320px; min-height: 120px; object-fit: cover; width: 100%;"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-gray-900/40 to-transparent pointer-events-none"></div>
+        <!-- Status Chip -->
+        <span class="absolute top-4 left-4 px-3 py-1.5 rounded-full text-sm font-semibold shadow-lg backdrop-blur-md">
+          {{ animal.adoptionStatus }}
+        </span>
+      </div>
+      <mat-card-content class="flex-1 flex flex-col justify-between p-6 gap-4 min-h-0">
+        <div>
+          <h3 class="text-xl font-bold text-white truncate">{{ animal.name }}</h3>
+          <p class="text-sm text-gray-400">{{ animal.breed?.name }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Pagination -->
+  <div class="flex justify-start mt-8">
+    <mat-paginator
+      [length]="totalAnimals"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="[6, 12, 18]"
+      (page)="loadAnimals($event)">
+    </mat-paginator>
+  </div>
+</div> 

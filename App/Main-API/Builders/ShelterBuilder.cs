@@ -132,6 +132,8 @@ namespace Main_API.Builders
             // Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
             List<String> shelterIds = [.. shelters.Select(x => x.Id).Distinct()];
 
+            animalFields.Add(String.Join('.', nameof(Models.Animal.Animal.Shelter), nameof(Models.Shelter.Shelter.Id)));
+
             AnimalLookup animalLookup = new AnimalLookup();
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
             animalLookup.Offset = 1;
@@ -157,6 +159,8 @@ namespace Main_API.Builders
         private async Task<Dictionary<String, List<Models.AdoptionApplication.AdoptionApplication>>> CollectAdoptionApplications(List<Data.Entities.Shelter> shelters, List<String> adoptionApplicationFields)
         {
             if (shelters.Count == 0 || adoptionApplicationFields.Count == 0) return null;
+
+            adoptionApplicationFields.Add(String.Join('.', nameof(Models.AdoptionApplication.AdoptionApplication.Shelter), nameof(Models.Shelter.Shelter.Id)));
 
             AdoptionApplicationLookup animalLookup = new AdoptionApplicationLookup();
             animalLookup.Offset = 1;

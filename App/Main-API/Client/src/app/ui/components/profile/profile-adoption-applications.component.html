@@ -1,0 +1,170 @@
+<div *ngIf="isLoading" class="w-full h-full flex flex-col flex-1 mt-6">
+  <!-- Skeleton for mobile cards -->
+  <div class="block sm:hidden space-y-6">
+    <div *ngFor="let _ of skeletonRows" class="bg-white/90 rounded-2xl shadow-lg border-l-4 border-primary-200 animate-pulse flex flex-col min-h-[120px]">
+      <div class="w-full h-40 bg-gray-200 rounded-t-2xl"></div>
+      <div class="p-4 space-y-3">
+        <div class="h-6 w-2/3 bg-gray-200 rounded"></div>
+        <div class="h-4 w-1/2 bg-gray-200 rounded"></div>
+        <div class="h-4 w-1/3 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Skeleton for desktop table -->
+  <div class="hidden sm:block">
+    <div class="bg-white/80 rounded-xl shadow-lg overflow-hidden">
+      <div class="flex items-center gap-2 px-6 py-4 border-b border-gray-100">
+        <div class="h-6 w-32 bg-gray-200 rounded"></div>
+        <div class="h-6 w-24 bg-gray-200 rounded"></div>
+        <div class="h-6 w-28 bg-gray-200 rounded"></div>
+        <div class="h-6 w-20 bg-gray-200 rounded"></div>
+      </div>
+      <div *ngFor="let _ of skeletonRows" class="flex items-center gap-4 px-6 py-4 border-b border-gray-100 animate-pulse">
+        <div class="h-10 w-32 bg-gray-200 rounded"></div>
+        <div class="h-6 w-24 bg-gray-200 rounded"></div>
+        <div class="h-6 w-28 bg-gray-200 rounded"></div>
+        <div class="h-6 w-20 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="error && !isLoading" class="text-center py-8 w-full h-full flex flex-col flex-1 justify-center items-center">
+  <ng-icon name="lucideAlertCircle" class="w-16 h-16 text-red-400 mx-auto mb-4" aria-label="Error"></ng-icon>
+  <p class="text-red-600 mb-4">{{ (error || 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.LOAD_ERROR') | translate }}</p>
+  <button mat-raised-button color="primary" (click)="loadApplications()">
+    {{ 'APP.PROFILE-PAGE.ACTIONS.TRY_AGAIN' | translate }}
+  </button>
+</div>
+
+<div *ngIf="!isLoading && !error && (!applications || applications.length === 0)" class="text-center py-8 w-full h-full flex flex-col flex-1 justify-center items-center">
+  <ng-icon name="lucideFileText" class="w-16 h-16 text-gray-400 mx-auto mb-4" aria-label="No Applications"></ng-icon>
+  <p class="text-gray-500">
+    {{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.NO_APPLICATIONS' | translate }}
+  </p>
+  <button 
+    mat-raised-button 
+    color="primary" 
+    class="mt-4"
+    routerLink="/search">
+    {{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.START_SEARCHING' | translate }}
+  </button>
+</div>
+
+<div *ngIf="!isLoading && !error && applications && applications.length > 0" class="w-full h-full flex flex-col flex-1 mt-6">
+  <div class="flex-1 flex flex-col overflow-y-auto h-full scrollbar-thin scrollbar-thumb-primary-200 scrollbar-track-transparent pr-1">
+    <div class="flex items-center gap-2 mb-2 sticky top-0 z-10 bg-white/80 rounded-t-xl pt-2 pb-1 px-1">
+      <ng-icon name="lucideListOrdered" class="w-4 h-4 text-primary-500" aria-hidden="true"></ng-icon>
+      <label for="pageSizeSelect" class="font-medium text-primary-700 text-xs">{{ 'APP.COMMONS.PAGE_SIZE_SELECTOR_TITLE' | translate }}</label>
+      <div class="relative w-20">
+        <select
+          id="pageSizeSelect"
+          [(ngModel)]="pageSize"
+          (change)="onPageSizeChange($event)"
+          class="appearance-none rounded-md border border-primary-200 bg-white text-gray-900 px-2 py-1 pr-6 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-500 transition w-full shadow-sm text-xs hover:border-primary-400 hover:bg-primary-50"
+        >
+          <option *ngFor="let size of [6, 12, 24, 48]" [value]="size">{{ size }}</option>
+        </select>
+        <ng-icon name="lucideChevronDown" class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" aria-hidden="true"></ng-icon>
+      </div>
+    </div>
+    <div class="block sm:hidden">
+      <div *ngFor="let application of applications" class="relative bg-white/90 rounded-2xl shadow-lg mb-6 overflow-hidden border-l-4 animate-fadeIn group cursor-pointer min-h-[120px]"
+           [ngClass]="{
+             'border-amber-400': application.status === ApplicationStatus.Pending,
+             'border-green-500': application.status === ApplicationStatus.Available,
+             'border-red-500': application.status === ApplicationStatus.Rejected
+           }"
+           (click)="onEditApplication(application)"
+           tabindex="0"
+           (keydown.enter)="onEditApplication(application)"
+           [attr.aria-label]="'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.EDIT_APPLICATION' | translate">
+        <div class="relative">
+          <img [src]="application.animal?.attachedPhotos?.[0]?.sourceUrl || 'assets/placeholder.jpg'"
+               [alt]="application.animal?.name"
+               class="w-full h-40 object-cover"
+               (error)="onImageError($event)" />
+          <span class="absolute top-2 right-2 px-3 py-1 rounded-full text-xs font-bold shadow"
+                [ngClass]="getStatusChipClass(application.status)">
+            <ng-icon [name]="getStatusIcon(application.status)" class="w-4 h-4 mr-1 inline" aria-hidden="true"></ng-icon>
+            {{ getStatusTranslationKey(application.status) | translate }}
+          </span>
+        </div>
+        <div class="p-4 flex flex-col gap-2 pb-12">
+          <div class="flex items-center gap-2 mb-1">
+            <ng-icon name="lucidePawPrint" class="w-5 h-5 text-primary-400" aria-hidden="true"></ng-icon>
+            <span class="font-bold text-lg text-gray-900">{{ application.animal?.name }}</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs mb-2">
+            <ng-icon name="lucideShapes" class="w-4 h-4 text-accent-400" aria-hidden="true"></ng-icon>
+            <span class="text-gray-600">{{ application.animal?.breed?.name || '-' }}</span>
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <ng-icon name="lucideUser" class="w-4 h-4 text-primary-400" aria-hidden="true"></ng-icon>
+            <span class="font-medium text-gray-700">{{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.APPLICANT' | translate }}:</span>
+            <span class="text-gray-800">{{ application.user?.fullName || '-' }}</span>
+          </div>
+        </div>
+        <button mat-fab color="primary"
+                class="absolute bottom-0 left-0 w-full rounded-none rounded-b-2xl z-30 bg-primary-600 text-white border-0 shadow-none py-3 flex items-center justify-center"
+                (click)="$event.stopPropagation(); onEditApplication(application)"
+                [attr.aria-label]="'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.EDIT_APPLICATION' | translate">
+          <ng-icon name="lucidePencil" class="w-5 h-5" aria-hidden="true"></ng-icon>
+        </button>
+      </div>
+    </div>
+    <div class="hidden sm:block overflow-x-auto rounded-lg shadow">
+      <table class="min-w-full divide-y divide-gray-200 bg-white/80">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.ANIMAL' | translate }}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.BREED' | translate }}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.APPLICANT' | translate }}</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">{{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.STATUS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let application of applications" tabindex="0" class="hover:bg-primary-50 cursor-pointer transition group" (click)="onRowClick(application)" (keydown.enter)="onRowClick(application)">
+            <td class="px-4 py-3 whitespace-nowrap">
+              <div class="flex items-center gap-3">
+                <img [src]="application.animal?.attachedPhotos?.[0]?.sourceUrl || 'assets/placeholder.jpg'" [alt]="application.animal?.name" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow" (error)="onImageError($event)" />
+                <span class="font-semibold text-gray-900">{{ application.animal?.name }}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="text-gray-700">{{ application.animal?.breed?.name || '-' }}</span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="text-gray-700">{{ application.user?.fullName || '-' }}</span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold shadow backdrop-blur-md" [ngClass]="getStatusChipClass(application.status)">
+                <ng-icon [name]="getStatusIcon(application.status)" class="w-4 h-4" aria-hidden="true"></ng-icon>
+                <span class="hidden lg:inline">{{ getStatusTranslationKey(application.status) | translate }}</span>
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="w-full flex flex-col items-center justify-center mt-4">
+      <mat-paginator
+        [length]="totalApplications"
+        [pageSize]="pageSize"
+        [pageIndex]="pageIndex"
+        (page)="loadApplications($event)"
+        [showFirstLastButtons]="false"
+        [hidePageSize]="true"
+        [pageSizeOptions]="[]"
+        class="w-full max-w-[90vw] mx-auto text-xs flex flex-col sm:flex-row items-center gap-4 py-2"
+        style="background:transparent; border:none; box-shadow:none; width:100%; min-width:0; justify-content:center; align-items:center; padding:0;">
+      </mat-paginator>
+    </div>
+  </div>
+</div>
+
+<ng-container *ngIf="translationService.translationsLoaded$ | async; else loadingTranslations">
+</ng-container>
+<ng-template #loadingTranslations>
+  <div class="text-center py-8 text-gray-500">Loading translations...</div>
+</ng-template> 

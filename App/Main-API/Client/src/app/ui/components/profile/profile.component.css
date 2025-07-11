@@ -1,0 +1,274 @@
+/* Profile Component Styles */
+
+/* Custom tab styling */
+::ng-deep .mat-mdc-tab-group {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+::ng-deep .mat-mdc-tab-header {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+::ng-deep .mat-mdc-tab-label {
+  min-width: 120px;
+  font-weight: 500;
+}
+
+::ng-deep .mat-mdc-tab-label-active {
+  color: #3b82f6;
+}
+
+::ng-deep .mat-mdc-ink-bar {
+  background-color: #3b82f6;
+}
+
+/* Card hover effects */
+.mat-mdc-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.mat-mdc-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Profile photo styling */
+.profile-photo {
+  position: relative;
+  display: inline-block;
+}
+
+.verification-badge {
+  position: absolute;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 50%;
+  padding: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Status chip styling */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Animal card image styling */
+.animal-card-image {
+  width: 100%;
+  height: 12rem;
+  object-fit: cover;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+/* Form field spacing */
+.form-field {
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive grid adjustments */
+@media (max-width: 768px) {
+  .profile-header {
+    text-align: center;
+  }
+  
+  .profile-actions {
+    margin-top: 1rem;
+    justify-content: center;
+  }
+  
+  .animal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .animal-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Loading and error states */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+/* Tab content animations */
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar for long content */
+.tab-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Button hover effects */
+.mat-mdc-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Form validation styling */
+.form-error {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.form-success {
+  color: #059669;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Empty state styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.empty-state-icon {
+  width: 4rem;
+  height: 4rem;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+/* Social media links */
+.social-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  transition: all 0.2s ease-in-out;
+}
+
+.social-link:hover {
+  transform: scale(1.1);
+}
+
+/* Application status colors */
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-approved {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-rejected {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Responsive text sizing */
+@media (max-width: 640px) {
+  .profile-title {
+    font-size: 1.5rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+  }
+}
+
+@media (min-width: 641px) {
+  .profile-title {
+    font-size: 2rem;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Vertical Bookmark Tabs */
+.profile-tabs-nav {
+  @apply flex flex-col space-y-2 md:w-64;
+}
+.profile-tab-btn {
+  @apply w-full flex items-center px-4 py-3 rounded-l-lg transition-colors duration-200 text-left font-medium text-gray-700 hover:bg-primary-50 focus:outline-none;
+}
+.profile-tab-btn.active {
+  @apply bg-gradient-to-r from-primary-100 to-accent-100 text-primary-700 shadow-md;
+}
+.profile-tab-btn:not(.active) {
+  @apply bg-white;
+}
+
+/* Tab Content Area */
+.profile-tab-content {
+  @apply flex-1 bg-white rounded-xl shadow-lg p-6 min-h-[400px] animate-fadeIn;
+}
+
+@media (max-width: 768px) {
+  .profile-tabs-nav {
+    @apply flex-row md:flex-col w-full md:w-64;
+  }
+  .profile-tab-btn {
+    @apply rounded-l-lg md:rounded-l-lg md:rounded-t-lg;
+  }
+  .profile-tab-content {
+    @apply p-2;
+  }
+} 

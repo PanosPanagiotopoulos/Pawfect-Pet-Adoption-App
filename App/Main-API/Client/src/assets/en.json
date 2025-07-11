@@ -76,6 +76,8 @@
       "SEARCH": "Search",
       "CALL-TO-SEARCH": "Start Searching Now",
       "GOOGLE-BUTTON-TEXT": "Continue With Google",
+      "MALE": "Male",
+      "FEMALE": "Female",
       "VALIDATION": {
         "REQUIRED": "{field} is required",
         "EMAIL": "Please enter a valid email (e.g., user@domain.com)",
@@ -93,7 +95,13 @@
         "INVALID_SOCIAL": "Please enter a valid {field} link",
         "INVALID_TIME_RANGE": "Closing time must be after opening time",
         "INVALID_ROLE": "User role is not valid"
-      }
+      },
+      "PAGE_SIZE_SELECTOR_TITLE": "Items Per Page",
+      "ITEMS_PER_PAGE": "Items per page",
+      "PAGE": "Page",
+      "OF": "of",
+      "NEXT_PAGE": "Next page",
+      "PREVIOUS_PAGE": "Previous page"
     },
     "AUTH": {
       "LOGIN": {
@@ -148,7 +156,9 @@
             "PHOTO_LOAD_ERROR": "Error loading the image.",
             "INVALID_FILE_TYPE": "Invalid file type. Only images are allowed.",
             "INVALID_FILE_SIZE": "Image size must not exceed 10MB."
-          }
+          },
+          "SHOW_MAP": "Show on Map",
+          "HIDE_MAP": "Hide Map"
         },
         "ACCOUNT_DETAILS": {
           "TITLE": "Account Details",
@@ -164,7 +174,9 @@
           "GOOGLE_LINKED": "Your account is linked with Google.",
           "NO_PASSWORD_REQUIRED": "No password required.",
           "BACK": "Back",
-          "NEXT": "Next"
+          "NEXT": "Next",
+          "SHOW_MAP": "Show on Map",
+          "HIDE_MAP": "Hide Map"
         },
         "SHELTER_INFO": {
           "TITLE": "Shelter Information",
@@ -185,7 +197,9 @@
           "CLOSE_LABEL": "Closing Time",
           "ERROR_SUMMARY_TITLE": "Please correct the following errors:",
           "BACK": "Back",
-          "SUBMIT": "Complete Registration"
+          "SUBMIT": "Complete Registration",
+          "SHOW_MAP": "Show on Map",
+          "HIDE_MAP": "Hide Map"
         },
         "OTP_VERIFICATION": "Verification",
         "REGISTER_AS_SHELTER": "Register as Shelter",
@@ -510,6 +524,116 @@
     },
     "GOOGLE_SIGNUP": {
       "LOADING_MESSAGE": "Fetching data from Google..."
+    },
+    "PROFILE-PAGE": {
+      "TABS": {
+        "PERSONAL_INFO": "Personal Info",
+        "ADOPTION_APPLICATIONS": "Adoption Applications",
+        "SHELTER_INFO": "Shelter Info",
+        "RECEIVED_APPLICATIONS": "Received Applications",
+        "MY_ANIMALS": "My Animals",
+        "ADD_ANIMAL": "Add Animal"
+      },
+      "PERSONAL_INFO": {
+        "TITLE": "Personal Information",
+        "FULL_NAME": "Full Name",
+        "EMAIL": "Email",
+        "PHONE": "Phone",
+        "LOCATION": "Location",
+        "SHOW_MAP": "Show on Map",
+        "HIDE_MAP": "Hide Map"
+      },
+      "ADOPTION_APPLICATIONS": {
+        "STATUS": "Status",
+        "ANIMAL": "Animal",
+        "ITEMS_PER_PAGE": "Items per page",
+        "TITLE": "Adoption Applications",
+        "BREED": "Breed",
+        "APPLICANT": "Applicant",
+        "EDIT_APPLICATION": "Edit Application"
+      },
+      "SHELTER_INFO": {
+        "TITLE": "Shelter Information",
+        "NAME": "Shelter Name",
+        "DESCRIPTION": "Description",
+        "WEBSITE": "Website",
+        "OPERATING_HOURS": "Operating Hours",
+        "SOCIAL_MEDIA": "Social Media",
+        "NO_HOURS": "No operating hours available",
+        "CLOSED_TODAY": "Closed today",
+        "OPEN_TODAY": "Open today",
+        "SHOW_MAP": "Show on Map",
+        "HIDE_MAP": "Hide Map"
+      },
+      "RECEIVED_APPLICATIONS": {
+        "TITLE": "Received Applications",
+        "FILTER_STATUS": "Filter by Status",
+        "ALL_STATUS": "All",
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected",
+        "NO_APPLICATIONS": "No applications found with the selected status.",
+        "VIEW_DETAILS": "View Details",
+        "APPLICANT": "Applicant",
+        "EMAIL": "Email",
+        "PHONE": "Phone",
+        "SUBMITTED": "Submitted",
+        "DETAILS": "Details"
+      },
+      "MY_ANIMALS": {
+        "TITLE": "My Animals",
+        "NO_ANIMALS": "You haven't added any animals yet.",
+        "VIEW_DETAILS": "View Details",
+        "BREED": "Breed",
+        "TYPE": "Type",
+        "GENDER": "Gender",
+        "AGE": "Age",
+        "YEARS": "years",
+        "CREATED": "Created"
+      },
+      "ADD_ANIMAL": {
+        "TITLE": "Add New Animal",
+        "NAME": "Animal Name",
+        "NAME_PLACEHOLDER": "Enter animal name",
+        "ANIMAL_TYPE": "Animal Type",
+        "BREED": "Breed",
+        "GENDER": "Gender",
+        "AGE": "Age",
+        "AGE_PLACEHOLDER": "Enter age in years",
+        "WEIGHT": "Weight (kg)",
+        "WEIGHT_PLACEHOLDER": "Enter weight in kg",
+        "HEALTH_STATUS": "Health Status",
+        "HEALTH_STATUS_PLACEHOLDER": "e.g., Healthy, Vaccinated",
+        "DESCRIPTION": "Description",
+        "DESCRIPTION_PLACEHOLDER": "Describe the animal's personality, needs, etc.",
+        "PHOTOS": "Photos",
+        "SUBMIT": "Add Animal"
+      },
+      "APPLICATION_STATUS": {
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected",
+        "UNKNOWN": "Unknown"
+      },
+      "ADOPTION_STATUS": {
+        "AVAILABLE": "Available",
+        "IN_PROGRESS": "In Progress",
+        "ADOPTED": "Adopted"
+      },
+      "SHELTER": {
+        "BADGE": "Shelter",
+        "NO_HOURS": "No operating hours available",
+        "CLOSED_TODAY": "Closed today",
+        "OPEN_TODAY": "Open today"
+      },
+      "ACTIONS": {
+        "TRY_AGAIN": "Try Again",
+        "ADOPT_PET": "Adopt a Pet"
+      },
+      "ERRORS": {
+        "INVALID_PROFILE_ID": "Invalid profile ID",
+        "PROFILE_LOAD_ERROR": "Failed to load profile. Please try again."
+      }
     }
   }
 } 

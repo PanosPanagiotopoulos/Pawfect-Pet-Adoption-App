@@ -137,7 +137,7 @@ namespace Main_API.Controllers
             lookup.Ids = [userId];
             lookup.Fields = fields;
 
-            AuthContext context = _contextBuilder.OwnedFrom(lookup).Build();
+            AuthContext context = _contextBuilder.OwnedFrom(lookup, userId).Build();
             List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
 

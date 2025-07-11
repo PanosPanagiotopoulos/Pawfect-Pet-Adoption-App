@@ -147,7 +147,8 @@
             if (String.IsNullOrEmpty(newAccessToken))
                 throw new InvalidOperationException("Failed to create token");
 
-			// ** COOKIES ** //
+            // ** COOKIES ** //
+            _cookiesService.DeleteCookie(JwtService.ACCESS_TOKEN);
             _cookiesService.SetCookie(JwtService.ACCESS_TOKEN, newAccessToken, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
 
             return Ok(new LoggedAccount

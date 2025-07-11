@@ -76,6 +76,8 @@
       "SEARCH": "Αναζήτηση",
       "CALL-TO-SEARCH": "Ξεκινήστε την Αναζήτηση Τωρα",
       "GOOGLE-BUTTON-TEXT": "Συνέχεια με Google",
+      "MALE": "Αρσενικό",
+      "FEMALE": "Θηλυκό",
       "VALIDATION": {
         "REQUIRED": "{field} απαιτείται",
         "EMAIL": "Παρακαλώ εισάγετε έναν έγκυρο email (π.χ., user@domain.com)",
@@ -93,7 +95,13 @@
         "INVALID_SOCIAL": "Παρακαλώ εισάγετε έγκυρο link {field}",
         "INVALID_TIME_RANGE": "Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος",
         "INVALID_ROLE": "Ο ρόλος του χρήστη δεν είναι έγκυρος"
-      }
+      },
+      "PAGE_SIZE_SELECTOR_TITLE": "Επιλογή μεγέθους σελίδας",
+      "ITEMS_PER_PAGE": "Εγγραφές ανά σελίδα",
+      "PAGE": "Σελίδα",
+      "OF": "από",
+      "NEXT_PAGE": "Επόμενη σελίδα",
+      "PREVIOUS_PAGE": "Προηγούμενη σελίδα"
     },
     "AUTH": {
       "LOGIN": {
@@ -145,7 +153,7 @@
             "NUMBER_INVALID": "Παρακαλώ εισάγετε έναν έγκυρο αριθμό",
             "PHOTO_LOAD_ERROR": "Σφάλμα κατά τη φόρτωση της εικόνας.",
             "INVALID_FILE_TYPE": "Μη έγκυρος τύπος αρχείου. Επιτρέπονται μόνο εικόνες.",
-            "INVALID_FILE_SIZE": "Το μέγεθος της εικόνας δεν πρέπει να υπερβαίνει τα 10MB."
+            "INVALID_FILE_SIZE": "Το μέγιστο μέγεθος αρχείου δεν πρέπει να υπερβαίνει τα 10MB."
           }
         },
         "ACCOUNT_DETAILS": {
@@ -508,6 +516,124 @@
     },
     "GOOGLE_SIGNUP": {
       "LOADING_MESSAGE": "Λήψη στοιχείων από Google..."
+    },
+    "PROFILE-PAGE": {
+      "TABS": {
+        "PERSONAL_INFO": "Προσωπικά Στοιχεία",
+        "ADOPTION_APPLICATIONS": "Αιτήσεις Υιοθεσίας",
+        "SHELTER_INFO": "Στοιχεία Καταφυγίου",
+        "RECEIVED_APPLICATIONS": "Ληφθείσες Αιτήσεις",
+        "MY_ANIMALS": "Τα Ζώα Μου",
+        "ADD_ANIMAL": "Προσθήκη Ζώου"
+      },
+      "PERSONAL_INFO": {
+        "TITLE": "Προσωπικές Πληροφορίες",
+        "FULL_NAME": "Πλήρες Όνομα",
+        "EMAIL": "Email",
+        "PHONE": "Τηλέφωνο",
+        "LOCATION": "Τοποθεσία",
+        "SHOW_MAP": "Προβολή στον χάρτη",
+        "HIDE_MAP": "Απόκρυψη χάρτη"
+      },
+      "ADOPTION_APPLICATIONS": {
+        "TITLE": "Αιτήσεις Υιοθεσίας",
+        "NO_APPLICATIONS": "Δεν έχετε υποβάλει ακόμα αιτήσεις υιοθέτησης.",
+        "START_SEARCHING": "Ξεκινήστε την Αναζήτηση για Κατοικίδια",
+        "VIEW_DETAILS": "Προβολή Λεπτομερειών",
+        "BREED": "Φυλή",
+        "TYPE": "Τύπος",
+        "SUBMITTED": "Υποβλήθηκε",
+        "APPLICANT": "Αιτών",
+        "DETAILS": "Λεπτομέρειες Αίτησης",
+        "ATTACHED_FILES": "Συνημμένα Αρχεία",
+        "STATUS": "Κατάσταση",
+        "ANIMAL": "Ζώο",
+        "ITEMS_PER_PAGE": "Εγγραφές ανά σελίδα"
+      },
+      "SHELTER_INFO": {
+        "TITLE": "Πληροφορίες Καταφυγίου",
+        "NAME": "Όνομα Καταφυγίου",
+        "DESCRIPTION": "Περιγραφή",
+        "WEBSITE": "Ιστοσελίδα",
+        "OPERATING_HOURS": "Ώρες Λειτουργίας",
+        "SOCIAL_MEDIA": "Κοινωνικά Δίκτυα",
+        "NO_HOURS": "Δεν υπάρχουν διαθέσιμες ώρες λειτουργίας",
+        "CLOSED_TODAY": "Κλειστό σήμερα",
+        "OPEN_TODAY": "Ανοιχτό σήμερα",
+        "SHOW_MAP": "Προβολή στον χάρτη",
+        "HIDE_MAP": "Απόκρυψη χάρτη"
+      },
+      "RECEIVED_APPLICATIONS": {
+        "TITLE": "Ληφθείσες Αιτήσεις",
+        "FILTER_STATUS": "Φιλτράρισμα κατά Κατάσταση",
+        "ALL_STATUS": "Όλες",
+        "PENDING": "Σε Εκκρεμότητα",
+        "APPROVED": "Εγκεκριμένες",
+        "REJECTED": "Απορριφθείσες",
+        "NO_APPLICATIONS": "Δεν βρέθηκαν αιτήσεις με την επιλεγμένη κατάσταση.",
+        "VIEW_DETAILS": "Προβολή Λεπτομερειών",
+        "APPLICANT": "Αιτών",
+        "EMAIL": "Email",
+        "PHONE": "Τηλέφωνο",
+        "SUBMITTED": "Υποβλήθηκε",
+        "DETAILS": "Λεπτομέρειες"
+      },
+      "MY_ANIMALS": {
+        "TITLE": "Τα Ζώα μου",
+        "NO_ANIMALS": "Δεν έχετε προσθέσει ακόμα ζώα.",
+        "VIEW_DETAILS": "Προβολή Λεπτομερειών",
+        "BREED": "Φυλή",
+        "TYPE": "Τύπος",
+        "GENDER": "Φύλο",
+        "AGE": "Ηλικία",
+        "YEARS": "ετών",
+        "CREATED": "Δημιουργήθηκε"
+      },
+      "ADD_ANIMAL": {
+        "TITLE": "Προσθήκη Νέου Ζώου",
+        "NAME": "Όνομα Ζώου",
+        "NAME_PLACEHOLDER": "Εισάγετε όνομα ζώου",
+        "ANIMAL_TYPE": "Τύπος Ζώου",
+        "BREED": "Φυλή",
+        "GENDER": "Φύλο",
+        "AGE": "Ηλικία",
+        "AGE_PLACEHOLDER": "Εισάγετε ηλικία σε έτη",
+        "WEIGHT": "Βάρος (kg)",
+        "WEIGHT_PLACEHOLDER": "Εισάγετε βάρος σε kg",
+        "HEALTH_STATUS": "Κατάσταση Υγείας",
+        "HEALTH_STATUS_PLACEHOLDER": "π.χ., Υγιής, Εμβολιασμένος",
+        "DESCRIPTION": "Περιγραφή",
+        "DESCRIPTION_PLACEHOLDER": "Περιγράψτε την προσωπικότητα, τις ανάγκες του ζώου, κλπ.",
+        "PHOTOS": "Φωτογραφίες",
+        "SUBMIT": "Προσθήκη Ζώου"
+      },
+      "APPLICATION_STATUS": {
+        "PENDING": "Σε Εκκρεμότητα",
+        "APPROVED": "Εγκεκριμένη",
+        "REJECTED": "Απορριφθείσα",
+        "UNKNOWN": "Άγνωστη"
+      },
+      "SHELTER": {
+        "BADGE": "Καταφύγιο",
+        "NO_HOURS": "Δεν υπάρχουν διαθέσιμες ώρες λειτουργίας",
+        "CLOSED_TODAY": "Κλειστό σήμερα",
+        "OPEN_TODAY": "Ανοιχτό σήμερα"
+      },
+      "ACTIONS": {
+        "TRY_AGAIN": "Δοκιμάστε Ξανά",
+        "ADOPT_PET": "Υιοθέτηση Κατοικιδίου"
+      },
+      "ERRORS": {
+        "INVALID_PROFILE_ID": "Μη έγκυρο ID προφίλ",
+        "PROFILE_LOAD_ERROR": "Αποτυχία φόρτωσης προφίλ. Παρακαλώ δοκιμάστε ξανά."
+      },
+      "ADOPTION_STATUS": {
+        "AVAILABLE": "Διαθέσιμο",
+        "ADOPTED": "Υιοθετήθηκε",
+        "PENDING": "Σε εκκρεμότητα",
+        "REJECTED": "Απορρίφθηκε",
+        "UNKNOWN": "Άγνωστο"
+      }
     }
   }
 } 

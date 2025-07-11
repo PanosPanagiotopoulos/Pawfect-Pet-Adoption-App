@@ -46,7 +46,7 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         if (
           error.status !== 401 ||
-          this.excludedRoutes.some(route => this.router.url.startsWith(route))
+          this.excludedRoutes.includes(this.router.parseUrl(this.router.url).root.children['primary']?.segments.map(s => '/' + s.path).join('') || '/')
         ) {
           return throwError(() => error);
         }

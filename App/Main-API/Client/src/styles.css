@@ -268,3 +268,12 @@ html {
 .animate__fadeOutUp {
   animation-name: slideOutRight;
 }
+
+/* Center Angular Material tooltips below the button */
+.tooltip-center.mat-mdc-tooltip-panel {
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  text-align: center;
+  /* Optionally, set a max-width if needed */
+  max-width: 220px;
+}

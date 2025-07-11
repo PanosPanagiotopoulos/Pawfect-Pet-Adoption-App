@@ -138,5 +138,16 @@ namespace Main_API.Query.Queries
 			// Εκτέλεση της ερώτησης και επιστροφή του αποτελέσματος
 			return await finder.ToListAsync() ?? new List<T>();
 		}
+        public virtual async Task<long> CountAsync()
+        {
+            // Step 1: Apply filters
+            FilterDefinition<T> filter = await this.ApplyFilters();
+
+            // Step 2: Apply authorization
+            filter = await this.ApplyAuthorization(filter);
+
+            // Step 3: Count documents matching the filter
+            return await _collection.CountDocumentsAsync(filter);
+        }
     }
 }

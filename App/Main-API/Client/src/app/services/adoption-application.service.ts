@@ -8,6 +8,7 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
 import { HttpParams } from '@angular/common/http';
+import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
   providedIn: 'root',
@@ -22,10 +23,24 @@ export class AdoptionApplicationService {
     return `${this.installationConfiguration.appServiceAddress}api/adoption-applications`;
   }
 
-  query(q: AdoptionApplicationLookup): Observable<AdoptionApplication[]> {
+  query(q: AdoptionApplicationLookup): Observable<QueryResult<AdoptionApplication>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<AdoptionApplication[]>(url, q)
+      .post<QueryResult<AdoptionApplication>>(url, q)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  queryMineRequested(q: AdoptionApplicationLookup): Observable<QueryResult<AdoptionApplication>> {
+    const url = `${this.apiBase}/query/mine/requested`;
+    return this.http
+      .post<QueryResult<AdoptionApplication>>(url, q)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  queryMineReceived(q: AdoptionApplicationLookup): Observable<QueryResult<AdoptionApplication>> {
+    const url = `${this.apiBase}/query/mine/received`;
+    return this.http
+      .post<QueryResult<AdoptionApplication>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
@@ -42,6 +57,35 @@ export class AdoptionApplicationService {
 
     return this.http
       .get<AdoptionApplication>(url, options)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  getMine(reqFields: string[] = []): Observable<AdoptionApplication[]> {
+    const url = `${this.apiBase}/mine`;
+    let params = new HttpParams();
+    reqFields.forEach(field => {
+      params = params.append('fields', field);
+    });
+    const options = { params };
+
+    return this.http
+      .get<AdoptionApplication[]>(url, options)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  getReceivedApplicationsForShelter(
+    shelterId: string,
+    reqFields: string[] = []
+  ): Observable<AdoptionApplication[]> {
+    const url = `${this.apiBase}/shelter/${shelterId}`;
+    let params = new HttpParams();
+    reqFields.forEach(field => {
+      params = params.append('fields', field);
+    });
+    const options = { params };
+
+    return this.http
+      .get<AdoptionApplication[]>(url, options)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

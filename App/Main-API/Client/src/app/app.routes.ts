@@ -38,6 +38,17 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'profile',
+    loadChildren: () =>
+      import('./ui/components/profile/profile.module').then(
+        (m) => m.ProfileModule
+      ),
+    canActivate: [AuthGuard],
+    data: {
+      permissions: [Permission.BrowseUsers]
+    }
+  },
+  {
     path: '404',
     component: NotFoundComponent
   },
