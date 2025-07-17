@@ -59,6 +59,7 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
   showInstructionsModal = true;
 
   private readonly STORAGE_KEY = 'savedAnimals';
+  private hasHandledInitialQuery = false;
 
   constructor(
     private fb: FormBuilder,
@@ -110,9 +111,12 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
       takeUntil(this._destroyed)
     ).subscribe(params => {
       const query = params['query'] || '';
-      this.searchControl.setValue(query);
-      if (query) {
-        this.onSearch();
+      if (!this.hasHandledInitialQuery && query !== this.searchControl.value) {
+        this.searchControl.setValue(query);
+        if (query) {
+          this.onSearch();
+        }
+        this.hasHandledInitialQuery = true;
       }
     });
   }
@@ -167,8 +171,8 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
       };
       
       this.animalService.queryFreeView(lookup).subscribe({
-        next: (response: Animal[]) => {
-          this.animals = response;
+        next: (response) => {
+          this.animals = response.items;
           this.isLoading = false;
           if (this.animals.length > 0) {
             this.updateCurrentAnimalKey();
@@ -243,7 +247,7 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
         takeUntil(this._destroyed),
         catchError(error => {
           this.error = this.errorHandler.handleError(error);
-          return of([]);
+          return of({ items: [], count: 0 });
         }),
         finalize(() => {
           this.isLoading = false;
@@ -251,12 +255,12 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
           this.cdr.markForCheck();
         })
       )
-      .subscribe(animals => {
-        if (animals.length < this.pageSize) {
+      .subscribe(response => {
+        if (response.items.length < this.pageSize) {
           this.hasMoreToLoad = false;
         }
 
-        this.animals = this.utilsService.combineDistinct(this.animals, animals);
+        this.animals = this.utilsService.combineDistinct(this.animals, response.items);
         
         this.currentOffset++;
         this.updateCurrentAnimalKey();

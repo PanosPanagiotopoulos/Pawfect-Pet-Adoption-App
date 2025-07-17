@@ -3,6 +3,7 @@
     public class UserFields
     {
         public List<String> External { get; set; }
+        public List<String> Shelter { get; set; }
         public List<String> Owner { get; set; }
     }
 }

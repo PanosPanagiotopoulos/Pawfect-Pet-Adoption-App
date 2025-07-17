@@ -67,7 +67,6 @@
 
         // Notifications
         public const String CanViewNotifications = "CanViewNotifications";
-        public const String CreateNotifications = "CreateNotifications";
         public const String BrowseNotifications = "BrowseNotifications";
         public const String EditNotifications = "EditNotifications";
         public const String DeleteNotifications = "DeleteNotifications";

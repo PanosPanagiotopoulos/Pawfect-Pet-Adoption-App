@@ -9,6 +9,7 @@ import {
   NotificationPersist,
 } from '../models/notification/notification.model';
 import { HttpParams } from '@angular/common/http';
+import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
   providedIn: 'root',
@@ -23,10 +24,10 @@ export class NotificationService {
     return `${this.installationConfiguration.appServiceAddress}api/notifications`;
   }
 
-  query(q: NotificationLookup): Observable<Notification[]> {
+  query(q: NotificationLookup): Observable<QueryResult<Notification>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<Notification[]>(url, q)
+      .post<QueryResult<Notification>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

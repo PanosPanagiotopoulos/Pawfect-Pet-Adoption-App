@@ -11,7 +11,6 @@ using Main_API.Query;
 using Main_API.Services.AdoptionApplicationServices;
 using Main_API.Services.AuthenticationServices;
 using Main_API.Transactions;
-using System.Linq;
 using System.Security.Claims;
 using Main_API.Services.Convention;
 using Main_API.Query.Queries;
@@ -218,6 +217,8 @@ namespace Main_API.Controllers
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
 			fields = BaseCensor.PrepareFieldsList(fields);
+
+
 
             AdoptionApplication adoptionApplication = await _adoptionApplicationService.Persist(model, fields);
 

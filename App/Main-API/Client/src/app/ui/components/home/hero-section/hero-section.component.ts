@@ -3,13 +3,17 @@ import { CommonModule } from '@angular/common';
 import { AnimationDirective } from '../shared/directives/animation.directive';
 import { TranslationService } from 'src/app/common/services/translation.service';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { NgIconsModule } from '@ng-icons/core';
 
 @Component({
   selector: 'app-hero-section',
   standalone: true,
-  imports: [CommonModule, AnimationDirective, TranslatePipe],
+  imports: [CommonModule, AnimationDirective, TranslatePipe, NgIconsModule],
   template: `
     <div class="text-center mb-20">
+      <div>
+        <ng-icon name="lucidePawPrint" style="width: 2rem; height: 2rem;" class="text-primary-400 animate-bounce ml-[-1.5rem]" aria-label="Paw Print"></ng-icon>
+      </div>
       <h1
         appAnimation
         [animationDelay]="200"
@@ -33,11 +37,8 @@ export class HeroSectionComponent {
   constructor(private translationService: TranslationService) {}
 
   getTitleWithGradient(): string {
-    // Get the translated title
     const title = this.translationService.translate('APP.HOME-PAGE.FIND_PET_TITLE') || '';
-    // Replace 'Pawfect' with a span for both EN and GR
-    // Greek: 'Βρείτε το Pawfect ζωάκι σας'
-    // English: 'Find your Pawfect pet'
+
     return title.replace('Pawfect', '<span class="gradient-text">Pawfect</span>');
   }
 }

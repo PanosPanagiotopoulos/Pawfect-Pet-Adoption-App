@@ -22,22 +22,24 @@ namespace Main_API.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
+            String requestPath = context.Request.Path.Value?.ToLower();
+            if (requestPath != null && requestPath.StartsWith("/auth/refresh"))
+            {
+                await _next(context);
+                return;
+            }
+
             if (context.User.Identity != null && context.User.Identity.IsAuthenticated)
             {
                 String? token = context.Request.Cookies[JwtService.ACCESS_TOKEN];
                 if (!String.IsNullOrEmpty(token))
                 {
-                    JwtSecurityToken jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
-                    String? tokenId = jwtToken.Id;
-                    if (!String.IsNullOrEmpty(tokenId))
-                    {
-                        if (_jwtService.IsTokenRevoked(tokenId))
-                        {
-                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                            await context.Response.WriteAsync("Forbidden: Token has been revoked.");
-                            return;
-                        }
-                    }
+					if (_jwtService.IsTokenRevoked(token))
+					{
+						context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+						await context.Response.WriteAsync("Forbidden: Token has been revoked.");
+						return;
+					}
                 }
             }
 

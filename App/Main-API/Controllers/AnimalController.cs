@@ -10,8 +10,8 @@ using Main_API.Models.Lookups;
 using Main_API.Query;
 using Main_API.Services.AnimalServices;
 using Main_API.Transactions;
-using System.Linq;
-using System.Reflection;
+using Pawfect_Pet_Adoption_App_API.Query;
+using Main_API.Query.Queries;
 
 namespace Main_API.Controllers
 {
@@ -58,9 +58,9 @@ namespace Main_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying animals");
 
             animalLookup.Fields = censoredFields;
-            List<Data.Entities.Animal> datas = await animalLookup
-                .EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                .CollectAsync();
+            AnimalQuery q = animalLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
+            
+            List<Data.Entities.Animal> datas = await q.CollectAsync();
 
             List<Animal> models = await _builderFactory.Builder<AnimalBuilder>()
                 .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
@@ -68,7 +68,13 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Animals not found", JsonHelper.SerializeObjectFormatted(animalLookup), typeof(Data.Entities.Animal));
 
-            return Ok(models);
+
+
+            return Ok(new QueryResult<Animal>()
+            {
+                Items = models,
+                Count = await q.CountAsync()
+            });
         }
 
         [HttpPost("query/free-view")]
@@ -78,16 +84,21 @@ namespace Main_API.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             animalLookup.Fields = _censorFactory.Censor<AnimalCensor>().PseudoCensor([.. animalLookup.Fields]);
-            List<Data.Entities.Animal> datas = await animalLookup
-                .EnrichLookup(_queryFactory)
-                .CollectAsync();
+
+            AnimalQuery q = animalLookup.EnrichLookup(_queryFactory);
+
+            List<Data.Entities.Animal> datas = await q.CollectAsync();
 
             List<Animal> models = await _builderFactory.Builder<AnimalBuilder>()
                 .Build(datas, [.. animalLookup.Fields]);
 
             if (models == null) throw new NotFoundException("Animals not found", JsonHelper.SerializeObjectFormatted(animalLookup), typeof(Data.Entities.Animal));
 
-            return Ok(models);
+            return Ok(new QueryResult<Animal>()
+            {
+                Items = models,
+                Count = await q.CountAsync()
+            });
         }
 
         /// <summary>

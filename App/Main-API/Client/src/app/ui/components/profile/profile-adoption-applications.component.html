@@ -1,3 +1,117 @@
+<!-- Responsive Filter Bar: Button right on desktop, centered on mobile -->
+<div class="w-full flex flex-col sm:flex-row sm:items-start sm:justify-end items-center justify-center px-2 pt-4 gap-0 sm:gap-4">
+  <button
+    id="filterToggleBtn"
+    type="button"
+    (click)="toggleFilterPanel()"
+    class="flex items-center justify-center px-3 py-2 rounded-md bg-primary-700 personally-primary text-white hover:bg-primary-800 transition-colors outline-none focus:ring-2 focus:ring-primary-400 z-[101] mb-2 sm:mb-0 sm:ml-4 sm:mr-8 sm:order-2 mx-4 sm:mx-0"
+    [attr.aria-expanded]="filterPanelVisible"
+    aria-controls="profile-filters-panel"
+    [attr.aria-label]="filterPanelVisible ? ('APP.PROFILE-PAGE.FILTERS_AND_SORT.HIDE_FILTERS' | translate) : ('APP.PROFILE-PAGE.FILTERS_AND_SORT.SHOW_FILTERS' | translate)"
+  >
+    <ng-icon name="lucideFilter" class="w-5 h-5" aria-hidden="true"></ng-icon>
+  </button>
+  <div
+    *ngIf="filterPanelVisible"
+    id="profile-filters-panel"
+    [@slideDown]
+    class="filter-bar w-full sm:w-auto flex flex-col sm:flex-row sm:justify-end sm:items-center items-stretch sm:gap-4 mt-0 p-6 mb-20 rounded-2xl shadow-xl bg-gradient-to-br from-white via-primary-50 to-white/90 border border-primary-100/60 backdrop-blur-md z-[9999] max-w-full sm:max-w-xl mx-auto -translate-y-8 sm:order-1"
+    style="max-width:100vw;"
+    role="region"
+    [attr.aria-label]="'APP.PROFILE-PAGE.FILTERS_AND_SORT.FILTERS_SECTION_LABEL' | translate"
+  >
+    <!-- Status Filter Dropdown (Refactored) -->
+    <div class="w-full sm:w-auto flex flex-col">
+      <label class="text-xs font-semibold text-primary-700 mb-1" for="statusFilterSelect">{{ 'APP.PROFILE-PAGE.FILTERS_AND_SORT.STATUS_LABEL' | translate }}</label>
+      <div class="relative" role="group" aria-label="Status filter">
+        <button (click)="statusDropdownOpen = !statusDropdownOpen"
+                class="flex items-center gap-1 px-4 py-2 rounded-md bg-white border border-primary-200 text-gray-900 font-medium text-sm hover:bg-primary-50 transition-colors outline-none focus:ring-2 focus:ring-primary-400 w-full"
+                aria-haspopup="listbox"
+                [attr.aria-expanded]="statusDropdownOpen">
+          <ng-icon name="lucideFilter" class="w-4 h-4 text-primary-400 mr-2" aria-hidden="true"></ng-icon>
+          <span *ngIf="statusFilter.length === 0" class="text-gray-400">{{ 'APP.PROFILE-PAGE.FILTERS_AND_SORT.STATUS_LABEL' | translate }}</span>
+          <span *ngIf="statusFilter.length > 0" class="flex flex-wrap gap-1">
+            <span *ngFor="let status of statusOptionsFiltered()" class="chip bg-primary-100 text-primary-700 rounded-full px-2 py-0.5 text-xs font-semibold" [attr.aria-label]="'APP.PROFILE-PAGE.FILTERS_AND_SORT.STATUS_OPTION_' + status.value | translate">{{ status.label | translate }}</span>
+          </span>
+          <svg class="ml-auto w-4 h-4 text-primary-400 transition-transform duration-200" [ngClass]="{'rotate-180': statusDropdownOpen}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <ul *ngIf="statusDropdownOpen"
+            class="absolute left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-md z-[9999] border border-primary-200 py-1 text-gray-900 shadow-xl transition-all duration-200 ease-in-out"
+            role="listbox"
+            aria-multiselectable="true">
+          <li *ngFor="let status of statusOptions"
+              (click)="toggleStatus(status.value)"
+              [class.bg-primary-50]="statusFilter.includes(status.value)"
+              class="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-primary-600 hover:text-white transition-colors duration-200 text-sm relative"
+              [attr.aria-selected]="statusFilter.includes(status.value)"
+              role="option"
+              tabindex="0">
+            <span class="font-medium">{{ status.label | translate }}</span>
+            <ng-icon *ngIf="statusFilter.includes(status.value)" name="lucideCheck" class="ml-auto text-primary-400" [size]="'16'"></ng-icon>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- Sort Field Dropdown (Refactored) -->
+    <div class="w-full sm:w-auto flex flex-col">
+      <label class="text-xs font-semibold text-primary-700 mb-1" for="sortFieldSelect">{{ 'APP.PROFILE-PAGE.FILTERS_AND_SORT.SORT_BY_LABEL' | translate }}</label>
+      <div class="relative" role="group" aria-label="Sort by filter">
+        <button (click)="sortDropdownOpen = !sortDropdownOpen"
+                class="flex items-center gap-1 px-4 py-2 rounded-md bg-white border border-primary-200 text-gray-900 font-medium text-sm hover:bg-primary-50 transition-colors outline-none focus:ring-2 focus:ring-primary-400 w-full"
+                aria-haspopup="listbox"
+                [attr.aria-expanded]="sortDropdownOpen">
+          <ng-icon name="lucideArrowUpDown" class="w-4 h-4 text-primary-400 mr-2" aria-hidden="true"></ng-icon>
+          <span *ngIf="!sortField" class="text-gray-400">{{ 'APP.PROFILE-PAGE.FILTERS_AND_SORT.SORT_BY_LABEL' | translate }}</span>
+          <span *ngFor="let field of sortFields">
+            <span *ngIf="sortField === field.value" class="font-bold text-primary-700">{{ field.label | translate }}</span>
+          </span>
+          <svg class="ml-auto w-4 h-4 text-primary-400 transition-transform duration-200" [ngClass]="{'rotate-180': sortDropdownOpen}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <ul *ngIf="sortDropdownOpen"
+            class="absolute left-1/2 -translate-x-1/2 mt-1 w-56 bg-white rounded-md z-[9999] border border-primary-200 py-1 text-gray-900 shadow-xl transition-all duration-200 ease-in-out"
+            role="listbox">
+          <li *ngFor="let field of sortFields"
+              (click)="onSortFieldChange(field.value)"
+              [class.bg-primary-50]="sortField === field.value"
+              class="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-primary-600 hover:text-white transition-colors duration-200 text-sm relative"
+              [attr.aria-selected]="sortField === field.value"
+              role="option"
+              tabindex="0">
+            <span class="font-medium">{{ field.label | translate }}</span>
+            <ng-icon *ngIf="sortField === field.value" name="lucideCheck" class="ml-auto text-primary-400" [size]="'16'"></ng-icon>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <!-- Sort Direction and Clear Buttons Row -->
+    <div class="w-full sm:w-auto flex flex-row items-center justify-center gap-2 mt-2">
+      <button
+        id="sortDirectionBtn"
+        type="button"
+        (click)="toggleSortDirection()"
+        class="flex flex-row items-center justify-center gap-1 px-2 py-1 rounded bg-primary-50 border border-primary-200 text-primary-700 text-xs font-medium shadow-sm cursor-pointer hover:bg-primary-100 hover:text-primary-900 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-primary-200 text-center"
+        [attr.aria-label]="'APP.PROFILE-PAGE.FILTERS_AND_SORT.SORT_DIRECTION_LABEL' | translate"
+        tabindex="0"
+      >
+        <ng-icon [name]="sortDescending ? 'lucideArrowDownWideNarrow' : 'lucideArrowUpWideNarrow'" class="w-4 h-4" aria-hidden="true"></ng-icon>
+        <span class="text-center whitespace-nowrap">{{ sortDescending ? ('APP.PROFILE-PAGE.FILTERS_AND_SORT.DESC' | translate) : ('APP.PROFILE-PAGE.FILTERS_AND_SORT.ASC' | translate) }}</span>
+      </button>
+      <button
+        *ngIf="statusFilter.length > 0 || sortField !== sortFields[0].value || !sortDescending"
+        type="button"
+        (click)="clearFilters()"
+        class="flex flex-row items-center justify-center gap-1 px-2 py-1 rounded bg-red-50 border border-red-200 text-red-700 text-xs font-medium shadow-sm cursor-pointer hover:bg-red-100 hover:text-red-900 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-red-200 text-center"
+        [attr.aria-label]="'APP.COMMONS.CLEAR' | translate"
+        tabindex="0"
+      >
+        <ng-icon name="lucideCircleX" class="w-4 h-4" aria-hidden="true"></ng-icon>
+        <span class="text-center whitespace-nowrap">{{ 'APP.COMMONS.CLEAR' | translate }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading skeletons (exclude filters) -->
 <div *ngIf="isLoading" class="w-full h-full flex flex-col flex-1 mt-6">
   <!-- Skeleton for mobile cards -->
   <div class="block sm:hidden space-y-6">
@@ -29,33 +143,55 @@
   </div>
 </div>
 
-<div *ngIf="error && !isLoading" class="text-center py-8 w-full h-full flex flex-col flex-1 justify-center items-center">
-  <ng-icon name="lucideAlertCircle" class="w-16 h-16 text-red-400 mx-auto mb-4" aria-label="Error"></ng-icon>
-  <p class="text-red-600 mb-4">{{ (error || 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.LOAD_ERROR') | translate }}</p>
-  <button mat-raised-button color="primary" (click)="loadApplications()">
-    {{ 'APP.PROFILE-PAGE.ACTIONS.TRY_AGAIN' | translate }}
-  </button>
+<div *ngIf="error && !isLoading" class="flex items-center justify-center min-h-[400px] w-full">
+  <div class="bg-white/90 rounded-2xl shadow-2xl p-10 flex flex-col items-center max-w-md mx-auto animate-fadeIn border-t-4 border-red-400">
+    <ng-icon name="lucideBadgeAlert" class="w-20 h-20 text-red-400 mb-6 animate-bounce" aria-label="Error"></ng-icon>
+    <div class="text-red-700 text-2xl font-bold mb-4 text-center">
+      {{ (error || 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.LOAD_ERROR') | translate }}
+    </div>
+    <button 
+      class="btn btn-primary mt-2 px-8 py-3 text-lg font-bold rounded-xl shadow-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-400 focus:outline-none transition"
+      (click)="reloadPage()">
+      {{ 'APP.PROFILE-PAGE.ACTIONS.TRY_AGAIN' | translate }}
+    </button>
+  </div>
 </div>
 
-<div *ngIf="!isLoading && !error && (!applications || applications.length === 0)" class="text-center py-8 w-full h-full flex flex-col flex-1 justify-center items-center">
-  <ng-icon name="lucideFileText" class="w-16 h-16 text-gray-400 mx-auto mb-4" aria-label="No Applications"></ng-icon>
-  <p class="text-gray-500">
-    {{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.NO_APPLICATIONS' | translate }}
+<!-- No Applications State (My Applications) -->
+<div *ngIf="!isLoading && !error && (!applications || applications.length === 0) && tabType === 'adoption-applications'" class="flex flex-1 flex-col items-center justify-start w-full h-full min-h-[300px] sm:min-h-[400px] pt-7 animate-fadeIn px-2">
+  <ng-icon name="lucideFileQuestion" class="w-20 h-20 sm:w-32 sm:h-32 text-primary-400/30 mb-6 sm:mb-8 animate-bounce" aria-label="No Applications"></ng-icon>
+  <h2 class="text-2xl sm:text-3xl md:text-4xl text-gray-800 mb-2 sm:mb-4 text-center">
+    {{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.NO_APPLICATIONS_TITLE' | translate }}
+  </h2>
+  <p class="text-base sm:text-lg text-gray-500 mb-6 sm:mb-8 max-w-xs sm:max-w-xl text-center">
+    {{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.NO_APPLICATIONS_SUBTEXT' | translate }}
   </p>
   <button 
-    mat-raised-button 
-    color="primary" 
-    class="mt-4"
-    routerLink="/search">
-    {{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.START_SEARCHING' | translate }}
+    type="button"
+    routerLink="/search"
+    class="btn btn-primary rounded-full px-6 py-3 sm:px-10 sm:py-4 text-base sm:text-xl flex items-center gap-2 shadow-lg focus:ring-2 focus:ring-primary-400 focus:outline-none transition animate-gradient w-full max-w-xs sm:max-w-fit justify-center"
+  >
+    <ng-icon name="lucideSearch" class="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true"></ng-icon>
+    <span class="white">{{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.NO_APPLICATIONS_CTA' | translate }}</span>
   </button>
 </div>
 
-<div *ngIf="!isLoading && !error && applications && applications.length > 0" class="w-full h-full flex flex-col flex-1 mt-6">
-  <div class="flex-1 flex flex-col overflow-y-auto h-full scrollbar-thin scrollbar-thumb-primary-200 scrollbar-track-transparent pr-1">
-    <div class="flex items-center gap-2 mb-2 sticky top-0 z-10 bg-white/80 rounded-t-xl pt-2 pb-1 px-1">
-      <ng-icon name="lucideListOrdered" class="w-4 h-4 text-primary-500" aria-hidden="true"></ng-icon>
-      <label for="pageSizeSelect" class="font-medium text-primary-700 text-xs">{{ 'APP.COMMONS.PAGE_SIZE_SELECTOR_TITLE' | translate }}</label>
+<!-- No Applications State (Received Applications) -->
+<div *ngIf="!isLoading && !error && (!applications || applications.length === 0) && tabType === 'received-applications'" class="flex flex-1 flex-col items-center justify-center w-full h-full min-h-[300px] sm:min-h-[400px] animate-fadeIn px-2">
+  <ng-icon name="lucideFileQuestion" class="w-20 h-20 sm:w-32 sm:h-32 text-primary-400/30 mb-6 sm:mb-8 animate-bounce" aria-label="No Applications"></ng-icon>
+  <h2 class="text-2xl sm:text-3xl md:text-4xl text-gray-800 mb-2 sm:mb-4 text-center">
+    {{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.NO_RECEIVED_APPLICATIONS_TITLE' | translate }}
+  </h2>
+  <p class="text-base sm:text-lg text-gray-500 mb-6 sm:mb-8 max-w-xs sm:max-w-xl text-center">
+    {{ 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.NO_RECEIVED_APPLICATIONS_SUBTEXT' | translate }}
+  </p>
+</div>
+
+<div *ngIf="!isLoading && !error && applications && applications.length > 0" class="w-full h-full flex flex-col flex-1 mt-8 z-[1]">
+  <div class="flex-1 flex flex-col overflow-y-auto h-full scrollbar-thin scrollbar-thumb-primary-200 scrollbar-track-transparent pr-1 z-[1]">
+    <div class="flex items-center gap-2 mb-2 sticky top-0 z-[1] bg-white/80 rounded-t-xl pt-2 pb-1 px-1 pl-4">
+      <ng-icon name="lucideListOrdered" class="w-4 h-4 text-primary-500 ml-2" aria-hidden="true"></ng-icon>
+      <label for="pageSizeSelect" class="font-medium text-primary-700 text-xs ml-2">{{ 'APP.COMMONS.PAGE_SIZE_SELECTOR_TITLE' | translate }}</label>
       <div class="relative w-20">
         <select
           id="pageSizeSelect"
@@ -65,7 +201,7 @@
         >
           <option *ngFor="let size of [6, 12, 24, 48]" [value]="size">{{ size }}</option>
         </select>
-        <ng-icon name="lucideChevronDown" class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400" aria-hidden="true"></ng-icon>
+        <ng-icon name="lucideChevronDown" class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-400 ml-2" aria-hidden="true"></ng-icon>
       </div>
     </div>
     <div class="block sm:hidden">
@@ -157,14 +293,8 @@
         [hidePageSize]="true"
         [pageSizeOptions]="[]"
         class="w-full max-w-[90vw] mx-auto text-xs flex flex-col sm:flex-row items-center gap-4 py-2"
-        style="background:transparent; border:none; box-shadow:none; width:100%; min-width:0; justify-content:center; align-items:center; padding:0;">
-      </mat-paginator>
+        style="background:transparent; border:none; box-shadow:none; width:100%; min-width:0; justify-content:center; align-items:center; padding:0;"
+      ></mat-paginator>
     </div>
   </div>
 </div>
-
-<ng-container *ngIf="translationService.translationsLoaded$ | async; else loadingTranslations">
-</ng-container>
-<ng-template #loadingTranslations>
-  <div class="text-center py-8 text-gray-500">Loading translations...</div>
-</ng-template> 

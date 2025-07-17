@@ -7,6 +7,7 @@ import { UserLookup } from '../lookup/user-lookup';
 import { User, UserPersist } from '../models/user/user.model';
 import { AuthProvider } from '../common/enum/auth-provider.enum';
 import { HttpParams } from '@angular/common/http';
+import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
   providedIn: 'root',
@@ -21,10 +22,10 @@ export class UserService {
     return `${this.installationConfiguration.appServiceAddress}api/users`;
   }
 
-  query(q: UserLookup): Observable<User[]> {
+  query(q: UserLookup): Observable<QueryResult<User>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<User[]>(url, q)
+      .post<QueryResult<User>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

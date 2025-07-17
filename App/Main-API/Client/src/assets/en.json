@@ -101,7 +101,9 @@
       "PAGE": "Page",
       "OF": "of",
       "NEXT_PAGE": "Next page",
-      "PREVIOUS_PAGE": "Previous page"
+      "PREVIOUS_PAGE": "Previous page",
+      "UNKNOWN": "Unknown",
+      "CLEAR": "Clear"
     },
     "AUTH": {
       "LOGIN": {
@@ -525,6 +527,11 @@
     "GOOGLE_SIGNUP": {
       "LOADING_MESSAGE": "Fetching data from Google..."
     },
+    "PROFILE": {
+      "ADOPTION_STATUS": {
+        "PENDING": "Pending"
+      }
+    },
     "PROFILE-PAGE": {
       "TABS": {
         "PERSONAL_INFO": "Personal Info",
@@ -532,7 +539,8 @@
         "SHELTER_INFO": "Shelter Info",
         "RECEIVED_APPLICATIONS": "Received Applications",
         "MY_ANIMALS": "My Animals",
-        "ADD_ANIMAL": "Add Animal"
+        "ADD_ANIMAL": "Add Animal",
+        "USER_INFO": "User Information"
       },
       "PERSONAL_INFO": {
         "TITLE": "Personal Information",
@@ -550,7 +558,18 @@
         "TITLE": "Adoption Applications",
         "BREED": "Breed",
         "APPLICANT": "Applicant",
-        "EDIT_APPLICATION": "Edit Application"
+        "EDIT_APPLICATION": "Edit Application",
+        "NO_APPLICATIONS": "No adoption applications found.",
+        "START_SEARCHING": "Go search for animals",
+        "EMPTY_STATE_TITLE": "You haven’t applied for any adoptions yet.",
+        "EMPTY_STATE_DESC": "Start your journey by searching for animals available for adoption.",
+        "EMPTY_STATE_CTA": "Go search for animals",
+        "NO_RECEIVED_APPLICATIONS_SUBTEXT": "You haven't received any adoption applications yet. When someone applies to adopt your animals, you'll see them here.",
+        "NO_RECEIVED_APPLICATIONS_TITLE": "No received applications",
+        "NO_APPLICATIONS_TITLE": "No adoption applications yet",
+        "NO_APPLICATIONS_SUBTEXT": "You haven't applied to adopt any pets yet. Start your journey by searching for your perfect companion!",
+        "NO_APPLICATIONS_CTA": "Search for animals",
+        "LOAD_ERROR": "Failed to load adoption applications. Please try again."
       },
       "SHELTER_INFO": {
         "TITLE": "Shelter Information",
@@ -572,7 +591,7 @@
         "PENDING": "Pending",
         "APPROVED": "Approved",
         "REJECTED": "Rejected",
-        "NO_APPLICATIONS": "No applications found with the selected status.",
+        "NO_APPLICATIONS": "No applications found for you",
         "VIEW_DETAILS": "View Details",
         "APPLICANT": "Applicant",
         "EMAIL": "Email",
@@ -581,15 +600,20 @@
         "DETAILS": "Details"
       },
       "MY_ANIMALS": {
-        "TITLE": "My Animals",
+        "TITLE": "Our Animals",
         "NO_ANIMALS": "You haven't added any animals yet.",
+        "NO_ANIMALS_SUBTEXT": "You haven't added any animals yet. Start by adding your first animal to showcase them here!",
         "VIEW_DETAILS": "View Details",
         "BREED": "Breed",
         "TYPE": "Type",
         "GENDER": "Gender",
         "AGE": "Age",
         "YEARS": "years",
-        "CREATED": "Created"
+        "CREATED": "Created",
+        "ANIMAL": "Animal",
+        "STATUS": "Status",
+        "ADD_FIRST_ANIMAL": "Add your first animal",
+        "YEARS_OLD": "years old"
       },
       "ADD_ANIMAL": {
         "TITLE": "Add New Animal",
@@ -633,6 +657,26 @@
       "ERRORS": {
         "INVALID_PROFILE_ID": "Invalid profile ID",
         "PROFILE_LOAD_ERROR": "Failed to load profile. Please try again."
+      },
+      "NO_RECEIVED_APP": "No received applications found.",
+      "FILTERS_AND_SORT": {
+        "TOGGLE": "Filters & Sorting",
+        "STATUS_LABEL": "Status",
+        "SORT_BY_LABEL": "Sort by",
+        "SORT_DIRECTION_LABEL": "Sort direction",
+        "ASC": "Ascending",
+        "DESC": "Descending",
+        "SEARCH_LABEL": "Search",
+        "SEARCH_PLACEHOLDER": "Search by name, breed, etc.",
+        "ADOPTION_STATUS_LABEL": "Adoption Status",
+        "GENDER_LABEL": "Gender",
+        "AGE_LABEL": "Age",
+        "AGE_FROM": "From (years)",
+        "AGE_TO": "To (years)"
+      },
+      "SORT": {
+        "CREATED_AT": "Created At",
+        "STATUS": "Status"
       }
     }
   }

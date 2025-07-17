@@ -6,6 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { AnimalLookup } from '../lookup/animal-lookup';
 import { Animal, AnimalPersist } from '../models/animal/animal.model';
 import { HttpParams } from '@angular/common/http';
+import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
   providedIn: 'root',
@@ -20,17 +21,17 @@ export class AnimalService {
     return `${this.installationConfiguration.appServiceAddress}api/animals`;
   }
 
-  query(q: AnimalLookup): Observable<Animal[]> {
+  query(q: AnimalLookup): Observable<QueryResult<Animal>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<Animal[]>(url, q)
+      .post<QueryResult<Animal>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  queryFreeView(q: AnimalLookup): Observable<Animal[]> {
+  queryFreeView(q: AnimalLookup): Observable<QueryResult<Animal>> {
     const url = `${this.apiBase}/query/free-view`;
     return this.http
-      .post<Animal[]>(url, q)
+      .post<QueryResult<Animal>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
@@ -49,7 +50,7 @@ export class AnimalService {
   getAnimalsByShelter(
     shelterId: string,
     reqFields: string[] = []
-  ): Observable<Animal[]> {
+  ): Observable<QueryResult<Animal>> {
     const url = `${this.apiBase}/shelter/${shelterId}`;
     let params = new HttpParams();
     reqFields.forEach(field => {
@@ -58,7 +59,7 @@ export class AnimalService {
     const options = { params };
 
     return this.http
-      .get<Animal[]>(url, options)
+      .get<QueryResult<Animal>>(url, options)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

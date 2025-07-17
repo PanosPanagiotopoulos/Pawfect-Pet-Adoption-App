@@ -54,6 +54,14 @@ import {
   lucideMap,
   lucideInbox,
   lucidePencil,
+  lucideFilter,
+  lucideArrowUpDown,
+  lucideCircleX,
+  lucideBadgeAlert,
+  lucideListOrdered,
+  lucideFileQuestion,
+  lucideArrowDownWideNarrow,
+  lucideArrowUpWideNarrow
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -70,7 +78,7 @@ import { CookiesInterceptor } from './common/tools/cookies.interceptor';
 import { ApiKeyInterceptor } from './common/tools/api-key.interceptor';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from './common/services/translation.service';
-import { LucideAngularModule, LucideMapPin, LucideUser, LucideFile, LucideCheck, LucideBuilding, LucidePawPrint, LucideAlertCircle, LucideInstagram, LucideFacebook, LucidePlus, LucideMailbox, LucideEye } from 'lucide-angular';
+import { LucideAngularModule, LucideMapPin, LucideUser, LucideFile, LucideCheck, LucideBuilding, LucidePawPrint, LucideAlertCircle, LucideInstagram, LucideFacebook, LucidePlus, LucideMailbox, LucideEye, LucideXOctagon } from 'lucide-angular';
 
 export function initializeApp(
   installationConfigService: InstallationConfigurationService,
@@ -131,6 +139,7 @@ export function initializeApp(
       lucideGlobe,
       lucideClock1,
       lucideMapPin,
+      lucideArrowUpDown,
       lucideMailbox,
       lucideChevronUp,
       lucideChevronDown,
@@ -150,6 +159,13 @@ export function initializeApp(
       file: lucideFile,
       inbox: lucideInbox,
       pencil: lucidePencil,
+      lucideFilter,
+      lucideCircleX,
+      lucideBadgeAlert,
+      lucideListOrdered,
+      lucideFileQuestion,
+      lucideArrowDownWideNarrow,
+      lucideArrowUpWideNarrow
     }),
     HeaderComponent,
     TranslatePipe,

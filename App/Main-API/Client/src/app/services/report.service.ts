@@ -6,6 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { ReportLookup } from '../lookup/report-lookup';
 import { Report, ReportPersist } from '../models/report/report.model';
 import { HttpParams } from '@angular/common/http';
+import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
   providedIn: 'root',
@@ -20,10 +21,10 @@ export class ReportService {
     return `${this.installationConfiguration.appServiceAddress}api/reports`;
   }
 
-  query(q: ReportLookup): Observable<Report[]> {
+  query(q: ReportLookup): Observable<QueryResult<Report>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<Report[]>(url, q)
+      .post<QueryResult<Report>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

@@ -8,14 +8,12 @@ namespace Main_API.Services.AuthenticationServices
     {
         public String CurrentUserId(ClaimsPrincipal user)
         {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
         public String CurrentUserEmail(ClaimsPrincipal user)
         {
-            if (user == null) throw new ArgumentNullException(nameof(user));
-            return user.FindFirst(ClaimTypes.Email)?.Value;
+            return user?.FindFirst(ClaimTypes.Email)?.Value;
         }
 
         public DateTime CurrentUserLoggedAtDate(ClaimsPrincipal user)
@@ -42,7 +40,7 @@ namespace Main_API.Services.AuthenticationServices
 
         public List<String> CurrentUserRoles(ClaimsPrincipal user)
         {
-            return [.. user.FindAll(ClaimTypes.Role).Select(c => c.Value)];
+            return [.. user?.FindAll(ClaimTypes.Role).Select(c => c.Value)];
         }
     }
 }

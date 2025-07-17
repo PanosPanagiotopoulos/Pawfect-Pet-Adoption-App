@@ -47,7 +47,7 @@ namespace Main_API.Services.AuthenticationServices
         private readonly ConcurrentDictionary<(Type EntityType, String UserId), object> _affiliatedFilterCache = new();
         private readonly ConcurrentDictionary<(Type EntityType, String UserId), object> _ownedFilterCache = new();
 
-        public ClaimsPrincipal CurrentPrincipal() => _httpContextAccessor.HttpContext?.User ?? throw new UnAuthenticatedException("No current user context available.");
+        public ClaimsPrincipal CurrentPrincipal() => _httpContextAccessor.HttpContext?.User;
 
         public List<String> AffiliatedRolesOf(params String[] permissions) => _permissionPolicyProvider.GetAllAffiliatedRolesForPermissions(permissions)?.ToList() ?? new List<String>();
         public async Task<String> CurrentPrincipalShelter()

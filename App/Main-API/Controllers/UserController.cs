@@ -13,6 +13,8 @@ using Main_API.Services.Convention;
 using Main_API.Services.UserServices;
 using Main_API.Transactions;
 using System.Security.Claims;
+using Pawfect_Pet_Adoption_App_API.Query;
+using Main_API.Query.Queries;
 
 namespace Main_API.Controllers
 {
@@ -67,10 +69,9 @@ namespace Main_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
 
             userLookup.Fields = censoredFields;
-            List<Data.Entities.User> datas = await userLookup
-                                                    .EnrichLookup(_queryFactory)
-                                                    .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                                                    .CollectAsync();
+            UserQuery q = userLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
+
+            List<Data.Entities.User> datas = await q.CollectAsync();
 
             List<User> models = await _builderFactory.Builder<UserBuilder>()
                                                 .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
@@ -78,7 +79,11 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Users not found", JsonHelper.SerializeObjectFormatted(userLookup), typeof(Data.Entities.User));
 
-            return Ok(models);
+            return Ok(new QueryResult<User>()
+            {
+                Items = models,
+                Count = await q.CountAsync()
+            });
 		}
 
 		/// <summary>
@@ -108,7 +113,7 @@ namespace Main_API.Controllers
             lookup.Fields = censoredFields;
             User model = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
 								.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
-            .FirstOrDefault();
+                                .FirstOrDefault();
 
             if (model == null) throw new NotFoundException("Shelter not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.Shelter));
 

@@ -12,6 +12,11 @@ using Main_API.Services.NotificationServices;
 using Main_API.Transactions;
 using System.Linq;
 using System.Reflection;
+using Pawfect_Pet_Adoption_App_API.Query;
+using Main_API.Query.Queries;
+using Main_API.Services.AuthenticationServices;
+using System.Security.Claims;
+using Main_API.Services.Convention;
 
 namespace Main_API.Controllers
 {
@@ -24,6 +29,9 @@ namespace Main_API.Controllers
         private readonly IBuilderFactory _builderFactory;
         private readonly ICensorFactory _censorFactory ;
         private readonly AuthContextBuilder _contextBuilder;
+        private readonly IAuthorizationContentResolver _authorizationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IConventionService _conventionService;
         private readonly IQueryFactory _queryFactory;
 
         public NotificationController(
@@ -32,6 +40,9 @@ namespace Main_API.Controllers
             IBuilderFactory builderFactory,
 			ICensorFactory censorFactory,
             AuthContextBuilder contextBuilder,
+            IAuthorizationContentResolver authorizationContentResolver,
+            ClaimsExtractor claimsExtractor,
+            IConventionService conventionService,
             IQueryFactory queryFactory)
         {
             _notificationService = notificationService;
@@ -39,6 +50,9 @@ namespace Main_API.Controllers
             _builderFactory = builderFactory;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _authorizationContentResolver = authorizationContentResolver;
+            _claimsExtractor = claimsExtractor;
+            _conventionService = conventionService;
             _queryFactory = queryFactory;
         }
 
@@ -46,22 +60,27 @@ namespace Main_API.Controllers
         /// Query notifications.
         /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
         /// </summary>
-        [HttpPost("query")]
+        [HttpPost("query/mine")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryNotifications([FromBody] NotificationLookup notificationLookup)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            ClaimsPrincipal currentUser = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(currentUser);
+            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+
+            notificationLookup.UserIds = [userId];
+
             AuthContext context = _contextBuilder.OwnedFrom(notificationLookup).Build();
             List<String> censoredFields = await _censorFactory.Censor<NotificationCensor>().Censor([.. notificationLookup.Fields], context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying notifications");
 
             notificationLookup.Fields = censoredFields;
-            List<Data.Entities.Notification> datas = await notificationLookup
-                .EnrichLookup(_queryFactory)
-                .Authorise(AuthorizationFlags.OwnerOrPermission)
-                .CollectAsync();
+
+            NotificationQuery q = notificationLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermission);
+            List<Data.Entities.Notification> datas = await q.CollectAsync();
 
             List<Notification> models = await _builderFactory.Builder<NotificationBuilder>()
                 .Authorise(AuthorizationFlags.OwnerOrPermission)
@@ -69,7 +88,11 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Notifications not found", JsonHelper.SerializeObjectFormatted(notificationLookup), typeof(Data.Entities.Notification));
 
-            return Ok(models);
+            return Ok(new QueryResult<Notification>()
+            {
+                Items = models,
+                Count = await q.CountAsync()
+            });
 		}
 
 		/// <summary>

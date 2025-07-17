@@ -5,6 +5,7 @@ import { InstallationConfigurationService } from "../common/services/installatio
 import { FilePersist } from "../models/file/file.model";
 import { FileLookup } from "../lookup/file.lookup";
 import { HttpParams } from "@angular/common/http";
+import { QueryResult } from "../common/models/query-result";
 
 @Injectable({
   providedIn: 'root',
@@ -38,10 +39,10 @@ export class FileService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  query(q: FileLookup): Observable<File[]> {
+  query(q: FileLookup): Observable<QueryResult<File>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<File[]>(url, q)
+      .post<QueryResult<File>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

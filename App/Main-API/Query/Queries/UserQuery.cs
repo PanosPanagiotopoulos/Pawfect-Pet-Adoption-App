@@ -156,6 +156,8 @@ namespace Main_API.Query.Queries
                     return filter;
                 else throw new ForbiddenException();
 
+
+
             return await Task.FromResult(filter);
         }
 
@@ -164,25 +166,29 @@ namespace Main_API.Query.Queries
         // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
         public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = EntityHelper.GetAllPropertyNames(typeof(Data.Entities.User)).ToList();
+            if (fields == null || !fields.Any()) return new List<String>();
 
-			HashSet<String> projectionFields = new HashSet<String>();
+            HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)
 			{
 				// Αντιστοιχίζει τα ονόματα πεδίων UserDto στα ονόματα πεδίων User
 				projectionFields.Add(nameof(Data.Entities.User.Id));
-				if (item.Equals(nameof(Models.User.User.Email))) projectionFields.Add(nameof(Data.Entities.User.Email));
+                projectionFields.Add(nameof(Data.Entities.User.Roles));
+
+                if (item.Equals(nameof(Models.User.User.Email))) projectionFields.Add(nameof(Data.Entities.User.Email));
 				if (item.Equals(nameof(Models.User.User.FullName))) projectionFields.Add(nameof(Data.Entities.User.FullName));
 				if (item.Equals(nameof(Models.User.User.Roles))) projectionFields.Add(nameof(Data.Entities.User.Roles));
-				if (item.Equals(nameof(Models.User.User.Phone))) projectionFields.Add(nameof(Data.Entities.User.Phone));
-				if (item.Equals(nameof(Models.User.User.Location))) projectionFields.Add(nameof(Data.Entities.User.Location));
-				if (item.Equals(nameof(Models.User.User.AuthProvider))) projectionFields.Add(nameof(Data.Entities.User.AuthProvider));
-				if (item.Equals(nameof(Models.User.User.AuthProviderId))) projectionFields.Add(nameof(Data.Entities.User.AuthProviderId));
-				if (item.StartsWith(nameof(Models.User.User.ProfilePhoto))) projectionFields.Add(nameof(Data.Entities.User.ProfilePhotoId));
 				if (item.Equals(nameof(Models.User.User.IsVerified))) projectionFields.Add(nameof(Data.Entities.User.IsVerified));
 				if (item.Equals(nameof(Models.User.User.CreatedAt))) projectionFields.Add(nameof(Data.Entities.User.CreatedAt));
 				if (item.Equals(nameof(Models.User.User.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.User.UpdatedAt));
-				if (item.StartsWith(nameof(Models.User.User.Shelter))) projectionFields.Add(nameof(Data.Entities.User.ShelterId));
+
+				// Sensitive info. Include user role to build correctly
+				if (item.Equals(nameof(Models.User.User.Phone))) projectionFields.Add(nameof(Data.Entities.User.Phone));
+                if (item.Equals(nameof(Models.User.User.Location))) projectionFields.Add(nameof(Data.Entities.User.Location));
+
+                // Foreign info
+                if (item.StartsWith(nameof(Models.User.User.ProfilePhoto))) projectionFields.Add(nameof(Data.Entities.User.ProfilePhotoId));
+                if (item.StartsWith(nameof(Models.User.User.Shelter))) projectionFields.Add(nameof(Data.Entities.User.ShelterId));
 			}
 
 			return [.. projectionFields];

@@ -61,11 +61,20 @@ export class GoogleAuthService {
   }
 
   private generateState(isSignup: boolean): string {
-    const stateObj = {
+    // Try to get returnUrl from current query params
+    let returnUrl = '';
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      returnUrl = urlParams.get('returnUrl') || '';
+    } catch {}
+    const stateObj: any = {
       timestamp: Date.now(),
       isSignup,
       origin: window.location.pathname,
     };
+    if (returnUrl) {
+      stateObj.returnUrl = returnUrl;
+    }
     return btoa(JSON.stringify(stateObj));
   }
 
@@ -90,6 +99,7 @@ export class GoogleAuthService {
       const decodedState = JSON.parse(atob(state));
 
       const origin: string | null = decodedState.origin as string;
+      const returnUrl: string | null = decodedState.returnUrl || null;
       // Store the auth code temporarily
       this.secureStorageService.setItem('googleAuthCode', code);
 
@@ -97,7 +107,7 @@ export class GoogleAuthService {
       this.router.navigate(
         [origin.includes('sign-up') ? '/auth/sign-up' : '/auth/login'],
         {
-          queryParams: { mode: 'google' },
+          queryParams: returnUrl ? { mode: 'google', returnUrl } : { mode: 'google' },
         }
       );
     } catch (e) {

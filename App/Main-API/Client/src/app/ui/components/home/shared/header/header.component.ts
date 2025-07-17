@@ -11,6 +11,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { User } from 'src/app/models/user/user.model';
 import { takeUntil } from 'rxjs';
+import { switchMap, filter, take } from 'rxjs/operators';
 import { UserService } from 'src/app/services/user.service';
 import { nameof } from 'ts-simple-nameof';
 import { File } from 'src/app/models/file/file.model';
@@ -44,6 +45,7 @@ export class HeaderComponent extends BaseComponent {
   currentLanguage: SupportedLanguage;
   supportedLanguages: LanguageOption[];
   showLangDropdown = false;
+  private hasFetchedUser = false;
 
   constructor(
     private authService: AuthService,
@@ -60,27 +62,35 @@ export class HeaderComponent extends BaseComponent {
     });
     document.addEventListener('click', this.handleOutsideClick.bind(this));
 
-    authService.isLoggedIn().subscribe((isLoggedInFlag: boolean) => {
-      if (isLoggedInFlag) {
-        this.userService
-          .getMe([
-            nameof<User>((x) => x.id),
-            [nameof<User>(x => x.profilePhoto), nameof<File>(x => x.sourceUrl)].join('.'),
-            nameof<User>((x) => x.fullName),
-          ])
-          .pipe(takeUntil(this._destroyed))
-          .subscribe(
-            (user: User) => {
-              this.currentUser = user;
-            },
-            (error) => {
-              console.error('Error fetching user:', error);
-            }
-          );
+    this.authService.isLoggedIn().pipe(
+      takeUntil(this._destroyed),
+      filter((isLoggedIn: boolean) => isLoggedIn && !this.hasFetchedUser),
+      switchMap(() => this.authService.me().pipe(take(1))),
+      switchMap(() =>
+        this.userService.getMe([
+          nameof<User>((x) => x.id),
+          [nameof<User>(x => x.profilePhoto), nameof<File>(x => x.sourceUrl)].join('.'),
+          nameof<User>((x) => x.fullName),
+        ]).pipe(take(1))
+      )
+    ).subscribe({
+      next: (user: User) => {
+        this.currentUser = user;
+        this.hasFetchedUser = true;
+      },
+      error: (err) => {
+        // Optionally handle error
       }
+    });
 
-      this.isLoggedIn = isLoggedInFlag;
-      this.currentUser = undefined;
+    this.authService.isLoggedIn().pipe(
+      takeUntil(this._destroyed)
+    ).subscribe((isLoggedIn: boolean) => {
+      if (!isLoggedIn) {
+        this.currentUser = undefined;
+        this.hasFetchedUser = false;
+      }
+      this.isLoggedIn = isLoggedIn;
     });
   }
 

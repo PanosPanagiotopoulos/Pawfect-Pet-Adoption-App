@@ -13,6 +13,8 @@ using Main_API.Services.FileServices;
 using Main_API.Transactions;
 using System.Linq;
 using System.Security.Claims;
+using Pawfect_Pet_Adoption_App_API.Query;
+using Main_API.Query.Queries;
 
 namespace Main_API.Controllers
 {
@@ -102,10 +104,9 @@ namespace Main_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying files");
 
             fileLookup.Fields = censoredFields;
-            List<Data.Entities.File> datas = await fileLookup
-                .EnrichLookup(_queryFactory)
-                .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                .CollectAsync();
+            FileQuery q = fileLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
+
+            List<Data.Entities.File> datas = await q.CollectAsync();
 
             List<Models.File.File> models = await _builderFactory.Builder<FileBuilder>()
                 .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
@@ -113,7 +114,11 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Files not found", JsonHelper.SerializeObjectFormatted(fileLookup), typeof(Data.Entities.File));
 
-            return Ok(models);
+            return Ok(new QueryResult<Models.File.File>()
+            {
+                Items = models,
+                Count = await q.CountAsync()
+            });
 		}
 
 		/// <summary>

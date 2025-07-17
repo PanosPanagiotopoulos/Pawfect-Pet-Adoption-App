@@ -60,35 +60,6 @@ export class AdoptionApplicationService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  getMine(reqFields: string[] = []): Observable<AdoptionApplication[]> {
-    const url = `${this.apiBase}/mine`;
-    let params = new HttpParams();
-    reqFields.forEach(field => {
-      params = params.append('fields', field);
-    });
-    const options = { params };
-
-    return this.http
-      .get<AdoptionApplication[]>(url, options)
-      .pipe(catchError((error: any) => throwError(error)));
-  }
-
-  getReceivedApplicationsForShelter(
-    shelterId: string,
-    reqFields: string[] = []
-  ): Observable<AdoptionApplication[]> {
-    const url = `${this.apiBase}/shelter/${shelterId}`;
-    let params = new HttpParams();
-    reqFields.forEach(field => {
-      params = params.append('fields', field);
-    });
-    const options = { params };
-
-    return this.http
-      .get<AdoptionApplication[]>(url, options)
-      .pipe(catchError((error: any) => throwError(error)));
-  }
-
   persist(item: AdoptionApplicationPersist, reqFields: string[] = []): Observable<AdoptionApplication> {
     const url = `${this.apiBase}/persist`;
     let params = new HttpParams();

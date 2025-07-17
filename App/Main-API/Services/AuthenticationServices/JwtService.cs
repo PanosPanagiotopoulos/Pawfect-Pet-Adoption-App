@@ -109,6 +109,19 @@ namespace Main_API.Services.AuthenticationServices
             return jwtToken;
         }
 
+        public void RevokeToken(String tokenId, DateTime expiresAt)
+        {
+            if (String.IsNullOrEmpty(tokenId)) return;
+
+            _memoryCache.Set(
+                key: $"revoked_token_{tokenId}",
+                value: true,
+                options: new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = expiresAt
+                });
+        }
+
         public RefreshToken GenerateRefreshToken(String userId, String ip)
         {
             String token = this.GenerateJwtSecretKey();
@@ -125,38 +138,32 @@ namespace Main_API.Services.AuthenticationServices
         }
 
         /// <summary>
-        /// Ακυρώνει το token.
-        /// </summary>
-        /// <param name="tokenId">Το μοναδικό αναγνωριστικό του token.</param>
-        /// <param name="expiration">Η ημερομηνία λήξης του token.</param>
-        public void RevokeToken(String tokenId, DateTime expiration)
-        {
-            TimeSpan relativeExpiration = expiration - DateTime.UtcNow;
-
-            if (relativeExpiration <= TimeSpan.Zero)
-            {
-                _logger.LogError("Attempted to revoke a token that has already expired. TokenId: {TokenId}", tokenId);
-                return;
-            }
-
-            _memoryCache.Set(tokenId, true, relativeExpiration);
-            _logger.LogInformation("Ακυρώθηκε το token με TokenId: {TokenId}.", tokenId);
-        }
-
-        /// <summary>
         /// Ελέγχει εάν το token έχει ακυρωθεί.
         /// </summary>
         /// <param name="tokenId">Το μοναδικό αναγνωριστικό του token.</param>
         /// <returns>Επιστρέφει true εάν το token έχει ακυρωθεί, αλλιώς false.</returns>
-        public Boolean IsTokenRevoked(String tokenId)
+        public Boolean IsTokenRevoked(String token)
         {
-            Boolean isRevoked = _memoryCache.TryGetValue(tokenId, out _);
-            if (isRevoked)
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+
+            if (!handler.CanReadToken(token))
             {
-                _logger.LogWarning("Το token με TokenId: {TokenId} έχει ακυρωθεί.", tokenId);
+                _logger.LogWarning("Το token δεν μπορεί να διαβαστεί.");
+                return true;
             }
-            return isRevoked;
+
+            JwtSecurityToken jwtToken = handler.ReadJwtToken(token);
+            DateTime expiration = jwtToken.ValidTo;
+
+            if (expiration <= DateTime.UtcNow)
+            {
+                _logger.LogWarning("Το token έχει λήξει στις {Expiration}.", expiration);
+                return true;
+            }
+
+            return false;
         }
+
 
         /// <summary>
         /// Δημιουργεί το μυστικό κλειδί (secret key) για το JWT χρησιμοποιώντας έναν τυχαίο αλγόριθμο.

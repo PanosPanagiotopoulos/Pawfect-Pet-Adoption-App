@@ -9,6 +9,7 @@ import {
   AnimalTypePersist,
 } from '../models/animal-type/animal-type.model';
 import { HttpParams } from '@angular/common/http';
+import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
   providedIn: 'root',
@@ -23,10 +24,10 @@ export class AnimalTypeService {
     return `${this.installationConfiguration.appServiceAddress}api/animal-types`;
   }
 
-  query(q: AnimalTypeLookup): Observable<AnimalType[]> {
+  query(q: AnimalTypeLookup): Observable<QueryResult<AnimalType>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<AnimalType[]>(url, q)
+      .post<QueryResult<AnimalType>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

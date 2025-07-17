@@ -18,6 +18,7 @@
     using Main_API.Transactions;
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
+    using Amazon.S3.Model;
 
 	[ApiController]
 	[Route("auth")]
@@ -149,6 +150,7 @@
 
             // ** COOKIES ** //
             _cookiesService.DeleteCookie(JwtService.ACCESS_TOKEN);
+
             _cookiesService.SetCookie(JwtService.ACCESS_TOKEN, newAccessToken, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
 
             return Ok(new LoggedAccount
@@ -197,9 +199,8 @@
             if (!expiration.HasValue)
                 return Unauthorized("Failed to find expiration date in access token");
 
-            // Revoke the token
             _jwtService.RevokeToken(tokenId, expiration.Value);
-				
+
             // Handle refresh token deletion
             String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);
             if (!String.IsNullOrEmpty(refreshTokenString))

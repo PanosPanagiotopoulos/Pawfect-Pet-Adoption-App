@@ -161,7 +161,7 @@ namespace Main_API.Query.Queries
         // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
         public override List<String> FieldNamesOf(List<String> fields)
 		{
-			if (fields == null || !fields.Any() || fields.Contains("*")) fields = [.. EntityHelper.GetAllPropertyNames(typeof(Data.Entities.Animal))];
+			if (fields == null || !fields.Any()) return new List<String>();
 
 			HashSet<String> projectionFields = new HashSet<String>();
 			foreach (String item in fields)

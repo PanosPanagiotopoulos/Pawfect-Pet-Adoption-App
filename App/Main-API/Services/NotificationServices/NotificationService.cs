@@ -51,8 +51,6 @@ namespace Main_API.Services.NotificationServices
 			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
             Data.Entities.Notification data = new Data.Entities.Notification();
 
-			if (!await _authorizationService.AuthorizeAsync(Permission.CreateNotifications))
-                throw new ForbiddenException("Unauthorised access when creating notifications", typeof(Data.Entities.Notification), Permission.CreateNotifications);
 
             _mapper.Map(persist, data);
 			data.Id = null;

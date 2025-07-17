@@ -1,0 +1,15 @@
+// SCSS for profile-animals.component
+// Add styles as needed.
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
+// The .animate-fadeIn class is used for the no-animals state container for a smooth entrance.
+// The .animate-bounce utility is provided by Tailwind for the icon.
+// No additional styles needed for the redesigned empty state. 

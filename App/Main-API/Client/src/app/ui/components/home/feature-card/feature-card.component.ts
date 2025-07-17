@@ -33,8 +33,8 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         >
           <ng-icon [name]="icon" [class]="iconColor" [size]="'32'"></ng-icon>
         </div>
-        <h3 class="text-2xl font-semibold mb-4 text-white">{{ title }}</h3>
-        <p class="text-gray-200 leading-relaxed">{{ description }}</p>
+        <h3 class="text-2xl font-semibold mb-4 text-white">{{ title | translate  }}</h3>
+        <p class="text-gray-200 leading-relaxed">{{ description | translate }}</p>
       </div>
     </div>
   `,

@@ -6,6 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { BreedLookup } from '../lookup/breed-lookup';
 import { Breed, BreedPersist } from '../models/breed/breed.model';
 import { HttpParams } from '@angular/common/http';
+import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
   providedIn: 'root',
@@ -20,10 +21,10 @@ export class BreedService {
     return `${this.installationConfiguration.appServiceAddress}api/breeds`;
   }
 
-  query(q: BreedLookup): Observable<Breed[]> {
+  query(q: BreedLookup): Observable<QueryResult<Breed>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<Breed[]>(url, q)
+      .post<QueryResult<Breed>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

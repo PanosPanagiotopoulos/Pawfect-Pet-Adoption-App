@@ -58,13 +58,13 @@
       },
       {
         "Permission": "EditAnimals",
-        "Roles": [ "Shelter", "Admin" ],
-        "AffiliatedRoles": []
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": [ "Shelter" ]
       },
       {
         "Permission": "DeleteAnimals",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": []
+        "AffiliatedRoles": [ "Shelter" ]
       },
       {
         "Permission": "CanViewAnimalTypes",
@@ -134,7 +134,7 @@
       {
         "Permission": "EditAdoptionApplications",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": []
+        "AffiliatedRoles": [ "User", "Shelter" ]
       },
       {
         "Permission": "DeleteAdoptionApplications",
@@ -154,7 +154,7 @@
       {
         "Permission": "BrowseFiles",
         "Roles": [ "User", "Shelter", "Admin" ],
-        "AffiliatedRoles": [ "User", "Shelter" ]
+        "AffiliatedRoles": []
       },
       {
         "Permission": "EditFiles",
@@ -198,8 +198,8 @@
       },
       {
         "Permission": "CreateMessages",
-        "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "User", "Shelter" ]
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
       },
       {
         "Permission": "BrowseMessages",
@@ -209,7 +209,7 @@
       {
         "Permission": "EditMessages",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "User", "Shelter" ]
+        "AffiliatedRoles": []
       },
       {
         "Permission": "DeleteMessages",
@@ -218,11 +218,6 @@
       },
       {
         "Permission": "CanViewNotifications",
-        "Roles": [ "User", "Shelter", "Admin" ],
-        "AffiliatedRoles": []
-      },
-      {
-        "Permission": "CreateNotifications",
         "Roles": [ "User", "Shelter", "Admin" ],
         "AffiliatedRoles": []
       },
@@ -243,7 +238,7 @@
       },
       {
         "Permission": "CanViewReports",
-        "Roles": [ "User", "Shelter", "Admin" ],
+        "Roles": [ "Admin" ],
         "AffiliatedRoles": []
       },
       {

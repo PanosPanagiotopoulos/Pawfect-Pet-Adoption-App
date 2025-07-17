@@ -26,8 +26,6 @@ namespace Main_API.Censors
             if (fields == null || fields.Count == 0) return new List<String>();
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            if (fields.Contains("*")) fields = this.ExtractForeign(fields, typeof(Data.Entities.Report));
-
             List<String> censoredFields = new List<String>();
             if (await _authorizationService.AuthorizeOrOwnedOrAffiliated(context, Permission.BrowseReports))
             {

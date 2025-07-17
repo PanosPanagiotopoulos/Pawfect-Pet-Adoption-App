@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-
+using Main_API.Data.Entities.EnumTypes;
 using Main_API.Data.Entities.Types.Authorization;
 using Main_API.Exceptions;
 using Main_API.Models.AdoptionApplication;
@@ -34,15 +34,21 @@ namespace Main_API.Builders
 	{
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
+        private readonly IAuthorizationContentResolver _authorizationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
 
         public UserBuilder
 		(
-			IQueryFactory queryFactory, IBuilderFactory builderFactory
-
+			IQueryFactory queryFactory, 
+            IBuilderFactory builderFactory,
+            IAuthorizationContentResolver authorizationContentResolver,
+            ClaimsExtractor claimsExtractor
         )
 		{
             this._queryFactory = queryFactory;
             this._builderFactory = builderFactory;
+            this._authorizationContentResolver = authorizationContentResolver;
+            this._claimsExtractor = claimsExtractor;
         }
 
         public AuthorizationFlags _authorise = AuthorizationFlags.None;
@@ -68,25 +74,31 @@ namespace Main_API.Builders
                ? (await CollectAdoptionApplications(entities, foreignEntitiesFields[nameof(Models.User.User.RequestedAdoptionApplications)]))
                : null;
 
+            // Sensitive Info flag
+            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+            String currentUserId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+
             List<Models.User.User> result = new List<Models.User.User>();
 			foreach (Data.Entities.User e in entities)
 			{
+                Boolean canSeeSensitiveInfo = e.Id == currentUserId || e.Roles.Contains(UserRole.Shelter);
+
                 Models.User.User dto = new Models.User.User();
 				dto.Id = e.Id;
 				if (nativeFields.Contains(nameof(Models.User.User.Email))) dto.Email = e.Email;
 				if (nativeFields.Contains(nameof(Models.User.User.FullName))) dto.FullName = e.FullName;
 				if (nativeFields.Contains(nameof(Models.User.User.Roles))) dto.Roles = e.Roles;
-				if (nativeFields.Contains(nameof(Models.User.User.Phone))) dto.Phone = e.Phone;
-				if (nativeFields.Contains(nameof(Models.User.User.Location))) dto.Location = e.Location;
-				if (nativeFields.Contains(nameof(Models.User.User.AuthProvider))) dto.AuthProvider = e.AuthProvider;
-				if (nativeFields.Contains(nameof(Models.User.User.AuthProviderId))) dto.AuthProviderId = e.AuthProviderId;
+				
 				if (nativeFields.Contains(nameof(Models.User.User.IsVerified))) dto.IsVerified = e.IsVerified;
-				if (nativeFields.Contains(nameof(Models.User.User.HasPhoneVerified))) dto.HasPhoneVerified = e.HasPhoneVerified;
-				if (nativeFields.Contains(nameof(Models.User.User.HasEmailVerified))) dto.HasEmailVerified = e.HasEmailVerified;
 				if (nativeFields.Contains(nameof(Models.User.User.CreatedAt))) dto.CreatedAt = e.CreatedAt;
 				if (nativeFields.Contains(nameof(Models.User.User.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 
-				if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
+                // Sensitive info. Include user role to build correctly
+                if (nativeFields.Contains(nameof(Models.User.User.Phone)) && canSeeSensitiveInfo) dto.Phone = e.Phone;
+                if (nativeFields.Contains(nameof(Models.User.User.Location)) && canSeeSensitiveInfo) dto.Location = e.Location;
+
+                // Foreign
+                if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];
 				if (fileMap != null && fileMap.ContainsKey(e.Id)) dto.ProfilePhoto = fileMap[e.Id];
                 if (adoptionApplicationsMap != null && adoptionApplicationsMap.ContainsKey(e.Id)) dto.RequestedAdoptionApplications = adoptionApplicationsMap[e.Id];
 
@@ -103,6 +115,7 @@ namespace Main_API.Builders
 
             // Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
             List<String?> shelterIds = [.. users.Where(x => !String.IsNullOrEmpty(x.ShelterId)).Select(x => x.ShelterId).Distinct()];
+            if (shelterIds.Count == 0) return null;
 
             ShelterLookup shelterLookup = new ShelterLookup();
 

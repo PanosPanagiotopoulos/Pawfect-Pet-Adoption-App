@@ -31,36 +31,9 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { inject } from '@angular/core';
 import { TranslationService } from 'src/app/common/services/translation.service';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
-function createProfilePaginatorIntl(): MatPaginatorIntl {
-  const intl = new MatPaginatorIntl();
-  const translationService = inject(TranslationService);
-  const setLabels = () => {
-    const translate = (key: string) => translationService.translate ? translationService.translate(key) : key;
-    intl.itemsPerPageLabel = translate('APP.COMMONS.ITEMS_PER_PAGE');
-    intl.nextPageLabel = translate('APP.COMMONS.NEXT_PAGE');
-    intl.previousPageLabel = translate('APP.COMMONS.PREVIOUS_PAGE');
-    intl.firstPageLabel = translate('APP.COMMONS.FIRST_PAGE') || 'First page';
-    intl.lastPageLabel = translate('APP.COMMONS.LAST_PAGE') || 'Last page';
-    intl.getRangeLabel = (page: number, pageSize: number, length: number) => {
-      if (length === 0 || pageSize === 0) {
-        return `0 ${translate('APP.COMMONS.OF')} ${length}`;
-      }
-      const startIndex = page * pageSize;
-      const endIndex = startIndex < length ? Math.min(startIndex + pageSize, length) : startIndex + pageSize;
-      return `${startIndex + 1} - ${endIndex} ${translate('APP.COMMONS.OF')} ${length}`;
-    };
-  };
-  setLabels();
-  // Subscribe to language changes and update labels live
-  if (translationService.languageChanged$) {
-    translationService.languageChanged$.subscribe(() => {
-      setLabels();
-      intl.changes.next();
-    });
-  }
-  return intl;
-}
+
 import { ProfileAnimalsComponent } from './profile-animals.component';
 import { ProfileAdoptionApplicationsComponent } from './profile-adoption-applications.component';
 
@@ -80,19 +53,6 @@ import { ProfileAdoptionApplicationsComponent } from './profile-adoption-applica
     FileDropAreaComponent,
     FormErrorSummaryComponent,
     ValidationMessageComponent,
-    LucideAngularModule.pick({
-      mapPin: LucideMapPin,
-      user: LucideUser,
-      fileText: LucideFileText,
-      check: LucideCheck,
-      building: LucideBuilding,
-      pawPrint: LucidePawPrint,
-      alertCircle: LucideAlertCircle,
-      instagram: LucideInstagram,
-      facebook: LucideFacebook,
-      plus: LucidePlus,
-      inbox: LucideInbox,
-    }),
     PetDetailsDialogComponent,
     NgIconsModule,
     TranslatePipe,
@@ -111,9 +71,14 @@ import { ProfileAdoptionApplicationsComponent } from './profile-adoption-applica
     MatTooltipModule,
     MatMenuModule,
     MatPaginatorModule,
+    MatCheckboxModule,
     RouterModule.forChild([
       { 
         path: '', 
+        component: ProfileComponent
+      },
+      {   
+        path: ':id', 
         component: ProfileComponent
       }
     ]),
@@ -121,11 +86,6 @@ import { ProfileAdoptionApplicationsComponent } from './profile-adoption-applica
   exports: [
     ProfileComponent,
   ],
-  providers: [
-    {
-      provide: MatPaginatorIntl,
-      useFactory: createProfilePaginatorIntl
-    }
-  ]
+  
 })
 export class ProfileModule {} 

@@ -13,6 +13,8 @@ using Main_API.Services.ShelterServices;
 using Main_API.Transactions;
 using System.Linq;
 using System.Reflection;
+using Pawfect_Pet_Adoption_App_API.Query;
+using Main_API.Query.Queries;
 
 namespace Main_API.Controllers
 {
@@ -58,10 +60,9 @@ namespace Main_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying shelters");
 
             shelterLookup.Fields = censoredFields;
-            List<Data.Entities.Shelter> datas = await shelterLookup
-                                                    .EnrichLookup(_queryFactory)
-                                                    .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                                                    .CollectAsync();
+			ShelterQuery q = shelterLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
+
+            List<Data.Entities.Shelter> datas = await q.CollectAsync();
 
             List<Shelter> models = await _builderFactory.Builder<ShelterBuilder>()
                                                 .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
@@ -69,7 +70,11 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Shelters not found", JsonHelper.SerializeObjectFormatted(shelterLookup), typeof(Data.Entities.Shelter));
 
-            return Ok(models);
+			return Ok(new QueryResult<Shelter>()
+			{
+				Items = models,
+				Count = await q.CountAsync()
+			});
 		}
 
 		/// <summary>

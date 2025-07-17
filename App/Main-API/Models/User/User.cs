@@ -11,12 +11,8 @@ namespace Main_API.Models.User
 		public String Phone { get; set; }
 		public Location? Location { get; set; }
 		public Shelter.Shelter? Shelter { get; set; }
-		public AuthProvider? AuthProvider { get; set; }
-		public String AuthProviderId { get; set; }
 		public File.File ProfilePhoto { get; set; }
 		public Boolean? IsVerified { get; set; }
-		public Boolean? HasPhoneVerified { get; set; }
-		public Boolean? HasEmailVerified { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
         public List<AdoptionApplication.AdoptionApplication> RequestedAdoptionApplications { get; set; }

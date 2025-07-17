@@ -13,6 +13,8 @@ using Main_API.Services.ReportServices;
 using Main_API.Transactions;
 using System.Linq;
 using System.Reflection;
+using Main_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Query;
 
 namespace Main_API.Controllers
 {
@@ -57,10 +59,10 @@ namespace Main_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying reports");
 
             reportLookup.Fields = censoredFields;
-            List<Data.Entities.Report> datas = await reportLookup
-                                                    .EnrichLookup(_queryFactory)
-                                                    .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                                                    .CollectAsync();
+
+			ReportQuery q = reportLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
+
+            List<Data.Entities.Report> datas = await q.CollectAsync();
 
             List<Report> models = await _builderFactory.Builder<ReportBuilder>()
                                                 .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
@@ -68,7 +70,11 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Reports not found", JsonHelper.SerializeObjectFormatted(reportLookup), typeof(Data.Entities.Report));
 
-            return Ok(models);
+			return Ok(new QueryResult<Report>()
+			{
+				Items = models,
+				Count = await q.CountAsync()
+			});
 		}
 
 		/// <summary>

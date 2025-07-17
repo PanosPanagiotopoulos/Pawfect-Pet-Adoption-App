@@ -97,7 +97,6 @@ export class TranslationService {
     
     // If not initialized yet, return the key
     if (!this.isInitialized) {
-      console.warn(`[TranslationService] Not initialized yet, returning key: ${key}`);
       return key;
     }
     
@@ -107,7 +106,6 @@ export class TranslationService {
       if (value && typeof value === 'object' && part in value) {
         value = value[part];
       } else {
-        console.warn(`[TranslationService] Key not found: ${key}`);
         return key; // fallback to key if not found
       }
     }

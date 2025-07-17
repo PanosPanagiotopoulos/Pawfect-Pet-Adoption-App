@@ -263,19 +263,14 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
     const isShelter = this.profileUser.roles?.includes(UserRole.Shelter) ?? false;
     const isOwnProfile = this.isOwnProfile ?? false;
 
+    // New merged user-info tab
     let tabs: ProfileTab[] = [
       {
-        labelKey: 'APP.PROFILE-PAGE.TABS.PERSONAL_INFO',
+        labelKey: 'APP.PROFILE-PAGE.TABS.USER_INFO',
         icon: 'lucideUser',
-        component: 'personal-info',
-        visible: true
-      },
-      {
-        labelKey: 'APP.PROFILE-PAGE.TABS.SHELTER_INFO',
-        icon: 'lucideBuilding',
-        component: 'shelter-info',
-        visible: isShelter,
-        permission: Permission.BrowseShelters
+        component: 'user-info',
+        visible: this.authService.hasPermission(Permission.BrowseUsers) || (isShelter && this.authService.hasPermission(Permission.BrowseShelters)),
+        permission: isShelter ? Permission.BrowseShelters : Permission.BrowseUsers
       },
       {
         labelKey: 'APP.PROFILE-PAGE.TABS.ADOPTION_APPLICATIONS',
@@ -295,15 +290,14 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
         labelKey: 'APP.PROFILE-PAGE.TABS.MY_ANIMALS',
         icon: 'lucidePawPrint',
         component: 'my-animals',
-        visible: isShelter && isOwnProfile,
-        permission: Permission.BrowseAnimals
+        visible: isShelter
       }
     ];
 
-    // Filter tabs based on permissions
+    // Filter tabs based on permissions (only for tabs with a permission property)
     tabs = tabs.filter(tab => {
       if (!tab.visible) return false;
-      if (tab.permission && !this.hasPermission(tab.permission)) return false;
+      if (tab.permission && !this.authService.hasPermission(tab.permission)) return false;
       return true;
     });
 
@@ -313,16 +307,7 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
 
   private loadTabData(): void {
     if (!this.profileUser) return;
-    // This method is now simplified.
-    // All tab-specific data is fetched within the respective tab components.
-    // This prevents duplicate requests and improves component encapsulation.
     this.cdr.markForCheck();
-  }
-
-  private hasPermission(permission: Permission): boolean {
-    // This should check against the current user's permissions
-    // For now, we'll assume the user has the permission if they're authenticated
-    return !!this.currentUser;
   }
 
   private setTabFromQueryParams(): void {
@@ -552,5 +537,9 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
       .join(' ');
     const encoded = encodeURIComponent(address);
     return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+  }
+
+  reloadPage(): void {
+    window.location.reload();
   }
 } 

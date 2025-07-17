@@ -3,7 +3,6 @@ using Main_API.Models.Lookups;
 using Main_API.Services.AuthenticationServices;
 using Microsoft.Extensions.Options;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
-using System.Collections.Generic;
 
 namespace Main_API.Censors
 {
@@ -12,6 +11,7 @@ namespace Main_API.Censors
         private readonly IAuthorizationService _authorizationService;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
+        private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly UserFields _userFields;
 
         public UserCensor
@@ -19,12 +19,14 @@ namespace Main_API.Censors
             IAuthorizationService AuthorizationService,
             ICensorFactory censorFactory,
             AuthContextBuilder contextBuilder,
+            IAuthorizationContentResolver authorizationContentResolver,
             IOptions<UserFields> userFields
         )
         {
             _authorizationService = AuthorizationService;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _authorizationContentResolver = authorizationContentResolver;
             _userFields = userFields.Value;
         }
         public override async Task<List<String>> Censor(List<String> fields, AuthContext context)
@@ -32,13 +34,10 @@ namespace Main_API.Censors
             if (fields == null || fields.Count == 0) return new List<String>();
             if (context == null) throw new ArgumentNullException(nameof(context));
 
-            if (fields.Contains("*")) fields = this.ExtractForeign(fields, typeof(Data.Entities.User));
-            
             List<String> censoredFields = new List<String>();
 
-            if (context.OwnedResource != null)
-                if (await _authorizationService.AuthorizeOwnedAsync(context.OwnedResource))
-                    censoredFields.AddRange(this.ExtractNonPrefixed(fields, true));
+            Boolean isOwner = context.OwnedResource != null && await _authorizationService.AuthorizeOwnedAsync(context.OwnedResource);
+            censoredFields.AddRange(this.ExtractNonPrefixed(fields, isOwner));
 
             if (await _authorizationService.AuthorizeAsync(Permission.BrowseUsers))
             {
@@ -73,9 +72,9 @@ namespace Main_API.Censors
         public List<String> ExtractNonPrefixed(List<String> fields, Boolean isOwner = false)
         {
             List<String> nonPrefixed = base.ExtractNonPrefixed(fields);
-            List<String> allowedFields = isOwner ? _userFields.Owner : _userFields.External;
+            List<String> ownerAllowedFields = isOwner ? _userFields.Owner : _userFields.External;
 
-            return [.. nonPrefixed.Intersect(allowedFields)];
+            return [.. nonPrefixed.Intersect(ownerAllowedFields)];
         }
             
 

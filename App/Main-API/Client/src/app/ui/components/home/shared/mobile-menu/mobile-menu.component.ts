@@ -182,7 +182,6 @@ export class MobileMenuComponent {
 
   onLogout(): void {
     this.logout.emit();
-    this.close.emit();
   }
 
   navigateToLogin(): void {

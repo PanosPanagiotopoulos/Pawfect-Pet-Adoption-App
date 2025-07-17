@@ -6,6 +6,7 @@ import { catchError } from 'rxjs/operators';
 import { ShelterLookup } from '../lookup/shelter-lookup';
 import { Shelter, ShelterPersist } from '../models/shelter/shelter.model';
 import { HttpParams } from '@angular/common/http';
+import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
   providedIn: 'root',
@@ -20,10 +21,10 @@ export class ShelterService {
     return `${this.installationConfiguration.appServiceAddress}api/shelters`;
   }
 
-  query(q: ShelterLookup): Observable<Shelter[]> {
+  query(q: ShelterLookup): Observable<QueryResult<Shelter>> {
     const url = `${this.apiBase}/query`;
     return this.http
-      .post<Shelter[]>(url, q)
+      .post<QueryResult<Shelter>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

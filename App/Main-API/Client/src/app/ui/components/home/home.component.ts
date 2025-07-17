@@ -22,25 +22,24 @@ export class HomeComponent {
   features: Feature[] = [
     {
       icon: 'lucideSearch',
-      // i18n: Feature title and description
-      title: this.translate.translate('APP.HOME-PAGE.FEATURE_SEARCH_TITLE'),
-      description: this.translate.translate('APP.HOME-PAGE.FEATURE_SEARCH_DESC'),
+      title: 'APP.HOME-PAGE.FEATURE_SEARCH_TITLE',
+      description: 'APP.HOME-PAGE.FEATURE_SEARCH_DESC',
       bgColor: 'bg-gradient-to-br from-primary-500/20 to-primary-400/20',
       iconColor: 'text-primary-400',
       gradientClass: 'feature-card-primary',
     },
     {
       icon: 'lucideHeart',
-      title: this.translate.translate('APP.HOME-PAGE.FEATURE_MATCH_TITLE'),
-      description: this.translate.translate('APP.HOME-PAGE.FEATURE_MATCH_DESC'),
+      title: 'APP.HOME-PAGE.FEATURE_MATCH_TITLE',
+      description: 'APP.HOME-PAGE.FEATURE_MATCH_DESC',
       bgColor: 'bg-gradient-to-br from-secondary-500/20 to-secondary-400/20',
       iconColor: 'text-secondary-400',
       gradientClass: 'feature-card-secondary',
     },
     {
       icon: 'lucideMessageCircle',
-      title: this.translate.translate('APP.HOME-PAGE.FEATURE_ADOPT_TITLE'),
-      description: this.translate.translate('APP.HOME-PAGE.FEATURE_ADOPT_DESC'),
+      title: 'APP.HOME-PAGE.FEATURE_ADOPT_TITLE',
+      description: 'APP.HOME-PAGE.FEATURE_ADOPT_DESC',
       bgColor: 'bg-gradient-to-br from-accent-500/20 to-accent-400/20',
       iconColor: 'text-accent-400',
       gradientClass: 'feature-card-accent',

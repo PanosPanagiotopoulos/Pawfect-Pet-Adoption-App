@@ -44,10 +44,8 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        if (
-          error.status !== 401 ||
-          this.excludedRoutes.includes(this.router.parseUrl(this.router.url).root.children['primary']?.segments.map(s => '/' + s.path).join('') || '/')
-        ) {
+        const failedUrl = this.router.url.split('?')[0];
+        if (error.status !== 401) {
           return throwError(() => error);
         }
 
@@ -56,6 +54,9 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
             return next.handle(request.clone());
           }),
           catchError((refreshError) => {
+            if (this.excludedRoutes.includes(failedUrl)) {
+              return throwError(() => error);
+            }
             this.snackbarService.showError({
               message: this.getFallbackMessage('loginRequired'),
               subMessage: this.getFallbackMessage('redirectMessage')
