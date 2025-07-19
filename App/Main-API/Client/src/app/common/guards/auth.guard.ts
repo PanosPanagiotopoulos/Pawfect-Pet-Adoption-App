@@ -20,7 +20,7 @@ export class AuthGuard implements CanActivate {
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
     const requiredPermissions = route.data['permissions'] as Permission[];
-    const attemptedUrl = state.url; // ✅ Accurate route user tried to access
+    const attemptedUrl = state.url; 
 
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return of(true);

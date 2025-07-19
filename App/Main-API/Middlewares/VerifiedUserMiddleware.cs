@@ -14,7 +14,7 @@ namespace Pawfect_Pet_Adoption_App_API.Middlewares
         public async Task InvokeAsync(HttpContext context)
         {
             // Only check for authenticated users
-            if (context.User.Identity?.IsAuthenticated == true)
+            if (context.User.Identity?.IsAuthenticated == true && !context.Request.Path.Value?.ToLower().Contains("auth") == true)
             {
                 System.Security.Claims.Claim isVerifiedClaim = context.User.FindFirst("isVerified");
                 if (isVerifiedClaim == null || !bool.TryParse(isVerifiedClaim.Value, out Boolean isVerified) || !isVerified)

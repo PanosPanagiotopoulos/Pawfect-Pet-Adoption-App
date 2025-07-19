@@ -19,6 +19,7 @@
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
     using Amazon.S3.Model;
+    using Newtonsoft.Json.Linq;
 
 	[ApiController]
 	[Route("auth")]
@@ -87,9 +88,6 @@
 			if (!Security.ValidatedHashedValues(loginCredential, toCheckCredential))
 				throw new ForbiddenException("Invalid user credentials");
 
-			if (!user.HasPhoneVerified)
-				throw new ForbiddenException("Phone number has not been verified");
-
             List<String> userRoles = [.. user.Roles.Select(roleEnum => roleEnum.ToString())];
             List<String> permissions = [.. _permissionPolicyProvider.GetPermissionsAndAffiliatedForRoles(userRoles)];
 
@@ -127,6 +125,7 @@
 		}
 
         [HttpPost("refresh")]
+		[Authorize]
         public async Task<IActionResult> RefreshToken()
         {
             String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);
@@ -142,11 +141,39 @@
             Data.Entities.User user = await _userService.RetrieveUserAsync(userId, null);
             if (user == null) return NotFound("User not found");
 
+
             List<String> userRoles = [.. user.Roles.Select(roleEnum => roleEnum.ToString())];
 
             String newAccessToken = _jwtService.GenerateJwtToken(user.Id, user.Email, userRoles, user.IsVerified);
             if (String.IsNullOrEmpty(newAccessToken))
                 throw new InvalidOperationException("Failed to create token");
+
+            // Revoke old token
+
+            // Extract access token from cookie
+            String? token = _cookiesService.GetCookie(JwtService.ACCESS_TOKEN);
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+            JwtSecurityToken jwtToken;
+            try
+            {
+                jwtToken = handler.ReadJwtToken(token);
+            }
+            catch (Exception)
+            {
+                return Unauthorized("Invalid access token");
+            }
+
+            // Extract token ID (jti)
+            String? tokenId = jwtToken.Id;
+            if (String.IsNullOrEmpty(tokenId))
+                return BadRequest("Failed to find token ID in access token");
+
+            // Extract expiration
+            DateTime? expiration = jwtToken.ValidTo;
+            if (!expiration.HasValue)
+                return BadRequest("Failed to find expiration date in access token");
+
+            _jwtService.RevokeToken(tokenId, expiration.Value);
 
             // ** COOKIES ** //
             _cookiesService.DeleteCookie(JwtService.ACCESS_TOKEN);
