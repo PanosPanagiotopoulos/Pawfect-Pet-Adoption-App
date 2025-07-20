@@ -60,9 +60,9 @@ namespace Main_API.Query.Queries
         private IFindFluent<T, T> ApplyProjection(IFindFluent<T, T> finder)
 		{
 			if (Fields == null || Fields.Count == 0)
-			{
-				return finder.Project<T>(Builders<T>.Projection.Exclude("_id"));
-			}
+				return finder;
+
+			Fields = FieldNamesOf(Fields.ToList());
 
 			ProjectionDefinition<T> projection = Builders<T>.Projection.Include(Fields.First());
 			foreach (String field in Fields.Skip(1))

@@ -5,7 +5,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { AnimalLookup } from '../lookup/animal-lookup';
 import { Animal, AnimalPersist } from '../models/animal/animal.model';
-import { HttpParams } from '@angular/common/http';
+import { HttpParams, HttpResponse } from '@angular/common/http';
 import { QueryResult } from '../common/models/query-result';
 
 @Injectable({
@@ -73,6 +73,14 @@ export class AnimalService {
     return this.http
       .post<Animal>(url, item, options)
       .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  getImportExcel(): Observable<HttpResponse<Blob>> {
+    const url = `${this.apiBase}/import-template/excel`;
+    return this.http.get(url, {
+      observe: 'response',
+      responseType: 'blob'
+    });
   }
   
   delete(id: string): Observable<void> {

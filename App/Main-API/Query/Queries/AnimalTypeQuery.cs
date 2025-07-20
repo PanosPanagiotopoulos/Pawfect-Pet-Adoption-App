@@ -31,10 +31,7 @@ namespace Main_API.Query.Queries
         public List<String>? Ids { get; set; }
 
         public List<String>? ExcludedIds { get; set; }
-
-
-        // Ονομασία τύπων ζώων για φιλτράρισμα
-        public String? Name { get; set; }
+        public List<String>? Names { get; set; }
 
         private AuthorizationFlags _authorise = AuthorizationFlags.None;
         public AnimalTypeQuery Authorise(AuthorizationFlags authorise) { this._authorise = authorise; return this; }
@@ -65,11 +62,11 @@ namespace Main_API.Query.Queries
                 filter &= builder.Nin(nameof(Data.Entities.AnimalType.Id), referenceIds.Where(id => id != ObjectId.Empty));
             }
 
-            // Εφαρμόζει φίλτρο για την ονομασία των τύπων ζώων
-            if (!String.IsNullOrEmpty(Name))
-			{
-				filter &= builder.Eq(animalType => animalType.Name, Name);
-			}
+            if (Names != null && Names.Any())
+            {
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.In(nameof(Data.Entities.AnimalType.Name), Names);
+            }
 
 			// Εφαρμόζει φίλτρο για fuzzy search μέσω indexing στη Mongo σε πεδίο : Name
 			if (!String.IsNullOrEmpty(Query))

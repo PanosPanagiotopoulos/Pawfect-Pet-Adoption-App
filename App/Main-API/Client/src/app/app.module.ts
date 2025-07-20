@@ -61,7 +61,8 @@ import {
   lucideListOrdered,
   lucideFileQuestion,
   lucideArrowDownWideNarrow,
-  lucideArrowUpWideNarrow
+  lucideArrowUpWideNarrow,
+  lucideRefreshCw,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -165,7 +166,8 @@ export function initializeApp(
       lucideListOrdered,
       lucideFileQuestion,
       lucideArrowDownWideNarrow,
-      lucideArrowUpWideNarrow
+      lucideArrowUpWideNarrow,
+      lucideRefreshCw,
     }),
     HeaderComponent,
     TranslatePipe,

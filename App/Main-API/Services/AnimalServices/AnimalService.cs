@@ -1,9 +1,6 @@
-﻿using Amazon.S3.Transfer;
-using AutoMapper;
-
+﻿using AutoMapper;
 using Main_API.Builders;
 using Main_API.Censors;
-using Main_API.Data.Entities;
 using Main_API.Data.Entities.EnumTypes;
 using Main_API.Data.Entities.Types.Authorization;
 using Main_API.Exceptions;
@@ -12,10 +9,8 @@ using Main_API.Models.File;
 using Main_API.Models.Lookups;
 using Main_API.Query;
 using Main_API.Query.Queries;
-using Main_API.Repositories.Implementations;
 using Main_API.Repositories.Interfaces;
 using Main_API.Services.AuthenticationServices;
-using Main_API.Services.BreedServices;
 using Main_API.Services.Convention;
 using Main_API.Services.FileServices;
 using System.Security.Claims;
@@ -67,60 +62,79 @@ namespace Main_API.Services.AnimalServices
             _queryFactory = queryFactory;
             _builderFactory = builderFactory;
 		}
-		public async Task<Models.Animal.Animal?> Persist(AnimalPersist persist, List<String> fields)
-		{
-			Boolean isUpdate = _conventionService.IsValidId(persist.Id);
-            Data.Entities.Animal data = new Data.Entities.Animal();
-			String dataId = String.Empty;
 
-			if (!await this.AuthoriseAnimalPersist(persist, Permission.EditAnimals))
+        public async Task<Models.Animal.Animal?> Persist(AnimalPersist persist, List<String> fields)
+            => (await this.PersistBatch(new List<AnimalPersist>() { persist }, fields))?.FirstOrDefault();
+
+        public async Task<List<Models.Animal.Animal>> PersistBatch(List<AnimalPersist> models, List<String> fields)
+        {
+            Boolean isUpdate = _conventionService.IsValidId(models.FirstOrDefault().Id);
+
+            if (!await this.AuthoriseAnimalPersist(models.FirstOrDefault(), Permission.EditAnimals))
                 throw new ForbiddenException("You are not authorized to edit animals", typeof(Data.Entities.Animal), Permission.EditAnimals);
+			
+			List<Data.Entities.Animal> datas = new List<Data.Entities.Animal>();
+            List<String> dataIds = new List<String>();
 
+            AnimalQuery q = _queryFactory.Query<AnimalQuery>();
+            q.Offset = 0;
+            q.PageSize = models.Count;
             if (isUpdate)
-			{
-				data = await _animalRepository.FindAsync(x => x.Id == persist.Id);
+            {
+				q.Ids = models.Select(m => m.Id).ToList();
 
-				if (data == null) throw new NotFoundException("No animal found to persist", persist.Id, typeof(Data.Entities.Animal));
+				datas = await q.CollectAsync();
 
-				_mapper.Map(persist, data);
-				data.UpdatedAt = DateTime.UtcNow;
-			}
-			else
-			{
-				_mapper.Map(persist, data);
-				data.Id = null;
-				data.CreatedAt = DateTime.UtcNow;
-				data.UpdatedAt = DateTime.UtcNow;
-			}
+                if (datas == null || datas.Count != models.Count) throw new NotFoundException("Not all animals found to persist", null, typeof(Data.Entities.Animal));
 
-			await this.PersistFiles(persist.AttachedPhotosIds, data.PhotosIds);
+				foreach (AnimalPersist animalPersist in models)
+				{
+					Data.Entities.Animal animal = datas.Where(data => data.Id.Equals(animalPersist.Id)).FirstOrDefault();
+                    _mapper.Map(animalPersist, animal);
+					animal.UpdatedAt = DateTime.UtcNow;
+				}
+            }
+            else
+            {
+                foreach (AnimalPersist animalPersist in models)
+                {
+                    Data.Entities.Animal animal = datas.Where(data => data.Id.Equals(animalPersist.Id)).FirstOrDefault();
+                    _mapper.Map(animalPersist, animal);
+                    animal.Id = null;
+                    animal.CreatedAt = DateTime.UtcNow;
+                    animal.UpdatedAt = DateTime.UtcNow;
+                }
+            }
 
-			if (isUpdate) dataId = await _animalRepository.UpdateAsync(data);
-			else dataId = await _animalRepository.AddAsync(data);
+			await this.PersistFiles(
+				models.Where(x => x.AttachedPhotosIds != null && x.AttachedPhotosIds.Count > 0).SelectMany(x => x.AttachedPhotosIds).ToList(),
+				datas.Where(x => x.PhotosIds != null && x.PhotosIds.Count > 0).SelectMany(x => x.PhotosIds).ToList()
+			);
 
-			if (String.IsNullOrEmpty(dataId))
-				throw new InvalidOperationException("Failed to persist animal");
+            if (isUpdate) dataIds = await _animalRepository.UpdateManyAsync(datas);
+            else dataIds = await _animalRepository.AddManyAsync(datas);
 
-			// Return dto model
-			AnimalLookup lookup = new AnimalLookup();
-			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = fields;
-			lookup.Offset = 0;
-			lookup.PageSize = 1;
+            if (dataIds == null || dataIds.Count != models.Count)
+                throw new InvalidOperationException("Failed to persist all animals");
+
+            // Return dto model
+            AnimalLookup lookup = new AnimalLookup();
+            lookup.Ids = dataIds;
+            lookup.Fields = fields ?? new List<String>() { nameof(Models.Animal.Animal.Name) };
+            lookup.Offset = 0;
+            lookup.PageSize = models.Count;
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
             List<String> censoredFields = await _censorFactory.Censor<AnimalCensor>().Censor([.. lookup.Fields], context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying animals");
-
             lookup.Fields = censoredFields;
-            return (await _builderFactory.Builder<AnimalBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-										.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
-										.FirstOrDefault();
-		}
 
-		private async Task<Boolean> AuthoriseAnimalPersist(AnimalPersist animal, String permission)
+			return await _builderFactory.Builder<AnimalBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields);
+        }
+
+        private async Task<Boolean> AuthoriseAnimalPersist(AnimalPersist animal, String permission)
 		{
-			String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
+            String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
 			if (!_conventionService.IsValidId(userShelterId) || !animal.ShelterId.Equals(userShelterId)) return false;
 
             return await _authorizationService.AuthorizeAsync(permission);

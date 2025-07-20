@@ -131,12 +131,13 @@
       [@stepTransition]="stepDirection"
       class="bg-white/5 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8 border border-white/10"
     >
-      <app-preferences
+      <app-shelter-info
         [form]="registrationForm"
         [isLoading]="isLoading"
+        [language]="translationService.getLanguage()"
         (back)="onShelterInfoBack()"
         (submit)="onSubmitRegistration()"
-      ></app-preferences>
+      ></app-shelter-info>
     </div>
 
     <!-- OTP Verification Step -->

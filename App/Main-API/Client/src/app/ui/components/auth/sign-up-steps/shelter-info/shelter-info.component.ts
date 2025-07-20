@@ -15,6 +15,9 @@ import {
   ReactiveFormsModule,
   FormsModule,
   AbstractControl,
+  Validators,
+  ValidatorFn,
+  ValidationErrors,
 } from '@angular/forms';
 import { NgIconsModule } from '@ng-icons/core';
 import { FormInputComponent } from 'src/app/common/ui/form-input.component';
@@ -24,6 +27,7 @@ import {
   ErrorDetails,
 } from 'src/app/common/ui/error-message-banner.component';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { CustomValidators } from 'src/app/ui/components/auth/validators/custom.validators';
 
 @Component({
   selector: 'app-shelter-info',
@@ -44,6 +48,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 export class ShelterInfoComponent implements OnInit {
   @Input() form!: FormGroup;
   @Input() isLoading = false;
+  @Input() language!: string;
   @Output() back = new EventEmitter<void>();
   @Output() submit = new EventEmitter<void>();
   @ViewChild('formContainer') formContainer!: ElementRef;
@@ -83,6 +88,9 @@ export class ShelterInfoComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Set up validators for shelter form fields
+    this.setupShelterValidators();
+
     this.days.forEach((day) => {
       const dayKey = this.getDayKey(day);
       const operatingHours = this.getOperatingHoursForm();
@@ -109,6 +117,65 @@ export class ShelterInfoComponent implements OnInit {
     });
 
     this.updateOperatingHoursValidators();
+  }
+
+  private setupShelterValidators(): void {
+    const shelterForm = this.getShelterForm();
+    
+    // Set up shelter name validators
+    shelterForm.get('shelterName')?.setValidators([
+      Validators.required,
+      Validators.minLength(3)
+    ]);
+
+    // Set up description validators
+    shelterForm.get('description')?.setValidators([
+      Validators.required,
+      Validators.minLength(10)
+    ]);
+
+    // Set up website validator (optional field)
+    shelterForm.get('website')?.setValidators([
+      Validators.pattern(/^https?:\/\/.+\..+$/)
+    ]);
+
+    // Set up social media validators (all optional)
+    const socialMediaForm = this.getSocialMediaForm();
+    socialMediaForm.get('facebook')?.setValidators([
+      this.createOptionalSocialMediaValidator('facebook')
+    ]);
+    socialMediaForm.get('instagram')?.setValidators([
+      this.createOptionalSocialMediaValidator('instagram')
+    ]);
+
+    // Set up operating hours validators
+    const operatingHoursForm = this.getOperatingHoursForm();
+    Object.keys(operatingHoursForm.controls).forEach((key) => {
+      operatingHoursForm.get(key)?.setValidators([
+        CustomValidators.operatingHoursValidator()
+      ]);
+    });
+
+    // Update validity for all controls
+    shelterForm.get('shelterName')?.updateValueAndValidity();
+    shelterForm.get('description')?.updateValueAndValidity();
+    shelterForm.get('website')?.updateValueAndValidity();
+    socialMediaForm.get('facebook')?.updateValueAndValidity();
+    socialMediaForm.get('instagram')?.updateValueAndValidity();
+    operatingHoursForm.updateValueAndValidity();
+  }
+
+  private createOptionalSocialMediaValidator(platform: 'facebook' | 'instagram'): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      // If no value is provided, it's valid (optional field)
+      if (!control.value || control.value.trim() === '') {
+        return null;
+      }
+
+      // If value is provided, validate it contains the platform name
+      const containsPlatform = control.value.toLowerCase().includes(platform);
+      return containsPlatform ? null : { invalidSocialMedia: true };
+    };
   }
 
   getShelterForm(): FormGroup {
@@ -288,22 +355,19 @@ export class ShelterInfoComponent implements OnInit {
 
     if (openTime && closeTime) {
       if (!this.isValidTimeFormat(openTime)) {
-        this.timeErrors[day] =
-          'Η ώρα ανοίγματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 09:00)';
+        this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.OPENING_TIME_FORMAT';
         this.setTimeRangeError(day);
         return;
       }
 
       if (!this.isValidTimeFormat(closeTime)) {
-        this.timeErrors[day] =
-          'Η ώρα κλεισίματος πρέπει να είναι σε μορφή ΩΩ:ΛΛ (π.χ. 17:00)';
+        this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.CLOSING_TIME_FORMAT';
         this.setTimeRangeError(day);
         return;
       }
 
       if (openTime >= closeTime) {
-        this.timeErrors[day] =
-          'Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος';
+        this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.TIME_RANGE_INVALID';
         this.setTimeRangeError(day);
         return;
       }
@@ -320,7 +384,7 @@ export class ShelterInfoComponent implements OnInit {
         }
       }
     } else if ((openTime && !closeTime) || (!openTime && closeTime)) {
-      this.timeErrors[day] = 'Πρέπει να συμπληρώσετε και τις δύο ώρες';
+      this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.BOTH_TIMES_REQUIRED';
       this.setTimeRangeError(day);
     }
   }
@@ -367,8 +431,7 @@ export class ShelterInfoComponent implements OnInit {
         if (this.closedDays[day]) {
           control?.setErrors(null);
         } else if (!this.openTimes[day] || !this.closeTimes[day]) {
-          this.timeErrors[day] =
-            'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
+          this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.HOURS_OR_CLOSED_REQUIRED';
           control?.setErrors({ required: true });
         } else {
           this.validateTimeRange(day);
@@ -408,8 +471,7 @@ export class ShelterInfoComponent implements OnInit {
       }
 
       if (!value || value === '') {
-        this.timeErrors[day] =
-          'Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό"';
+        this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.HOURS_OR_CLOSED_REQUIRED';
         control?.setErrors({ required: true });
         hasInvalidDay = true;
       } else if (value !== 'closed') {
@@ -422,8 +484,7 @@ export class ShelterInfoComponent implements OnInit {
     if (hasInvalidDay) {
       this.validationErrors.push({
         field: 'operatingHours',
-        message:
-          'Πρέπει να ορίσετε ώρες λειτουργίας για όλες τις ημέρες ή να τις επιλέξετε ως "Κλειστό"',
+        message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.ALL_DAYS_REQUIRED',
       });
     }
   }
@@ -449,14 +510,13 @@ export class ShelterInfoComponent implements OnInit {
       if (shelterNameControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'shelterName',
-          message: 'Το όνομα καταφυγίου είναι υποχρεωτικό',
+          message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.SHELTER_NAME_REQUIRED',
           element,
         });
       } else if (shelterNameControl.errors?.['minlength']) {
         this.validationErrors.push({
           field: 'shelterName',
-          message:
-            'Το όνομα καταφυγίου πρέπει να έχει τουλάχιστον 3 χαρακτήρες',
+          message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.SHELTER_NAME_MINLENGTH',
           element,
         });
       }
@@ -468,13 +528,13 @@ export class ShelterInfoComponent implements OnInit {
       if (descriptionControl.errors?.['required']) {
         this.validationErrors.push({
           field: 'description',
-          message: 'Η περιγραφή είναι υποχρεωτική',
+          message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.DESCRIPTION_REQUIRED',
           element,
         });
       } else if (descriptionControl.errors?.['minlength']) {
         this.validationErrors.push({
           field: 'description',
-          message: 'Η περιγραφή πρέπει να έχει τουλάχιστον 10 χαρακτήρες',
+          message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.DESCRIPTION_MINLENGTH',
           element,
         });
       }
@@ -485,27 +545,27 @@ export class ShelterInfoComponent implements OnInit {
       const element = this.findElementForControl('website');
       this.validationErrors.push({
         field: 'website',
-        message: 'Η διεύθυνση ιστοσελίδας δεν είναι έγκυρη',
+        message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.WEBSITE_INVALID',
         element,
       });
     }
 
     const facebookControl = this.getSocialMediaForm().get('facebook');
-    if (facebookControl?.invalid && facebookControl.value) {
+    if (facebookControl?.invalid && facebookControl.value && facebookControl.value.trim() !== '') {
       const element = this.findElementForControl('facebook', 'socialMedia');
       this.validationErrors.push({
         field: 'facebook',
-        message: 'Η διεύθυνση πρέπει να περιέχει "facebook"',
+        message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.FACEBOOK_INVALID',
         element,
       });
     }
 
     const instagramControl = this.getSocialMediaForm().get('instagram');
-    if (instagramControl?.invalid && instagramControl.value) {
+    if (instagramControl?.invalid && instagramControl.value && instagramControl.value.trim() !== '') {
       const element = this.findElementForControl('instagram', 'socialMedia');
       this.validationErrors.push({
         field: 'instagram',
-        message: 'Η διεύθυνση πρέπει να περιέχει "instagram"',
+        message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.INSTAGRAM_INVALID',
         element,
       });
     }
@@ -523,15 +583,13 @@ export class ShelterInfoComponent implements OnInit {
           if (control.errors?.['invalidTimeRange']) {
             this.validationErrors.push({
               field: dayKey,
-              message:
-                this.timeErrors[day] ||
-                `Σφάλμα στις ώρες λειτουργίας για ${day}`,
+              message: this.timeErrors[day] || 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.OPERATING_HOURS_ERROR',
               element: dayElement,
             });
           } else if (control.errors?.['required']) {
             this.validationErrors.push({
               field: dayKey,
-              message: `Πρέπει να ορίσετε ώρες λειτουργίας ή να επιλέξετε "Κλειστό" για ${day}`,
+              message: 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.DAY_HOURS_REQUIRED',
               element: dayElement,
             });
           }

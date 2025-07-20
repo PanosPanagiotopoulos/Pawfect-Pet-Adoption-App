@@ -222,7 +222,7 @@ interface ValidationError {
                 >
                   <span class="text-primary-600 text-xs font-bold">G</span>
                 </div>
-                <span>Από Google</span>
+                <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
               </div>
             </div>
 
@@ -231,7 +231,7 @@ interface ValidationError {
                 [form]="getLocationForm()"
                 controlName="number"
                 type="text"
-                [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.NUMBER_PLACEHOLDER' | translate"
+                [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.ADDRESS_NUMBER' | translate"
                 [readonly]="getLocationForm().get('number')?.disabled"
               ></app-form-input>
               <div
@@ -243,7 +243,7 @@ interface ValidationError {
                 >
                   <span class="text-primary-600 text-xs font-bold">G</span>
                 </div>
-                <span>Από Google</span>
+                <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
               </div>
             </div>
           </div>

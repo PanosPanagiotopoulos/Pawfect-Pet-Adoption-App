@@ -8,11 +8,12 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ValidationMessageComponent } from './validation-message.component';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-text-area-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent],
+  imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div [formGroup]="form" class="relative group mb-10">
@@ -21,7 +22,7 @@ import { ValidationMessageComponent } from './validation-message.component';
         [for]="controlName"
         class="block text-sm font-medium text-gray-400 mb-2"
       >
-        {{ label }}
+        {{ label | translate }}
       </label>
 
       <!-- Textarea field -->
@@ -34,7 +35,7 @@ import { ValidationMessageComponent } from './validation-message.component';
         class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white 
                placeholder-gray-500 focus:border-primary-500/50 focus:ring-2 
                focus:ring-primary-500/20 focus:outline-none transition-all duration-300"
-        [placeholder]="placeholder"
+        [placeholder]="placeholder | translate"
         [rows]="rows"
         (input)="onInputChange($event)"
         (blur)="onBlur()"
@@ -59,7 +60,7 @@ import { ValidationMessageComponent } from './validation-message.component';
 
       <!-- Hint text -->
       <p *ngIf="hint && !isInvalid" class="mt-2 text-sm text-gray-400">
-        {{ hint }}
+        {{ hint | translate }}
       </p>
     </div>
   `,
@@ -71,6 +72,7 @@ export class TextAreaInputComponent {
   @Input() placeholder: string = '';
   @Input() hint?: string;
   @Input() rows: number = 3;
+  @Input() language?: string;
   @Output() valueChange = new EventEmitter<any>();
 
   get isInvalid(): boolean {

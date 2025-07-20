@@ -200,6 +200,7 @@ public class Program
 				policyBuilder.WithOrigins([.. allowedOrigins])
 							 .WithMethods("GET", "POST", "PUT", "DELETE")
 							 .AllowAnyHeader()
+                             .WithExposedHeaders("Content-Disposition")
 							 .AllowCredentials();
 			});
 		});

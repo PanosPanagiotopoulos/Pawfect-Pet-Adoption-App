@@ -42,7 +42,6 @@ import { ValidationMessageComponent } from './shared/validation-message/validati
 // Signup step components
 import { PersonalInfoComponent } from './sign-up-steps/personal-info/personal-info.component';
 import { AccountDetailsComponent } from './sign-up-steps/account-details/account-details.component';
-import { PreferencesComponent } from './sign-up-steps/preferences/preferences.component';
 import { VerifiedComponent } from './sign-up-steps/verified.component';
 import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
 import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-banner.component';
@@ -73,7 +72,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
     ValidationMessageComponent,
     PersonalInfoComponent,
     AccountDetailsComponent,
-    PreferencesComponent,
     ShelterInfoComponent,
     ErrorMessageBannerComponent,
     TranslatePipe,

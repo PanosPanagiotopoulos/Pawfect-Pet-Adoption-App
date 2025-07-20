@@ -129,6 +129,7 @@ namespace Main_API.Services.UserServices
 
 			// Is empty, means it got deleted, so no need to query for persisting
 			if (emptyNewPhoto) return;
+			if (profilePhoto.Equals(oldProfilePhoto)) return;
 
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = new List<String>() { profilePhoto };

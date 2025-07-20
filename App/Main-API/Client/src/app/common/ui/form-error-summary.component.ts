@@ -20,7 +20,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         <li *ngFor="let error of errors" 
             (click)="scrollToError(error)"
             class="cursor-pointer hover:underline">
-          {{ error.errorMessage }}
+          {{ error.errorMessage | translate }}
         </li>
       </ul>
     </div>

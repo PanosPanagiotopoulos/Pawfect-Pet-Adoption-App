@@ -1,7 +1,8 @@
 import { Injectable, ApplicationRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
+import { catchError, map, switchMap, takeUntil } from 'rxjs/operators';
+import { SecureStorageService } from './secure-storage.service';
 
 export interface LanguageOption {
   code: string;
@@ -24,13 +25,37 @@ export class TranslationService {
   private isInitialized = false;
   private translationsLoadedSubject = new BehaviorSubject<boolean>(false);
   public translationsLoaded$ = this.translationsLoadedSubject.asObservable();
+  private destroy$ = new Subject<void>();
+  private currentLanguage: SupportedLanguage = this.language$.value;
 
-  constructor(private http: HttpClient, private appRef: ApplicationRef) {
-    this.language$.subscribe(lang => this.loadTranslations(lang));
+  constructor(
+    private http: HttpClient, 
+    private appRef: ApplicationRef,
+    private secureStorageService: SecureStorageService
+  ) {
+    // Use switchMap to cancel previous requests and only use the latest
+    this.language$
+      .pipe(
+        switchMap(lang => {
+          const path = `assets/${lang}.json`;
+          return this.http.get<Record<string, any>>(path).pipe(
+            catchError(() => of({})),
+            map(translations => ({ lang, translations }))
+          );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(({ lang, translations }) => {
+        this.translations = translations;
+        this.isInitialized = true;
+        this.currentLanguage = lang;
+        this.translationsLoadedSubject.next(true);
+        this.appRef.tick();
+      });
   }
 
   private getInitialLanguage(): SupportedLanguage {
-    const stored = sessionStorage.getItem(this.LANG_STORAGE_KEY);
+    const stored = this.secureStorageService.getItem(this.LANG_STORAGE_KEY);
     console.log('[i18n] getInitialLanguage - stored:', stored);
     const found = this.supportedLanguages.find(l => l.code === stored);
     console.log('[i18n] getInitialLanguage - found:', found);
@@ -67,18 +92,23 @@ export class TranslationService {
   setLanguage(lang: SupportedLanguage): void {
     if (lang !== this.language$.value) {
       console.log('[i18n] setLanguage - setting:', lang);
-      sessionStorage.setItem(this.LANG_STORAGE_KEY, lang);
+      this.secureStorageService.setItem(this.LANG_STORAGE_KEY, lang);
       this.translationsLoadedSubject.next(false);
       this.language$.next(lang);
     }
   }
 
   getLanguage(): SupportedLanguage {
-    return this.language$.value;
+    return this.currentLanguage;
   }
 
   getLanguage$(): Observable<SupportedLanguage> {
     return this.language$.asObservable();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadTranslations(lang: SupportedLanguage): void {
@@ -87,6 +117,7 @@ export class TranslationService {
       catchError(() => of({}))
     ).subscribe(translations => {
       this.translations = translations;
+      this.isInitialized = true; // Ensure translate() works after language change
       this.translationsLoadedSubject.next(true);
       this.appRef.tick(); // Force global change detection
     });

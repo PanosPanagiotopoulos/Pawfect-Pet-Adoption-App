@@ -6,6 +6,7 @@
     controlName="shelterName"
     type="text"
     [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.SHELTER_NAME_PLACEHOLDER' | translate"
+    [language]="language"
   >
   </app-form-input>
 
@@ -16,6 +17,7 @@
     [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.DESCRIPTION_PLACEHOLDER' | translate"
     [rows]="4"
     [hint]="'APP.AUTH.SIGNUP.SHELTER_INFO.DESCRIPTION_HINT' | translate"
+    [language]="language"
     (valueChange)="updateDescription($event)"
   >
   </app-text-area-input>
@@ -25,30 +27,41 @@
     controlName="website"
     type="url"
     [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.WEBSITE_PLACEHOLDER' | translate"
+    [language]="language"
   >
   </app-form-input>
 
   <!-- Social Media Section -->
   <div class="space-y-4">
-    <h3 class="text-lg font-medium text-white">
-      {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.SOCIAL_TITLE' | translate }}
-    </h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <app-form-input
-        [form]="getSocialMediaForm()"
-        controlName="facebook"
-        type="url"
-        [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.FACEBOOK_PLACEHOLDER' | translate"
-      >
-      </app-form-input>
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-medium text-white">
+        {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.SOCIAL_TITLE' | translate }}
+      </h3>
+      <span class="text-sm text-gray-400">({{ 'APP.AUTH.SIGNUP.SHELTER_INFO.OPTIONAL' | translate }})</span>
+    </div>
+    <div class="bg-gray-800/50 rounded-xl p-4 space-y-4">
+      <p class="text-sm text-gray-400">
+        {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.SOCIAL_HINT' | translate }}
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <app-form-input
+          [form]="getSocialMediaForm()"
+          controlName="facebook"
+          type="url"
+          [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.FACEBOOK_PLACEHOLDER' | translate"
+          [language]="language"
+        >
+        </app-form-input>
 
-      <app-form-input
-        [form]="getSocialMediaForm()"
-        controlName="instagram"
-        type="url"
-        [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.INSTAGRAM_PLACEHOLDER' | translate"
-      >
-      </app-form-input>
+        <app-form-input
+          [form]="getSocialMediaForm()"
+          controlName="instagram"
+          type="url"
+          [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.INSTAGRAM_PLACEHOLDER' | translate"
+          [language]="language"
+        >
+        </app-form-input>
+      </div>
     </div>
   </div>
 
@@ -105,7 +118,7 @@
             />
           </div>
 
-          <span class="text-gray-400 mx-2 self-end mb-3">έως</span>
+          <span class="text-gray-400 mx-2 self-end mb-3">{{ 'APP.AUTH.SIGNUP.SHELTER_INFO.TO' | translate }}</span>
 
           <div class="flex-1 ml-4">
             <label class="block text-sm text-gray-400 mb-1">

@@ -1,7 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from 'src/app/common/services/translation.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-shelter-info',
@@ -101,7 +102,7 @@ import { TranslationService } from 'src/app/common/services/translation.service'
           <h4 class="text-lg font-medium text-white">{{ 'APP.ADOPT.OPERATING_HOURS' | translate }}</h4>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <ng-container *ngFor="let day of getDays()">
+          <ng-container *ngFor="let day of days">
             <div class="px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/15 transition-all duration-300">
               <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
@@ -117,13 +118,31 @@ import { TranslationService } from 'src/app/common/services/translation.service'
     </div>
   `
 })
-export class ShelterInfoComponent {
+export class ShelterInfoComponent implements OnInit, OnDestroy {
   @Input() shelter!: Shelter;
 
-  constructor(private translationService: TranslationService) {}
+  days: { key: string, label: string }[] = [];
+  private langSub?: Subscription;
 
-  getDays() {
-    return [
+  constructor(
+    private translationService: TranslationService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    this.updateDays();
+    this.langSub = this.translationService.languageChanged$.subscribe(() => {
+      this.updateDays();
+      this.cdr.markForCheck();
+    });
+  }
+
+  ngOnDestroy() {
+    this.langSub?.unsubscribe();
+  }
+
+  private updateDays() {
+    this.days = [
       { key: 'monday', label: this.translationService.translate('APP.ADOPT.DAYS.MONDAY') },
       { key: 'tuesday', label: this.translationService.translate('APP.ADOPT.DAYS.TUESDAY') },
       { key: 'wednesday', label: this.translationService.translate('APP.ADOPT.DAYS.WEDNESDAY') },

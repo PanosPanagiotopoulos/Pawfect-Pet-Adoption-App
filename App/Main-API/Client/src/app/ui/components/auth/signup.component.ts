@@ -162,7 +162,7 @@ export class SignupComponent
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly secureStorageService: SecureStorageService,
-    private readonly translationService: TranslationService
+    public readonly translationService: TranslationService
   ) {
     super();
     this.initializeForms();
@@ -189,20 +189,21 @@ export class SignupComponent
 
     const state = history.state;
 
+    // Handle verification flow from login
     const existingPhone: string | null =
     this.secureStorageService.getItem<string>('unverifiedPhone');
-    if (existingPhone) {
-      this.registrationForm.get('phone')?.setValue(existingPhone);
-      this.secureStorageService.removeItem('unverifiedPhone');
-    }
     const existingEmail: string | null =
     this.secureStorageService.getItem<string>('unverifiedEmail');
+    
+    if (existingPhone) {
+      this.registrationForm.get('phone')?.setValue(existingPhone);
+    }
     if (existingEmail) {
       this.registrationForm.get('email')?.setValue(existingEmail);
-      this.secureStorageService.removeItem('unverifiedEmail');
     }
 
     if (state && state.step === SignupStep.OtpVerification && state.fromLogin) {
+      this.fromLogin = true;
       this.currentStep = SignupStep.OtpVerification;
       this.resendOtp();
     }
@@ -212,6 +213,7 @@ export class SignupComponent
       state.step === SignupStep.EmailConfirmation &&
       state.fromLogin
     ) {
+      this.fromLogin = true;
       this.currentStep = SignupStep.EmailConfirmation;
       this.resendEmailVerification();
     }
@@ -768,17 +770,34 @@ export class SignupComponent
         } as OtpPayload)
         .subscribe({
           next: () => {
-            if (!this.registrationForm.get('hasEmailVerified')?.value) {
-              this.currentStep = SignupStep.EmailConfirmation;
-              this.resendEmailVerification();
-            } else {
-              this.router.navigate(['/auth/verified'], {
-                queryParams: { complete: role, identification: this.userId },
-              });
-            }
-
-            this.error = undefined;
             this.isLoading = false;
+            this.error = undefined;
+            
+            // Clear phone verification from storage since it's now verified
+            this.secureStorageService.removeItem('unverifiedPhone');
+            
+            // Check if coming from login and if email verification is still needed
+            if (this.fromLogin) {
+              const unverifiedEmail = this.secureStorageService.getItem<string>('unverifiedEmail');
+              if (unverifiedEmail) {
+                // Still need email verification
+                this.currentStep = SignupStep.EmailConfirmation;
+                this.resendEmailVerification();
+              } else {
+                // All verifications complete, redirect to home
+                this.router.navigate(['/home']);
+              }
+            } else {
+              // Regular signup flow
+              if (!this.registrationForm.get('hasEmailVerified')?.value) {
+                this.currentStep = SignupStep.EmailConfirmation;
+                this.resendEmailVerification();
+              } else {
+                this.router.navigate(['/auth/verified'], {
+                  queryParams: { complete: role, identification: this.userId },
+                });
+              }
+            }
           },
           error: (error: HttpErrorResponse) => {
             this.isLoading = false;
@@ -802,12 +821,15 @@ export class SignupComponent
   resendOtp(): void {
     const { phone, email } = this.registrationForm.getRawValue();
 
+    // For login flow, we might not have userId, so we'll use the phone/email for OTP
+    const otpPayload: OtpPayload = {
+      phone: phone,
+      id: this.userId || '', // Empty string if no userId (login flow)
+      email: email,
+    };
+
     this.authService
-      .sendOtp({
-        phone: phone,
-        id: this.userId,
-        email: email,
-      } as OtpPayload)
+      .sendOtp(otpPayload)
       .subscribe({
         next: () => {
           this.startOtpTimer();
@@ -848,6 +870,22 @@ export class SignupComponent
         console.error('Resend email verification error:', error);
       },
     });
+  }
+
+  onEmailVerificationComplete(): void {
+    // Clear email verification from storage since it's now complete
+    this.secureStorageService.removeItem('unverifiedEmail');
+    
+    if (this.fromLogin) {
+      // Coming from login, redirect to home
+      this.router.navigate(['/home']);
+    } else {
+      // Regular signup flow, redirect to verification complete page
+      const { role } = this.registrationForm.getRawValue();
+      this.router.navigate(['/auth/verified'], {
+        queryParams: { complete: role, identification: this.userId },
+      });
+    }
   }
 
   private startOtpTimer(): void {

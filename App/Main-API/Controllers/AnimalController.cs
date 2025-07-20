@@ -12,6 +12,7 @@ using Main_API.Services.AnimalServices;
 using Main_API.Transactions;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Main_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 
 namespace Main_API.Controllers
 {
@@ -24,21 +25,26 @@ namespace Main_API.Controllers
         private readonly IBuilderFactory _builderFactory;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
+        private readonly Lazy<IFileDataExtractor> _excelExtractor;
         private readonly IQueryFactory _queryFactory;
 
-        public AnimalController(
+        public AnimalController
+        (
             IAnimalService animalService,
             ILogger<AnimalController> logger,
             IBuilderFactory builderFactory,
 			ICensorFactory censorFactory,
             AuthContextBuilder contextBuilder,
-            IQueryFactory queryFactory)
+            Lazy<IFileDataExtractor> excelExtractor,
+            IQueryFactory queryFactory
+        )
         {
             _animalService = animalService;
             _logger = logger;
             _builderFactory = builderFactory;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _excelExtractor = excelExtractor;
             _queryFactory = queryFactory;
         }
 
@@ -151,11 +157,46 @@ namespace Main_API.Controllers
 			return Ok(animal);
 		}
 
-		/// <summary>
-		/// Delete an animal by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete")]
+        [HttpGet("import-template/excel")]
+        [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> GetAnimalTempalteExcel()
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            Byte[] template = await _excelExtractor.Value.GenerateAnimalImportTemplate();
+
+            FileContentResult result = new FileContentResult(template, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            {
+                FileDownloadName = "import_template.xlsx"
+            };
+
+            return result;
+        }
+
+        [HttpPost("from-template/excel")]
+        [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> ImportFromExcelTemplate()
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            IFormFileCollection files = Request.Form.Files;
+            if (files == null || files.Count != 1) return BadRequest("Invalid amount of files provided");
+
+            IFormFile excelFile = files.FirstOrDefault();
+            if (!Path.GetExtension(excelFile.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase)) return BadRequest("Not excel file provided");
+
+            List<AnimalPersist> exctractedModels = await this._excelExtractor.Value.ExtractAnimalModelData(excelFile);
+
+            return Ok(exctractedModels);
+        }
+
+        /// <summary>
+        /// Delete an animal by ID.
+        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
+        /// </summary>
+        [HttpPost("delete")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromBody] String id)

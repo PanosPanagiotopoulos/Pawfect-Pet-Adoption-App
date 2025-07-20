@@ -30,6 +30,7 @@ namespace Main_API.Query.Queries
 
         public List<String>? ExcludedIds { get; set; }
 
+        public List<String>? Names { get; set; }
 
         // Λίστα με τα αναγνωριστικά των τύπων για φιλτράρισμα
         public List<String>? TypeIds { get; set; }
@@ -80,8 +81,15 @@ namespace Main_API.Query.Queries
 				filter &= builder.In(nameof(Data.Entities.Breed.AnimalTypeId), referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
-			// Εφαρμόζει φίλτρο για την ημερομηνία έναρξης
-			if (CreatedFrom.HasValue)
+            // Εφαρμόζει φίλτρο για τα ονόματα των Breeds
+            if (Names != null && Names.Any())
+            {
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.In(nameof(Data.Entities.Breed.Name), Names);
+            }
+
+            // Εφαρμόζει φίλτρο για την ημερομηνία έναρξης
+            if (CreatedFrom.HasValue)
 			{
 				filter &= builder.Gte(breed => breed.CreatedAt, CreatedFrom.Value);
 			}

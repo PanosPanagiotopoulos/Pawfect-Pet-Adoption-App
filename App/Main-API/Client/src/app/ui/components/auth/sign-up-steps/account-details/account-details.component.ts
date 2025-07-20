@@ -101,9 +101,9 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
       <ng-template #externalProvider>
         <div class="text-center text-gray-400 py-8">
-          <p>{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.GOOGLE_LINKED' | translate }}</p>
-          <p>Ο λογαριασμός σας είναι συνδεδεμένος με το Google.</p>
-          <p>Δεν απαιτείται κωδικός πρόσβασης.</p>
+          <p>{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.GOOGLE_LINKED_TITLE' | translate }}</p>
+          <p>{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.GOOGLE_LINKED_DESC' | translate }}</p>
+          <p>{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.NO_PASSWORD_REQUIRED' | translate }}</p>
         </div>
       </ng-template>
 
@@ -115,7 +115,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
           class="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg
                  hover:bg-white/5 transition-all duration-300"
         >
-          Πίσω
+          {{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.BACK' | translate }}
         </button>
 
         <button
@@ -127,7 +127,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
                  transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed
                  disabled:transform-none disabled:shadow-none"
         >
-          Επόμενο
+          {{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.NEXT' | translate }}
         </button>
       </div>
     </div>

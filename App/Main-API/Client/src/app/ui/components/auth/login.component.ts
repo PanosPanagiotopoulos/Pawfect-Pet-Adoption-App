@@ -41,7 +41,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
   ngOnInit(): void {
     this.authService.isLoggedIn().subscribe((isLoggedIn) => {
       if (isLoggedIn) {
-        const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+        const returnUrl =
+          this.route.snapshot.queryParams['returnUrl'] || '/home';
         this.router.navigateByUrl(returnUrl);
       }
     });
@@ -49,7 +50,7 @@ export class LoginComponent extends BaseComponent implements OnInit {
     this.route.queryParams.subscribe((params: any) => {
       if (params['mode'] === 'google') {
         const googleAuthCode: string | null =
-        this.secureStorageService.getItem<string>('googleAuthCode');
+          this.secureStorageService.getItem<string>('googleAuthCode');
 
         if (googleAuthCode) {
           this.secureStorageService.removeItem('googleAuthCode');
@@ -64,26 +65,27 @@ export class LoginComponent extends BaseComponent implements OnInit {
   private processGoogleLogin(authCode: string): void {
     this.authService.loginWithGoogle(authCode).subscribe({
       next: (response: LoggedAccount) => {
-        if (response && !response.isPhoneVerified) {
-          this.secureStorageService.setItem('unverifiedPhone', this.authService.getUserEmail()!);
-          this.navigateToPhoneVerification();
-        }
+        this.isLoading = false;
 
-        if (response && !response.isEmailVerified) {
-          this.secureStorageService.setItem('unverifiedEmail', this.authService.getUserEmail()!);
-          this.navigateToEmailVerification();
+        // Check verification status and route accordingly
+        if (
+          response &&
+          (!response.isPhoneVerified || !response.isEmailVerified)
+        ) {
+          const userEmail = this.authService.getUserEmail() || response.email;
+          this.handleUnverifiedUser(response, userEmail);
         } else {
-          const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+          const returnUrl =
+            this.route.snapshot.queryParams['returnUrl'] || '/home';
           this.router.navigateByUrl(returnUrl);
         }
-        this.isLoading = false;
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
         const errorDetails = this.errorHandler.handleAuthError(error);
         this.snackbarService.showError({
           message: errorDetails.message,
-          subMessage: errorDetails.title
+          subMessage: errorDetails.title,
         });
       },
     });
@@ -98,33 +100,55 @@ export class LoginComponent extends BaseComponent implements OnInit {
 
       this.authService.login(email, password).subscribe({
         next: (response) => {
-          if (response && !response.isPhoneVerified) {
-            this.secureStorageService.setItem('unverifiedPhone', response.phone);
-            this.navigateToPhoneVerification();
-          }
+          this.isLoading = false;
 
-          if (response && !response.isEmailVerified) {
-            this.secureStorageService.setItem('unverifiedEmail', email);
-            this.navigateToEmailVerification();
+          // Check verification status and route accordingly
+          if (
+            response &&
+            (!response.isPhoneVerified || !response.isEmailVerified)
+          ) {
+            this.handleUnverifiedUser(response, email);
           } else {
+            // User is fully verified, proceed to home
             this.snackbarService.showSuccess({
-              message: this.translationService.translate('APP.AUTH.LOGIN.SUCCESS'),
-              subMessage: this.translationService.translate('APP.AUTH.LOGIN.WELCOME_BACK')
+              message: this.translationService.translate(
+                'APP.AUTH.LOGIN.SUCCESS'
+              ),
+              subMessage: this.translationService.translate(
+                'APP.AUTH.LOGIN.WELCOME_BACK'
+              ),
             });
-            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+            const returnUrl =
+              this.route.snapshot.queryParams['returnUrl'] || '/home';
             this.router.navigateByUrl(returnUrl);
           }
-          this.isLoading = false;
         },
         error: (error: HttpErrorResponse) => {
           this.isLoading = false;
           const errorDetails = this.errorHandler.handleAuthError(error);
           this.snackbarService.showError({
             message: errorDetails.message,
-            subMessage: errorDetails.title
+            subMessage: errorDetails.title,
           });
         },
       });
+    }
+  }
+
+  private handleUnverifiedUser(response: LoggedAccount, email: string): void {
+    // Priority: Phone verification first, then email verification
+    if (!response.isPhoneVerified) {
+      // Store phone for verification
+      this.secureStorageService.setItem(
+        'unverifiedPhone',
+        response.phone || ''
+      );
+      this.secureStorageService.setItem('unverifiedEmail', email);
+      this.navigateToPhoneVerification();
+    } else if (!response.isEmailVerified) {
+      // Only email verification needed
+      this.secureStorageService.setItem('unverifiedEmail', email);
+      this.navigateToEmailVerification();
     }
   }
 
@@ -154,20 +178,26 @@ export class LoginComponent extends BaseComponent implements OnInit {
       .pipe(takeUntil(this._destroyed))
       .subscribe({
         next: (response) => {
-          if (response && !response.isEmailVerified) {
-            this.secureStorageService.setItem('unverifiedEmail', this.authService.getUserEmail()!);
-            this.navigateToEmailVerification();
+          this.isLoading = false;
+
+          // Check verification status and route accordingly
+          if (
+            response &&
+            (!response.isPhoneVerified || !response.isEmailVerified)
+          ) {
+            const userEmail = this.authService.getUserEmail() || response.email;
+            this.handleUnverifiedUser(response, userEmail);
           } else {
-            const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+            const returnUrl =
+              this.route.snapshot.queryParams['returnUrl'] || '/home';
             this.router.navigateByUrl(returnUrl);
           }
-          this.isLoading = false;
         },
         error: (error) => {
           this.isLoading = false;
           const errorDetails = this.errorHandler.handleAuthError(error);
           this.snackbarService.showError({
-            message: errorDetails.message
+            message: errorDetails.message,
           });
         },
       });

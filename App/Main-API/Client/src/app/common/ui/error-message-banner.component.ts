@@ -39,10 +39,10 @@ export interface ErrorDetails {
             [class]="getTitleClass()"
             class="text-base font-semibold leading-6 mb-1"
           >
-            {{ error.title }}
+            {{ error.title | translate }}
           </h3>
           <div [class]="getMessageClass()" class="text-sm leading-5">
-            {{ error.message }}
+            {{ error.message | translate }}
           </div>
         </div>
 

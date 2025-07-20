@@ -1,5 +1,4 @@
-﻿using Main_API.Data.Entities.EnumTypes;
-
+﻿
 namespace Main_API.Data.Entities.Types.Files
 {
 	public class FilesConfig
@@ -9,7 +8,8 @@ namespace Main_API.Data.Entities.Types.Files
 		public long MaxFileSizeBytes { get; set; }
 		public int BatchSize { get; set; }
 		public List<FileTypeConfig> AllowedFileTypes { get; set; }
-	}
+        public ExcelExtractorConfig ExcelExtractorConfig { get; set; }
+    }
 
 	public class FileTypeConfig
 	{
@@ -17,4 +17,48 @@ namespace Main_API.Data.Entities.Types.Files
 		public List<String> MimeTypes { get; set; }
 		public List<String> Extensions { get; set; }
 	}
+
+    public class ExcelExtractorConfig
+    {
+        public List<String> Headers { get; set; } 
+
+        public Dictionary<String, List<String>> StaticDropdowns { get; set; }
+
+        public Dictionary<String, DynamicDropdownConfig> DynamicDropdowns { get; set; } 
+
+        public String EditableRange { get; set; } = "A2:I1000";
+
+        public bool Protected { get; set; } = true;
+
+        public String ProtectionPassword { get; set; } = "readonly";
+
+        public ReferenceSheetConfig ReferenceSheet { get; set; } 
+
+        public int MaxRows { get; set; } = 1000;
+
+        public bool AllowSheetExpansion { get; set; } = false;
+    }
+
+    public class DynamicDropdownConfig
+    {
+        public String SourceSheet { get; set; } = "ReferenceData";
+
+        public String SourceColumn { get; set; } = "A";
+
+        public String ReferenceListKey { get; set; } // e.g., "AnimalTypes", "Breeds"
+    }
+
+    public class ReferenceSheetConfig
+    {
+        public String Name { get; set; } = "ReferenceData";
+
+        public bool Hidden { get; set; } = true;
+
+        public Dictionary<String, String> Columns { get; set; } = new()
+        {
+            { "A", "AnimalTypeName" },
+            { "B", "BreedName" }
+        };
+    }
+
 }

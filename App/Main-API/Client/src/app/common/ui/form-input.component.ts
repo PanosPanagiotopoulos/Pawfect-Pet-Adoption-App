@@ -8,11 +8,12 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ValidationMessageComponent } from 'src/app/common/ui/validation-message.component';
+import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
 @Component({
   selector: 'app-form-input',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent],
+  imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div [formGroup]="form" class="relative group mb-10">
@@ -48,7 +49,7 @@ import { ValidationMessageComponent } from 'src/app/common/ui/validation-message
                peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:-translate-y-4 
                peer-focus:scale-75 left-1"
       >
-        {{ placeholder }}
+        {{ placeholder | translate }}
       </label>
 
       <!-- Background gradient effect -->
@@ -77,6 +78,7 @@ export class FormInputComponent {
   @Input() placeholder: string = '';
   @Input() maxLength?: string = '200';
   @Input() readonly?: boolean = false;
+  @Input() language?: string;
   @Output() valueChange = new EventEmitter<any>();
 
   get isInvalid(): boolean {

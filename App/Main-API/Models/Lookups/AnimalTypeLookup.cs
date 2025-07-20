@@ -30,7 +30,6 @@ namespace Main_API.Models.Lookups
 			// Προσθέτει τα φίλτρα στο AnimalTypeQuery
 			if (this.Ids != null && this.Ids.Count != 0) animalTypeQuery.Ids = this.Ids;
             if (this.ExcludedIds != null && this.ExcludedIds.Count != 0) animalTypeQuery.ExcludedIds = this.ExcludedIds;
-            if (!String.IsNullOrEmpty(this.Name))  animalTypeQuery.Name = this.Name;
             if (!String.IsNullOrEmpty(this.Query))  animalTypeQuery.Query = this.Query;
 
             animalTypeQuery.Fields = animalTypeQuery.FieldNamesOf([.. this.Fields]);
