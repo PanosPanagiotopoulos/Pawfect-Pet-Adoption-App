@@ -1,8 +1,6 @@
-import { Component, Input, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
-import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from 'src/app/common/services/translation.service';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-shelter-info',
@@ -107,9 +105,16 @@ import { Subscription } from 'rxjs';
               <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                   <ng-icon name="lucideClock1" [size]="'16'" class="text-primary-400 stroke-[2.5px]"></ng-icon>
-                  <span class="text-gray-300">{{ day.label }}</span>
+                  <span class="text-gray-300">{{ day.translationKey | translate }}</span>
                 </div>
-                <span class="text-gray-300 ml-2">{{ formatHours(getOperatingHoursByKey(day.key)) }}</span>
+                <span class="text-gray-300 ml-2">
+                  <ng-container *ngIf="getOperatingHoursByKey(day.key) && getOperatingHoursByKey(day.key) !== 'closed'; else closedTemplate">
+                    {{ formatOpenHours(getOperatingHoursByKey(day.key)) }}
+                  </ng-container>
+                  <ng-template #closedTemplate>
+                    {{ 'APP.ADOPT.CLOSED' | translate }}
+                  </ng-template>
+                </span>
               </div>
             </div>
           </ng-container>
@@ -118,44 +123,30 @@ import { Subscription } from 'rxjs';
     </div>
   `
 })
-export class ShelterInfoComponent implements OnInit, OnDestroy {
+export class ShelterInfoComponent implements OnInit {
   @Input() shelter!: Shelter;
 
-  days: { key: string, label: string }[] = [];
-  private langSub?: Subscription;
+  days: { key: string, translationKey: string }[] = [
+    { key: 'monday', translationKey: 'APP.ADOPT.DAYS.MONDAY' },
+    { key: 'tuesday', translationKey: 'APP.ADOPT.DAYS.TUESDAY' },
+    { key: 'wednesday', translationKey: 'APP.ADOPT.DAYS.WEDNESDAY' },
+    { key: 'thursday', translationKey: 'APP.ADOPT.DAYS.THURSDAY' },
+    { key: 'friday', translationKey: 'APP.ADOPT.DAYS.FRIDAY' },
+    { key: 'saturday', translationKey: 'APP.ADOPT.DAYS.SATURDAY' },
+    { key: 'sunday', translationKey: 'APP.ADOPT.DAYS.SUNDAY' }
+  ];
 
   constructor(
-    private translationService: TranslationService,
-    private cdr: ChangeDetectorRef
+    private translationService: TranslationService
   ) {}
 
   ngOnInit() {
-    this.updateDays();
-    this.langSub = this.translationService.languageChanged$.subscribe(() => {
-      this.updateDays();
-      this.cdr.markForCheck();
-    });
+    // No need for language subscription since translate pipe handles live updates
   }
 
-  ngOnDestroy() {
-    this.langSub?.unsubscribe();
-  }
-
-  private updateDays() {
-    this.days = [
-      { key: 'monday', label: this.translationService.translate('APP.ADOPT.DAYS.MONDAY') },
-      { key: 'tuesday', label: this.translationService.translate('APP.ADOPT.DAYS.TUESDAY') },
-      { key: 'wednesday', label: this.translationService.translate('APP.ADOPT.DAYS.WEDNESDAY') },
-      { key: 'thursday', label: this.translationService.translate('APP.ADOPT.DAYS.THURSDAY') },
-      { key: 'friday', label: this.translationService.translate('APP.ADOPT.DAYS.FRIDAY') },
-      { key: 'saturday', label: this.translationService.translate('APP.ADOPT.DAYS.SATURDAY') },
-      { key: 'sunday', label: this.translationService.translate('APP.ADOPT.DAYS.SUNDAY') }
-    ];
-  }
-
-  formatHours(hours: string): string {
+  formatOpenHours(hours: string): string {
     if (!hours || hours === 'closed') {
-      return this.translationService.translate('APP.ADOPT.CLOSED');
+      return '';
     }
     const [open, close] = hours.split(',');
     return `${open} - ${close}`;

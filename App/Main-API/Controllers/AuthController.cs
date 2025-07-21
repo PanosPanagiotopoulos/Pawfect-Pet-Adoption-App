@@ -18,8 +18,6 @@
     using Main_API.Transactions;
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
-    using Amazon.S3.Model;
-    using Newtonsoft.Json.Linq;
 
 	[ApiController]
 	[Route("auth")]
@@ -125,7 +123,6 @@
 		}
 
         [HttpPost("refresh")]
-		[Authorize]
         public async Task<IActionResult> RefreshToken()
         {
             String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);

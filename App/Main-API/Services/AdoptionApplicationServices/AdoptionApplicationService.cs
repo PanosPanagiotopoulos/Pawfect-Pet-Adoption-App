@@ -72,16 +72,23 @@ namespace Main_API.Services.AdoptionApplicationServices
 				if(!await AuthorisePersistAdoptionApplication(data, Permission.EditAdoptionApplications))
                     throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.AdoptionApplication), Permission.EditAdoptionApplications);
 
+                String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
+                if (String.IsNullOrEmpty(userShelterId))
+				{
+					// Only allow to change: Details , Files
+					if (data.Status != persist.Status) throw new ForbiddenException("Not allowed action");
+                    if (data.AnimalId != persist.AnimalId) throw new ForbiddenException("Not allowed action");
+                    if (data.ShelterId != persist.ShelterId) throw new ForbiddenException("Not allowed action");
+                    if (data.AnimalId != persist.AnimalId) throw new ForbiddenException("Not allowed action");
+                }
 
-                _mapper.Map(persist, data);
+
 				data.UpdatedAt = DateTime.UtcNow;
             }
             else
 			{
                 if (!await _authorizationService.AuthorizeAsync(Permission.CreateAdoptionApplications))
                     throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.AdoptionApplication), Permission.CreateAdoptionApplications);
-
-                _mapper.Map(persist, data);
 
                 ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
                 String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
@@ -92,11 +99,12 @@ namespace Main_API.Services.AdoptionApplicationServices
 				data.CreatedAt = DateTime.UtcNow;
 				data.UpdatedAt = DateTime.UtcNow;
 			}
-
 			// Set files to permanent
 			await this.PersistFiles(persist.AttachedFilesIds, data.AttachedFilesIds);
 
-			if (isUpdate) dataId = await _adoptionApplicationRepository.UpdateAsync(data);
+            _mapper.Map(persist, data);
+
+            if (isUpdate) dataId = await _adoptionApplicationRepository.UpdateAsync(data);
 			else dataId = await _adoptionApplicationRepository.AddAsync(data);
 
 
@@ -134,6 +142,7 @@ namespace Main_API.Services.AdoptionApplicationServices
 			{
                 AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
 				lookup.ShelterIds = new List<String> { data.ShelterId };
+                lookup.UserIds = new List<String> { userId };
                 AuthContext authContext =
                     _contextBuilder.OwnedFrom(lookup, data.UserId)
                                    .AffiliatedWith(lookup)
@@ -164,7 +173,6 @@ namespace Main_API.Services.AdoptionApplicationServices
 
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = attachedFilesIds;
-			lookup.Fields = new List<String> { "*" };
 			lookup.Offset = 1;
 			lookup.PageSize = attachedFilesIds.Count;
 			

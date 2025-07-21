@@ -1,15 +1,4 @@
-import {
-  Component,
-  Input,
-  Output,
-  EventEmitter,
-  ChangeDetectionStrategy,
-  OnInit,
-  OnChanges,
-  SimpleChanges,
-  ChangeDetectorRef,
-  OnDestroy
-} from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Animal, AdoptionStatus } from 'src/app/models/animal/animal.model';
 import { Gender } from 'src/app/common/enum/gender';
 import { AnimalService } from 'src/app/services/animal.service';
@@ -53,8 +42,10 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   error: string | null = null;
   skeletonRows = Array(6);
   canEditAnimals = false;
+  filterPanelVisible = false;
+  adoptionStatusDropdownOpen = false;
+  genderDropdownOpen = false;
 
-  // Filter panel state and lookup
   lookup: AnimalLookup = {
     offset: 0,
     pageSize: 6,
@@ -68,47 +59,54 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     query: '',
     shelterIds: [],
   };
-  filterPanelVisible = false;
-  adoptionStatusDropdownOpen = false;
-  genderDropdownOpen = false;
-  // Filter options
+
   readonly adoptionStatusOptions = [
     { value: AdoptionStatus.Available, label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.AVAILABLE' },
     { value: AdoptionStatus.Pending, label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.PENDING' },
     { value: AdoptionStatus.Adopted, label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.ADOPTED' },
   ];
+
   readonly genderOptions = [
     { value: Gender.Male, label: 'APP.COMMONS.MALE' },
     { value: Gender.Female, label: 'APP.COMMONS.FEMALE' },
   ];
-  // Getters for template compatibility
-  get adoptionStatusFilter(): AdoptionStatus[] {
-    return this.lookup.adoptionStatuses ?? [];
-  }
-  get genderFilter(): Gender[] {
-    return this.lookup.genders ?? [];
-  }
-  get ageFrom(): number | undefined {
-    return this.lookup.ageFrom;
-  }
-  get ageTo(): number | undefined {
-    return this.lookup.ageTo;
-  }
-  get searchQuery(): string {
-    return this.lookup.query ?? '';
-  }
-  get sortDescending(): boolean {
-    return !!this.lookup.sortDescending;
-  }
-  get pageSizeValue(): number {
-    return this.lookup.pageSize;
-  }
-  set pageSizeValue(val: number) {
-    this.lookup.pageSize = val;
-  }
+
+  AdoptionStatus = AdoptionStatus;
 
   private dataSub?: Subscription;
   private translationSub?: Subscription;
+
+  get adoptionStatusFilter(): AdoptionStatus[] {
+    return this.lookup.adoptionStatuses ?? [];
+  }
+
+  get genderFilter(): Gender[] {
+    return this.lookup.genders ?? [];
+  }
+
+  get ageFrom(): number | undefined {
+    return this.lookup.ageFrom;
+  }
+
+  get ageTo(): number | undefined {
+    return this.lookup.ageTo;
+  }
+
+  get searchQuery(): string {
+    return this.lookup.query ?? '';
+  }
+
+  get sortDescending(): boolean {
+    return !!this.lookup.sortDescending;
+  }
+
+  get pageSizeValue(): number {
+    return this.lookup.pageSize;
+  }
+
+  set pageSizeValue(val: number) {
+    this.lookup.pageSize = val;
+  }
 
   constructor(
     private animalService: AnimalService,
@@ -125,7 +123,6 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
       this.lookup.shelterIds = [this.shelterId];
       this.loadAnimals();
     }
-    // Subscribe to language changes to trigger change detection for imperative translations
     this.translationSub = this.translationService.languageChanged$.subscribe(() => {
       this.cdr.markForCheck();
     });
@@ -133,42 +130,30 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['shelterId'] && !changes['shelterId'].firstChange && changes['shelterId'].currentValue) {
-      this.pageIndex = 0;
+      this.resetPagination();
       this.loadAnimals();
     }
   }
 
   ngOnDestroy() {
     this.translationSub?.unsubscribe();
-    if (this.dataSub) {
-      this.dataSub.unsubscribe();
-    }
+    this.dataSub?.unsubscribe();
   }
 
   loadAnimals(event?: PageEvent) {
-    if (!this.shelterId) {
-      return;
-    }
+    if (!this.shelterId) return;
 
-    if (this.dataSub) {
-      this.dataSub.unsubscribe();
-    }
-
+    this.dataSub?.unsubscribe();
+    this.updatePagination(event);
     this.isLoading = true;
     this.error = null;
     this.cdr.markForCheck();
 
-    if (event) {
-      this.pageIndex = event.pageIndex;
-      this.lookup.pageSize = event.pageSize;
-    }
-    this.lookup.offset = this.pageIndex * this.lookup.pageSize;
     this.lookup.shelterIds = [this.shelterId];
 
     this.dataSub = this.animalService.query(this.lookup).subscribe({
       next: (data) => {
         this.animals = data.items;
-        // Use the count from the API for totalAnimals
         this.totalAnimals = data.count;
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -181,6 +166,19 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  private updatePagination(event?: PageEvent): void {
+    if (event) {
+      this.pageIndex = event.pageIndex;
+      this.lookup.pageSize = event.pageSize;
+    }
+    this.lookup.offset = this.pageIndex * this.lookup.pageSize;
+  }
+
+  private resetPagination(): void {
+    this.pageIndex = 0;
+    this.lookup.offset = 0;
   }
 
   reloadPage(): void {
@@ -239,8 +237,6 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  public AdoptionStatus = AdoptionStatus;
-
   getAdoptionStatusTranslationKey(status: AdoptionStatus | undefined): string {
     switch (status) {
       case AdoptionStatus.Available:
@@ -277,10 +273,10 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       this.lookup.adoptionStatuses = [...this.lookup.adoptionStatuses, status];
     }
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.resetPagination();
     this.loadAnimals();
   }
+
   toggleGender(gender: Gender) {
     if (!this.lookup.genders) this.lookup.genders = [];
     if (this.lookup.genders.includes(gender)) {
@@ -288,38 +284,35 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       this.lookup.genders = [...this.lookup.genders, gender];
     }
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.resetPagination();
     this.loadAnimals();
   }
+
   onAgeFromChange(value: string) {
-    const num = value ? Math.max(1, +value) : undefined;
-    this.lookup.ageFrom = num;
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.lookup.ageFrom = value ? Math.max(1, +value) : undefined;
+    this.resetPagination();
     this.loadAnimals();
   }
+
   onAgeToChange(value: string) {
-    const num = value ? Math.max(1, +value) : undefined;
-    this.lookup.ageTo = num;
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.lookup.ageTo = value ? Math.max(1, +value) : undefined;
+    this.resetPagination();
     this.loadAnimals();
   }
+
   onSearchQueryChange(value: string) {
     this.lookup.query = value;
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.resetPagination();
     this.loadAnimals();
   }
+
   clearFilters() {
     this.lookup.adoptionStatuses = [];
     this.lookup.genders = [];
     this.lookup.ageFrom = undefined;
     this.lookup.ageTo = undefined;
     this.lookup.query = '';
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.resetPagination();
     this.loadAnimals();
   }
 } 

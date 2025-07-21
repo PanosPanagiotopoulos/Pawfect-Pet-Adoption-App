@@ -40,6 +40,18 @@ export class ShelterService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
+  getMe(reqFields: string[] = []): Observable<Shelter> {
+    const url = `${this.apiBase}/me`;
+    let params = new HttpParams();
+        reqFields.forEach(field => {
+          params = params.append('fields', field);
+        });
+        const options = { params };
+    return this.http
+      .get<Shelter>(url, options)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
   persist(item: ShelterPersist, reqFields: string[] = []): Observable<Shelter> {
     const url = `${this.apiBase}/persist`;
     let params = new HttpParams();

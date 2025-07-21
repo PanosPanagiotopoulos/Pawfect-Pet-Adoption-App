@@ -1,5 +1,19 @@
-import { Component, Output, EventEmitter, ChangeDetectionStrategy, OnInit, Input, SimpleChanges, OnChanges, ChangeDetectorRef } from '@angular/core';
-import { AdoptionApplication, ApplicationStatus } from 'src/app/models/adoption-application/adoption-application.model';
+import {
+  Component,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+  OnInit,
+  Input,
+  OnChanges,
+  ChangeDetectorRef,
+  OnDestroy,
+  SimpleChanges,
+} from '@angular/core';
+import {
+  AdoptionApplication,
+  ApplicationStatus,
+} from 'src/app/models/adoption-application/adoption-application.model';
 import { AdoptionApplicationService } from 'src/app/services/adoption-application.service';
 import { AdoptionApplicationLookup } from 'src/app/lookup/adoption-application-lookup';
 import { PageEvent } from '@angular/material/paginator';
@@ -25,66 +39,98 @@ import { trigger, transition, style, animate } from '@angular/animations';
     trigger('slideDown', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-96px)' }),
-        animate('250ms cubic-bezier(0.4,0,0.2,1)', style({ opacity: 1, transform: 'translateY(0)' }))
+        animate(
+          '250ms cubic-bezier(0.4,0,0.2,1)',
+          style({ opacity: 1, transform: 'translateY(0)' })
+        ),
       ]),
       transition(':leave', [
-        animate('200ms cubic-bezier(0.4,0,0.2,1)', style({ opacity: 0, transform: 'translateY(-96px)' }))
-      ])
-    ])
-  ]
+        animate(
+          '200ms cubic-bezier(0.4,0,0.2,1)',
+          style({ opacity: 0, transform: 'translateY(-96px)' })
+        ),
+      ]),
+    ]),
+  ],
 })
-export class ProfileAdoptionApplicationsComponent implements OnInit, OnChanges {
-  @Input() tabType: 'adoption-applications' | 'received-applications' = 'adoption-applications';
+export class ProfileAdoptionApplicationsComponent
+  implements OnInit, OnChanges, OnDestroy
+{
+  @Input() tabType: 'adoption-applications' | 'received-applications' =
+    'adoption-applications';
+  @Output() viewDetails = new EventEmitter<AdoptionApplication>();
+
   applications: AdoptionApplication[] = [];
   totalApplications = 0;
   isLoading = true;
   error: string | null = null;
   skeletonRows = Array(6);
   canEditApplications = false;
+  filterPanelVisible = false;
+  pageIndex = 0;
 
-  // Lookup model for all filter & sort state
   lookup: AdoptionApplicationLookup = {
     offset: 0,
     pageSize: 6,
     fields: [],
-    sortBy: [], // No default sort field
+    sortBy: [],
     sortDescending: true,
     status: undefined,
   };
-  pageIndex = 0;
+
   readonly sortFields = [
-    { value: nameof<AdoptionApplication>(x => x.createdAt), label: 'APP.PROFILE-PAGE.SORT.CREATED_AT' },
-    { value: nameof<AdoptionApplication>(x => x.status), label: 'APP.PROFILE-PAGE.SORT.STATUS' },
+    {
+      value: nameof<AdoptionApplication>((x) => x.createdAt),
+      label: 'APP.PROFILE-PAGE.SORT.CREATED_AT',
+    },
+    {
+      value: nameof<AdoptionApplication>((x) => x.updatedAt),
+      label: 'APP.PROFILE-PAGE.SORT.UPDATED_AT',
+    },
+    {
+      value: nameof<AdoptionApplication>((x) => x.status),
+      label: 'APP.PROFILE-PAGE.SORT.STATUS',
+    },
   ];
+
   readonly statusOptions = [
-    { value: ApplicationStatus.Pending, label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.PENDING' },
-    { value: ApplicationStatus.Available, label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.APPROVED' },
-    { value: ApplicationStatus.Rejected, label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.REJECTED' },
+    {
+      value: ApplicationStatus.Pending,
+      label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.PENDING',
+    },
+    {
+      value: ApplicationStatus.Available,
+      label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.APPROVED',
+    },
+    {
+      value: ApplicationStatus.Rejected,
+      label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.REJECTED',
+    },
   ];
 
-  filterPanelVisible = false;
-  private dataSub?: Subscription;
-  private translationSub?: Subscription;
-
-  @Output() viewDetails = new EventEmitter<AdoptionApplication>();
-
-  public ApplicationStatus = ApplicationStatus;
+  ApplicationStatus = ApplicationStatus;
   statusDropdownOpen = false;
   sortDropdownOpen = false;
 
-  // Getters for template compatibility
+  private dataSub?: Subscription;
+  private translationSub?: Subscription;
+
   get statusFilter(): ApplicationStatus[] {
     return this.lookup.status ?? [];
   }
+
   get sortField(): string | undefined {
-    return this.lookup.sortBy && this.lookup.sortBy.length > 0 ? this.lookup.sortBy[0] : undefined;
+    return this.lookup.sortBy?.length ? this.lookup.sortBy[0] : undefined;
   }
+
   get sortDescending(): boolean {
     return !!this.lookup.sortDescending;
   }
+
   get pageSize(): number {
     return this.lookup.pageSize;
   }
+
   set pageSize(val: number) {
     this.lookup.pageSize = val;
   }
@@ -99,17 +145,20 @@ export class ProfileAdoptionApplicationsComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit() {
-    this.canEditApplications = this.authService.hasPermission(Permission.EditAdoptionApplications);
+    this.canEditApplications = this.authService.hasPermission(
+      Permission.EditAdoptionApplications
+    );
     this.loadApplications();
-    this.translationSub = this.translationService.languageChanged$.subscribe(() => {
-      this.cdr.markForCheck();
-    });
+    this.translationSub = this.translationService.languageChanged$.subscribe(
+      () => {
+        this.cdr.markForCheck();
+      }
+    );
   }
-
+ 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['tabType'] && !changes['tabType'].firstChange) {
-      this.pageIndex = 0;
-      this.lookup.offset = 0;
+      this.resetPagination();
       this.loadApplications();
     }
   }
@@ -118,41 +167,24 @@ export class ProfileAdoptionApplicationsComponent implements OnInit, OnChanges {
     const value = (event.target as HTMLSelectElement | null)?.value;
     if (value) {
       this.lookup.pageSize = +value;
-      this.pageIndex = 0;
-      this.lookup.offset = 0;
+      this.resetPagination();
       this.loadApplications();
     }
   }
 
   loadApplications(event?: PageEvent) {
-    if (event) {
-      this.pageIndex = event.pageIndex;
-      this.lookup.pageSize = event.pageSize;
-      this.lookup.offset = this.pageIndex * this.lookup.pageSize;
-    } else {
-      this.lookup.offset = this.pageIndex * this.lookup.pageSize;
-    }
-    this.lookup.fields = [
-      nameof<AdoptionApplication>(x => x.id),
-      [nameof<AdoptionApplication>(x => x.animal), nameof<Animal>(x => x.name)].join('.'),
-      [nameof<AdoptionApplication>(x => x.animal), nameof<Animal>(x => x.breed), nameof<Breed>(x => x.name)].join('.'),
-      [nameof<AdoptionApplication>(x => x.animal), nameof<Animal>(x => x.attachedPhotos), nameof<File>(x => x.sourceUrl)].join('.'),
-      [nameof<AdoptionApplication>(x => x.user), nameof<User>(x => x.fullName)].join('.'),
-      nameof<AdoptionApplication>(x => x.status),
-      nameof<AdoptionApplication>(x => x.createdAt),
-    ];
+    this.updatePagination(event);
+    this.setLookupFields();
     this.isLoading = true;
     this.error = null;
     this.cdr.markForCheck();
-    let serviceCall;
-    if (this.tabType === 'received-applications') {
-      serviceCall = this.adoptionApplicationService.queryMineReceived(this.lookup);
-    } else {
-      serviceCall = this.adoptionApplicationService.queryMineRequested(this.lookup);
-    }
-    if (this.dataSub) {
-      this.dataSub.unsubscribe();
-    }
+
+    const serviceCall =
+      this.tabType === 'received-applications'
+        ? this.adoptionApplicationService.queryMineReceived(this.lookup)
+        : this.adoptionApplicationService.queryMineRequested(this.lookup);
+
+    this.dataSub?.unsubscribe();
     this.dataSub = serviceCall.subscribe({
       next: (result) => {
         this.applications = result.items;
@@ -164,10 +196,52 @@ export class ProfileAdoptionApplicationsComponent implements OnInit, OnChanges {
         this.error = 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.LOAD_ERROR';
         this.isLoading = false;
         this.errorHandler.handleError(err);
-        this.log.logFormatted({ message: 'Failed to load adoption applications', error: err });
+        this.log.logFormatted({
+          message: 'Failed to load adoption applications',
+          error: err,
+        });
         this.cdr.markForCheck();
-      }
+      },
     });
+  }
+
+  private updatePagination(event?: PageEvent): void {
+    if (event) {
+      this.pageIndex = event.pageIndex;
+      this.lookup.pageSize = event.pageSize;
+    }
+    this.lookup.offset = this.pageIndex * this.lookup.pageSize;
+  }
+
+  private resetPagination(): void {
+    this.pageIndex = 0;
+    this.lookup.offset = 0;
+  }
+
+  private setLookupFields(): void {
+    this.lookup.fields = [
+      nameof<AdoptionApplication>((x) => x.id),
+      [
+        nameof<AdoptionApplication>((x) => x.animal),
+        nameof<Animal>((x) => x.name),
+      ].join('.'),
+      [
+        nameof<AdoptionApplication>((x) => x.animal),
+        nameof<Animal>((x) => x.breed),
+        nameof<Breed>((x) => x.name),
+      ].join('.'),
+      [
+        nameof<AdoptionApplication>((x) => x.animal),
+        nameof<Animal>((x) => x.attachedPhotos),
+        nameof<File>((x) => x.sourceUrl),
+      ].join('.'),
+      [
+        nameof<AdoptionApplication>((x) => x.user),
+        nameof<User>((x) => x.fullName),
+      ].join('.'),
+      nameof<AdoptionApplication>((x) => x.status),
+      nameof<AdoptionApplication>((x) => x.createdAt),
+    ];
   }
 
   reloadPage(): void {
@@ -238,26 +312,23 @@ export class ProfileAdoptionApplicationsComponent implements OnInit, OnChanges {
   toggleStatus(status: ApplicationStatus) {
     if (!this.lookup.status) this.lookup.status = [];
     if (this.lookup.status.includes(status)) {
-      this.lookup.status = this.lookup.status.filter(s => s !== status);
+      this.lookup.status = this.lookup.status.filter((s) => s !== status);
     } else {
       this.lookup.status = [...this.lookup.status, status];
     }
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.resetPagination();
     this.loadApplications();
   }
 
   onSortFieldChange(value: string) {
     this.lookup.sortBy = value ? [value] : [];
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.resetPagination();
     this.loadApplications();
   }
 
   toggleSortDirection() {
     this.lookup.sortDescending = !this.lookup.sortDescending;
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.resetPagination();
     this.loadApplications();
   }
 
@@ -265,13 +336,14 @@ export class ProfileAdoptionApplicationsComponent implements OnInit, OnChanges {
     this.lookup.status = [];
     this.lookup.sortBy = [];
     this.lookup.sortDescending = true;
-    this.pageIndex = 0;
-    this.lookup.offset = 0;
+    this.resetPagination();
     this.loadApplications();
   }
 
   statusOptionsFiltered() {
-    return this.statusOptions.filter(option => this.lookup.status && this.lookup.status.includes(option.value));
+    return this.statusOptions.filter((option) =>
+      this.lookup.status?.includes(option.value)
+    );
   }
 
   ngOnDestroy() {

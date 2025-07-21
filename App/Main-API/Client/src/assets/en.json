@@ -28,6 +28,8 @@
     "ADOPT": {
       "TITLE": "Time for Adoption!",
       "SUBTITLE": "A new family member is waiting for you",
+      "EDIT_TITLE": "Edit Adoption Application",
+      "EDIT_SUBTITLE": "Update your adoption application details",
       "PET_DETAILS_TITLE": "Pet Details",
       "SHELTER_DETAILS_TITLE": "Shelter Details",
       "ADOPTION_APPLICATION_TITLE": "Adoption Application",
@@ -39,6 +41,22 @@
       "OPERATING_HOURS": "Operating Hours",
       "CLOSED": "Closed",
       "SUBMIT_APPLICATION": "Submit Application",
+      "UPDATE_APPLICATION": "Update Application",
+      "APPLICATION_STATUS_MANAGEMENT": "Application Status Management",
+      "CURRENT_STATUS": "Current Status",
+      "UPDATE_STATUS": "Update Status",
+      "STATUS_CHANGE_WARNING": "Changing the status will notify the applicant via email.",
+      "APPLICANT_INFO_TITLE": "Applicant Information",
+      "VIEW_APPLICANT_PROFILE": "View applicant profile",
+      "APPLICANT_LOCATION": "Location",
+      "APPLICANT_MESSAGE": "Application Message",
+      "NO_MESSAGE_PROVIDED": "No message provided",
+      "APPLICATION_SUBMITTED": "Application submitted on",
+      "LAST_MODIFIED_AT": "Last modified at",
+      "NO_EDIT_PERMISSION_TITLE": "No Edit Permission",
+      "NO_EDIT_PERMISSION_MESSAGE": "You can only edit adoption applications for animals from your own shelter.",
+      "STATUS_MANAGEMENT_INFO_TITLE": "Status Management",
+      "STATUS_MANAGEMENT_INFO_MESSAGE": "Only the shelter that received this application can change its status.",
       "WHY_ADOPT_QUESTION": "Why do you want to adopt this pet?",
       "WHY_ADOPT_HINT": "Describe why you believe you are the right person to adopt this pet",
       "SUPPORTING_DOCUMENTS": "Supporting Documents",
@@ -425,7 +443,12 @@
         "ACCEPT_ALL_TYPES": "All file types accepted",
         "ACCEPT_TYPES": "Accepted types: {types}",
         "MAX_FILES_ERROR": "You can select up to {max} files",
-        "MAX_FILE_SIZE_ERROR": "Maximum file size is {size}"
+        "MAX_FILE_SIZE_ERROR": "Maximum file size is {size}",
+        "EXISTING_FILE": "Existing",
+        "UPLOADING": "Uploading...",
+        "UPLOAD_FAILED": "Upload failed",
+        "DOWNLOAD_FILE": "Download file",
+        "CLICK_TO_DOWNLOAD": "Click to download"
       },
       "FORM_ERROR": {
         "DEFAULT_TITLE": "Please correct the following errors:"
@@ -705,6 +728,7 @@
       },
       "SORT": {
         "CREATED_AT": "Created At",
+        "UPDATED_AT": "Modified At",
         "STATUS": "Status"
       }
     }

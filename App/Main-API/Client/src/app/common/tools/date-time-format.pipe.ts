@@ -19,13 +19,48 @@ export class DateTimeFormatPipe implements PipeTransform {
     timezone?: string,
     locale?: string
   ): string | null {
-    // using timezone set in timezoneService by default. can be overwritten with pipe arguments
-    const timezoneToUse = timezone
-      ? timezone
-      : momentTimezone(value)
-          .tz(this.timezoneService.getCurrentTimezone())
-          .format('Z');
-    return this.datePipe.transform(value, format, timezoneToUse, locale);
+    if (!value) {
+      return null;
+    }
+
+    // Convert value to Date if it's a string
+    let dateValue: Date;
+    if (typeof value === 'string') {
+      dateValue = new Date(value);
+    } else if (value instanceof Date) {
+      dateValue = value;
+    } else {
+      return null;
+    }
+
+    // Check if date is valid
+    if (isNaN(dateValue.getTime())) {
+      return null;
+    }
+
+    // If no format is provided, use default
+    if (!format) {
+      format = 'medium';
+    }
+
+    // For our specific use case, handle the custom format directly
+    if (format === 'dd/MM/yyyy : HH:mm') {
+      const day = dateValue.getDate().toString().padStart(2, '0');
+      const month = (dateValue.getMonth() + 1).toString().padStart(2, '0');
+      const year = dateValue.getFullYear();
+      const hours = dateValue.getHours().toString().padStart(2, '0');
+      const minutes = dateValue.getMinutes().toString().padStart(2, '0');
+      
+      return `${day}/${month}/${year} : ${hours}:${minutes}`;
+    }
+
+    // For other formats, use Angular's DatePipe
+    try {
+      return this.datePipe.transform(value, format, timezone, locale);
+    } catch (error) {
+      console.error('DateTimeFormatPipe error:', error);
+      return null;
+    }
   }
 }
 

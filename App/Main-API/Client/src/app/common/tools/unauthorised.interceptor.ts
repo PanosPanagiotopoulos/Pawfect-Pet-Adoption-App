@@ -45,7 +45,6 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         const failedRequestUrl = request.url.split('?')[0];
-        const failedLocalUrl = this.router.url.split('?')[0];
         if (error.status !== 401 || failedRequestUrl.includes('/auth/refresh')) {
           return throwError(() => error);
         }
@@ -55,9 +54,6 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
             return next.handle(request.clone());
           }),
           catchError((refreshError) => {
-            if (this.excludedRoutes.includes(failedLocalUrl)) {
-              return throwError(() => error);
-            }
             this.snackbarService.showError({
               message: this.getFallbackMessage('loginRequired'),
               subMessage: this.getFallbackMessage('redirectMessage')

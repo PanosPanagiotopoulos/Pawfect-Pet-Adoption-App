@@ -29,8 +29,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.translationSub = this.translationService.languageChanged$.subscribe(() => {
       this.reloadKey++;
     });
-
-    this.downloadTemplate();
   }
 
   ngOnDestroy(): void {

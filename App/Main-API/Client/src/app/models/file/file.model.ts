@@ -2,7 +2,7 @@ import { User } from "../user/user.model";
 
 export interface File {
     id?: string;
-    fileName?: string;
+    filename?: string;
     mimeType?: string;
     fileType?: string;
     owner?: User;
@@ -19,7 +19,6 @@ export interface FilePersist {
     fileType: string;
     ownerId: string;
     size: number;
-    awsKey: string;
     sourceUrl: string;
 }
 
@@ -29,4 +28,6 @@ export interface FileItem {
   persistedId?: string;
   isPersisting: boolean;
   uploadFailed: boolean;
+  isExisting?: boolean; 
+  sourceUrl?: string; 
 }

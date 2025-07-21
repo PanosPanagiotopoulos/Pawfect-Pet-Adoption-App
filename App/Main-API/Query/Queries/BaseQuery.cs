@@ -62,8 +62,6 @@ namespace Main_API.Query.Queries
 			if (Fields == null || Fields.Count == 0)
 				return finder;
 
-			Fields = FieldNamesOf(Fields.ToList());
-
 			ProjectionDefinition<T> projection = Builders<T>.Projection.Include(Fields.First());
 			foreach (String field in Fields.Skip(1))
 			{

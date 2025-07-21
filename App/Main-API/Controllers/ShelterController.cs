@@ -15,6 +15,9 @@ using System.Linq;
 using System.Reflection;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Main_API.Query.Queries;
+using Main_API.Services.AuthenticationServices;
+using System.Security.Claims;
+using Main_API.Services.Convention;
 
 namespace Main_API.Controllers
 {
@@ -28,12 +31,21 @@ namespace Main_API.Controllers
         private readonly IBuilderFactory _builderFactory;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
+        private readonly IAuthorizationContentResolver _authorizationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IConventionService _conventionService;
 
         public ShelterController
 			(
-				IShelterService shelterService, ILogger<ShelterController> logger,
-				IQueryFactory queryFactory, IBuilderFactory builderFactory,
-                ICensorFactory censorFactory, AuthContextBuilder contextBuilder
+				IShelterService shelterService,
+                ILogger<ShelterController> logger,
+				IQueryFactory queryFactory, 
+                IBuilderFactory builderFactory,
+                ICensorFactory censorFactory, 
+                AuthContextBuilder contextBuilder,
+                IAuthorizationContentResolver authorizationContentResolver,
+                ClaimsExtractor claimsExtractor,
+                IConventionService conventionService
             )
 		{
 			_shelterService = shelterService;
@@ -42,6 +54,9 @@ namespace Main_API.Controllers
             _builderFactory = builderFactory;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _authorizationContentResolver = authorizationContentResolver;
+            _claimsExtractor = claimsExtractor;
+            _conventionService = conventionService;
         }
 
 		/// <summary>
@@ -112,10 +127,43 @@ namespace Main_API.Controllers
             return Ok(model);
 		}
 
-		/// <summary>
-		/// Persist an shelter.
-		/// </summary>
-		[HttpPost("persist")]
+      
+        [HttpGet("me")]
+        [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> GetMe([FromQuery] List<String> fields)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            String shelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
+            if (!_conventionService.IsValidId(shelterId)) return null;
+
+            ShelterLookup lookup = new ShelterLookup();
+            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
+            lookup.Offset = 1;
+            // Γενική τιμή για τη λήψη των dtos
+            lookup.PageSize = 1;
+            lookup.Ids = [shelterId];
+            lookup.Fields = fields;
+
+            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<ShelterCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying shelters");
+
+            lookup.Fields = censoredFields;
+            Shelter model = (await _builderFactory.Builder<ShelterBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+                                    .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+                                    .FirstOrDefault();
+
+            if (model == null) throw new NotFoundException("Shelter not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.Shelter));
+
+            return Ok(model);
+        }
+
+        /// <summary>
+        /// Persist an shelter.
+        /// </summary>
+        [HttpPost("persist")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] ShelterPersist model, [FromQuery] List<String> fields)

@@ -90,7 +90,7 @@ export class ErrorMessageBannerComponent {
   getIcon(): string {
     switch (this.error?.type) {
       case 'warning':
-        return 'lucideAlertTriangle';
+        return 'lucideBadgeAlert';
       case 'info':
         return 'lucideInfo';
       default:

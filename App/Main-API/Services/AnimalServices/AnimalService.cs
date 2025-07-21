@@ -75,7 +75,7 @@ namespace Main_API.Services.AnimalServices
 			
 			List<Data.Entities.Animal> datas = new List<Data.Entities.Animal>();
             List<String> dataIds = new List<String>();
-
+            List<String> prevFileIds = new List<String>();
             AnimalQuery q = _queryFactory.Query<AnimalQuery>();
             q.Offset = 0;
             q.PageSize = models.Count;
@@ -86,6 +86,8 @@ namespace Main_API.Services.AnimalServices
 				datas = await q.CollectAsync();
 
                 if (datas == null || datas.Count != models.Count) throw new NotFoundException("Not all animals found to persist", null, typeof(Data.Entities.Animal));
+
+                prevFileIds.AddRange(datas.Where(d => d.PhotosIds != null).SelectMany(d => d.PhotosIds));
 
 				foreach (AnimalPersist animalPersist in models)
 				{
@@ -108,7 +110,7 @@ namespace Main_API.Services.AnimalServices
 
 			await this.PersistFiles(
 				models.Where(x => x.AttachedPhotosIds != null && x.AttachedPhotosIds.Count > 0).SelectMany(x => x.AttachedPhotosIds).ToList(),
-				datas.Where(x => x.PhotosIds != null && x.PhotosIds.Count > 0).SelectMany(x => x.PhotosIds).ToList()
+				prevFileIds
 			);
 
             if (isUpdate) dataIds = await _animalRepository.UpdateManyAsync(datas);
@@ -158,7 +160,6 @@ namespace Main_API.Services.AnimalServices
 
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = attachedFilesIds;
-			lookup.Fields = new List<String> { "*" };
 			lookup.Offset = 0;
 			lookup.PageSize = attachedFilesIds.Count;
 

@@ -28,6 +28,8 @@
     "ADOPT": {
       "TITLE": "Ώρα για Υιοθεσία!",
       "SUBTITLE": "Ένα νέο μέλος της οικογένειάς σας σας περιμένει",
+      "EDIT_TITLE": "Επεξεργασία Αίτησης Υιοθεσίας",
+      "EDIT_SUBTITLE": "Ενημερώστε τα στοιχεία της αίτησης υιοθεσίας σας",
       "PET_DETAILS_TITLE": "Στοιχεία Κατοικιδίου",
       "SHELTER_DETAILS_TITLE": "Στοιχεία Καταφυγίου",
       "ADOPTION_APPLICATION_TITLE": "Αίτηση Υιοθεσίας",
@@ -39,6 +41,22 @@
       "OPERATING_HOURS": "Ώρες Λειτουργίας",
       "CLOSED": "Κλειστό",
       "SUBMIT_APPLICATION": "Υποβολή Αίτησης",
+      "UPDATE_APPLICATION": "Ενημέρωση Αίτησης",
+      "APPLICATION_STATUS_MANAGEMENT": "Διαχείριση Κατάστασης Αίτησης",
+      "CURRENT_STATUS": "Τρέχουσα Κατάσταση",
+      "UPDATE_STATUS": "Ενημέρωση Κατάστασης",
+      "STATUS_CHANGE_WARNING": "Η αλλαγή της κατάστασης θα ειδοποιήσει τον αιτούντα μέσω email.",
+      "APPLICANT_INFO_TITLE": "Στοιχεία Αιτούντα",
+      "VIEW_APPLICANT_PROFILE": "Προβολή προφίλ αιτούντα",
+      "APPLICANT_LOCATION": "Τοποθεσία",
+      "APPLICANT_MESSAGE": "Μήνυμα Αίτησης",
+      "NO_MESSAGE_PROVIDED": "Δεν παρέχεται μήνυμα",
+      "APPLICATION_SUBMITTED": "Η αίτηση υποβλήθηκε στις",
+      "LAST_MODIFIED_AT": "Τελευταία τροποποίηση στις",
+      "NO_EDIT_PERMISSION_TITLE": "Δεν Έχετε Δικαίωμα Επεξεργασίας",
+      "NO_EDIT_PERMISSION_MESSAGE": "Μπορείτε να επεξεργαστείτε μόνο αιτήσεις υιοθεσίας για ζώα από το δικό σας καταφύγιο.",
+      "STATUS_MANAGEMENT_INFO_TITLE": "Διαχείριση Κατάστασης",
+      "STATUS_MANAGEMENT_INFO_MESSAGE": "Μόνο το καταφύγιο που έλαβε αυτή την αίτηση μπορεί να αλλάξει την κατάστασή της.",
       "WHY_ADOPT_QUESTION": "Γιατί θέλετε να υιοθετήσετε αυτό το κατοικίδιο;",
       "WHY_ADOPT_HINT": "Περιγράψτε γιατί πιστεύετε ότι είστε ο κατάλληλος για να υιοθετήσετε αυτό το κατοικίδιο",
       "SUPPORTING_DOCUMENTS": "Υποστηρικτικά Έγγραφα",
@@ -421,7 +439,12 @@
         "ACCEPT_ALL_TYPES": "Αποδεκτοί όλοι οι τύποι αρχείων",
         "ACCEPT_TYPES": "Αποδεκτοί τύποι: {types}",
         "MAX_FILES_ERROR": "Μπορείτε να επιλέξετε μέχρι {max} αρχεία",
-        "MAX_FILE_SIZE_ERROR": "Το μέγιστο μέγεθος αρχείου είναι {size}"
+        "MAX_FILE_SIZE_ERROR": "Το μέγιστο μέγεθος αρχείου είναι {size}",
+        "EXISTING_FILE": "Υπάρχον",
+        "UPLOADING": "Μεταφόρτωση...",
+        "UPLOAD_FAILED": "Αποτυχία μεταφόρτωσης",
+        "DOWNLOAD_FILE": "Λήψη αρχείου",
+        "CLICK_TO_DOWNLOAD": "Κάντε κλικ για λήψη"
       },
       "FORM_ERROR": {
         "DEFAULT_TITLE": "Παρακαλώ διορθώστε τα παρακάτω σφάλματα:"
@@ -702,6 +725,7 @@
       },
       "SORT": {
         "CREATED_AT": "Ημερομηνία Δημιουργίας",
+        "UPDATED_AT": "Τελευταία Ημερομηνία Επεξεργασίας",
         "STATUS": "Κατάσταση"
       }
     },

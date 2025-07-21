@@ -63,6 +63,8 @@ import {
   lucideArrowDownWideNarrow,
   lucideArrowUpWideNarrow,
   lucideRefreshCw,
+  lucideSettings,
+  lucideCircleAlert,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -131,6 +133,7 @@ export function initializeApp(
       lucideDog,
       lucideHeartPulse,
       lucideScale,
+      lucideSettings,
       lucideActivity,
       lucideMoon,
       lucideFileText,
@@ -168,6 +171,7 @@ export function initializeApp(
       lucideArrowDownWideNarrow,
       lucideArrowUpWideNarrow,
       lucideRefreshCw,
+      lucideCircleAlert
     }),
     HeaderComponent,
     TranslatePipe,

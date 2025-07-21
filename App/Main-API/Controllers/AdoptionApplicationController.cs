@@ -191,7 +191,7 @@ namespace Main_API.Controllers
             lookup.Ids = [id];
 
             AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor(BaseCensor.PrepareFieldsList([..lookup.Fields]), context);
+            List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor(BaseCensor.PrepareFieldsList(fields), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying adoption applications");
 
 			lookup.Fields = censoredFields;
@@ -217,8 +217,6 @@ namespace Main_API.Controllers
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
 			fields = BaseCensor.PrepareFieldsList(fields);
-
-
 
             AdoptionApplication adoptionApplication = await _adoptionApplicationService.Persist(model, fields);
 

@@ -133,7 +133,6 @@ namespace Main_API.Services.UserServices
 
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = new List<String>() { profilePhoto };
-			lookup.Fields = new List<String> { "*" };
 			lookup.Offset = 1;
 			lookup.PageSize = 1;
 			
@@ -422,6 +421,7 @@ namespace Main_API.Services.UserServices
 		public async Task<Models.User.User> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
             Data.Entities.User? workingUser = await this.RetrieveUserAsync(userPersist.Id, userPersist.Email);
+			String oldProfilePhoto = workingUser?.ProfilePhotoId;
 
 			Boolean IsCreation = false;
 			// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
@@ -462,7 +462,7 @@ namespace Main_API.Services.UserServices
             if (String.IsNullOrEmpty(workingUser.Id))
                 throw new InvalidOperationException("Persisting failed and user was not found");
 
-            await this.PersistProfilePhoto(userPersist.ProfilePhotoId, workingUser.ProfilePhotoId, workingUser.Id);
+            await this.PersistProfilePhoto(userPersist.ProfilePhotoId, oldProfilePhoto, workingUser.Id);
 
             Models.User.User persisted = new Models.User.User();
 			if (buildDto)

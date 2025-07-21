@@ -16,12 +16,16 @@ import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/
 import { AuthGuard } from 'src/app/common/guards/auth.guard';
 import { Permission } from 'src/app/common/enum/permission.enum';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { DateTimeFormatPipe } from 'src/app/common/tools/date-time-format.pipe';
+import { DatePipe } from '@angular/common';
+import { TimezoneService } from 'src/app/common/services/time-zone.service';
 
 @NgModule({
   declarations: [
     AdoptComponent,
     AdoptionFormComponent,
-    ShelterInfoComponent
+    ShelterInfoComponent,
+    DateTimeFormatPipe,
   ],
   imports: [
     CommonModule,
@@ -35,16 +39,25 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
     PetDetailsDialogComponent,
     TranslatePipe,
     RouterModule.forChild([
-      { 
-        path: ':id', 
+      {
+        path: 'edit/:applicationId',
         component: AdoptComponent,
         canActivate: [AuthGuard],
         data: {
-          permissions: [Permission.CreateAdoptionApplications]
-        }
+          permissions: [Permission.EditAdoptionApplications],
+        },
       },
-      { path: '**', component: NotFoundComponent }
-    ])
-  ]
+      {
+        path: ':id',
+        component: AdoptComponent,
+        canActivate: [AuthGuard],
+        data: {
+          permissions: [Permission.CreateAdoptionApplications],
+        },
+      },
+      { path: '**', component: NotFoundComponent },
+    ]),
+  ],
+  providers: [DatePipe, TimezoneService],
 })
-export class AdoptModule { }
+export class AdoptModule {}

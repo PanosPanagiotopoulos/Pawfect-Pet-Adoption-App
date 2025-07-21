@@ -82,6 +82,14 @@ export class AnimalService {
       responseType: 'blob'
     });
   }
+
+  importFromExcelTemplate(file: File): Observable<AnimalPersist[]> {
+    const url = `${this.apiBase}/import-template/excel`;
+    const formData = new FormData();
+    formData.append('file', file); 
+
+    return this.http.post<AnimalPersist[]>(url, formData);
+  }
   
   delete(id: string): Observable<void> {
     const url = `${this.apiBase}/delete`;

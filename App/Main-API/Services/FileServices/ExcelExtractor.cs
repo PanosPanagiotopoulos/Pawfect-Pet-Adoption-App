@@ -126,7 +126,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
             BreedQuery q = _queryFactory.Query<BreedQuery>();
             q.Offset = 0;
             q.PageSize = 100;
-            q.Fields = new List<String> { nameof(Breed.Id), nameof(Breed.Name) };
+            q.Fields = q.FieldNamesOf(new List<String> { nameof(Breed.Id), nameof(Breed.Name) });
 
             return (await q.CollectAsync()).Select(res => (res.Id, res.Name)).ToList();
         }
@@ -136,7 +136,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
             AnimalTypeQuery q = _queryFactory.Query<AnimalTypeQuery>();
             q.Offset = 0;
             q.PageSize = 100;
-            q.Fields = new List<String> { nameof(AnimalType.Id), nameof(AnimalType.Name) };
+            q.Fields = q.FieldNamesOf(new List<String> { nameof(AnimalType.Id), nameof(AnimalType.Name) });
 
             return (await q.CollectAsync()).Select(res => (res.Id, res.Name)).ToList();
         }
@@ -144,7 +144,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
         private void AddDropdown(ExcelWorksheet sheet, String address, IEnumerable<String> options)
         {
             OfficeOpenXml.DataValidation.Contracts.IExcelDataValidationList validation = sheet.DataValidations.AddListValidation(address);
-            foreach (var option in options)
+            foreach (String option in options)
                 validation.Formula.Values.Add(option);
         }
 
@@ -272,7 +272,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
             q.Offset = 0;
             q.PageSize = 100;
             q.Names = breedNames;
-            q.Fields = new List<String> { nameof(Breed.Id), nameof(Breed.Name) };
+            q.Fields = q.FieldNamesOf(new List<String> { nameof(Breed.Id), nameof(Breed.Name) });
 
             return (await q.CollectAsync()).ToDictionary(x => x.Name, x => x.Id);
         }
@@ -283,7 +283,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
             q.Offset = 0;
             q.PageSize = 100;
             q.Names = animalTypeNames;
-            q.Fields = new List<String> { nameof(AnimalType.Id), nameof(AnimalType.Name) };
+            q.Fields = q.FieldNamesOf(new List<String> { nameof(AnimalType.Id), nameof(AnimalType.Name) });
 
             return (await q.CollectAsync()).ToDictionary(x => x.Name, x => x.Id);
         }

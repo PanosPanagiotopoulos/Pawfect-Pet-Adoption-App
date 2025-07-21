@@ -1,16 +1,11 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { UserService } from 'src/app/services/user.service';
-import { AnimalService } from 'src/app/services/animal.service';
-import { AdoptionApplicationService } from 'src/app/services/adoption-application.service';
 import { AuthService } from 'src/app/services/auth.service';
-import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
-import { LogService } from 'src/app/common/services/log.service';
 import { TranslationService } from 'src/app/common/services/translation.service';
-import { takeUntil, catchError, finalize } from 'rxjs/operators';
-import { of, Subscription, BehaviorSubject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 import { nameof } from 'ts-simple-nameof';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
@@ -18,8 +13,6 @@ import { User } from 'src/app/models/user/user.model';
 import { Animal, AdoptionStatus } from 'src/app/models/animal/animal.model';
 import { AdoptionApplication, ApplicationStatus } from 'src/app/models/adoption-application/adoption-application.model';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
-import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
-import { Breed } from 'src/app/models/breed/breed.model';
 import { File } from 'src/app/models/file/file.model';
 import { Permission } from 'src/app/common/enum/permission.enum';
 import { Gender } from 'src/app/common/enum/gender';
@@ -52,18 +45,17 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
   tabs: ProfileTab[] = [];
   selectedTabIndex = 0;
 
-  // Data for different tabs
-  animalTypes: AnimalType[] = [];
-  breeds: Breed[] = [];
-
-  // Add animal form
-  addAnimalForm!: FormGroup;
-  isSubmittingAnimal = false;
-
-  // Filters
   applicationStatusFilter: ApplicationStatus | 'all' = 'all';
+  showPersonalMap = true;
+  showShelterMap = true;
+  personalMapUrl: SafeResourceUrl | null = null;
+  shelterMapUrl: SafeResourceUrl | null = null;
 
-  // Field selectors for API calls
+  UserRole = UserRole;
+  ApplicationStatus = ApplicationStatus;
+  AdoptionStatus = AdoptionStatus;
+  Gender = Gender;
+
   private readonly userFields = [
     nameof<User>(x => x.id),
     nameof<User>(x => x.fullName),
@@ -87,86 +79,19 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
     [nameof<Shelter>(x => x.user), nameof<User>(x => x.profilePhoto), nameof<File>(x => x.sourceUrl)].join('.')
   ];
 
-  private readonly animalFields = [
-    nameof<Animal>(x => x.id),
-    nameof<Animal>(x => x.name),
-    nameof<Animal>(x => x.gender),
-    nameof<Animal>(x => x.description),
-    nameof<Animal>(x => x.adoptionStatus),
-    nameof<Animal>(x => x.weight),
-    nameof<Animal>(x => x.age),
-    nameof<Animal>(x => x.healthStatus),
-    [nameof<Animal>(x => x.attachedPhotos), nameof<File>(x => x.sourceUrl)].join('.'),
-    [nameof<Animal>(x => x.attachedPhotos), nameof<File>(x => x.fileName)].join('.'),
-    [nameof<Animal>(x => x.animalType), 'name'].join('.'),
-    [nameof<Animal>(x => x.breed), 'name'].join('.'),
-    [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.shelterName)].join('.'),
-    [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.description)].join('.'),
-    [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.website)].join('.'),
-    [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.socialMedia)].join('.'),
-    [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.operatingHours)].join('.'),
-    [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.user), nameof<User>(x => x.location)].join('.'),
-    [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.user), nameof<User>(x => x.profilePhoto), nameof<File>(x => x.sourceUrl)].join('.')
-  ];
-
-  private readonly animalTypeFields = [
-    nameof<AnimalType>(x => x.id),
-    nameof<AnimalType>(x => x.name),
-  ];
-
-  private readonly breedFields = [
-    nameof<Breed>(x => x.id),
-    nameof<Breed>(x => x.name),
-  ];
-
   private readonly fileFields = [
     nameof<File>(x => x.id),
-    nameof<File>(x => x.sourceUrl),
+    nameof<File>(x => x.sourceUrl)
   ];
-
-  private readonly applicationFields = [
-    nameof<AdoptionApplication>(x => x.id),
-    nameof<AdoptionApplication>(x => x.status),
-    nameof<AdoptionApplication>(x => x.applicationDetails),
-    nameof<AdoptionApplication>(x => x.createdAt),
-    nameof<AdoptionApplication>(x => x.updatedAt),
-    [nameof<AdoptionApplication>(x => x.attachedFiles), nameof<File>(x => x.sourceUrl)].join('.'),
-    [nameof<AdoptionApplication>(x => x.attachedFiles), nameof<File>(x => x.fileName)].join('.'),
-    [nameof<AdoptionApplication>(x => x.animal), nameof<Animal>(x => x.id)].join('.'),
-    [nameof<AdoptionApplication>(x => x.animal), nameof<Animal>(x => x.name)].join('.'),
-    [nameof<AdoptionApplication>(x => x.animal), nameof<Animal>(x => x.attachedPhotos), nameof<File>(x => x.sourceUrl)].join('.'),
-    [nameof<AdoptionApplication>(x => x.animal), nameof<Animal>(x => x.animalType), 'name'].join('.'),
-    [nameof<AdoptionApplication>(x => x.animal), nameof<Animal>(x => x.breed), 'name'].join('.'),
-    [nameof<AdoptionApplication>(x => x.user), nameof<User>(x => x.id)].join('.'),
-    [nameof<AdoptionApplication>(x => x.user), nameof<User>(x => x.fullName)].join('.'),
-    [nameof<AdoptionApplication>(x => x.user), nameof<User>(x => x.profilePhoto), nameof<File>(x => x.sourceUrl)].join('.')
-  ];
-
-  UserRole = UserRole;
-  ApplicationStatus = ApplicationStatus;
-  AdoptionStatus = AdoptionStatus;
-  Gender = Gender;
-
-  showPersonalMap = true;
-  showShelterMap = true;
-  personalMapUrl: SafeResourceUrl | null = null;
-  shelterMapUrl: SafeResourceUrl | null = null;
-
-  private translationSub?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private userService: UserService,
-    private animalService: AnimalService,
-    private adoptionApplicationService: AdoptionApplicationService,
     private authService: AuthService,
-    private errorHandler: ErrorHandlerService,
-    private logService: LogService,
     private translationService: TranslationService,
-    private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
-    private sanitizer: DomSanitizer,
+    private sanitizer: DomSanitizer
   ) {
     super();
   }
@@ -179,24 +104,18 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
     super.ngOnDestroy();
   }
 
-
-  public loadProfile(): void {
+  loadProfile(): void {
     const profileId = this.route.snapshot.paramMap.get('id');
-    // If no profile ID is provided, load current user's profile
+    
     if (!profileId) {
       this.isOwnProfile = true;
       this.loadCurrentUserProfile();
-      // After profile and tabs are loaded, set tab from query param
       setTimeout(() => this.setTabFromQueryParams(), 0);
       return;
     }
+    
     this.isOwnProfile = false;
-    // Only fetch user and shelter data
-    this.userService.getSingle(profileId, [
-      ...this.userFields,
-      ...this.shelterFields.map(field => `shelter.${field}`),
-      ...this.fileFields.map(field => `profilePhoto.${field}`),
-    ]).pipe(
+    this.userService.getSingle(profileId, this.getProfileFields()).pipe(
       finalize(() => {
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -206,14 +125,7 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
         this.profileUser = user;
         this.setupTabs();
         this.loadTabData();
-        // Set map URLs for personal and shelter info tabs
-        if (user.location) {
-          this.personalMapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.getGoogleMapsEmbedUrl(user.location));
-        }
-        if (user.shelter?.user?.location) {
-          this.shelterMapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.getGoogleMapsEmbedUrl(user.shelter.user.location));
-        }
-        // After tabs are set up, set tab from query param
+        this.setupMapUrls(user);
         setTimeout(() => this.setTabFromQueryParams(), 0);
       },
       error: (error: any) => {
@@ -224,13 +136,7 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
   }
 
   private loadCurrentUserProfile(): void {
-    // Only fetch user and shelter data
-    const fields = [
-      ...this.userFields,
-      ...this.shelterFields.map(field => `shelter.${field}`),
-      ...this.fileFields.map(field => `profilePhoto.${field}`),
-    ];
-    this.userService.getMe(fields).pipe(
+    this.userService.getMe(this.getProfileFields()).pipe(
       takeUntil(this._destroyed),
       finalize(() => {
         this.isLoading = false;
@@ -242,12 +148,7 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
         this.profileUser = user;
         this.setupTabs();
         this.loadTabData();
-        if (user.location) {
-          this.personalMapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.getGoogleMapsEmbedUrl(user.location));
-        }
-        if (user.shelter?.user?.location) {
-          this.shelterMapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.getGoogleMapsEmbedUrl(user.shelter.user.location));
-        }
+        this.setupMapUrls(user);
         setTimeout(() => this.setTabFromQueryParams(), 0);
       },
       error: (error: any) => {
@@ -255,6 +156,27 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
         console.error('Failed to load current user profile', error);
       }
     });
+  }
+
+  private getProfileFields(): string[] {
+    return [
+      ...this.userFields,
+      ...this.shelterFields.map(field => `shelter.${field}`),
+      ...this.fileFields.map(field => `profilePhoto.${field}`)
+    ];
+  }
+
+  private setupMapUrls(user: User): void {
+    if (user.location) {
+      this.personalMapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+        this.getGoogleMapsEmbedUrl(user.location)
+      );
+    }
+    if (user.shelter?.user?.location) {
+      this.shelterMapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+        this.getGoogleMapsEmbedUrl(user.shelter.user.location)
+      );
+    }
   }
 
   private setupTabs(): void {
@@ -311,8 +233,8 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
   }
 
   private setTabFromQueryParams(): void {
-    // Only set tab if tabs are available
-    if (!this.tabs || this.tabs.length === 0) return;
+    if (!this.tabs?.length) return;
+    
     this.route.queryParams.subscribe(params => {
       const tabParam = params['tab'];
       if (tabParam) {
@@ -323,7 +245,6 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
           return;
         }
       }
-      // Default to first tab if not found
       this.selectedTabIndex = 0;
       this.cdr.markForCheck();
     });
@@ -337,49 +258,6 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
         relativeTo: this.route,
         queryParams: { tab: tabComponent },
         queryParamsHandling: 'merge',
-      });
-    }
-  }
-
-  onAddAnimal(): void {
-    if (this.addAnimalForm?.valid && this.profileUser?.shelter?.id) {
-      this.isSubmittingAnimal = true;
-      
-      const formValue = this.addAnimalForm.value;
-      const animalData = {
-        ...formValue,
-        shelterId: this.profileUser.shelter.id,
-        adoptionStatus: AdoptionStatus.Available
-      };
-
-      // Use proper field structure for animal creation
-      const fields = [
-        ...this.animalFields,
-        ...this.animalTypeFields.map(field => `animalType.${field}`),
-        ...this.breedFields.map(field => `breed.${field}`),
-        ...this.fileFields.map(field => `attachedPhotos.${field}`),
-      ];
-
-      this.animalService.persist(animalData, fields).pipe(
-        takeUntil(this._destroyed),
-        finalize(() => {
-          this.isSubmittingAnimal = false;
-          this.cdr.markForCheck();
-        })
-      ).subscribe({
-        next: (newAnimal: Animal) => {
-          if (this.profileUser?.shelter) {
-            if (!this.profileUser.shelter.animals) {
-              this.profileUser.shelter.animals = [];
-            }
-            this.profileUser.shelter.animals.unshift(newAnimal);
-          }
-          this.addAnimalForm?.reset();
-          console.log('Animal added successfully', { animalId: newAnimal.id });
-        },
-        error: (error: any) => {
-          this.errorHandler.handleError(error);
-        }
       });
     }
   }
@@ -398,7 +276,7 @@ export class ProfileComponent extends BaseComponent implements OnInit, OnDestroy
 
   onViewApplication(application: AdoptionApplication): void {
     // Navigate to application details or open dialog
-    this.router.navigate(['/adopt', application.animal?.id, 'edit']);
+    this.router.navigate(['/adopt/edit', application.id]);
   }
 
   onViewAnimal(animal: Animal): void {
