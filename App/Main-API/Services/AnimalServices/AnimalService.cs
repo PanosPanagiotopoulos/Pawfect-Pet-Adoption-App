@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Main_API.Builders;
 using Main_API.Censors;
+using Main_API.Data.Entities;
 using Main_API.Data.Entities.EnumTypes;
 using Main_API.Data.Entities.Types.Authorization;
 using Main_API.Exceptions;
@@ -13,6 +14,8 @@ using Main_API.Repositories.Interfaces;
 using Main_API.Services.AuthenticationServices;
 using Main_API.Services.Convention;
 using Main_API.Services.FileServices;
+using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 
 namespace Main_API.Services.AnimalServices
@@ -68,12 +71,15 @@ namespace Main_API.Services.AnimalServices
 
         public async Task<List<Models.Animal.Animal>> PersistBatch(List<AnimalPersist> models, List<String> fields)
         {
-            Boolean isUpdate = _conventionService.IsValidId(models.FirstOrDefault().Id);
+            Boolean isUpdate = models.Select(model => model.Id).All(_conventionService.IsValidId);
 
-            if (!await this.AuthoriseAnimalPersist(models.FirstOrDefault(), Permission.EditAnimals))
+            if (!await _authorizationService.AuthorizeAsync(Permission.EditAnimals))
                 throw new ForbiddenException("You are not authorized to edit animals", typeof(Data.Entities.Animal), Permission.EditAnimals);
-			
-			List<Data.Entities.Animal> datas = new List<Data.Entities.Animal>();
+
+            String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
+            if (!_conventionService.IsValidId(userShelterId)) throw new ForbiddenException("A non-shelter cannot create animals");
+
+            List<Data.Entities.Animal> datas = new List<Data.Entities.Animal>();
             List<String> dataIds = new List<String>();
             List<String> prevFileIds = new List<String>();
             AnimalQuery q = _queryFactory.Query<AnimalQuery>();
@@ -92,7 +98,10 @@ namespace Main_API.Services.AnimalServices
 				foreach (AnimalPersist animalPersist in models)
 				{
 					Data.Entities.Animal animal = datas.Where(data => data.Id.Equals(animalPersist.Id)).FirstOrDefault();
+                    if (!animal.ShelterId.Equals(userShelterId)) throw new InvalidOperationException("Cannot updatea an animals shelter");
+
                     _mapper.Map(animalPersist, animal);
+                    animal.PhotosIds = animalPersist.AttachedPhotosIds;
 					animal.UpdatedAt = DateTime.UtcNow;
 				}
             }
@@ -100,11 +109,14 @@ namespace Main_API.Services.AnimalServices
             {
                 foreach (AnimalPersist animalPersist in models)
                 {
-                    Data.Entities.Animal animal = datas.Where(data => data.Id.Equals(animalPersist.Id)).FirstOrDefault();
-                    _mapper.Map(animalPersist, animal);
+                    Data.Entities.Animal animal = _mapper.Map<Data.Entities.Animal>(animalPersist);
                     animal.Id = null;
+                    animal.PhotosIds = animalPersist.AttachedPhotosIds;
+                    animal.ShelterId = userShelterId;
                     animal.CreatedAt = DateTime.UtcNow;
                     animal.UpdatedAt = DateTime.UtcNow;
+
+                    datas.Add(animal);
                 }
             }
 
@@ -122,7 +134,7 @@ namespace Main_API.Services.AnimalServices
             // Return dto model
             AnimalLookup lookup = new AnimalLookup();
             lookup.Ids = dataIds;
-            lookup.Fields = fields ?? new List<String>() { nameof(Models.Animal.Animal.Name) };
+            lookup.Fields = fields.Concat(new List<String>() { nameof(Models.Animal.Animal.Name) }).ToList();
             lookup.Offset = 0;
             lookup.PageSize = models.Count;
 
@@ -132,14 +144,6 @@ namespace Main_API.Services.AnimalServices
             lookup.Fields = censoredFields;
 
 			return await _builderFactory.Builder<AnimalBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields);
-        }
-
-        private async Task<Boolean> AuthoriseAnimalPersist(AnimalPersist animal, String permission)
-		{
-            String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
-			if (!_conventionService.IsValidId(userShelterId) || !animal.ShelterId.Equals(userShelterId)) return false;
-
-            return await _authorizationService.AuthorizeAsync(permission);
         }
 
         private async Task PersistFiles(List<String> attachedFilesIds, List<String> currentFileIds)
@@ -192,41 +196,26 @@ namespace Main_API.Services.AnimalServices
 
 		public async Task Delete(List<String> ids)
 		{
-			if (!await this.AuthoriseAnimalDeletion(ids))
-                throw new ForbiddenException("You are not authorized to delete animals", typeof(Data.Entities.Animal), Permission.DeleteAnimals);
-
-            FileLookup fLookup = new FileLookup();
-            fLookup.OwnerIds = ids;
-            fLookup.Fields = new List<String> { nameof(Models.File.File.Id) };
-            fLookup.Offset = 0;
-            fLookup.PageSize = 10000;
-
-			List<Data.Entities.File> attachedFiles = await fLookup.EnrichLookup(_queryFactory).CollectAsync();
-			await _fileService.Value.Delete([..attachedFiles?.Select(x => x.Id)]);
-
-			await _animalRepository.DeleteAsync(ids);
-		}
-
-		private async Task<Boolean> AuthoriseAnimalDeletion(List<String> animalIds)
-		{
-			if (await _authorizationService.AuthorizeAsync(Permission.DeleteAnimals)) return true;
+            if (ids == null || !ids.Any()) return;
 
             String shelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
-			if (!_conventionService.IsValidId(shelterId)) return false;
+            if (!_conventionService.IsValidId(shelterId)) throw new ForbiddenException("Cannot delete if not a shelter");
 
             AnimalLookup lookup = new AnimalLookup();
-            lookup.Ids = animalIds;
+            lookup.Ids = ids;
             lookup.ShelterIds = [shelterId];
-            lookup.Fields = new List<String> { nameof(Models.Animal.Animal.Id) };
+            lookup.Fields = new List<String> { nameof(Models.Animal.Animal.Id), String.Join('.', nameof(Models.Animal.Animal.AttachedPhotos), nameof(Models.File.File.Id)) };
             lookup.Offset = 1;
             lookup.PageSize = 10000;
 
-            List<String> allowedAnimalsToDelete = [.. (await lookup.EnrichLookup(_queryFactory).CollectAsync())?.Select(animal => animal.Id)];
-			if (allowedAnimalsToDelete == null) return false;
+            List<Main_API.Data.Entities.Animal> animals = [.. await lookup.EnrichLookup(_queryFactory).CollectAsync()];
 
-            List<String> filteredAnimalDeletions = [.. animalIds.Except(allowedAnimalsToDelete)];
+            if (!await _authorizationService.AuthorizeAsync(Permission.DeleteAnimals)
+                && (animals == null || !animals.Any())) throw new ForbiddenException("You are not authorized to delete animals", typeof(Data.Entities.Animal), Permission.DeleteAnimals);
 
-			return filteredAnimalDeletions.Count == 0;
-        } 
+			await _fileService.Value.Delete([..animals.Where(animal => animal.PhotosIds != null).SelectMany(animal => animal.PhotosIds)]);
+
+			await _animalRepository.DeleteAsync(ids);
+		}
 	}
 }

@@ -60,7 +60,6 @@ export class GoogleLoginButtonComponent {
   @Input() text: string = 'Συνέχεια με Google';
   @Input() isLoading: boolean = false;
   @Input() isSignup: boolean = false;
-  @Output() login = new EventEmitter<void>();
 
   constructor(private readonly googleAuthService: GoogleAuthService) {}
 

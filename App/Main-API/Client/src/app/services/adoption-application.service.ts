@@ -72,17 +72,18 @@ export class AdoptionApplicationService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  delete(id: string): Observable<void> {
-    const url = `${this.apiBase}/delete`;
+  canDeleteApplication(applicationId: string): Observable<boolean> {
+    const url = `${this.apiBase}/permission/delete/${applicationId}`;
+
     return this.http
-      .post<void>(url, { id })
+      .post<boolean>(url)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  deleteMany(ids: string[]): Observable<void> {
-    const url = `${this.apiBase}/delete/many`;
+  delete(id: string): Observable<void> {
+    const url = `${this.apiBase}/delete/${id}`;
     return this.http
-      .post<void>(url, ids)
+      .post<void>(url)
       .pipe(catchError((error: any) => throwError(error)));
   }
 }

@@ -35,29 +35,4 @@ export class AppComponent implements OnInit, OnDestroy {
     this.translationSub?.unsubscribe();
   }
 
-  downloadTemplate(): void {
-    this.animalService.getImportExcel().subscribe({
-      next: (response: HttpResponse<Blob>) => {
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = 'template.xlsx';
-  
-        if (contentDisposition) {
-          let match = contentDisposition.match(/filename\*=([^']*)''([^;]+)/);
-          if (match && match[2]) {
-            filename = decodeURIComponent(match[2]);
-          } else {
-            match = contentDisposition.match(/filename="?([^"]+)"?/);
-            if (match && match[1]) {
-              filename = match[1];
-            }
-          }
-        }
-  
-        saveAs(response.body!, filename);
-      },
-      error: (err) => {
-        console.error('Failed to download template:', err);
-      }
-    });
-  }
 }

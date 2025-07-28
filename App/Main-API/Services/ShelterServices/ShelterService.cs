@@ -97,13 +97,16 @@ namespace Main_API.Services.ShelterServices
 			if (String.IsNullOrEmpty(dataId))
 				throw new InvalidOperationException("Failed to persist the shelter");
 
-			Data.Entities.User? refUser = await _userRepository.FindAsync(x => x.Id == data.UserId);
-			refUser.ShelterId = dataId;
-			refUser.UpdatedAt = DateTime.UtcNow;
+			if (!isUpdate)
+			{
+                Data.Entities.User? refUser = await _userRepository.FindAsync(x => x.Id == data.UserId);
+                refUser.ShelterId = dataId;
+                refUser.UpdatedAt = DateTime.UtcNow;
 
-			if (String.IsNullOrEmpty(await _userRepository.UpdateAsync(refUser)))
-				throw new InvalidOperationException("Failed to update the connected user of the shelter");
-
+                if (String.IsNullOrEmpty(await _userRepository.UpdateAsync(refUser)))
+                    throw new InvalidOperationException("Failed to update the connected user of the shelter");
+            }
+			
 			// Return dto model
 			ShelterLookup lookup = new ShelterLookup();
 			lookup.Ids = new List<String> { dataId };
@@ -143,14 +146,7 @@ namespace Main_API.Services.ShelterServices
 
 			await _shelterRepository.DeleteAsync(ids);
 
-			UserLookup uLookup = new UserLookup();
-			uLookup.ShelterIds = ids;
-			uLookup.Fields = new List<String> { nameof(Models.User.User.Id) };
-			uLookup.Offset = 1;
-			uLookup.PageSize = 10000;
-
-			List<Data.Entities.User> users = await uLookup.EnrichLookup(_queryFactory).CollectAsync();
-			await _userService.Value.Delete([.. users?.Select(x => x.Id)]);
+			await _userService.Value.Delete([.. shelters?.Select(x => x.UserId)]);
 		}
 	}
 }

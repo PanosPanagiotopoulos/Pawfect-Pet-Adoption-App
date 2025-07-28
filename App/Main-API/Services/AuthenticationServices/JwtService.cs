@@ -153,7 +153,15 @@ namespace Main_API.Services.AuthenticationServices
             }
 
             JwtSecurityToken jwtToken = handler.ReadJwtToken(token);
-            DateTime expiration = jwtToken.ValidTo;
+
+            return this.IsTokenRevoked(jwtToken);
+        }
+
+        public Boolean IsTokenRevoked(JwtSecurityToken token)
+        {
+            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+
+            DateTime expiration = token.ValidTo;
 
             if (expiration <= DateTime.UtcNow)
             {

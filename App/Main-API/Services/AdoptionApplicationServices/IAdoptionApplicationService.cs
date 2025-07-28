@@ -7,6 +7,7 @@ namespace Main_API.Services.AdoptionApplicationServices
 	{
 		// Συνάρτηση για query στα animals
 		Task<AdoptionApplication?> Persist(AdoptionApplicationPersist persist, List<String> fields);
+		Task<Boolean> CanDeleteApplication(String applicationId);
 		Task Delete(String id);
 		Task Delete(List<String> ids);
 	}

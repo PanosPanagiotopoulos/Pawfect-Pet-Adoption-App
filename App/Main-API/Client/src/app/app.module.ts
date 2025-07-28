@@ -65,9 +65,27 @@ import {
   lucideRefreshCw,
   lucideSettings,
   lucideCircleAlert,
+  lucideArrowLeft,
+  lucideSave,
+  lucideLoader,
+  lucideFolderOpen,
+  lucideFolder,
+  lucidePlus,
+  lucideImage,
+  lucideChevronLeft,
+  lucideChevronRight,
+  lucideDownload,
+  lucideSheet,
+  lucideVideo,
+  lucideArchive,
+  lucideMusic,
+  lucideCloud,
+  lucideTrash2,
+  lucideCamera,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
+import { FormLeaveConfirmationDialogComponent } from './common/ui/form-leave-confirmation-dialog.component';
 import { InstallationConfigurationService } from './common/services/installation-configuration.service';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { UnauthorizedInterceptor } from 'src/app/common/tools/unauthorised.interceptor';
@@ -76,6 +94,7 @@ import { HeaderComponent } from './ui/components/home/shared/header/header.compo
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule } from '@angular/material/dialog';
 import { ErrorHandlerService } from './common/services/error-handler.service';
 import { CookiesInterceptor } from './common/tools/cookies.interceptor';
 import { ApiKeyInterceptor } from './common/tools/api-key.interceptor';
@@ -94,7 +113,7 @@ export function initializeApp(
 }
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [AppComponent, FormLeaveConfirmationDialogComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -109,6 +128,7 @@ export function initializeApp(
     MatFormFieldModule,
     MatInputModule,
     MatSnackBarModule,
+    MatDialogModule,
     NgIconsModule.withIcons({
       lucideHeart,
       lucideSearch,
@@ -171,7 +191,24 @@ export function initializeApp(
       lucideArrowDownWideNarrow,
       lucideArrowUpWideNarrow,
       lucideRefreshCw,
-      lucideCircleAlert
+      lucideCircleAlert,
+      lucideArrowLeft,
+      lucideSave,
+      lucideLoader,
+      lucideFolderOpen,
+      lucideFolder,
+      lucidePlus,
+      lucideImage,
+      lucideChevronLeft,
+      lucideChevronRight,
+      lucideDownload,
+      lucideSheet,
+      lucideVideo,
+      lucideArchive,
+      lucideMusic,
+      lucideCloud,
+      lucideTrash2,
+      lucideCamera
     }),
     HeaderComponent,
     TranslatePipe,

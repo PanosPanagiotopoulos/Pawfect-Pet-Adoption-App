@@ -277,16 +277,18 @@ namespace Main_API.Services.FileServices
 
 		public async Task Delete(List<String> ids)
 		{
+			if (ids == null || !ids.Any()) return;
+
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = ids;
 			lookup.Fields = new List<String> { nameof(Models.File.File.Id), nameof(Data.Entities.File.AwsKey),
-											   nameof(Models.File.File.Owner) };
+											   String.Join('.', nameof(Models.File.File.Owner), nameof(Models.User.User.Id)) };
 			lookup.Offset = 1;
 			lookup.PageSize = 10000;
 
 			List<Data.Entities.File> files = await lookup.EnrichLookup(_queryFactory).CollectAsync();
 
-			OwnedResource ownedResource = _authorizationContentResolver.BuildOwnedResource(new FileLookup(), [.. files.Select(x => x.OwnerId)]);
+			OwnedResource ownedResource = _authorizationContentResolver.BuildOwnedResource(new FileLookup() { Ids = [.. files.Select(file => file.Id)] }, [.. files.Select(x => x.OwnerId)]);
 			if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.DeleteFiles))
                 throw new ForbiddenException("You do not have permission to delete files.", typeof(Data.Entities.File), Permission.DeleteFiles);
 

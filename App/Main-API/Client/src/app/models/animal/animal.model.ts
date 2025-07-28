@@ -30,7 +30,6 @@ export interface AnimalPersist {
   description: string;
   weight: number;
   healthStatus: string;
-  shelterId: string;
   breedId: string;
   animalTypeId: string;
   attachedPhotosIds: string[];

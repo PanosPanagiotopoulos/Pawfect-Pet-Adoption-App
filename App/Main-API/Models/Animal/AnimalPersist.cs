@@ -11,7 +11,6 @@ namespace Main_API.Models.Animal
 		public String Description { get; set; }
 		public double Weight { get; set; }
 		public String HealthStatus { get; set; }
-		public String ShelterId { get; set; }
 		public String BreedId { get; set; }
 		public String AnimalTypeId { get; set; }
 		public List<String>? AttachedPhotosIds { get; set; }

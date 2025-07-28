@@ -137,7 +137,6 @@ namespace Main_API.Query.Queries
 			return Task.FromResult(filter);
         }
 
-        // Fix for the CS1503 error in the ApplyAuthorization method
         public override async Task<FilterDefinition<Data.Entities.AdoptionApplication>> ApplyAuthorization(
             FilterDefinition<Data.Entities.AdoptionApplication> filter)
         {

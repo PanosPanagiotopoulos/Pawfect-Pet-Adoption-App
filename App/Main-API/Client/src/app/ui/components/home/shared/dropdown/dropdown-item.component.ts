@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
   template: `
     <a
       [routerLink]="routerLink"
-      (click)="handleClick()"
+      (click)="handleClick($event)"
       class="relative flex items-center px-4 py-2.5 text-sm text-gray-300 hover:text-white transition-all duration-200 group cursor-pointer"
       role="menuitem"
       tabindex="-1">
@@ -38,7 +38,9 @@ export class DropdownItemComponent {
   @Input() icon?: string;
   @Output() click = new EventEmitter<void>();
 
-  handleClick(): void {
+  handleClick(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
     this.click.emit();
   }
 }

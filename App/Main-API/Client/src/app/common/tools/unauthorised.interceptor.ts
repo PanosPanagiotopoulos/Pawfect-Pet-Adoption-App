@@ -14,21 +14,30 @@ import { AuthService } from '../../services/auth.service';
 import { SecureStorageService } from '../services/secure-storage.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UnauthorizedInterceptor implements HttpInterceptor {
-  private readonly excludedRoutes = ['/auth/login', '/auth/sign-up', '/auth/google/callback', '/search', '/home', '/', '/404', ''];
+  private readonly excludedRoutes = [
+    '/auth/login',
+    '/auth/sign-up',
+    '/auth/google/callback',
+    '/search',
+    '/home',
+    '/',
+    '/404',
+    '',
+  ];
   private readonly LANG_STORAGE_KEY = 'pawfect-language';
 
   private readonly fallbackMessages = {
     loginRequired: {
       en: 'Oops! It looks like you need to log in first',
-      gr: 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα'
+      gr: 'Ωχ! Φαίνεται ότι χρειάζεται να συνδεθείτε πρώτα',
     },
     redirectMessage: {
-      en: 'We\'ll redirect you to the login page',
-      gr: 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης'
-    }
+      en: "We'll redirect you to the login page",
+      gr: 'Θα σας μεταφέρουμε στη σελίδα σύνδεσης',
+    },
   };
 
   constructor(
@@ -45,7 +54,12 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
         const failedRequestUrl = request.url.split('?')[0];
-        if (error.status !== 401 || failedRequestUrl.includes('/auth/refresh')) {
+        const currentRoute = window.location.pathname;
+        if (
+          error.status !== 401 ||
+          failedRequestUrl.includes('/auth/refresh') ||
+          this.excludedRoutes.includes(currentRoute)
+        ) {
           return throwError(() => error);
         }
 
@@ -56,13 +70,16 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
           catchError((refreshError) => {
             this.snackbarService.showError({
               message: this.getFallbackMessage('loginRequired'),
-              subMessage: this.getFallbackMessage('redirectMessage')
+              subMessage: this.getFallbackMessage('redirectMessage'),
             });
 
-            const attemptedUrl = window.location.pathname + window.location.search + window.location.hash;
+            const attemptedUrl =
+              window.location.pathname +
+              window.location.search +
+              window.location.hash;
 
             this.router.navigate(['/auth/login'], {
-              queryParams: { returnUrl: attemptedUrl }
+              queryParams: { returnUrl: attemptedUrl },
             });
 
             return throwError(() => refreshError);
@@ -72,13 +89,20 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
     );
   }
 
-  private getFallbackMessage(messageType: 'loginRequired' | 'redirectMessage'): string {
+  private getFallbackMessage(
+    messageType: 'loginRequired' | 'redirectMessage'
+  ): string {
     const currentLang = this.getCurrentLanguage();
-    return this.fallbackMessages[messageType][currentLang] || this.fallbackMessages[messageType].gr;
+    return (
+      this.fallbackMessages[messageType][currentLang] ||
+      this.fallbackMessages[messageType].gr
+    );
   }
 
   private getCurrentLanguage(): 'en' | 'gr' {
-    const stored = this.secureStorageService.getItem<string>(this.LANG_STORAGE_KEY);
-    return (stored === 'en' || stored === 'gr') ? stored : 'en';
+    const stored = this.secureStorageService.getItem<string>(
+      this.LANG_STORAGE_KEY
+    );
+    return stored === 'en' || stored === 'gr' ? stored : 'en';
   }
 }

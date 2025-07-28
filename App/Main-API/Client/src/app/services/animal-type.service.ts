@@ -34,26 +34,29 @@ export class AnimalTypeService {
   getSingle(id: string, reqFields: string[] = []): Observable<AnimalType> {
     const url = `${this.apiBase}/${id}`;
     let params = new HttpParams();
-        reqFields.forEach(field => {
-          params = params.append('fields', field);
-        });
-        const options = { params };
+    reqFields.forEach((field) => {
+      params = params.append('fields', field);
+    });
+    const options = { params };
     return this.http
       .get<AnimalType>(url, options)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  persist(item: AnimalTypePersist, reqFields: string[] = []): Observable<AnimalType> {
+  persist(
+    item: AnimalTypePersist,
+    reqFields: string[] = []
+  ): Observable<AnimalType> {
     const url = `${this.apiBase}/persist`;
     let params = new HttpParams();
-    reqFields.forEach(field => {
+    reqFields.forEach((field) => {
       params = params.append('fields', field);
     });
     const options = { params };
     return this.http
       .post<AnimalType>(url, item, options)
       .pipe(catchError((error: any) => throwError(error)));
-}
+  }
 
   delete(id: string): Observable<void> {
     const url = `${this.apiBase}/delete`;

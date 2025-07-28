@@ -87,8 +87,28 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
             </div>
           </div>
 
-          <div *ngIf="!isEditMode || canEdit" class="flex justify-end pt-6">
-            <button type="submit" [disabled]="isSubmitting" class="relative px-6 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-70 disabled:transform-none disabled:hover:shadow-none">
+          <div *ngIf="!isEditMode || canEdit" class="flex gap-3 justify-end pt-6">
+            <button
+              *ngIf="isEditMode && canDelete"
+              type="button"
+              (click)="onDelete()"
+              [disabled]="isDeletingApplication || isSubmitting"
+              class="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md"
+            >
+              <ng-icon
+                [name]="isDeletingApplication ? 'lucideLoader' : 'lucideTrash2'"
+                class="w-5 h-5"
+                [ngClass]="{ 'animate-spin': isDeletingApplication }"
+              ></ng-icon>
+              <span>
+                {{
+                  isDeletingApplication
+                    ? ('APP.ADOPT.DELETING_APPLICATION' | translate)
+                    : ('APP.ADOPT.DELETE_APPLICATION' | translate)
+                }}
+              </span>
+            </button>
+            <button type="submit" [disabled]="isSubmitting || isDeletingApplication" class="relative flex-1 px-6 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-70 disabled:transform-none disabled:hover:shadow-none">
               <span [class.opacity-0]="isSubmitting">
                 {{ isEditMode ? ('APP.ADOPT.UPDATE_APPLICATION' | translate) : ('APP.ADOPT.SUBMIT_APPLICATION' | translate) }}
               </span>
@@ -111,11 +131,14 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
   @Input() adoptionApplication?: AdoptionApplication;
   @Input() isEditMode: boolean = false;
   @Input() canEdit: boolean = true;
+  @Input() canDelete: boolean = false;
+  @Input() isDeletingApplication: boolean = false;
   @Output() applicationSubmitted = new EventEmitter<string>();
+  @Output() deleteRequested = new EventEmitter<void>();
   @ViewChild('formContainer') formContainer!: ElementRef;
 
   ApplicationStatus = ApplicationStatus;
-  applicationForm: FormGroup;
+  public applicationForm: FormGroup;
   isSubmitting = false;
   error?: ErrorDetails;
   validationErrors: ValidationErrorInfo[] = [];
@@ -213,6 +236,10 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
       this.showErrorSummary = true;
       this.formErrorTracker.scrollToFirstError(this.validationErrors);
     }
+  }
+
+  onDelete(): void {
+    this.deleteRequested.emit();
   }
 
   private initializePermissions() {

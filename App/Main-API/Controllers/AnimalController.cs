@@ -13,6 +13,8 @@ using Main_API.Transactions;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Main_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices;
+using Microsoft.Extensions.Options;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 
 namespace Main_API.Controllers
 {
@@ -27,6 +29,7 @@ namespace Main_API.Controllers
         private readonly AuthContextBuilder _contextBuilder;
         private readonly Lazy<IFileDataExtractor> _excelExtractor;
         private readonly IQueryFactory _queryFactory;
+        private readonly AnimalsConfig _animalsConfig;
 
         public AnimalController
         (
@@ -36,7 +39,8 @@ namespace Main_API.Controllers
 			ICensorFactory censorFactory,
             AuthContextBuilder contextBuilder,
             Lazy<IFileDataExtractor> excelExtractor,
-            IQueryFactory queryFactory
+            IQueryFactory queryFactory,
+            IOptions<AnimalsConfig> options
         )
         {
             _animalService = animalService;
@@ -46,6 +50,7 @@ namespace Main_API.Controllers
             _contextBuilder = contextBuilder;
             _excelExtractor = excelExtractor;
             _queryFactory = queryFactory;
+            _animalsConfig = options.Value;
         }
 
         /// <summary>
@@ -75,7 +80,6 @@ namespace Main_API.Controllers
             if (models == null) throw new NotFoundException("Animals not found", JsonHelper.SerializeObjectFormatted(animalLookup), typeof(Data.Entities.Animal));
 
 
-
             return Ok(new QueryResult<Animal>()
             {
                 Items = models,
@@ -89,7 +93,7 @@ namespace Main_API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            animalLookup.Fields = _censorFactory.Censor<AnimalCensor>().PseudoCensor([.. animalLookup.Fields]);
+            animalLookup.Fields = _animalsConfig.FreeFields;
 
             AnimalQuery q = animalLookup.EnrichLookup(_queryFactory);
 
@@ -157,6 +161,20 @@ namespace Main_API.Controllers
 			return Ok(animal);
 		}
 
+        [HttpPost("persist/batch")]
+        [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> PersistBatch([FromBody] List<AnimalPersist> model, [FromQuery] List<String> fields)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            fields = BaseCensor.PrepareFieldsList(fields);
+
+            List<Animal> persisted = await _animalService.PersistBatch(model, fields);
+
+            return Ok(persisted);
+        }
+
         [HttpGet("import-template/excel")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -185,7 +203,9 @@ namespace Main_API.Controllers
             if (files == null || files.Count != 1) return BadRequest("Invalid amount of files provided");
 
             IFormFile excelFile = files.FirstOrDefault();
-            if (!Path.GetExtension(excelFile.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase)) return BadRequest("Not excel file provided");
+            if (!Path.GetExtension(excelFile.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase) &&
+                !Path.GetExtension(excelFile.FileName).Equals(".xls", StringComparison.OrdinalIgnoreCase)) 
+                return BadRequest("Not excel file provided");
 
             List<AnimalPersist> exctractedModels = await this._excelExtractor.Value.ExtractAnimalModelData(excelFile);
 
@@ -196,30 +216,14 @@ namespace Main_API.Controllers
         /// Delete an animal by ID.
         /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
         /// </summary>
-        [HttpPost("delete")]
+        [HttpPost("delete/{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Delete([FromBody] String id)
+        public async Task<IActionResult> Delete([FromRoute] String id)
 		{
 			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
 			await _animalService.Delete(id);
-
-			return Ok();
-		}
-
-		/// <summary>
-		/// Delete multiple animals by IDs.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete/many")]
-		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
-		{
-			if (ids == null || !ids.Any() || !ModelState.IsValid) return BadRequest(ModelState);
-
-			await _animalService.Delete(ids);
 
 			return Ok();
 		}

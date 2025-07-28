@@ -51,15 +51,5 @@ namespace Main_API.Censors
             censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<AdoptionApplicationCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Shelter.Shelter.ReceivedAdoptionApplications)), adoptionApplicationContext), nameof(Models.Shelter.Shelter.ReceivedAdoptionApplications)));
             return censoredFields;
         }
-
-        public List<String> PseudoCensor(List<String> fields)
-        {
-            if (fields == null || fields.Count == 0) return new List<String>();
-
-            List<String> nonPrefixed = [..this.ExtractNonPrefixed(fields).Where(field => field.Equals(nameof(Models.Shelter.Shelter.ShelterName)))];
-            List<String> userFields = _censorFactory.Censor<UserCensor>().PseudoCensor(this.ExtractPrefixed(fields, nameof(Models.Shelter.Shelter.User)));
-
-            return [.. nonPrefixed.Concat(this.AsPrefixed(userFields, nameof(Models.Shelter.Shelter.User)))];
-        }
     }
 }

@@ -31,10 +31,10 @@ export class ShelterService {
   getSingle(id: string, reqFields: string[] = []): Observable<Shelter> {
     const url = `${this.apiBase}/${id}`;
     let params = new HttpParams();
-        reqFields.forEach(field => {
-          params = params.append('fields', field);
-        });
-        const options = { params };
+    reqFields.forEach((field) => {
+      params = params.append('fields', field);
+    });
+    const options = { params };
     return this.http
       .get<Shelter>(url, options)
       .pipe(catchError((error: any) => throwError(error)));
@@ -43,10 +43,10 @@ export class ShelterService {
   getMe(reqFields: string[] = []): Observable<Shelter> {
     const url = `${this.apiBase}/me`;
     let params = new HttpParams();
-        reqFields.forEach(field => {
-          params = params.append('fields', field);
-        });
-        const options = { params };
+    reqFields.forEach((field) => {
+      params = params.append('fields', field);
+    });
+    const options = { params };
     return this.http
       .get<Shelter>(url, options)
       .pipe(catchError((error: any) => throwError(error)));
@@ -55,7 +55,7 @@ export class ShelterService {
   persist(item: ShelterPersist, reqFields: string[] = []): Observable<Shelter> {
     const url = `${this.apiBase}/persist`;
     let params = new HttpParams();
-    reqFields.forEach(field => {
+    reqFields.forEach((field) => {
       params = params.append('fields', field);
     });
     const options = { params };

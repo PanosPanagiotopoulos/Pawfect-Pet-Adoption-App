@@ -40,10 +40,9 @@ import { CustomValidators } from 'src/app/ui/components/auth/validators/custom.v
     TextAreaInputComponent,
     NgIconsModule,
     ErrorMessageBannerComponent,
-    TranslatePipe
+    TranslatePipe,
   ],
   templateUrl: './shelter-info.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ShelterInfoComponent implements OnInit {
   @Input() form!: FormGroup;
@@ -121,39 +120,37 @@ export class ShelterInfoComponent implements OnInit {
 
   private setupShelterValidators(): void {
     const shelterForm = this.getShelterForm();
-    
+
     // Set up shelter name validators
-    shelterForm.get('shelterName')?.setValidators([
-      Validators.required,
-      Validators.minLength(3)
-    ]);
+    shelterForm
+      .get('shelterName')
+      ?.setValidators([Validators.required, Validators.minLength(3)]);
 
     // Set up description validators
-    shelterForm.get('description')?.setValidators([
-      Validators.required,
-      Validators.minLength(10)
-    ]);
+    shelterForm
+      .get('description')
+      ?.setValidators([Validators.required, Validators.minLength(10)]);
 
     // Set up website validator (optional field)
-    shelterForm.get('website')?.setValidators([
-      Validators.pattern(/^https?:\/\/.+\..+$/)
-    ]);
+    shelterForm
+      .get('website')
+      ?.setValidators([Validators.pattern(/^https?:\/\/.+\..+$/)]);
 
     // Set up social media validators (all optional)
     const socialMediaForm = this.getSocialMediaForm();
-    socialMediaForm.get('facebook')?.setValidators([
-      this.createOptionalSocialMediaValidator('facebook')
-    ]);
-    socialMediaForm.get('instagram')?.setValidators([
-      this.createOptionalSocialMediaValidator('instagram')
-    ]);
+    socialMediaForm
+      .get('facebook')
+      ?.setValidators([this.createOptionalSocialMediaValidator('facebook')]);
+    socialMediaForm
+      .get('instagram')
+      ?.setValidators([this.createOptionalSocialMediaValidator('instagram')]);
 
     // Set up operating hours validators
     const operatingHoursForm = this.getOperatingHoursForm();
     Object.keys(operatingHoursForm.controls).forEach((key) => {
-      operatingHoursForm.get(key)?.setValidators([
-        CustomValidators.operatingHoursValidator()
-      ]);
+      operatingHoursForm
+        .get(key)
+        ?.setValidators([CustomValidators.operatingHoursValidator()]);
     });
 
     // Update validity for all controls
@@ -165,7 +162,9 @@ export class ShelterInfoComponent implements OnInit {
     operatingHoursForm.updateValueAndValidity();
   }
 
-  private createOptionalSocialMediaValidator(platform: 'facebook' | 'instagram'): ValidatorFn {
+  private createOptionalSocialMediaValidator(
+    platform: 'facebook' | 'instagram'
+  ): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       // If no value is provided, it's valid (optional field)
       if (!control.value || control.value.trim() === '') {
@@ -355,19 +354,22 @@ export class ShelterInfoComponent implements OnInit {
 
     if (openTime && closeTime) {
       if (!this.isValidTimeFormat(openTime)) {
-        this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.OPENING_TIME_FORMAT';
+        this.timeErrors[day] =
+          'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.OPENING_TIME_FORMAT';
         this.setTimeRangeError(day);
         return;
       }
 
       if (!this.isValidTimeFormat(closeTime)) {
-        this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.CLOSING_TIME_FORMAT';
+        this.timeErrors[day] =
+          'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.CLOSING_TIME_FORMAT';
         this.setTimeRangeError(day);
         return;
       }
 
       if (openTime >= closeTime) {
-        this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.TIME_RANGE_INVALID';
+        this.timeErrors[day] =
+          'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.TIME_RANGE_INVALID';
         this.setTimeRangeError(day);
         return;
       }
@@ -384,7 +386,8 @@ export class ShelterInfoComponent implements OnInit {
         }
       }
     } else if ((openTime && !closeTime) || (!openTime && closeTime)) {
-      this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.BOTH_TIMES_REQUIRED';
+      this.timeErrors[day] =
+        'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.BOTH_TIMES_REQUIRED';
       this.setTimeRangeError(day);
     }
   }
@@ -431,7 +434,8 @@ export class ShelterInfoComponent implements OnInit {
         if (this.closedDays[day]) {
           control?.setErrors(null);
         } else if (!this.openTimes[day] || !this.closeTimes[day]) {
-          this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.HOURS_OR_CLOSED_REQUIRED';
+          this.timeErrors[day] =
+            'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.HOURS_OR_CLOSED_REQUIRED';
           control?.setErrors({ required: true });
         } else {
           this.validateTimeRange(day);
@@ -471,7 +475,8 @@ export class ShelterInfoComponent implements OnInit {
       }
 
       if (!value || value === '') {
-        this.timeErrors[day] = 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.HOURS_OR_CLOSED_REQUIRED';
+        this.timeErrors[day] =
+          'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.HOURS_OR_CLOSED_REQUIRED';
         control?.setErrors({ required: true });
         hasInvalidDay = true;
       } else if (value !== 'closed') {
@@ -551,7 +556,11 @@ export class ShelterInfoComponent implements OnInit {
     }
 
     const facebookControl = this.getSocialMediaForm().get('facebook');
-    if (facebookControl?.invalid && facebookControl.value && facebookControl.value.trim() !== '') {
+    if (
+      facebookControl?.invalid &&
+      facebookControl.value &&
+      facebookControl.value.trim() !== ''
+    ) {
       const element = this.findElementForControl('facebook', 'socialMedia');
       this.validationErrors.push({
         field: 'facebook',
@@ -561,7 +570,11 @@ export class ShelterInfoComponent implements OnInit {
     }
 
     const instagramControl = this.getSocialMediaForm().get('instagram');
-    if (instagramControl?.invalid && instagramControl.value && instagramControl.value.trim() !== '') {
+    if (
+      instagramControl?.invalid &&
+      instagramControl.value &&
+      instagramControl.value.trim() !== ''
+    ) {
       const element = this.findElementForControl('instagram', 'socialMedia');
       this.validationErrors.push({
         field: 'instagram',
@@ -583,7 +596,9 @@ export class ShelterInfoComponent implements OnInit {
           if (control.errors?.['invalidTimeRange']) {
             this.validationErrors.push({
               field: dayKey,
-              message: this.timeErrors[day] || 'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.OPERATING_HOURS_ERROR',
+              message:
+                this.timeErrors[day] ||
+                'APP.AUTH.SIGNUP.SHELTER_INFO.ERRORS.OPERATING_HOURS_ERROR',
               element: dayElement,
             });
           } else if (control.errors?.['required']) {

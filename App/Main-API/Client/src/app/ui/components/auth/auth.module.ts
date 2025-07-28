@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { NgIconsModule } from '@ng-icons/core';
+import { LoggedInGuard } from 'src/app/common/guards/logged-in.guard';
 import {
   lucideInfo,
   lucideMapPin,
@@ -54,15 +55,16 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
     FormsModule,
     ReactiveFormsModule,
     RouterModule.forChild([
-      { path: 'login', component: LoginComponent },
-      { path: 'sign-up', component: SignupComponent },
+      { path: 'login', component: LoginComponent, canActivate: [LoggedInGuard] },
+      { path: 'sign-up', component: SignupComponent, canActivate: [LoggedInGuard] },
       { path: 'verified', component: VerifiedComponent },
       { path: 'google/callback-page', component: GoogleCallbackComponent },
       {
         path: 'reset-password-request',
         component: ResetPasswordRequestComponent,
+        canActivate: [LoggedInGuard]
       },
-      { path: 'reset-password', component: ResetPasswordComponent },
+      { path: 'reset-password', component: ResetPasswordComponent, canActivate: [LoggedInGuard] },
     ]),
     FormInputComponent,
     TextAreaInputComponent,

@@ -15,6 +15,7 @@ using System.Security.Claims;
 using Main_API.Services.Convention;
 using Main_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Query;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Main_API.Controllers
 {
@@ -223,39 +224,34 @@ namespace Main_API.Controllers
 			return Ok(adoptionApplication);
 		}
 
-		/// <summary>
-		/// Delete an adoption application by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete")]
+        [HttpPost("permission/delete/{applicationId}")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Delete([FromBody] String id)
-		{
-			// TODO: Add authorization
-			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
+        public async Task<IActionResult> CanDeleteApplication([FromRoute] String applicationId)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			await _adoptionApplicationService.Delete(id);
+            if (!_conventionService.IsValidId(applicationId)) return BadRequest("No application id found");
 
-			return Ok();
-		
-		}
+            Boolean result = await _adoptionApplicationService.CanDeleteApplication(applicationId);
 
-		/// <summary>
-		/// Delete multiple adoption applications by IDs.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete/many")]
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Delete an adoption application by ID.
+        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
+        /// </summary>
+        [HttpPost("delete/{id}")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
-		{
-			// TODO: Add authorization
-			if (ids == null || ids.Count == 0 || !ModelState.IsValid) return BadRequest(ModelState);
+        public async Task<IActionResult> Delete([FromRoute] String id)
+        {
+            if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
-			await _adoptionApplicationService.Delete(ids);
+            await _adoptionApplicationService.Delete(id);
 
-			return Ok();
-		}
-	}
+            return Ok();
+        }
+    }
 }

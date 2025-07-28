@@ -47,23 +47,5 @@ namespace Main_API.Censors
 
             return censoredFields;
         }
-
-        public List<String> PseudoCensor(List<String> fields)
-        {
-            if (fields == null || fields.Count == 0) return new List<String>();
-
-            List<String> nonPrefixed = this.ExtractNonPrefixed(fields);
-            List<String> animalTypeFields = this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.AnimalType));
-            List<String> breedFields = this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Breed));
-            List<String> photoFields = [..this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.AttachedPhotos))
-                                       .Where(field => field.Equals(nameof(Models.File.File.SourceUrl), StringComparison.OrdinalIgnoreCase))];
-            List<String> shelterFields = _censorFactory.Censor<ShelterCensor>().PseudoCensor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Shelter)));
-
-
-            return [..nonPrefixed.Concat(this.AsPrefixed(animalTypeFields, nameof(Models.Animal.Animal.AnimalType)))
-                                 .Concat(this.AsPrefixed(breedFields, nameof(Models.Animal.Animal.Breed)))
-                                 .Concat(this.AsPrefixed(photoFields, nameof(Models.Animal.Animal.AttachedPhotos)))
-                                 .Concat(this.AsPrefixed(shelterFields, nameof(Models.Animal.Animal.Shelter)))];
-        }
     }
 }

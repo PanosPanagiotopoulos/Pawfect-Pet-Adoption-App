@@ -14,6 +14,7 @@ import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-ban
 import { FormErrorSummaryComponent } from 'src/app/common/ui/form-error-summary.component';
 import { PetDetailsDialogComponent } from 'src/app/common/ui/pet-details-dialog/pet-details-dialog.component';
 import { AuthGuard } from 'src/app/common/guards/auth.guard';
+import { FormGuard } from 'src/app/common/guards/form.guard';
 import { Permission } from 'src/app/common/enum/permission.enum';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { DateTimeFormatPipe } from 'src/app/common/tools/date-time-format.pipe';
@@ -43,6 +44,7 @@ import { TimezoneService } from 'src/app/common/services/time-zone.service';
         path: 'edit/:applicationId',
         component: AdoptComponent,
         canActivate: [AuthGuard],
+        canDeactivate: [FormGuard],
         data: {
           permissions: [Permission.EditAdoptionApplications],
         },
@@ -51,6 +53,7 @@ import { TimezoneService } from 'src/app/common/services/time-zone.service';
         path: ':id',
         component: AdoptComponent,
         canActivate: [AuthGuard],
+        canDeactivate: [FormGuard],
         data: {
           permissions: [Permission.CreateAdoptionApplications],
         },

@@ -140,10 +140,40 @@
 
         <!-- Tab Content -->
         <section *ngIf="tabs.length > 0 && tabs[selectedTabIndex]" class="flex-1 backdrop-blur-md bg-white/70 rounded-xl shadow-lg p-6 min-h-[400px] animate-fadeIn" [attr.id]="'profile-tab-' + selectedTabIndex">
-          <h2 class="text-2xl font-bold text-primary-700 mb-6">{{ (tabs[selectedTabIndex].labelKey || '') | translate }}</h2>
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-primary-700">{{ (tabs[selectedTabIndex].labelKey || '') | translate }}</h2>
+            <!-- Edit Button (only show on user-info tab and own profile) -->
+            <button 
+              *ngIf="tabs[selectedTabIndex]?.component === 'user-info' && isOwnProfile"
+              (click)="toggleEditMode()"
+              [disabled]="isSaving"
+              class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md"
+              [ngClass]="{
+                'bg-gradient-to-r from-primary-600 to-primary-700 text-white': !isEditMode,
+                'bg-gradient-to-r from-gray-600 to-gray-700 text-white': isEditMode
+              }"
+            >
+              <ng-icon 
+                [name]="isEditMode ? 'lucideX' : 'lucidePencil'" 
+                class="w-4 h-4"
+                [ngClass]="{ 'animate-spin': isSaving }"
+              ></ng-icon>
+              <span>
+                {{ 
+                  isSaving 
+                    ? ('APP.PROFILE-PAGE.EDIT.SAVING' | translate)
+                    : isEditMode 
+                      ? ('APP.PROFILE-PAGE.EDIT.CANCEL' | translate)
+                      : ('APP.PROFILE-PAGE.EDIT.EDIT' | translate)
+                }}
+              </span>
+            </button>
+          </div>
           <!-- Merged User Info Tab -->
           <ng-container *ngIf="tabs[selectedTabIndex]?.component === 'user-info'">
             <div class="inline-block w-full mx-auto gap-y-4 px-2 sm:px-0">
+              
+              <!-- Always show personal info section -->
               <!-- Top Separator: Shelter or User -->
               <ng-container *ngIf="profileUser.shelter; else userLine">
                 <div class="flex items-center justify-center my-6">
@@ -176,6 +206,14 @@
                         <ng-icon name="lucideCheck" class="w-5 h-5 text-white" aria-label="Verified"></ng-icon>
                       </span>
                   </div>
+                  <!-- Edit Profile Photo Button -->
+                  <button 
+                    *ngIf="isEditMode"
+                    class="absolute bottom-0 right-0 bg-primary-600 text-white rounded-full p-2 shadow-lg hover:bg-primary-700 transition-colors"
+                    (click)="openProfilePhotoDialog()"
+                  >
+                    <ng-icon name="lucideCamera" class="w-4 h-4"></ng-icon>
+                  </button>
                 </div>
                 <h2 class="text-3xl md:text-4xl font-bold gradient-text mb-2 text-center">
                   {{ profileUser.shelter ? profileUser.shelter.shelterName : profileUser.fullName }}
@@ -189,11 +227,51 @@
                         <div class="mt-2">
                           <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.SHELTER_INFO.TITLE' | translate }}</div>
                           <div class="text-xl font-semibold text-gray-900 mt-1">{{ profileUser.shelter.shelterName }}</div>
-                          <div class="text-xs sm:text-sm text-gray-500 mt-1 break-words whitespace-pre-line max-w-xs sm:max-w-lg md:max-w-xl lg:max-w-2xl w-full mx-auto text-center overflow-hidden overflow-ellipsis px-2 sm:px-4">
+                          
+                          <!-- Description - View Mode -->
+                          <div *ngIf="!isEditMode" class="text-xs sm:text-sm text-gray-500 mt-1 break-words whitespace-pre-line max-w-xs sm:max-w-lg md:max-w-xl lg:max-w-2xl w-full mx-auto text-center overflow-hidden overflow-ellipsis px-2 sm:px-4">
                             {{ profileUser.shelter.description }}
                           </div>
+                          
+                          <!-- Shelter Name - Edit Mode -->
+                          <div *ngIf="isEditMode && editForm" class="mt-2 w-full max-w-2xl mx-auto">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                              {{ 'APP.PROFILE-PAGE.SHELTER_INFO.SHELTER_NAME' | translate }}
+                            </label>
+                            <input 
+                              type="text"
+                              [formControl]="editForm.get('shelter.shelterName')"
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              [class.border-red-500]="editForm.get('shelter.shelterName')?.invalid && editForm.get('shelter.shelterName')?.touched"
+                              [placeholder]="'APP.PROFILE-PAGE.EDIT.SHELTER_NAME_PLACEHOLDER' | translate"
+                            >
+                            <div *ngIf="editForm.get('shelter.shelterName')?.invalid && editForm.get('shelter.shelterName')?.touched" class="text-red-500 text-sm mt-1">
+                              <span *ngIf="editForm.get('shelter.shelterName')?.errors?.['required']">{{ 'APP.PROFILE-PAGE.EDIT.ERRORS.SHELTER_NAME_REQUIRED' | translate }}</span>
+                              <span *ngIf="editForm.get('shelter.shelterName')?.errors?.['minlength']">{{ 'APP.PROFILE-PAGE.EDIT.ERRORS.SHELTER_NAME_MINLENGTH' | translate }}</span>
+                            </div>
+                          </div>
+                          
+                          <!-- Description - Edit Mode -->
+                          <div *ngIf="isEditMode && editForm" class="mt-4 w-full max-w-2xl mx-auto">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                              {{ 'APP.PROFILE-PAGE.SHELTER_INFO.DESCRIPTION' | translate }}
+                            </label>
+                            <textarea 
+                              [formControl]="editForm.get('shelter.description')"
+                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                              [class.border-red-500]="editForm.get('shelter.description')?.invalid && editForm.get('shelter.description')?.touched"
+                              rows="3"
+                              [placeholder]="'APP.PROFILE-PAGE.EDIT.DESCRIPTION_PLACEHOLDER' | translate"
+                            ></textarea>
+                            <div *ngIf="editForm.get('shelter.description')?.invalid && editForm.get('shelter.description')?.touched" class="text-red-500 text-sm mt-1">
+                              <span *ngIf="editForm.get('shelter.description')?.errors?.['required']">{{ 'APP.PROFILE-PAGE.EDIT.ERRORS.DESCRIPTION_REQUIRED' | translate }}</span>
+                              <span *ngIf="editForm.get('shelter.description')?.errors?.['minlength']">{{ 'APP.PROFILE-PAGE.EDIT.ERRORS.DESCRIPTION_MINLENGTH' | translate }}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div class="flex flex-wrap justify-center gap-2 items-center mt-2">
+                        
+                        <!-- Social Links - View Mode -->
+                        <div *ngIf="!isEditMode" class="flex flex-wrap justify-center gap-2 items-center mt-2">
                           <a *ngIf="profileUser.shelter.website" [href]="profileUser.shelter.website" target="_blank" rel="noopener" class="flex items-center gap-2 text-primary-600 hover:underline">
                             <ng-icon name="lucideGlobe" class="w-5 h-5" aria-label="Website"></ng-icon>
                             <span>{{ 'APP.ADOPT.WEBSITE' | translate }}</span>
@@ -207,14 +285,59 @@
                             <span>Instagram</span>
                           </a>
                         </div>
+                        
+                        <!-- Social Links - Edit Mode -->
+                        <div *ngIf="isEditMode && editForm" class="w-full max-w-2xl mx-auto space-y-3">
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ 'APP.ADOPT.WEBSITE' | translate }}</label>
+                            <input 
+                              type="url"
+                              [formControl]="editForm.get('shelter.website')"
+                              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              [class.border-red-500]="editForm.get('shelter.website')?.invalid && editForm.get('shelter.website')?.touched"
+                              [placeholder]="'APP.PROFILE-PAGE.EDIT.WEBSITE_PLACEHOLDER' | translate"
+                            >
+                            <div *ngIf="editForm.get('shelter.website')?.invalid && editForm.get('shelter.website')?.touched" class="text-red-500 text-sm mt-1">
+                              <span *ngIf="editForm.get('shelter.website')?.errors?.['pattern']">{{ 'APP.PROFILE-PAGE.EDIT.ERRORS.WEBSITE_INVALID' | translate }}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Facebook</label>
+                            <input 
+                              type="url"
+                              [formControl]="editForm.get('shelter.socialMedia.facebook')"
+                              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              [class.border-red-500]="editForm.get('shelter.socialMedia.facebook')?.invalid && editForm.get('shelter.socialMedia.facebook')?.touched"
+                              [placeholder]="'APP.PROFILE-PAGE.EDIT.FACEBOOK_PLACEHOLDER' | translate"
+                            >
+                            <div *ngIf="editForm.get('shelter.socialMedia.facebook')?.invalid && editForm.get('shelter.socialMedia.facebook')?.touched" class="text-red-500 text-sm mt-1">
+                              <span *ngIf="editForm.get('shelter.socialMedia.facebook')?.errors?.['invalidSocialMedia']">{{ 'APP.PROFILE-PAGE.EDIT.ERRORS.FACEBOOK_INVALID' | translate }}</span>
+                            </div>
+                          </div>
+                          <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Instagram</label>
+                            <input 
+                              type="url"
+                              [formControl]="editForm.get('shelter.socialMedia.instagram')"
+                              class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                              [class.border-red-500]="editForm.get('shelter.socialMedia.instagram')?.invalid && editForm.get('shelter.socialMedia.instagram')?.touched"
+                              [placeholder]="'APP.PROFILE-PAGE.EDIT.INSTAGRAM_PLACEHOLDER' | translate"
+                            >
+                            <div *ngIf="editForm.get('shelter.socialMedia.instagram')?.invalid && editForm.get('shelter.socialMedia.instagram')?.touched" class="text-red-500 text-sm mt-1">
+                              <span *ngIf="editForm.get('shelter.socialMedia.instagram')?.errors?.['invalidSocialMedia']">{{ 'APP.PROFILE-PAGE.EDIT.ERRORS.INSTAGRAM_INVALID' | translate }}</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                       <!-- Operating Hours -->
-                      <div *ngIf="profileUser.shelter.operatingHours" class="mt-6 w-full max-w-xl mx-auto">
+                      <div class="mt-6 w-full max-w-xl mx-auto">
                         <div class="flex items-center justify-center gap-2 mb-2">
                           <ng-icon name="lucideClock" class="w-5 h-5 text-primary-500" aria-label="Operating hours"></ng-icon>
                           <span class="font-medium text-gray-900">{{ 'APP.ADOPT.OPERATING_HOURS' | translate }}</span>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
+                        
+                        <!-- Operating Hours - View Mode -->
+                        <div *ngIf="!isEditMode" class="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2">
                           <ng-container *ngFor="let day of ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']">
                             <div class="px-3 py-2 bg-white/60 rounded-lg flex justify-between items-center text-sm sm:text-base w-auto min-w-fit max-w-full whitespace-nowrap shadow-sm border border-primary-100">
                               <span class="capitalize text-gray-700">{{ 'APP.ADOPT.DAYS.' + day.toUpperCase() | translate }}</span>
@@ -222,6 +345,99 @@
                             </div>
                           </ng-container>
                         </div>
+                        
+                        <!-- Operating Hours - Edit Mode -->
+                        <div *ngIf="isEditMode && editForm" class="space-y-4">
+                            <ng-container *ngFor="let day of days">
+                              <div class="mb-4 border border-gray-300 rounded-xl p-4 hover:border-gray-400 transition-colors">
+                                <div class="flex justify-between items-center mb-3">
+                                  <h4 class="text-gray-900 font-medium">{{ day }}</h4>
+
+                                  <!-- Closed toggle -->
+                                  <div class="flex items-center">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        [(ngModel)]="closedDays[day]"
+                                        [ngModelOptions]="{ standalone: true }"
+                                        (change)="onClosedChange(day)"
+                                        class="sr-only peer"
+                                      />
+                                      <div
+                                        class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"
+                                      ></div>
+                                    </label>
+                                    <span class="ml-3 text-sm text-gray-600">{{ closedDays[day] ? ('APP.AUTH.SIGNUP.SHELTER_INFO.CLOSED' | translate) : ('APP.AUTH.SIGNUP.SHELTER_INFO.OPEN' | translate) }}</span>
+                                  </div>
+                                </div>
+
+                                <!-- Time selection (shown only when not closed) -->
+                                <div *ngIf="!closedDays[day]" class="flex items-center justify-between">
+                                  <div class="flex-1 mr-4">
+                                    <label class="block text-sm text-gray-600 mb-1">
+                                      {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.OPEN_LABEL' | translate }}
+                                    </label>
+                                    <input
+                                      type="text"
+                                      [value]="openTimes[day]"
+                                      (input)="onTimeInput($event, day, 'open')"
+                                      (blur)="formatTime(day, 'open')"
+                                      class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                                      placeholder="HH:MM"
+                                      pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]"
+                                    />
+                                  </div>
+
+                                  <span class="text-gray-600 mx-2 self-end mb-3">{{ 'APP.AUTH.SIGNUP.SHELTER_INFO.TO' | translate }}</span>
+
+                                  <div class="flex-1 ml-4">
+                                    <label class="block text-sm text-gray-600 mb-1">
+                                      {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.CLOSE_LABEL' | translate }}
+                                    </label>
+                                    <input
+                                      type="text"
+                                      [value]="closeTimes[day]"
+                                      (input)="onTimeInput($event, day, 'close')"
+                                      (blur)="formatTime(day, 'close')"
+                                      class="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
+                                      placeholder="HH:MM"
+                                      pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]"
+                                    />
+                                  </div>
+                                </div>
+
+                                <!-- Error message -->
+                                <div *ngIf="timeErrors[day]" class="text-red-500 text-sm mt-2">
+                                  {{ timeErrors[day]! | translate }}
+                                </div>
+                              </div>
+                            </ng-container>
+                        </div>
+                      </div>
+                      
+                      <!-- Save/Cancel Buttons for Edit Mode -->
+                      <div *ngIf="isEditMode && editForm" class="mt-6 flex justify-center gap-3">
+                        <button 
+                          type="button"
+                          (click)="cancelEdit()"
+                          [disabled]="isSaving"
+                          class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50"
+                        >
+                          {{ 'APP.PROFILE-PAGE.EDIT.CANCEL' | translate }}
+                        </button>
+                        <button 
+                          type="button"
+                          (click)="saveChanges()"
+                          [disabled]="isSaving || !editForm?.valid"
+                          class="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                          <ng-icon 
+                            [name]="isSaving ? 'lucideLoader' : 'lucideCheck'" 
+                            class="w-4 h-4"
+                            [ngClass]="{ 'animate-spin': isSaving }"
+                          ></ng-icon>
+                          {{ isSaving ? ('APP.PROFILE-PAGE.EDIT.SAVING' | translate) : ('APP.PROFILE-PAGE.EDIT.SAVE' | translate) }}
+                        </button>
                       </div>
                     </div>
                   </mat-card-content>
@@ -235,67 +451,86 @@
                   <div class="w-full max-w-sm border-t-4 border-primary-500 opacity-80"></div>
                 </div>
               </ng-container>
-              <!-- Personal Info Card -->
+              <!-- Personal Info Card - Always Visible -->
               <mat-card class="mb-4 p-3 sm:p-4 rounded-xl shadow-lg bg-white/80 w-full mx-auto">
                 <mat-card-content>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-                    <!-- User Info -->
-                    <div class="flex flex-col gap-4">
-                      <div class="flex items-center gap-3">
-                        <ng-icon name="lucideMail" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Email"></ng-icon>
-                        <div>
-                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.EMAIL' | translate }}</div>
-                          <div class="text-lg font-semibold text-gray-900">{{ profileUser.email }}</div>
-                        </div>
-                      </div>
-                      <div *ngIf="profileUser.phone" class="flex items-center gap-3">
-                        <ng-icon name="lucidePhone" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Phone"></ng-icon>
-                        <div>
-                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.PHONE' | translate }}</div>
-                          <div class="text-lg font-semibold text-gray-900">{{ profileUser.phone }}</div>
-                        </div>
-                      </div>
+                  <div class="space-y-6">
+                    <!-- Personal Info Header -->
+                    <div class="flex items-center gap-2 mb-4">
+                      <ng-icon name="lucideUser" class="w-5 h-5 text-primary-500"></ng-icon>
+                      <h3 class="text-lg font-semibold text-gray-900">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.TITLE' | translate }}</h3>
                     </div>
-                    <div *ngIf="profileUser.location" class="flex flex-col gap-2">
-                      <div class="flex items-center gap-3">
-                        <ng-icon name="lucideMapPin" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Location"></ng-icon>
-                        <div class="flex flex-col">
-                          <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.LOCATION' | translate }}</div>
-                          <a
-                            [href]="getGoogleMapsLink(profileUser.location)"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="text-lg font-semibold text-primary-700 underline hover:text-primary-500 transition-colors"
-                            aria-label="Open location in Google Maps"
-                          >
-                            {{ profileUser.location.address }}{{ profileUser.location.number ? ' ' + profileUser.location.number : '' }},
-                            {{ profileUser.location.city }}{{ profileUser.location.zipCode ? ' ' + profileUser.location.zipCode : '' }}
-                          </a>
+
+                    <!-- Personal Info - Always Visible -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                      <!-- User Info -->
+                      <div class="flex flex-col gap-4">
+                        <div class="flex items-center gap-3">
+                          <ng-icon name="lucideUser" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Full Name"></ng-icon>
+                          <div>
+                            <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.FULL_NAME' | translate }}</div>
+                            <div class="text-lg font-semibold text-gray-900">{{ profileUser.fullName }}</div>
+                          </div>
                         </div>
-                        <button type="button" (click)="togglePersonalMap()"
-                          class="ml-2 flex items-center justify-center p-2 rounded-md bg-gradient-to-r from-primary-100 to-accent-100 text-primary-700 shadow hover:from-primary-200 hover:to-accent-200 focus:outline-none focus:ring-2 focus:ring-primary-400 transition w-8 h-8 min-w-0"
-                          aria-label="Show/hide map">
-                          <ng-icon *ngIf="!showPersonalMap" name="lucideMapPinXInside" class="w-5 h-5" aria-hidden="true"></ng-icon>
-                          <ng-icon *ngIf="showPersonalMap" name="lucideEyeOff" class="w-5 h-5" aria-hidden="true"></ng-icon>
-                        </button>
+                        <div class="flex items-center gap-3">
+                          <ng-icon name="lucideMail" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Email"></ng-icon>
+                          <div>
+                            <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.EMAIL' | translate }}</div>
+                            <div class="text-lg font-semibold text-gray-900">{{ profileUser.email }}</div>
+                          </div>
+                        </div>
+                        <div *ngIf="profileUser.phone" class="flex items-center gap-3">
+                          <ng-icon name="lucidePhone" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Phone"></ng-icon>
+                          <div>
+                            <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.PHONE' | translate }}</div>
+                            <div class="text-lg font-semibold text-gray-900">{{ profileUser.phone }}</div>
+                          </div>
+                        </div>
                       </div>
-                      <div class="mt-2 flex justify-center w-full">
-                        <iframe
-                          *ngIf="personalMapUrl"
-                          [src]="personalMapUrl"
-                          width="100%"
-                          height="220"
-                          class="rounded-lg border border-primary-200 shadow w-full max-w-md"
-                          allowfullscreen=""
-                          loading="lazy"
-                          referrerpolicy="no-referrer-when-downgrade"
-                          aria-label="Google Maps location"
-                        ></iframe>
+                      
+                      <!-- Location Info -->
+                      <div *ngIf="profileUser.location" class="flex flex-col gap-2">
+                        <div class="flex items-center gap-3">
+                          <ng-icon name="lucideMapPin" class="w-5 h-5 text-primary-500 flex-shrink-0" aria-label="Location"></ng-icon>
+                          <div class="flex flex-col">
+                            <div class="text-xs font-medium text-gray-500">{{ 'APP.PROFILE-PAGE.PERSONAL_INFO.LOCATION' | translate }}</div>
+                            <a
+                              [href]="getGoogleMapsLink(profileUser.location)"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              class="text-lg font-semibold text-primary-700 underline hover:text-primary-500 transition-colors"
+                              aria-label="Open location in Google Maps"
+                            >
+                              {{ profileUser.location.address }}{{ profileUser.location.number ? ' ' + profileUser.location.number : '' }},
+                              {{ profileUser.location.city }}{{ profileUser.location.zipCode ? ' ' + profileUser.location.zipCode : '' }}
+                            </a>
+                          </div>
+                          <button type="button" (click)="togglePersonalMap()"
+                            class="ml-2 flex items-center justify-center p-2 rounded-md bg-gradient-to-r from-primary-100 to-accent-100 text-primary-700 shadow hover:from-primary-200 hover:to-accent-200 focus:outline-none focus:ring-2 focus:ring-primary-400 transition w-8 h-8 min-w-0"
+                            aria-label="Show/hide map">
+                            <ng-icon *ngIf="!showPersonalMap" name="lucideMapPinXInside" class="w-5 h-5" aria-hidden="true"></ng-icon>
+                            <ng-icon *ngIf="showPersonalMap" name="lucideEyeOff" class="w-5 h-5" aria-hidden="true"></ng-icon>
+                          </button>
+                        </div>
+                        <div class="mt-2 flex justify-center w-full">
+                          <iframe
+                            *ngIf="personalMapUrl && showPersonalMap"
+                            [src]="personalMapUrl"
+                            width="100%"
+                            height="220"
+                            class="rounded-lg border border-primary-200 shadow w-full max-w-md"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            aria-label="Google Maps location"
+                          ></iframe>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </mat-card-content>
               </mat-card>
+              
             </div>
           </ng-container>
           <!-- Adoption Applications Tab -->
@@ -304,7 +539,7 @@
           </ng-container>
           <!-- My Animals Tab -->
           <ng-container *ngIf="tabs[selectedTabIndex]?.component === 'my-animals'">
-            <app-profile-animals [shelterId]="profileUser && profileUser.shelter ? profileUser.shelter.id ?? null : null" (viewDetails)="onViewAnimal($event)"></app-profile-animals>
+            <app-profile-animals [shelterId]="profileUser && profileUser.shelter ? profileUser.shelter.id ?? null : null"></app-profile-animals>
           </ng-container>
           <!-- Received Applications Tab -->
           <ng-container *ngIf="tabs[selectedTabIndex]?.component === 'received-applications'">

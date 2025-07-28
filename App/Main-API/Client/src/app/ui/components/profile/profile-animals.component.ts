@@ -1,4 +1,16 @@
-import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, OnInit, OnChanges, SimpleChanges, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  ChangeDetectionStrategy,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+  ChangeDetectorRef,
+  OnDestroy,
+} from '@angular/core';
+import { Router } from '@angular/router';
 import { Animal, AdoptionStatus } from 'src/app/models/animal/animal.model';
 import { Gender } from 'src/app/common/enum/gender';
 import { AnimalService } from 'src/app/services/animal.service';
@@ -16,22 +28,26 @@ import { trigger, transition, style, animate } from '@angular/animations';
   selector: 'app-profile-animals',
   templateUrl: './profile-animals.component.html',
   styleUrls: ['./profile-animals.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('slideDown', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-40px)' }),
-        animate('400ms cubic-bezier(0.4,0,0.2,1)', style({ opacity: 1, transform: 'translateY(0)' }))
+        animate(
+          '400ms cubic-bezier(0.4,0,0.2,1)',
+          style({ opacity: 1, transform: 'translateY(0)' })
+        ),
       ]),
       transition(':leave', [
-        animate('300ms cubic-bezier(0.4,0,0.2,1)', style({ opacity: 0, transform: 'translateY(-40px)' }))
-      ])
-    ])
-  ]
+        animate(
+          '300ms cubic-bezier(0.4,0,0.2,1)',
+          style({ opacity: 0, transform: 'translateY(-40px)' })
+        ),
+      ]),
+    ]),
+  ],
 })
 export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   @Input() shelterId: string | null = null;
-  @Output() viewDetails = new EventEmitter<Animal>();
   @Output() addAnimal = new EventEmitter<void>();
 
   animals: Animal[] = [];
@@ -49,7 +65,15 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   lookup: AnimalLookup = {
     offset: 0,
     pageSize: 6,
-    fields: ['id', 'name', 'breed.name', 'attachedPhotos.sourceUrl', 'adoptionStatus', 'age', 'gender'],
+    fields: [
+      'id',
+      'name',
+      'breed.name',
+      'attachedPhotos.sourceUrl',
+      'adoptionStatus',
+      'age',
+      'gender',
+    ],
     sortBy: [],
     sortDescending: true,
     adoptionStatuses: [],
@@ -61,9 +85,18 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   };
 
   readonly adoptionStatusOptions = [
-    { value: AdoptionStatus.Available, label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.AVAILABLE' },
-    { value: AdoptionStatus.Pending, label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.PENDING' },
-    { value: AdoptionStatus.Adopted, label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.ADOPTED' },
+    {
+      value: AdoptionStatus.Available,
+      label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.AVAILABLE',
+    },
+    {
+      value: AdoptionStatus.Pending,
+      label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.PENDING',
+    },
+    {
+      value: AdoptionStatus.Adopted,
+      label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.ADOPTED',
+    },
   ];
 
   readonly genderOptions = [
@@ -114,22 +147,31 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     private errorHandler: ErrorHandlerService,
     private cdr: ChangeDetectorRef,
     public translationService: TranslationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
-    this.canEditAnimals = this.authService.hasPermission(Permission.EditAnimals);
+    this.canEditAnimals = this.authService.hasPermission(
+      Permission.EditAnimals
+    );
     if (this.shelterId) {
       this.lookup.shelterIds = [this.shelterId];
       this.loadAnimals();
     }
-    this.translationSub = this.translationService.languageChanged$.subscribe(() => {
-      this.cdr.markForCheck();
-    });
+    this.translationSub = this.translationService.languageChanged$.subscribe(
+      () => {
+        this.cdr.markForCheck();
+      }
+    );
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['shelterId'] && !changes['shelterId'].firstChange && changes['shelterId'].currentValue) {
+    if (
+      changes['shelterId'] &&
+      !changes['shelterId'].firstChange &&
+      changes['shelterId'].currentValue
+    ) {
       this.resetPagination();
       this.loadAnimals();
     }
@@ -162,9 +204,12 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
         this.error = 'APP.PROFILE-PAGE.ANIMALS.LOAD_ERROR';
         this.isLoading = false;
         this.errorHandler.handleError(err);
-        this.log.logFormatted({ message: 'Failed to load shelter animals', error: err });
+        this.log.logFormatted({
+          message: 'Failed to load shelter animals',
+          error: err,
+        });
         this.cdr.markForCheck();
-      }
+      },
     });
   }
 
@@ -194,12 +239,13 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
 
   onCardClick(animal: Animal) {
     if (this.canEditAnimals) {
-      this.viewDetails.emit(animal);
+      this.router.navigate(['/animals/edit', animal.id]);
     }
   }
 
   onAddAnimalClick() {
-    this.addAnimal.emit();
+    // Navigate to add animals page
+    this.router.navigate(['/animals/new']);
   }
 
   onPageSizeChange(event: Event) {
@@ -269,7 +315,9 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   toggleAdoptionStatus(status: AdoptionStatus) {
     if (!this.lookup.adoptionStatuses) this.lookup.adoptionStatuses = [];
     if (this.lookup.adoptionStatuses.includes(status)) {
-      this.lookup.adoptionStatuses = this.lookup.adoptionStatuses.filter(s => s !== status);
+      this.lookup.adoptionStatuses = this.lookup.adoptionStatuses.filter(
+        (s) => s !== status
+      );
     } else {
       this.lookup.adoptionStatuses = [...this.lookup.adoptionStatuses, status];
     }
@@ -280,7 +328,7 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   toggleGender(gender: Gender) {
     if (!this.lookup.genders) this.lookup.genders = [];
     if (this.lookup.genders.includes(gender)) {
-      this.lookup.genders = this.lookup.genders.filter(g => g !== gender);
+      this.lookup.genders = this.lookup.genders.filter((g) => g !== gender);
     } else {
       this.lookup.genders = [...this.lookup.genders, gender];
     }
@@ -315,4 +363,4 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     this.resetPagination();
     this.loadAnimals();
   }
-} 
+}

@@ -29,18 +29,13 @@ namespace Main_API.Models.Animal
 
             RuleFor(animal => animal.Weight)
                 .Cascade(CascadeMode.Stop)
-                .InclusiveBetween(0.1, 150)
+                .InclusiveBetween(0.1, 500)
                 .WithMessage("Invalid weight in kilograms.");
 
             RuleFor(animal => animal.HealthStatus)
                 .Cascade(CascadeMode.Stop)
                 .MinimumLength(8)
                 .WithMessage("Please provide a more detailed description of the animal's health.");
-
-            RuleFor(animal => animal.ShelterId)
-                .Cascade(CascadeMode.Stop)
-                .Must(RuleFluentValidation.IsObjectId)
-                .WithMessage("The shelter ID is not in the correct format.");
 
             RuleFor(animal => animal.BreedId)
                 .Cascade(CascadeMode.Stop)

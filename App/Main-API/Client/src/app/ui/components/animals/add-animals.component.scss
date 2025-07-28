@@ -1,0 +1,256 @@
+// Component-specific styles matching the dark theme
+
+// Floating animations for background elements
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+// Custom scrollbar styles for dropdowns
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.3) rgba(243, 244, 246, 0.5);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.5);
+}
+
+// Form input focus states
+input:focus, textarea:focus, button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.5);
+}
+
+// Backdrop blur effects
+.backdrop-blur-lg {
+  backdrop-filter: blur(16px);
+}
+
+// Gradient backgrounds
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+// Form animations using global animation classes
+.form-slide-enter {
+  @apply animate-float;
+}
+
+// Dropdown animations
+.dropdown-enter {
+  animation: dropdownSlide 0.2s ease-out;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Focus states using CSS variables
+.form-input:focus {
+  box-shadow: 0 0 0 3px rgba(var(--color-primary), 0.1);
+}
+
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .lg\:col-span-2 {
+    grid-column: span 1;
+  }
+}
+
+// Loading state
+.loading-overlay {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(2px);
+}
+
+// Error states using Tailwind classes
+.error-border {
+  @apply border-red-500 ring-1 ring-red-500;
+}
+
+// Success states using Tailwind classes
+.success-border {
+  @apply border-green-500 ring-1 ring-green-500;
+}
+
+// Folder-style form indicators
+.form-folder {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 8px;
+    width: 20px;
+    height: 8px;
+    background: currentColor;
+    border-radius: 2px 2px 0 0;
+    opacity: 0.6;
+  }
+}
+
+// Sticky positioning for sidebar
+@media (min-width: 1024px) {
+  .sticky-sidebar {
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+  }
+}
+
+// Button hover effects using global btn classes
+.btn-hover-lift {
+  @apply btn transition-all duration-200;
+  
+  &:hover {
+    @apply -translate-y-0.5 shadow-lg;
+  }
+  
+  &:active {
+    @apply translate-y-0;
+  }
+}
+
+// Form validation indicators
+.validation-indicator {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+// Mobile optimizations
+@media (max-width: 640px) {
+  .mobile-full-width {
+    width: 100vw;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    border-radius: 0;
+  }
+  
+  .mobile-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+  }
+}
+
+// Image preview slider styles
+.image-slider {
+  .slider-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.75rem;
+  }
+
+  .slider-image {
+    transition: transform 0.3s ease-in-out;
+  }
+
+  // Slide animations
+  .animate-slide-in-left {
+    animation: slideInLeft 0.3s ease-in-out;
+  }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-in-out;
+  }
+}
+
+  .slider-nav-button {
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+      transform: scale(1.1);
+      backdrop-filter: blur(8px);
+    }
+  }
+
+  .thumbnail-nav {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124, 58, 237, 0.3) rgba(243, 244, 246, 0.1);
+    
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: rgba(243, 244, 246, 0.1);
+      border-radius: 2px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(124, 58, 237, 0.3);
+      border-radius: 2px;
+    }
+  }
+
+  .thumbnail-button {
+    transition: all 0.2s ease-in-out;
+    
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+// Keyframe animations for image sliding
+@keyframes slideInLeft {
+  0% {
+    transform: translateX(100%);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// Dark mode support (if needed in future)
+@media (prefers-color-scheme: dark) {
+  .dark-mode-support {
+    // Dark mode styles would go here
+  }
+}

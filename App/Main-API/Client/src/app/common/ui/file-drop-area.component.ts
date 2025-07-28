@@ -136,7 +136,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
                 </div>
                 <div *ngIf="file.uploadFailed" class="absolute -top-1 -right-1">
                   <ng-icon
-                    name="lucideAlertCircle"
+                    name="lucideCircleAlert"
                     [size]="'12'"
                     class="text-red-400"
                   ></ng-icon>
@@ -150,19 +150,25 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
                   type="button"
                   class="text-sm text-gray-300 hover:text-primary-400 transition-colors duration-200 truncate text-left underline decoration-dotted underline-offset-2 hover:decoration-solid"
                   (click)="downloadFileByName(file)"
-                  [attr.aria-label]="('APP.UI_COMPONENTS.FILE_DROP.DOWNLOAD_FILE' | translate) + ': ' + file.file.name"
-                  [title]="'APP.UI_COMPONENTS.FILE_DROP.CLICK_TO_DOWNLOAD' | translate"
+                  [attr.aria-label]="
+                    ('APP.UI_COMPONENTS.FILE_DROP.DOWNLOAD_FILE' | translate) +
+                    ': ' +
+                    file.file.name
+                  "
+                  [title]="
+                    'APP.UI_COMPONENTS.FILE_DROP.CLICK_TO_DOWNLOAD' | translate
+                  "
                 >
                   {{ file.file.name }}
                 </button>
-                
+
                 <!-- Non-downloadable filename (for files being uploaded or failed) -->
                 <ng-template #nonDownloadableFilename>
                   <span class="text-sm text-gray-300 truncate">{{
                     file.file.name
                   }}</span>
                 </ng-template>
-                
+
                 <div class="flex items-center space-x-2 text-xs text-gray-500">
                   <span>({{ formatFileSize(file.file.size!) }})</span>
                   <span *ngIf="file.isExisting" class="text-blue-400">
@@ -179,7 +185,10 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
                     }}
                   </span>
                   <span *ngIf="canDownloadFile(file)" class="text-primary-400">
-                    {{ 'APP.UI_COMPONENTS.FILE_DROP.CLICK_TO_DOWNLOAD' | translate }}
+                    {{
+                      'APP.UI_COMPONENTS.FILE_DROP.CLICK_TO_DOWNLOAD'
+                        | translate
+                    }}
                   </span>
                 </div>
               </div>
@@ -274,6 +283,7 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
   @Input() maxFiles: number = 5;
   @Input() existingFiles: File[] = [];
   @Output() filesChange = new EventEmitter<FileItem[]>();
+  @Output() uploadStateChange = new EventEmitter<boolean>();
 
   @ViewChild('dropArea') dropArea!: ElementRef;
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
@@ -327,7 +337,7 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     const fileName = file.filename || (file as any).filename || 'Unknown File';
     const fileSize = file.size || 0;
     const mimeType = file.mimeType || 'application/octet-stream';
-    
+
     // Create a mock File object from the existing file data
     const mockFile = new globalThis.File(
       [new Blob()], // Empty blob since we don't have the actual file content
@@ -354,8 +364,8 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       persistedId: file.id,
       isPersisting: false,
       uploadFailed: false,
-      isExisting: true, 
-      sourceUrl: file.sourceUrl, 
+      isExisting: true,
+      sourceUrl: file.sourceUrl,
     };
   }
 
@@ -495,6 +505,8 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
 
   persistFiles(filesToPersist: FileItem[]): void {
     filesToPersist.forEach((item) => (item.isPersisting = true));
+    this.uploadStateChange.emit(true);
+
     const formData = new FormData();
     filesToPersist.forEach((item: FileItem, index) => {
       formData.append(`files[${index}]`, item.file);
@@ -511,6 +523,9 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
         });
         this.updateFormControl();
         this.filesChange.emit(this.selectedFiles);
+        this.uploadStateChange.emit(
+          this.selectedFiles.some((item) => item.isPersisting)
+        );
         this.uploadError = null;
         this.cdr.markForCheck();
       },
@@ -522,6 +537,7 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
         );
         this.updateFormControl();
         this.filesChange.emit(this.selectedFiles);
+        this.uploadStateChange.emit(false);
         this.uploadError = 'Η μεταφόρτωση απέτυχε. Παρακαλώ δοκιμάστε ξανά.';
         this.cdr.markForCheck();
       },
@@ -574,11 +590,11 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
    */
   getFileIcon(fileItem: FileItem): string {
     if (fileItem.uploadFailed) {
-      return 'lucideAlertCircle';
+      return 'lucideCircleAlert';
     }
 
     if (fileItem.isPersisting) {
-      return 'lucideLoader2';
+      return 'lucideLoader';
     }
 
     const mimeType = fileItem.file.type.toLowerCase();
@@ -669,7 +685,9 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     return (
       !fileItem.isPersisting &&
       !fileItem.uploadFailed &&
-      (!!fileItem.sourceUrl || !!fileItem.persistedId || this.hasFileBlob(fileItem))
+      (!!fileItem.sourceUrl ||
+        !!fileItem.persistedId ||
+        this.hasFileBlob(fileItem))
     );
   }
 
@@ -705,7 +723,10 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       // Download from blob data (newly uploaded files)
       this.downloadFromBlob(fileItem.file, fileItem.file.name);
     } else {
-      console.warn('No download source available for file:', fileItem.file.name);
+      console.warn(
+        'No download source available for file:',
+        fileItem.file.name
+      );
     }
   }
 
@@ -731,17 +752,17 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
   private downloadFromBlob(file: globalThis.File, filename: string): void {
     // Create blob URL from file data
     const blobUrl = URL.createObjectURL(file);
-    
+
     // Create download link
     const link = document.createElement('a');
     link.href = blobUrl;
     link.download = filename;
-    
+
     // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Clean up blob URL to free memory
     setTimeout(() => {
       URL.revokeObjectURL(blobUrl);

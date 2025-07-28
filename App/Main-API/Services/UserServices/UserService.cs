@@ -604,24 +604,24 @@ namespace Main_API.Services.UserServices
 			if (!await _authorizationService.AuthorizeOrOwnedAsync(_authorizationContentResolver.BuildOwnedResource(new UserLookup(), ids), Permission.DeleteUsers))
                 throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.User), Permission.DeleteUsers);
 
+			UserLookup userLookup = new UserLookup();
+			userLookup.Ids = ids;
+			userLookup.Offset = 0;
+            userLookup.PageSize = 10000;
+			userLookup.Fields = new List<String>()
+			{
+				nameof(Models.User.User.Id),
+				String.Join('.', nameof(Models.User.User.Shelter), nameof(Models.Shelter.Shelter.Id)),
+                String.Join('.', nameof(Models.User.User.ProfilePhoto), nameof(Models.File.File.Id)),
+            };
 
-            ShelterLookup sLookup = new ShelterLookup();
-			sLookup.UserIds = ids;
-			sLookup.Fields = new List<String> { nameof(Models.Shelter.Shelter.Id) };
-			sLookup.Offset = 0;
-			sLookup.PageSize = 10000;
+			List<Data.Entities.User> users = await userLookup.EnrichLookup(_queryFactory).CollectAsync();
 
-            List<Data.Entities.Shelter> shelters = await sLookup.EnrichLookup(_queryFactory).CollectAsync();
-			await _shelterService.Value.Delete([.. shelters?.Select(x => x.Id)]);
+			await _shelterService.Value.Delete([..users.Where(user => !String.IsNullOrEmpty(user.ShelterId)).Select(user => user.ShelterId)]);
 
-            FileLookup attachedFilesLookup = new FileLookup();
-            attachedFilesLookup.OwnerIds = ids;
-            attachedFilesLookup.Fields = new List<String> { nameof(Models.File.File.Id) };
-            attachedFilesLookup.Offset = 1;
-            attachedFilesLookup.PageSize = 10000;
-
-            List<Data.Entities.File> attachedFiles = await attachedFilesLookup.EnrichLookup(_queryFactory).CollectAsync();
-            await _fileService.Value.Delete([.. attachedFiles?.Select(x => x.Id)]);
+            await _shelterService.Value.Delete([.. users.Where(user => !String.IsNullOrEmpty(user.ShelterId)).Select(user => user.ShelterId)]);
+            
+			await _fileService.Value.Delete([.. users.Where(user => !String.IsNullOrEmpty(user.ProfilePhotoId)).Select(user => user.ProfilePhotoId)]);
 
             await _userRepository.DeleteAsync(ids);
 		}

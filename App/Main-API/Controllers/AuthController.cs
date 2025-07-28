@@ -26,7 +26,6 @@
 		private readonly IUserService _userService;
 		private readonly ILogger<AuthController> _logger;
 		private readonly JwtService _jwtService;
-		private readonly Services.AuthenticationServices.IAuthenticationService _authService;
 		private readonly IMapper _mapper;
         private readonly PermissionPolicyProvider _permissionPolicyProvider;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
@@ -40,7 +39,6 @@
 			IUserService userService, 
 			ILogger<AuthController> logger, 
 			JwtService jwtService, 
-			Services.AuthenticationServices.IAuthenticationService authService,
 			IMapper mapper, 
 			PermissionPolicyProvider permissionPolicyProvider,
 			IAuthorizationContentResolver AuthorizationContentResolver, 
@@ -53,7 +51,6 @@
 			_userService = userService;
 			_logger = logger;
 			_jwtService = jwtService;
-			_authService = authService;
 			_mapper = mapper;
             _permissionPolicyProvider = permissionPolicyProvider;
             _authorizationContentResolver = AuthorizationContentResolver;
@@ -79,7 +76,6 @@
 
             Data.Entities.User user = await _userService.RetrieveUserAsync(null, loginEmail);
 			if (user == null) throw new NotFoundException();
-
 
 			String toCheckCredential = _userService.ExtractUserCredential(user);
 
@@ -107,17 +103,18 @@
             _cookiesService.SetCookie(JwtService.REFRESH_TOKEN, refreshToken.Token, refreshToken.ExpiresAt);
 
 			// ** ACCOUNT SERVE ** //
-            return Ok(
-				new LoggedAccount() 
-				{   
+			return Ok(
+				new LoggedAccount()
+				{
+					ShelterId = user.ShelterId,
 					Email = user.Email,
-                    Phone = user.Phone, 
-					Roles = userRoles, 
+					Phone = user.Phone,
+					Roles = userRoles,
 					Permissions = permissions,
-					LoggedAt = DateTime.UtcNow, 
-					IsEmailVerified = user.HasEmailVerified, 
-					IsPhoneVerified = user.HasPhoneVerified, 
-					IsVerified = user.IsVerified 
+					LoggedAt = DateTime.UtcNow,
+					IsEmailVerified = user.HasEmailVerified,
+					IsPhoneVerified = user.HasPhoneVerified,
+					IsVerified = user.IsVerified
 				}
 			);
 		}
@@ -125,6 +122,32 @@
         [HttpPost("refresh")]
         public async Task<IActionResult> RefreshToken()
         {
+            // Extract access token from cookie
+            try
+            {
+                String? token = _cookiesService.GetCookie(JwtService.ACCESS_TOKEN);
+
+                JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
+                JwtSecurityToken jwtToken;
+
+                jwtToken = handler.ReadJwtToken(token);
+
+                // Extract token ID (jti)
+                String? tokenId = jwtToken.Id;
+                if (String.IsNullOrEmpty(tokenId))
+                    return BadRequest("Failed to find token ID in access token");
+
+                if (!_jwtService.IsTokenRevoked(jwtToken)) return Ok();
+
+                // Extract expiration
+                DateTime? expiration = jwtToken.ValidTo;
+                if (!expiration.HasValue)
+                    return BadRequest("Failed to find expiration date in access token");
+
+                _jwtService.RevokeToken(tokenId, expiration.Value);
+            }
+            catch (Exception) {}
+
             String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);
             if (String.IsNullOrEmpty(refreshTokenString))
                 return BadRequest("Refresh token is missing");
@@ -145,33 +168,6 @@
             if (String.IsNullOrEmpty(newAccessToken))
                 throw new InvalidOperationException("Failed to create token");
 
-            // Revoke old token
-
-            // Extract access token from cookie
-            String? token = _cookiesService.GetCookie(JwtService.ACCESS_TOKEN);
-            JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-            JwtSecurityToken jwtToken;
-            try
-            {
-                jwtToken = handler.ReadJwtToken(token);
-            }
-            catch (Exception)
-            {
-                return Unauthorized("Invalid access token");
-            }
-
-            // Extract token ID (jti)
-            String? tokenId = jwtToken.Id;
-            if (String.IsNullOrEmpty(tokenId))
-                return BadRequest("Failed to find token ID in access token");
-
-            // Extract expiration
-            DateTime? expiration = jwtToken.ValidTo;
-            if (!expiration.HasValue)
-                return BadRequest("Failed to find expiration date in access token");
-
-            _jwtService.RevokeToken(tokenId, expiration.Value);
-
             // ** COOKIES ** //
             _cookiesService.DeleteCookie(JwtService.ACCESS_TOKEN);
 
@@ -179,6 +175,7 @@
 
             return Ok(new LoggedAccount
             {
+                ShelterId = user.ShelterId,
                 Email = user.Email,
                 Phone = user.Phone,
                 Roles = userRoles,
@@ -271,6 +268,7 @@
             // Return LoggedAccount
             return Ok(new LoggedAccount()
             {
+                ShelterId = user.ShelterId,
                 Email = user.Email,
                 Phone = user.Phone,
                 Roles = userRoles,

@@ -46,6 +46,7 @@ export class HeaderComponent extends BaseComponent {
   supportedLanguages: LanguageOption[];
   showLangDropdown = false;
   private hasFetchedUser = false;
+  private isLoggingOut = false;
 
   constructor(
     private authService: AuthService,
@@ -112,6 +113,11 @@ export class HeaderComponent extends BaseComponent {
   }
 
   logout(): void {
+    if (this.isLoggingOut) {
+      return; // Prevent duplicate logout calls
+    }
+    
+    this.isLoggingOut = true;
     this.authService
       .logout()
       .pipe(takeUntil(this._destroyed))
@@ -138,6 +144,7 @@ export class HeaderComponent extends BaseComponent {
           });
         },
         complete: () => {
+          this.isLoggingOut = false;
           this.closeMobileMenu();
         },
       });

@@ -76,7 +76,7 @@ export class LoginComponent extends BaseComponent implements OnInit {
           this.handleUnverifiedUser(response, userEmail);
         } else {
           const returnUrl =
-            this.route.snapshot.queryParams['returnUrl'] || '/home';
+          this.route.snapshot.queryParams['returnUrl'] || '/home';
           this.router.navigateByUrl(returnUrl);
         }
       },
@@ -168,39 +168,6 @@ export class LoginComponent extends BaseComponent implements OnInit {
         fromLogin: true,
       },
     });
-  }
-
-  loginWithGoogle(): void {
-    this.isLoading = true;
-
-    this.authService
-      .loginWithGoogle('')
-      .pipe(takeUntil(this._destroyed))
-      .subscribe({
-        next: (response) => {
-          this.isLoading = false;
-
-          // Check verification status and route accordingly
-          if (
-            response &&
-            (!response.isPhoneVerified || !response.isEmailVerified)
-          ) {
-            const userEmail = this.authService.getUserEmail() || response.email;
-            this.handleUnverifiedUser(response, userEmail);
-          } else {
-            const returnUrl =
-              this.route.snapshot.queryParams['returnUrl'] || '/home';
-            this.router.navigateByUrl(returnUrl);
-          }
-        },
-        error: (error) => {
-          this.isLoading = false;
-          const errorDetails = this.errorHandler.handleAuthError(error);
-          this.snackbarService.showError({
-            message: errorDetails.message,
-          });
-        },
-      });
   }
 
   private markFormGroupTouched(formGroup: FormGroup) {

@@ -1,11 +1,15 @@
 <div [formGroup]="form" class="space-y-6" #formContainer>
-  <h2 class="text-2xl font-bold text-white mb-6">{{ 'APP.AUTH.SIGNUP.SHELTER_INFO.TITLE' | translate }}</h2>
+  <h2 class="text-2xl font-bold text-white mb-6">
+    {{ "APP.AUTH.SIGNUP.SHELTER_INFO.TITLE" | translate }}
+  </h2>
 
   <app-form-input
     [form]="getShelterForm()"
     controlName="shelterName"
     type="text"
-    [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.SHELTER_NAME_PLACEHOLDER' | translate"
+    [placeholder]="
+      'APP.AUTH.SIGNUP.SHELTER_INFO.SHELTER_NAME_PLACEHOLDER' | translate
+    "
     [language]="language"
   >
   </app-form-input>
@@ -14,7 +18,9 @@
     [form]="getShelterForm()"
     controlName="description"
     [label]="'APP.AUTH.SIGNUP.SHELTER_INFO.DESCRIPTION_LABEL' | translate"
-    [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.DESCRIPTION_PLACEHOLDER' | translate"
+    [placeholder]="
+      'APP.AUTH.SIGNUP.SHELTER_INFO.DESCRIPTION_PLACEHOLDER' | translate
+    "
     [rows]="4"
     [hint]="'APP.AUTH.SIGNUP.SHELTER_INFO.DESCRIPTION_HINT' | translate"
     [language]="language"
@@ -26,7 +32,9 @@
     [form]="getShelterForm()"
     controlName="website"
     type="url"
-    [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.WEBSITE_PLACEHOLDER' | translate"
+    [placeholder]="
+      'APP.AUTH.SIGNUP.SHELTER_INFO.WEBSITE_PLACEHOLDER' | translate
+    "
     [language]="language"
   >
   </app-form-input>
@@ -35,20 +43,24 @@
   <div class="space-y-4">
     <div class="flex items-center justify-between">
       <h3 class="text-lg font-medium text-white">
-        {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.SOCIAL_TITLE' | translate }}
+        {{ "APP.AUTH.SIGNUP.SHELTER_INFO.SOCIAL_TITLE" | translate }}
       </h3>
-      <span class="text-sm text-gray-400">({{ 'APP.AUTH.SIGNUP.SHELTER_INFO.OPTIONAL' | translate }})</span>
+      <span class="text-sm text-gray-400"
+        >({{ "APP.AUTH.SIGNUP.SHELTER_INFO.OPTIONAL" | translate }})</span
+      >
     </div>
     <div class="bg-gray-800/50 rounded-xl p-4 space-y-4">
       <p class="text-sm text-gray-400">
-        {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.SOCIAL_HINT' | translate }}
+        {{ "APP.AUTH.SIGNUP.SHELTER_INFO.SOCIAL_HINT" | translate }}
       </p>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <app-form-input
           [form]="getSocialMediaForm()"
           controlName="facebook"
           type="url"
-          [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.FACEBOOK_PLACEHOLDER' | translate"
+          [placeholder]="
+            'APP.AUTH.SIGNUP.SHELTER_INFO.FACEBOOK_PLACEHOLDER' | translate
+          "
           [language]="language"
         >
         </app-form-input>
@@ -57,7 +69,9 @@
           [form]="getSocialMediaForm()"
           controlName="instagram"
           type="url"
-          [placeholder]="'APP.AUTH.SIGNUP.SHELTER_INFO.INSTAGRAM_PLACEHOLDER' | translate"
+          [placeholder]="
+            'APP.AUTH.SIGNUP.SHELTER_INFO.INSTAGRAM_PLACEHOLDER' | translate
+          "
           [language]="language"
         >
         </app-form-input>
@@ -68,13 +82,17 @@
   <!-- Operating Hours Section -->
   <div class="space-y-4">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-medium text-white">{{ 'APP.AUTH.SIGNUP.SHELTER_INFO.HOURS_TITLE' | translate }}</h3>
-      <span class="text-sm text-gray-400">({{ 'APP.AUTH.SIGNUP.SHELTER_INFO.OPTIONAL' | translate }})</span>
+      <h3 class="text-lg font-medium text-white">
+        {{ "APP.AUTH.SIGNUP.SHELTER_INFO.HOURS_TITLE" | translate }}
+      </h3>
+      <span class="text-sm text-gray-400"
+        >({{ "APP.AUTH.SIGNUP.SHELTER_INFO.OPTIONAL" | translate }})</span
+      >
     </div>
 
     <div class="bg-gray-800/50 rounded-xl p-4 space-y-4">
       <p class="text-sm text-gray-400">
-        {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.HOURS_HINT' | translate }}
+        {{ "APP.AUTH.SIGNUP.SHELTER_INFO.HOURS_HINT" | translate }}
       </p>
       <div
         *ngFor="let day of days"
@@ -97,7 +115,11 @@
                 class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"
               ></div>
             </label>
-            <span class="ml-3 text-sm text-gray-300">{{ closedDays[day] ? ('APP.AUTH.SIGNUP.SHELTER_INFO.CLOSED' | translate) : ('APP.AUTH.SIGNUP.SHELTER_INFO.OPEN' | translate) }}</span>
+            <span class="ml-3 text-sm text-gray-300">{{
+              closedDays[day]
+                ? ("APP.AUTH.SIGNUP.SHELTER_INFO.CLOSED" | translate)
+                : ("APP.AUTH.SIGNUP.SHELTER_INFO.OPEN" | translate)
+            }}</span>
           </div>
         </div>
 
@@ -105,7 +127,7 @@
         <div *ngIf="!closedDays[day]" class="flex items-center justify-between">
           <div class="flex-1 mr-4">
             <label class="block text-sm text-gray-400 mb-1">
-              {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.OPEN_LABEL' | translate }}
+              {{ "APP.AUTH.SIGNUP.SHELTER_INFO.OPEN_LABEL" | translate }}
             </label>
             <input
               type="text"
@@ -118,11 +140,13 @@
             />
           </div>
 
-          <span class="text-gray-400 mx-2 self-end mb-3">{{ 'APP.AUTH.SIGNUP.SHELTER_INFO.TO' | translate }}</span>
+          <span class="text-gray-400 mx-2 self-end mb-3">{{
+            "APP.AUTH.SIGNUP.SHELTER_INFO.TO" | translate
+          }}</span>
 
           <div class="flex-1 ml-4">
             <label class="block text-sm text-gray-400 mb-1">
-              {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.CLOSE_LABEL' | translate }}
+              {{ "APP.AUTH.SIGNUP.SHELTER_INFO.CLOSE_LABEL" | translate }}
             </label>
             <input
               type="text"
@@ -150,7 +174,8 @@
     class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 my-4 animate-fadeIn"
   >
     <h3 class="text-red-400 font-medium mb-2 flex items-center">
-      <span class="mr-2">⚠️</span> {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.ERROR_SUMMARY_TITLE' | translate }}
+      <span class="mr-2">⚠️</span>
+      {{ "APP.AUTH.SIGNUP.SHELTER_INFO.ERROR_SUMMARY_TITLE" | translate }}
     </h3>
     <ul class="list-disc list-inside text-sm text-red-400 space-y-1">
       <li
@@ -170,7 +195,7 @@
       (click)="back.emit()"
       class="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-white/5 transition-all duration-300"
     >
-      {{ 'APP.AUTH.SIGNUP.SHELTER_INFO.BACK' | translate }}
+      {{ "APP.AUTH.SIGNUP.SHELTER_INFO.BACK" | translate }}
     </button>
 
     <button
@@ -179,7 +204,9 @@
       [disabled]="isLoading"
       class="relative px-6 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg hover:shadow-lg hover:shadow-primary-500/20 transition-all duration- 300 transform hover:-translate-y-1 disabled:opacity-70 disabled:transform-none disabled:hover:shadow-none"
     >
-      <span [class.opacity-0]="isLoading">{{ 'APP.AUTH.SIGNUP.SHELTER_INFO.SUBMIT' | translate }}</span>
+      <span [class.opacity-0]="isLoading">{{
+        "APP.AUTH.SIGNUP.SHELTER_INFO.SUBMIT" | translate
+      }}</span>
 
       <!-- Loading Spinner -->
       <div

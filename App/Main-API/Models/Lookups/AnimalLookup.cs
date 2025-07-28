@@ -27,6 +27,9 @@
 
         // Λίστα από καταστάσεις υιοθεσίας για φιλτράρισμα
         public List<AdoptionStatus>? AdoptionStatuses { get; set; }
+        public List<Gender>? Genders { get; set; }
+        public double? AgeFrom { get; set; }
+        public double? AgeTo { get; set; }
 
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
         public DateTime? CreateFrom { get; set; }
@@ -49,6 +52,9 @@
             if (this.BreedIds != null && this.BreedIds.Count != 0) animalQuery.BreedIds = this.BreedIds;
             if (this.TypeIds != null && this.TypeIds.Count != 0) animalQuery.TypeIds = this.TypeIds;
             if (this.AdoptionStatuses != null && this.AdoptionStatuses.Count != 0) animalQuery.AdoptionStatuses = this.AdoptionStatuses;
+            if (this.Genders != null && this.Genders.Count != 0) animalQuery.Genders = this.Genders;
+            if (this.AgeFrom.HasValue) animalQuery.AgeFrom = this.AgeFrom;
+            if (this.AgeTo.HasValue) animalQuery.AgeTo = this.AgeTo;
             if (this.CreateFrom.HasValue) animalQuery.CreateFrom = this.CreateFrom;
             if (this.CreatedTill.HasValue) animalQuery.CreatedTill = this.CreatedTill;
             if (!String.IsNullOrEmpty(this.Query)) animalQuery.Query = this.Query;

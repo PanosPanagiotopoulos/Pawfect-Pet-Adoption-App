@@ -12,6 +12,7 @@ using Main_API.Query.Queries;
 using Main_API.Services.Convention;
 using System.Collections.Concurrent;
 using System.Security.Claims;
+using Main_API.DevTools;
 
 namespace Main_API.Services.AuthenticationServices
 {
@@ -44,8 +45,8 @@ namespace Main_API.Services.AuthenticationServices
         }
 
         // Caches for affiliated and owned filters
-        private readonly ConcurrentDictionary<(Type EntityType, String UserId), object> _affiliatedFilterCache = new();
-        private readonly ConcurrentDictionary<(Type EntityType, String UserId), object> _ownedFilterCache = new();
+        private readonly ConcurrentDictionary<(Type EntityType, String UserId), FilterDefinition<BsonDocument>> _affiliatedFilterCache = new();
+        private readonly ConcurrentDictionary<(Type EntityType, String UserId), FilterDefinition<BsonDocument>> _ownedFilterCache = new();
 
         public ClaimsPrincipal CurrentPrincipal() => _httpContextAccessor.HttpContext?.User;
 
@@ -95,61 +96,51 @@ namespace Main_API.Services.AuthenticationServices
 
             // Check cache
             (Type EntityType, String UserId) cacheKey = (EntityType: entityType, UserId: userId);
-            if (_affiliatedFilterCache.TryGetValue(cacheKey, out object cachedFilter)) return (FilterDefinition<BsonDocument>)cachedFilter;
+            if (_affiliatedFilterCache.TryGetValue(cacheKey, out FilterDefinition<BsonDocument> cachedFilter)) return cachedFilter;
 
             // Apply filters
-            FilterDefinitionBuilder<BsonDocument> builder = Builders<BsonDocument>.Filter;
-            FilterDefinition<BsonDocument> filter = builder.Empty;
+            FilterDefinitionBuilder<BsonDocument> bsonBuilder = Builders<BsonDocument>.Filter;
+            FilterDefinition<BsonDocument> finalFilter = bsonBuilder.Empty;
             switch (entityType.Name)
             {
                 case nameof(AdoptionApplication):
                     {
-                        filter = builder.Eq(nameof(AdoptionApplication.UserId), new ObjectId(userId));
+                        FilterDefinitionBuilder<AdoptionApplication> builder = Builders<AdoptionApplication>.Filter;
+                        FilterDefinition<AdoptionApplication> filter = builder.Empty;
+
+                        filter |= builder.In(nameof(AdoptionApplication.UserId), [new ObjectId(userId)]);
 
                         if (!String.IsNullOrEmpty(shelterId))
                         {
-                            filter = builder.Or(
-                                filter,
-                                builder.Eq(nameof(AdoptionApplication.ShelterId), new ObjectId(shelterId))
-                            );
+                            filter |= builder.In(nameof(AdoptionApplication.ShelterId), [new ObjectId(shelterId)]);
                         }
+
+                        finalFilter = MongoHelper.ToBsonFilter<AdoptionApplication>(filter);
 
                         break;
                     }
 
                 case nameof(Report):
                     {
+                        FilterDefinitionBuilder<Report> builder = Builders<Report>.Filter;
+                        FilterDefinition<Report> filter = builder.Empty;
+
                         // Filter for userId to match Report.ReportedId OR Report.ReporterId
-                        filter = builder.Or(
-                            builder.Eq(nameof(Report.ReportedId), new ObjectId(userId)),
-                            builder.Eq(nameof(Report.ReporterId), new ObjectId(userId))
-                        );
-                        break;
-                    }
-
-                case nameof(Message):
-                    {
-                        // Filter for userId to match Message.SenderId OR Message.RecipientId
-                        filter = builder.Or(
-                            builder.Eq(nameof(Message.SenderId), new ObjectId(userId)),
-                            builder.Eq(nameof(Message.RecipientId), new ObjectId(userId))
+                        filter &= builder.Or(
+                            builder.In(nameof(Report.ReportedId), [new ObjectId(userId)]),
+                            builder.In(nameof(Report.ReporterId), [new ObjectId(userId)])
                         );
 
-                        break;
-                    }
+                        finalFilter = MongoHelper.ToBsonFilter<Report>(filter);
 
-                case nameof(Conversation):
-                    {
-                        // Filter for userid to be contained in Conversation.UserIds
-                        filter = builder.In(nameof(Conversation.UserIds), new[] { new ObjectId(userId) });
                         break;
                     }
             }
 
             // Cache the result
-            _affiliatedFilterCache.TryAdd(cacheKey, filter);
+            _affiliatedFilterCache.TryAdd(cacheKey, finalFilter);
 
-            return filter;
+            return finalFilter;
         }
 
         public FilterDefinition<BsonDocument> BuildOwnedFilterParams(Type entityType)
@@ -160,60 +151,78 @@ namespace Main_API.Services.AuthenticationServices
 
             // Check cache
             (Type EntityType, String UserId) cacheKey = (EntityType: entityType, UserId: userId);
-            if (_ownedFilterCache.TryGetValue(cacheKey, out object cachedFilter)) return (FilterDefinition<BsonDocument>)cachedFilter;
+            if (_ownedFilterCache.TryGetValue(cacheKey, out FilterDefinition<BsonDocument> cachedFilter)) return cachedFilter;
 
-            FilterDefinitionBuilder<BsonDocument> builder = Builders<BsonDocument>.Filter;
-            FilterDefinition<BsonDocument> filter = builder.Empty;
-
+            FilterDefinitionBuilder<BsonDocument> bsonBuilder = Builders<BsonDocument>.Filter;
+            FilterDefinition<BsonDocument> finalFilter = bsonBuilder.Empty;
             switch (entityType.Name)
             {
                 case nameof(AdoptionApplication):
                     {
+                        FilterDefinitionBuilder<AdoptionApplication> builder = Builders<AdoptionApplication>.Filter;
+                        FilterDefinition<AdoptionApplication> filter = builder.Empty;
+
                         // Filter for AdoptionApplication.UserId to equal userId
-                        filter = builder.Eq(nameof(AdoptionApplication.UserId), new ObjectId(userId));
+                        filter &= builder.In(nameof(AdoptionApplication.UserId), [new ObjectId(userId)]);
+
+                        finalFilter = MongoHelper.ToBsonFilter<AdoptionApplication>(filter);
                         break;
                     }
 
                 case nameof(Notification):
                     {
+                        FilterDefinitionBuilder<Notification> builder = Builders<Notification>.Filter;
+                        FilterDefinition<Notification> filter = builder.Empty;
+
                         // Filter for Notification.UserId to equal userId
-                        filter = builder.Eq(nameof(Notification.UserId), new ObjectId(userId));
+                        filter &= builder.In(nameof(Notification.UserId), [new ObjectId(userId)]);
+
+                        finalFilter = MongoHelper.ToBsonFilter<Notification>(filter);
                         break;
                     }
 
                 case nameof(Data.Entities.File):
                     {
+                        FilterDefinitionBuilder<Data.Entities.File> builder = Builders<Data.Entities.File>.Filter;
+                        FilterDefinition<Data.Entities.File> filter = builder.Empty;
+
                         // Filter for File.OwnerId to equal userId
-                        filter = builder.Eq(nameof(Data.Entities.File.OwnerId), new ObjectId(userId));
+                        filter &= builder.In(nameof(Data.Entities.File.OwnerId), [new ObjectId(userId)]);
+
+                        finalFilter = MongoHelper.ToBsonFilter<Data.Entities.File>(filter);
+
                         break;
                     }
 
                 case nameof(Report):
                     {
-                        // Filter for userId to match Report.ReportedId OR Report.ReporterId
-                        filter = builder.Eq(nameof(Data.Entities.Report.ReporterId), new ObjectId(userId));
-                        break;
-                    }
+                        FilterDefinitionBuilder<Report> builder = Builders<Report>.Filter;
+                        FilterDefinition<Report> filter = builder.Empty;
 
-                case nameof(Data.Entities.Message):
-                    {
-                        // Filter for File.OwnerId to equal userId
-                        filter = builder.Eq(nameof(Data.Entities.Message.SenderId), new ObjectId(userId));
+                        // Filter for userId to match Report.ReportedId OR Report.ReporterId
+                        filter &= builder.In(nameof(Data.Entities.Report.ReporterId), [new ObjectId(userId)]);
+
+                        finalFilter = MongoHelper.ToBsonFilter<Report>(filter);
                         break;
                     }
 
                 case nameof(Data.Entities.User):
                     {
+                        FilterDefinitionBuilder<User> builder = Builders<User>.Filter;
+                        FilterDefinition<User> filter = builder.Empty;
+
                         // Filter for File.OwnerId to equal userId
-                        filter = builder.Eq(nameof(Data.Entities.User.Id), new ObjectId(userId));
+                        filter &= builder.In(nameof(Data.Entities.User.Id), [new ObjectId(userId)]);
+
+                        finalFilter = MongoHelper.ToBsonFilter<User>(filter);
                         break;
                     }
              }
 
             // Cache the result
-            _ownedFilterCache.TryAdd(cacheKey, filter);
+            _ownedFilterCache.TryAdd(cacheKey, finalFilter);
 
-            return filter;
+            return finalFilter;
         }
     }
 }

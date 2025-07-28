@@ -1,0 +1,717 @@
+<!-- Header Section -->
+<div class="min-h-screen bg-gray-900">
+  <div class="fixed inset-0 z-0">
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"
+    ></div>
+
+    <!-- Floating background icons -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div
+        class="absolute top-1/4 left-1/4 w-32 h-32 text-primary-500/5 transform rotate-45 animate-float"
+      >
+        <ng-icon name="lucidePawPrint" [size]="'128'"></ng-icon>
+      </div>
+      <div
+        class="absolute bottom-1/3 right-1/3 w-24 h-24 text-secondary-500/5 transform -rotate-12 animate-float"
+      >
+        <ng-icon name="lucideHeart" [size]="'96'"></ng-icon>
+      </div>
+      <div
+        class="absolute top-1/3 right-1/4 w-20 h-20 text-accent-500/5 transform rotate-12 animate-float"
+      >
+        <ng-icon name="lucideDog" [size]="'80'"></ng-icon>
+      </div>
+      <div
+        class="absolute bottom-1/4 left-1/3 w-16 h-16 text-primary-500/5 transform -rotate-45 animate-float"
+      >
+        <ng-icon name="lucidePencil" [size]="'64'"></ng-icon>
+      </div>
+    </div>
+
+    <!-- Gradient orbs -->
+    <div
+      class="absolute top-0 left-0 w-96 h-96 bg-primary-500/10 rounded-full filter blur-3xl animate-pulse"
+    ></div>
+    <div
+      class="absolute bottom-0 right-0 w-96 h-96 bg-accent-500/10 rounded-full filter blur-3xl animate-pulse delay-1000"
+    ></div>
+    <div
+      class="absolute top-1/2 left-1/2 w-96 h-96 bg-secondary-500/10 rounded-full filter blur-3xl animate-pulse delay-500"
+    ></div>
+  </div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Page Header -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8"
+    >
+      <div class="flex items-center gap-4 mb-4 sm:mb-0">
+        <button
+          type="button"
+          (click)="cancel()"
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 shadow-md hover:shadow-lg transition-all duration-300 text-gray-300 hover:text-primary-400 hover:-translate-y-0.5 hover:scale-110"
+          [attr.aria-label]="'APP.COMMONS.BACK' | translate"
+        >
+          <ng-icon name="lucideArrowLeft" class="w-5 h-5"></ng-icon>
+        </button>
+        <div>
+          <h1 class="text-3xl font-bold text-white">
+            {{ "APP.ANIMALS.EDIT.PAGE_TITLE" | translate }}
+          </h1>
+          <p class="text-gray-400 mt-1">
+            {{ "APP.ANIMALS.EDIT.PAGE_SUBTITLE" | translate }}
+          </p>
+        </div>
+      </div>      <!-- 
+Action Buttons -->
+      <div class="flex items-center gap-3">
+        <button
+          *ngIf="canDeleteAnimal()"
+          type="button"
+          (click)="showDeleteConfirmation()"
+          class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md"
+          [disabled]="isDeleting || isSaving || isUploadingFiles"
+        >
+          <ng-icon
+            [name]="isDeleting ? 'lucideLoader' : 'lucideTrash2'"
+            class="w-4 h-4"
+            [ngClass]="{ 'animate-spin': isDeleting }"
+          ></ng-icon>
+          <span>
+            {{
+              isDeleting
+                ? ("APP.ANIMALS.EDIT.DELETING" | translate)
+                : ("APP.ANIMALS.EDIT.DELETE_ANIMAL" | translate)
+            }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          (click)="saveAnimal()"
+          class="btn btn-primary flex items-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md"
+          [disabled]="isSaving || isUploadingFiles || isDeleting"
+        >
+          <ng-icon
+            [name]="isSaving ? 'lucideLoader' : 'lucideSave'"
+            class="w-4 h-4"
+            [ngClass]="{ 'animate-spin': isSaving }"
+          ></ng-icon>
+          <span>
+            {{
+              isSaving
+                ? ("APP.ANIMALS.EDIT.SAVING" | translate)
+                : ("APP.ANIMALS.EDIT.SAVE_CHANGES" | translate)
+            }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+      *ngIf="isLoading"
+      class="flex justify-center items-center min-h-[60vh]"
+    >
+      <div class="relative">
+        <div
+          class="w-20 h-20 rounded-full border-4 border-primary-500/30 border-t-primary-500 animate-spin"
+        ></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <ng-icon
+            name="lucidePawPrint"
+            [size]="'32'"
+            class="text-primary-500 animate-bounce"
+          ></ng-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Animal Form Container -->
+    <div *ngIf="!isLoading && animal" class="space-y-6">
+      <div class="lg:flex lg:gap-8">
+        <!-- Main Content Area -->
+        <div @fadeInRight class="lg:flex-1">
+          <div
+            class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 overflow-hidden shadow-xl transition-all duration-300"
+          >
+            <!-- Form Header -->
+            <div
+              class="bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-600 px-6 py-4"
+            >
+              <div class="flex items-center justify-between">
+                <h2
+                  class="text-xl font-semibold text-white flex items-center gap-2"
+                >
+                  <ng-icon
+                    name="lucidePencil"
+                    class="w-5 h-5 stroke-[2.5px]"
+                  ></ng-icon>
+                  {{ animal.name || ('APP.ANIMALS.EDIT.EDITING_ANIMAL' | translate) }}
+                </h2>
+              </div>
+            </div>
+
+            <!-- Form Content -->
+            <form [formGroup]="animalForm" class="p-6 space-y-6">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Basic Information -->
+                <div class="lg:col-span-2">
+                  <h3
+                    class="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+                  >
+                    <ng-icon
+                      name="lucideInfo"
+                      class="w-5 h-5 text-primary-400"
+                    ></ng-icon>
+                    {{ "APP.ANIMALS.ADD.BASIC_INFO" | translate }}
+                  </h3>
+                </div> 
+               <!-- Name -->
+                <div>
+                  <label
+                    for="name"
+                    class="block text-sm font-medium text-gray-400 mb-2"
+                  >
+                    {{ "APP.ANIMALS.ADD.NAME" | translate }} *
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    formControlName="name"
+                    class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                    [placeholder]="
+                      'APP.ANIMALS.ADD.NAME_PLACEHOLDER' | translate
+                    "
+                  />
+                  <app-validation-message
+                    [control]="animalForm.get('name')"
+                    [field]="'APP.ANIMALS.ADD.NAME' | translate"
+                  ></app-validation-message>
+                </div>
+
+                <!-- Age -->
+                <div>
+                  <label
+                    for="age"
+                    class="block text-sm font-medium text-gray-400 mb-2"
+                  >
+                    {{ "APP.ANIMALS.ADD.AGE" | translate }} *
+                  </label>
+                  <input
+                    id="age"
+                    type="number"
+                    formControlName="age"
+                    min="0"
+                    max="30"
+                    class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                    [placeholder]="
+                      'APP.ANIMALS.ADD.AGE_PLACEHOLDER' | translate
+                    "
+                  />
+                  <app-validation-message
+                    [control]="animalForm.get('age')"
+                    [field]="'APP.ANIMALS.ADD.AGE' | translate"
+                  ></app-validation-message>
+                </div>
+
+                <!-- Gender -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-2">
+                    {{ "APP.ANIMALS.ADD.GENDER" | translate }} *
+                  </label>
+                  <div class="relative">
+                    <button
+                      type="button"
+                      (click)="toggleDropdown('gender')"
+                      class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                      [attr.aria-expanded]="dropdownStates.gender"
+                    >
+                      <span
+                        [ngClass]="{
+                          'text-gray-400': !animalForm.get('gender')?.value,
+                          'text-white': animalForm.get('gender')?.value
+                        }"
+                      >
+                        {{
+                          animalForm.get("gender")?.value
+                            ? (getGenderTranslationKey(
+                                animalForm.get("gender")?.value
+                              ) | translate)
+                            : ("APP.ANIMALS.ADD.SELECT_GENDER" | translate)
+                        }}
+                      </span>
+                      <ng-icon
+                        name="lucideChevronDown"
+                        class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                        [ngClass]="{
+                          'rotate-180': dropdownStates.gender
+                        }"
+                      ></ng-icon>
+                    </button>
+
+                    <ul
+                      *ngIf="dropdownStates.gender"
+                      class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1"
+                    >
+                      <li
+                        *ngFor="let option of genderOptions"
+                        (click)="
+                          animalForm.patchValue({ gender: option.value });
+                          closeDropdown('gender')
+                        "
+                        class="flex items-center px-4 py-2 hover:bg-primary-500/20 cursor-pointer transition-colors duration-200 text-gray-800"
+                        [ngClass]="{
+                          'bg-primary-500/20':
+                            animalForm.get('gender')?.value === option.value
+                        }"
+                      >
+                        <span class="font-medium">{{
+                          option.label | translate
+                        }}</span>
+                        <ng-icon
+                          *ngIf="
+                            animalForm.get('gender')?.value === option.value
+                          "
+                          name="lucideCheck"
+                          class="w-4 h-4 text-primary-600 ml-auto"
+                        ></ng-icon>
+                      </li>
+                    </ul>
+                  </div>
+                  <app-validation-message
+                    [control]="animalForm.get('gender')"
+                    [field]="'APP.ANIMALS.ADD.GENDER' | translate"
+                  ></app-validation-message>
+                </div>     
+           <!-- Weight -->
+                <div>
+                  <label
+                    for="weight"
+                    class="block text-sm font-medium text-gray-400 mb-2"
+                  >
+                    {{ "APP.ANIMALS.ADD.WEIGHT" | translate }} *
+                  </label>
+                  <input
+                    id="weight"
+                    type="number"
+                    formControlName="weight"
+                    min="0.1"
+                    max="200"
+                    step="0.1"
+                    class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                    [placeholder]="
+                      'APP.ANIMALS.ADD.WEIGHT_PLACEHOLDER' | translate
+                    "
+                  />
+                  <app-validation-message
+                    [control]="animalForm.get('weight')"
+                    [field]="'APP.ANIMALS.ADD.WEIGHT' | translate"
+                  ></app-validation-message>
+                </div>
+
+                <!-- Animal Type -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-2">
+                    {{ "APP.ANIMALS.ADD.ANIMAL_TYPE" | translate }} *
+                  </label>
+                  <div class="relative">
+                    <button
+                      type="button"
+                      (click)="toggleDropdown('animalType')"
+                      class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                      [attr.aria-expanded]="dropdownStates.animalType"
+                    >
+                      <span
+                        [ngClass]="{
+                          'text-gray-400': !animalForm.get('animalTypeId')?.value,
+                          'text-white': animalForm.get('animalTypeId')?.value
+                        }"
+                      >
+                        {{
+                          animalForm.get("animalTypeId")?.value
+                            ? getAnimalTypeLabel(
+                                animalForm.get("animalTypeId")?.value
+                              )
+                            : ("APP.ANIMALS.ADD.SELECT_ANIMAL_TYPE" | translate)
+                        }}
+                      </span>
+                      <ng-icon
+                        name="lucideChevronDown"
+                        class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                        [ngClass]="{
+                          'rotate-180': dropdownStates.animalType
+                        }"
+                      ></ng-icon>
+                    </button>
+
+                    <ul
+                      *ngIf="dropdownStates.animalType"
+                      class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1 max-h-60 overflow-y-auto custom-scrollbar"
+                    >
+                      <li
+                        *ngFor="let animalType of animalTypes"
+                        (click)="
+                          onAnimalTypeChange(animalType.id!);
+                          closeDropdown('animalType')
+                        "
+                        class="flex items-center px-4 py-2 hover:bg-primary-500/20 cursor-pointer transition-colors duration-200 text-gray-800"
+                        [ngClass]="{
+                          'bg-primary-500/20':
+                            animalForm.get('animalTypeId')?.value ===
+                            animalType.id
+                        }"
+                      >
+                        <span class="font-medium">{{ animalType.name }}</span>
+                        <ng-icon
+                          *ngIf="
+                            animalForm.get('animalTypeId')?.value ===
+                            animalType.id
+                          "
+                          name="lucideCheck"
+                          class="w-4 h-4 text-primary-600 ml-auto"
+                        ></ng-icon>
+                      </li>
+                    </ul>
+                  </div>
+                  <app-validation-message
+                    [control]="animalForm.get('animalTypeId')"
+                    [field]="'APP.ANIMALS.ADD.ANIMAL_TYPE' | translate"
+                  ></app-validation-message>
+                </div>
+
+                <!-- Breed -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-2">
+                    {{ "APP.ANIMALS.ADD.BREED" | translate }} *
+                  </label>
+                  <div class="relative">
+                    <button
+                      type="button"
+                      (click)="toggleDropdown('breed')"
+                      class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      [attr.aria-expanded]="dropdownStates.breed"
+                      [disabled]="!animalForm.get('animalTypeId')?.value || isLoadingBreeds"
+                    >
+                      <span
+                        [ngClass]="{
+                          'text-gray-400': !animalForm.get('breedId')?.value,
+                          'text-white': animalForm.get('breedId')?.value
+                        }"
+                      >
+                        {{
+                          isLoadingBreeds
+                            ? ("APP.ANIMALS.ADD.LOADING_BREEDS" | translate)
+                            : animalForm.get("breedId")?.value
+                            ? getBreedLabel(animalForm.get("breedId")?.value)
+                            : ("APP.ANIMALS.ADD.SELECT_BREED" | translate)
+                        }}
+                      </span>
+                      <ng-icon
+                        *ngIf="!isLoadingBreeds"
+                        name="lucideChevronDown"
+                        class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                        [ngClass]="{
+                          'rotate-180': dropdownStates.breed
+                        }"
+                      ></ng-icon>
+                      <ng-icon
+                        *ngIf="isLoadingBreeds"
+                        name="lucideLoader"
+                        class="w-4 h-4 text-gray-400 animate-spin"
+                      ></ng-icon>
+                    </button>
+
+                    <ul
+                      *ngIf="dropdownStates.breed"
+                      class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1 max-h-60 overflow-y-auto custom-scrollbar"
+                    >
+                      <li
+                        *ngIf="!isLoadingBreeds && filteredBreeds.length === 0"
+                        class="px-4 py-2 text-gray-500 text-sm italic"
+                      >
+                        {{ "APP.ANIMALS.ADD.NO_BREEDS_FOUND" | translate }}
+                      </li>
+                      <li
+                        *ngFor="let breed of filteredBreeds"
+                        (click)="
+                          animalForm.patchValue({ breedId: breed.id });
+                          closeDropdown('breed')
+                        "
+                        class="flex items-center px-4 py-2 hover:bg-primary-500/20 cursor-pointer transition-colors duration-200 text-gray-800"
+                        [ngClass]="{
+                          'bg-primary-500/20':
+                            animalForm.get('breedId')?.value === breed.id
+                        }"
+                      >
+                        <span class="font-medium">{{ breed.name }}</span>
+                        <ng-icon
+                          *ngIf="animalForm.get('breedId')?.value === breed.id"
+                          name="lucideCheck"
+                          class="w-4 h-4 text-primary-600 ml-auto"
+                        ></ng-icon>
+                      </li>
+                    </ul>
+                  </div>
+                  <app-validation-message
+                    [control]="animalForm.get('breedId')"
+                    [field]="'APP.ANIMALS.ADD.BREED' | translate"
+                  ></app-validation-message>
+                </div>  
+              <!-- Description -->
+                <div class="lg:col-span-2">
+                  <label
+                    for="description"
+                    class="block text-sm font-medium text-gray-400 mb-2"
+                  >
+                    {{ "APP.ANIMALS.ADD.DESCRIPTION" | translate }} *
+                  </label>
+                  <textarea
+                    id="description"
+                    formControlName="description"
+                    rows="4"
+                    class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none"
+                    [placeholder]="
+                      'APP.ANIMALS.ADD.DESCRIPTION_PLACEHOLDER' | translate
+                    "
+                  ></textarea>
+                  <app-validation-message
+                    [control]="animalForm.get('description')"
+                    [field]="'APP.ANIMALS.ADD.DESCRIPTION' | translate"
+                  ></app-validation-message>
+                </div>
+
+                <!-- Health Status -->
+                <div class="lg:col-span-2">
+                  <label
+                    for="healthStatus"
+                    class="block text-sm font-medium text-gray-400 mb-2"
+                  >
+                    {{ "APP.ANIMALS.ADD.HEALTH_STATUS" | translate }} *
+                  </label>
+                  <textarea
+                    id="healthStatus"
+                    formControlName="healthStatus"
+                    rows="3"
+                    class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none"
+                    [placeholder]="
+                      'APP.ANIMALS.ADD.HEALTH_STATUS_PLACEHOLDER' | translate
+                    "
+                  ></textarea>
+                  <app-validation-message
+                    [control]="animalForm.get('healthStatus')"
+                    [field]="'APP.ANIMALS.ADD.HEALTH_STATUS' | translate"
+                  ></app-validation-message>
+                </div>
+
+                <!-- Adoption Status -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-400 mb-2">
+                    {{ "APP.ANIMALS.ADD.ADOPTION_STATUS" | translate }} *
+                  </label>
+                  <div class="relative">
+                    <button
+                      type="button"
+                      (click)="toggleDropdown('adoptionStatus')"
+                      class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                      [attr.aria-expanded]="dropdownStates.adoptionStatus"
+                    >
+                      <span>
+                        {{
+                          getAdoptionStatusTranslationKey(
+                            animalForm.get("adoptionStatus")?.value
+                          ) | translate
+                        }}
+                      </span>
+                      <ng-icon
+                        name="lucideChevronDown"
+                        class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                        [ngClass]="{
+                          'rotate-180': dropdownStates.adoptionStatus
+                        }"
+                      ></ng-icon>
+                    </button>
+
+                    <ul
+                      *ngIf="dropdownStates.adoptionStatus"
+                      class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1"
+                    >
+                      <li
+                        *ngFor="let option of adoptionStatusOptions"
+                        (click)="
+                          animalForm.patchValue({
+                            adoptionStatus: option.value
+                          });
+                          closeDropdown('adoptionStatus')
+                        "
+                        class="flex items-center px-4 py-2 hover:bg-primary-500/20 cursor-pointer transition-colors duration-200 text-gray-800"
+                        [ngClass]="{
+                          'bg-primary-500/20':
+                            animalForm.get('adoptionStatus')?.value ===
+                            option.value
+                        }"
+                      >
+                        <span class="font-medium">{{
+                          option.label | translate
+                        }}</span>
+                        <ng-icon
+                          *ngIf="
+                            animalForm.get('adoptionStatus')?.value ===
+                            option.value
+                          "
+                          name="lucideCheck"
+                          class="w-4 h-4 text-primary-600 ml-auto"
+                        ></ng-icon>
+                      </li>
+                    </ul>
+                  </div>
+                  <app-validation-message
+                    [control]="animalForm.get('adoptionStatus')"
+                    [field]="'APP.ANIMALS.ADD.ADOPTION_STATUS' | translate"
+                  ></app-validation-message>
+                </div>
+
+                <!-- Photos -->
+                <div class="lg:col-span-2">
+                  <app-file-drop-area
+                    [form]="animalForm"
+                    controlName="attachedPhotosIds"
+                    [label]="'APP.ANIMALS.ADD.PHOTOS' | translate"
+                    [hint]="'APP.ANIMALS.ADD.PHOTOS_HINT' | translate"
+                    accept="image/*"
+                    [multiple]="true"
+                    [maxFiles]="3"
+                    [maxFileSize]="5242880"
+                    [existingFiles]="animal.attachedPhotos || []"
+                    (filesChange)="onFilesChange($event)"
+                    (uploadStateChange)="onUploadStateChange($event)"
+                  ></app-file-drop-area>
+                </div> 
+               <!-- Image Preview Slider -->
+                <div class="lg:col-span-2 image-slider" *ngIf="getImageFiles().length > 0">
+                  <label class="block text-sm font-medium text-gray-400 mb-2">
+                    {{ "APP.ANIMALS.ADD.IMAGE_PREVIEW" | translate }}
+                  </label>
+                  
+                  <!-- Current Image Filename Display -->
+                  <div class="mb-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <ng-icon name="lucideImage" [size]="'16'" class="text-primary-400"></ng-icon>
+                        <span class="text-sm font-medium text-white">
+                          {{ "APP.ANIMALS.ADD.CURRENT_IMAGE" | translate }}:
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm text-gray-300 font-mono bg-white/10 px-2 py-1 rounded">
+                          {{ getCurrentImageFile()?.name || ('APP.ANIMALS.ADD.NO_FILE_NAME' | translate) }}
+                        </span>
+                        <span class="text-xs text-gray-400">
+                          ({{ getCurrentImageIndex() + 1 }}/{{ getImageFiles().length }})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="relative bg-white/5 rounded-xl border border-white/20 overflow-hidden slider-container">
+                    <!-- Main Image Display -->
+                    <div class="relative aspect-video bg-gray-800">
+                      <img 
+                        [src]="getCurrentImageUrl()"
+                        [alt]="'Preview image ' + (getCurrentImageIndex() + 1)"
+                        class="w-full h-full object-cover slider-image transition-transform duration-300 ease-in-out"
+                        [ngClass]="{
+                          'animate-slide-in-left': getSlideDirection() === 'left',
+                          'animate-slide-in-right': getSlideDirection() === 'right'
+                        }"
+                        *ngIf="getCurrentImageUrl()"
+                      />
+                      
+                      <!-- Placeholder when no image -->
+                      <div 
+                        *ngIf="!getCurrentImageFile()"
+                        class="w-full h-full flex items-center justify-center text-gray-400"
+                      >
+                        <div class="text-center">
+                          <ng-icon name="lucideImage" [size]="'48'" class="mx-auto mb-2"></ng-icon>
+                          <p class="text-sm">{{ "APP.ANIMALS.ADD.NO_IMAGES_UPLOADED" | translate }}</p>
+                        </div>
+                      </div>
+                      
+                      <!-- Navigation Arrows -->
+                      <button
+                        *ngIf="getImageFiles().length > 1"
+                        type="button"
+                        (click)="previousImage(getImageFiles().length)"
+                        class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white slider-nav-button shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                        [attr.aria-label]="'APP.ANIMALS.ADD.PREVIOUS_IMAGE' | translate"
+                      >
+                        <ng-icon name="lucideChevronLeft" [size]="'18'"></ng-icon>
+                      </button>
+                      
+                      <button
+                        *ngIf="getImageFiles().length > 1"
+                        type="button"
+                        (click)="nextImage(getImageFiles().length)"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white slider-nav-button shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                        [attr.aria-label]="'APP.ANIMALS.ADD.NEXT_IMAGE' | translate"
+                      >
+                        <ng-icon name="lucideChevronRight" [size]="'18'"></ng-icon>
+                      </button>
+                      
+                      <!-- Image Counter -->
+                      <div class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/20">
+                        {{ getCurrentImageIndex() + 1 }} / {{ getImageFiles().length }}
+                      </div>
+                    </div>
+                    
+                    <!-- Thumbnail Navigation -->
+                    <div class="p-3 bg-white/5" *ngIf="getImageFiles().length > 1">
+                      <div class="flex gap-2 overflow-x-auto thumbnail-nav">
+                        <div
+                          *ngFor="let imageFile of getImageFiles(); let idx = index"
+                          class="flex-shrink-0 flex flex-col items-center gap-1"
+                        >
+                          <button
+                            type="button"
+                            (click)="goToImage(idx)"
+                            class="w-16 h-16 rounded-lg overflow-hidden border-2 thumbnail-button"
+                            [ngClass]="{
+                              'border-primary-500': getCurrentImageIndex() === idx,
+                              'border-white/20 hover:border-white/40': getCurrentImageIndex() !== idx
+                            }"
+                            [title]="imageFile?.file?.name || 'Image ' + (idx + 1)"
+                          >
+                            <img 
+                              [src]="getImageUrlByIndex(idx)"
+                              [alt]="'Thumbnail ' + (idx + 1)"
+                              class="w-full h-full object-cover"
+                              *ngIf="imageFile?.file"
+                            />
+                          </button>
+                          <span 
+                            class="text-xs text-gray-400 max-w-16 truncate text-center"
+                            [title]="imageFile?.file?.name"
+                          >
+                            {{ imageFile?.file?.name || 'Image ' + (idx + 1) }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,10 +1,15 @@
-﻿namespace Main_API.Services.AnimalServices.Extention
+﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+
+namespace Main_API.Services.AnimalServices.Extention
 {
 	public static class Extention
 	{
-		public static IServiceCollection AddAnimalServices(this IServiceCollection services)
+		public static IServiceCollection AddAnimalServices(this IServiceCollection services, IConfiguration configuration)
 		{
-			services.AddScoped<IAnimalService, AnimalService>();
+            services.Configure<AnimalsConfig>(configuration);
+
+            services.AddScoped<IAnimalService, AnimalService>();
 			services.AddScoped(provider => new Lazy<IAnimalService>(() => provider.GetRequiredService<IAnimalService>()));
 
 			return services;

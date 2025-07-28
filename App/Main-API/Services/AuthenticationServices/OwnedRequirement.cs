@@ -73,7 +73,7 @@ namespace Main_API.Services.AuthenticationServices
             String cacheKey = $"owner_{userId}_of_{ownedResource.OwnedFilterParams.RequestedFilters.GetHashCode()}";
             if (!_memoryCache.TryGetValue(cacheKey, out long? count))
             {
-                count = await this.CalculateAffiliatedDocuments(ownedResource);
+                count = await this.CalculateOwnedDocuments(ownedResource);
                 _memoryCache.Set(cacheKey, count, TimeSpan.FromMinutes(_cacheConfig.RequirementResultTime));
             }
 
@@ -82,10 +82,8 @@ namespace Main_API.Services.AuthenticationServices
             else context.Fail();
         }
 
-        private async Task<long> CalculateAffiliatedDocuments(OwnedResource ownedResource)
+        private async Task<long> CalculateOwnedDocuments(OwnedResource ownedResource)
         {
-            // * Intenral affiliation lookup *
-
             // The requested filter from the user
             FilterDefinition<BsonDocument> filter = await _filterBuilder.Build(ownedResource.OwnedFilterParams.RequestedFilters);
 

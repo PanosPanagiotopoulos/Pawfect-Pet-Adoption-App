@@ -49,6 +49,17 @@ export const routes: Routes = [
     }
   },
   {
+    path: 'animals',
+    loadChildren: () =>
+      import('./ui/components/animals/animals.module').then(
+        (m) => m.AnimalsModule
+      ),
+    canActivate: [AuthGuard],
+    data: {
+      permissions: [Permission.CreateAnimals]
+    }
+  },
+  {
     path: '404',
     component: NotFoundComponent
   },

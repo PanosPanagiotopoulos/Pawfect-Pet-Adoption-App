@@ -1,0 +1,17 @@
+{
+  "Animals": {
+    "FreeFields": [
+      "Id",
+      "Name",
+      "Age",
+      "Gender",
+      "HealthStatus",
+      "Description",
+      "Weight",
+      "AnimalType.Name",
+      "Breed.Name",
+      "AttachedPhotos.SourceUrl",
+      "Shelter.ShelterName"
+    ]
+  }
+}

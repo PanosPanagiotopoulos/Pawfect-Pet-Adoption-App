@@ -38,10 +38,10 @@ export class AnimalService {
   getSingle(id: string, reqFields: string[] = []): Observable<Animal> {
     const url = `${this.apiBase}/${id}`;
     let params = new HttpParams();
-        reqFields.forEach(field => {
-          params = params.append('fields', field);
-        });
-        const options = { params };
+    reqFields.forEach((field) => {
+      params = params.append('fields', field);
+    });
+    const options = { params };
     return this.http
       .get<Animal>(url, options)
       .pipe(catchError((error: any) => throwError(error)));
@@ -53,7 +53,7 @@ export class AnimalService {
   ): Observable<QueryResult<Animal>> {
     const url = `${this.apiBase}/shelter/${shelterId}`;
     let params = new HttpParams();
-    reqFields.forEach(field => {
+    reqFields.forEach((field) => {
       params = params.append('fields', field);
     });
     const options = { params };
@@ -66,7 +66,7 @@ export class AnimalService {
   persist(item: AnimalPersist, reqFields: string[] = []): Observable<Animal> {
     const url = `${this.apiBase}/persist`;
     let params = new HttpParams();
-    reqFields.forEach(field => {
+    reqFields.forEach((field) => {
       params = params.append('fields', field);
     });
     const options = { params };
@@ -75,33 +75,41 @@ export class AnimalService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
+  persistBatch(
+    items: AnimalPersist[],
+    reqFields: string[] = []
+  ): Observable<Animal[]> {
+    const url = `${this.apiBase}/persist/batch`;
+    let params = new HttpParams();
+    reqFields.forEach((field) => {
+      params = params.append('fields', field);
+    });
+    const options = { params };
+    return this.http
+      .post<Animal[]>(url, items, options)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
   getImportExcel(): Observable<HttpResponse<Blob>> {
     const url = `${this.apiBase}/import-template/excel`;
     return this.http.get(url, {
       observe: 'response',
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 
   importFromExcelTemplate(file: File): Observable<AnimalPersist[]> {
-    const url = `${this.apiBase}/import-template/excel`;
+    const url = `${this.apiBase}/from-template/excel`;
     const formData = new FormData();
-    formData.append('file', file); 
+    formData.append('file', file);
 
     return this.http.post<AnimalPersist[]>(url, formData);
   }
-  
-  delete(id: string): Observable<void> {
-    const url = `${this.apiBase}/delete`;
-    return this.http
-      .post<void>(url, { id })
-      .pipe(catchError((error: any) => throwError(error)));
-  }
 
-  deleteMany(ids: string[]): Observable<void> {
-    const url = `${this.apiBase}/delete/many`;
+  delete(animalId: string): Observable<void> {
+    const url = `${this.apiBase}/delete/${animalId}`;
     return this.http
-      .post<void>(url, ids)
+      .post<void>(url)
       .pipe(catchError((error: any) => throwError(error)));
   }
 }

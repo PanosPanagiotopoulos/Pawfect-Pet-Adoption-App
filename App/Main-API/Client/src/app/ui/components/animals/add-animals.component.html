@@ -1,0 +1,895 @@
+<!-- Header Section -->
+<div class="min-h-screen bg-gray-900">
+  <div class="fixed inset-0 z-0">
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"
+    ></div>
+
+    <!-- Floating background icons -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div
+        class="absolute top-1/4 left-1/4 w-32 h-32 text-primary-500/5 transform rotate-45 animate-float"
+      >
+        <ng-icon name="lucidePawPrint" [size]="'128'"></ng-icon>
+      </div>
+      <div
+        class="absolute bottom-1/3 right-1/3 w-24 h-24 text-secondary-500/5 transform -rotate-12 animate-float"
+      >
+        <ng-icon name="lucideHeart" [size]="'96'"></ng-icon>
+      </div>
+      <div
+        class="absolute top-1/3 right-1/4 w-20 h-20 text-accent-500/5 transform rotate-12 animate-float"
+      >
+        <ng-icon name="lucideDog" [size]="'80'"></ng-icon>
+      </div>
+      <div
+        class="absolute bottom-1/4 left-1/3 w-16 h-16 text-primary-500/5 transform -rotate-45 animate-float"
+      >
+        <ng-icon name="lucidePlus" [size]="'64'"></ng-icon>
+      </div>
+    </div>
+
+    <!-- Gradient orbs -->
+    <div
+      class="absolute top-0 left-0 w-96 h-96 bg-primary-500/10 rounded-full filter blur-3xl animate-pulse"
+    ></div>
+    <div
+      class="absolute bottom-0 right-0 w-96 h-96 bg-accent-500/10 rounded-full filter blur-3xl animate-pulse delay-1000"
+    ></div>
+    <div
+      class="absolute top-1/2 left-1/2 w-96 h-96 bg-secondary-500/10 rounded-full filter blur-3xl animate-pulse delay-500"
+    ></div>
+  </div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Page Header -->
+    <div
+      class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8"
+    >
+      <div class="flex items-center gap-4 mb-4 sm:mb-0">
+        <button
+          type="button"
+          (click)="cancel()"
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 shadow-md hover:shadow-lg transition-all duration-300 text-gray-300 hover:text-primary-400 hover:-translate-y-0.5 hover:scale-110"
+          [attr.aria-label]="'APP.COMMONS.BACK' | translate"
+        >
+          <ng-icon name="lucideArrowLeft" class="w-5 h-5"></ng-icon>
+        </button>
+        <div>
+          <h1 class="text-3xl font-bold text-white">
+            {{ "APP.ANIMALS.ADD.PAGE_TITLE" | translate }}
+          </h1>
+          <p class="text-gray-400 mt-1">
+            {{ "APP.ANIMALS.ADD.PAGE_SUBTITLE" | translate }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-3">
+        <!-- Excel Import Button -->
+        <button
+          type="button"
+          (click)="openExcelImportDialog()"
+          class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none focus:outline-none focus:ring-0"
+          [disabled]="isSaving || isLoadingExcelAnimals"
+          [attr.title]="'APP.ANIMALS.EXCEL_IMPORT.TITLE' | translate"
+        >
+          <ng-icon 
+            [name]="isLoadingExcelAnimals ? 'lucideLoader' : 'lucideSheet'" 
+            class="w-4 h-4"
+            [ngClass]="{ 'animate-spin': isLoadingExcelAnimals }"
+          ></ng-icon>
+          <span class="hidden sm:inline">
+            {{ isLoadingExcelAnimals ? ('APP.COMMONS.LOADING' | translate) : 'Excel' }}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          (click)="addNewAnimalForm()"
+          class="btn btn-secondary flex items-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          [disabled]="isSaving"
+        >
+          <ng-icon name="lucidePlus" class="w-4 h-4"></ng-icon>
+          <span class="hidden sm:inline">{{
+            "APP.ANIMALS.ADD.ADD_ANOTHER" | translate
+          }}</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="saveAnimals()"
+          class="btn btn-primary flex items-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md"
+          [disabled]="isSaving || animalForms.length === 0 || isUploadingFiles"
+        >
+          <ng-icon
+            [name]="isSaving ? 'lucideLoader' : 'lucideSave'"
+            class="w-4 h-4"
+            [ngClass]="{ 'animate-spin': isSaving }"
+          ></ng-icon>
+          <span>
+            {{
+              isSaving
+                ? ("APP.ANIMALS.ADD.SAVING" | translate)
+                : ("APP.ANIMALS.ADD.SAVE_ALL" | translate)
+            }}
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div
+      *ngIf="isLoading"
+      class="flex justify-center items-center min-h-[60vh]"
+    >
+      <div class="relative">
+        <div
+          class="w-20 h-20 rounded-full border-4 border-primary-500/30 border-t-primary-500 animate-spin"
+        ></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <ng-icon
+            name="lucidePawPrint"
+            [size]="'32'"
+            class="text-primary-500 animate-bounce"
+          ></ng-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Excel Loading State -->
+    <div
+      *ngIf="isLoadingExcelAnimals"
+      class="flex justify-center items-center min-h-[60vh]"
+    >
+      <div class="relative">
+        <div
+          class="w-20 h-20 rounded-full border-4 border-green-500/30 border-t-green-500 animate-spin"
+        ></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <ng-icon
+            name="lucideSheet"
+            [size]="'32'"
+            class="text-green-500 animate-pulse"
+          ></ng-icon>
+        </div>
+      </div>
+      <div class="ml-4">
+        <h3 class="text-lg font-semibold text-white">
+          {{ 'APP.ANIMALS.EXCEL_IMPORT.PROCESSING_ANIMALS' | translate }}
+        </h3>
+        <p class="text-gray-400 text-sm">
+          {{ 'APP.ANIMALS.EXCEL_IMPORT.PLEASE_WAIT' | translate }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Animal Forms Container -->
+    <div *ngIf="!isLoading && !isLoadingExcelAnimals" class="space-y-6">
+      <!-- Forms Sidebar (Desktop) / Tabs (Mobile) -->
+      <div class="lg:flex lg:gap-8">
+        <!-- Sidebar -->
+        <div @fadeInLeft class="lg:w-80 lg:flex-shrink-0 mb-6 lg:mb-0">
+          <div
+            class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 sticky top-6"
+          >
+            <h3
+              class="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+            >
+              <ng-icon
+                name="lucideFolderOpen"
+                class="w-5 h-5 text-primary-400"
+              ></ng-icon>
+              {{ "APP.ANIMALS.ADD.FORMS_TITLE" | translate }}
+              <span class="text-sm font-normal text-gray-400"
+                >({{ animalForms.length }})</span
+              >
+            </h3>
+            
+            <!-- Overall status summary -->
+            <div class="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-gray-400">{{ "APP.ANIMALS.ADD.FORMS_STATUS" | translate }}:</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-green-300">{{ getValidFormsCount() }}</span>
+                  <span class="text-gray-500">/</span>
+                  <span class="text-gray-300">{{ animalForms.length }}</span>
+                  <ng-icon 
+                    [name]="getValidFormsCount() === animalForms.length ? 'lucideCheck' : 'lucideCircleAlert'" 
+                    [class]="getValidFormsCount() === animalForms.length ? 'text-green-400' : 'text-red-400'"
+                    [size]="'16'"
+                  ></ng-icon>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3 max-h-96 overflow-y-auto">
+              <div
+                *ngFor="let formData of animalForms; let i = index"
+                class="group cursor-pointer"
+                (click)="toggleFormCollapse(i)"
+              >
+                <div
+                  class="flex items-center justify-between p-3 rounded-lg border-2 transition-all duration-200 relative"
+                  [ngClass]="{
+                    'border-primary-500/50 bg-primary-500/10': !formData.isCollapsed,
+                    'border-white/20 bg-white/5 hover:border-white/30': formData.isCollapsed
+                  }"
+                >
+                  <!-- Active indicator -->
+                  <div 
+                    *ngIf="!formData.isCollapsed"
+                    class="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 rounded-r-full"
+                  ></div>
+                  <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <ng-icon
+                      [name]="formData.isCollapsed ? 'lucideFolder' : 'lucideFolderOpen'"
+                      class="w-4 h-4 flex-shrink-0"
+                      [ngClass]="{
+                        'text-primary-400': !formData.isCollapsed,
+                        'text-gray-400': formData.isCollapsed
+                      }"
+                    ></ng-icon>
+                    <div class="flex-1 min-w-0">
+                      <p 
+                        class="text-sm font-medium truncate"
+                        [ngClass]="{
+                          'text-white': !formData.isCollapsed,
+                          'text-gray-300': formData.isCollapsed
+                        }"
+                      >
+                        {{ getFormTitle(formData) }}
+                      </p>
+                      <div class="flex flex-col gap-1 mt-1">
+                        <!-- Validation indicator -->
+                        <span
+                          *ngIf="getFormValidationSummary(formData.form).valid"
+                          class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300"
+                        >
+                          <ng-icon name="lucideCheck" class="w-3 h-3"></ng-icon>
+                          <span>{{ "APP.ANIMALS.ADD.FORM_VALID" | translate }}</span>
+                        </span>
+                        
+                        <!-- Validation errors -->
+                        <div *ngIf="!getFormValidationSummary(formData.form).valid && getFormValidationErrors(formData.form).length > 0" class="space-y-1 max-w-full">
+                          <div
+                            *ngFor="let error of getFormValidationErrors(formData.form); trackBy: trackByError"
+                            class="flex items-start gap-1 px-2 py-1 rounded text-xs bg-red-500/20 text-red-300 border border-red-500/30"
+                          >
+                            <ng-icon name="lucideCircleAlert" class="w-3 h-3 mt-0.5 flex-shrink-0"></ng-icon>
+                            <span class="leading-tight text-left break-words">{{ error | translate }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    *ngIf="animalForms.length > 1"
+                    type="button"
+                    (click)="$event.stopPropagation(); removeAnimalForm(i)"
+                    class="flex items-center justify-center w-6 h-6 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-500/20 transition-colors duration-200 opacity-0 group-hover:opacity-100"
+                    [attr.aria-label]="
+                      'APP.ANIMALS.ADD.REMOVE_FORM' | translate
+                    "
+                  >
+                    <ng-icon name="lucideX" class="w-4 h-4"></ng-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div @fadeInRight class="lg:flex-1">
+          <div *ngFor="let formData of animalForms; let i = index" class="mb-6">
+            <div
+              class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 overflow-hidden shadow-xl transition-all duration-300"
+              [class.hidden]="formData.isCollapsed"
+              [@slideDown]="!formData.isCollapsed"
+            >
+              <!-- Form Header -->
+              <div
+                class="bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-600 px-6 py-4"
+              >
+                <div class="flex items-center justify-between">
+                  <h2
+                    class="text-xl font-semibold text-white flex items-center gap-2"
+                  >
+                    <ng-icon
+                      name="lucidePawPrint"
+                      class="w-5 h-5 stroke-[2.5px]"
+                    ></ng-icon>
+                    {{ getFormTitle(formData) }}
+                  </h2>
+                  <span class="text-white/80 text-sm">
+                    {{ "APP.ANIMALS.ADD.FORM_NUMBER" | translate }} {{ i + 1 }}
+                    {{ "APP.ANIMALS.ADD.OF" | translate }}
+                    {{ animalForms.length }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Form Content -->
+              <form [formGroup]="formData.form" class="p-6 space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <!-- Basic Information -->
+                  <div class="lg:col-span-2">
+                    <h3
+                      class="text-lg font-semibold text-white mb-4 flex items-center gap-2"
+                    >
+                      <ng-icon
+                        name="lucideInfo"
+                        class="w-5 h-5 text-primary-400"
+                      ></ng-icon>
+                      {{ "APP.ANIMALS.ADD.BASIC_INFO" | translate }}
+                    </h3>
+                  </div>
+
+                  <!-- Name -->
+                  <div>
+                    <label
+                      for="name-{{ i }}"
+                      class="block text-sm font-medium text-gray-400 mb-2"
+                    >
+                      {{ "APP.ANIMALS.ADD.NAME" | translate }} *
+                    </label>
+                    <input
+                      id="name-{{ i }}"
+                      type="text"
+                      formControlName="name"
+                      class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                      [placeholder]="
+                        'APP.ANIMALS.ADD.NAME_PLACEHOLDER' | translate
+                      "
+                    />
+                    <app-validation-message
+                      [control]="formData.form.get('name')"
+                      [field]="'APP.ANIMALS.ADD.NAME' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Age -->
+                  <div>
+                    <label
+                      for="age-{{ i }}"
+                      class="block text-sm font-medium text-gray-400 mb-2"
+                    >
+                      {{ "APP.ANIMALS.ADD.AGE" | translate }} *
+                    </label>
+                    <input
+                      id="age-{{ i }}"
+                      type="number"
+                      formControlName="age"
+                      min="0"
+                      max="30"
+                      class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                      [placeholder]="
+                        'APP.ANIMALS.ADD.AGE_PLACEHOLDER' | translate
+                      "
+                    />
+                    <app-validation-message
+                      [control]="formData.form.get('age')"
+                      [field]="'APP.ANIMALS.ADD.AGE' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Gender -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                      {{ "APP.ANIMALS.ADD.GENDER" | translate }} *
+                    </label>
+                    <div class="relative">
+                      <button
+                        type="button"
+                        (click)="toggleDropdown(i, 'gender')"
+                        class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                        [attr.aria-expanded]="formData.dropdownStates.gender"
+                      >
+                        <span
+                          [ngClass]="{
+                            'text-gray-400':
+                              !formData.form.get('gender')?.value,
+                            'text-white': formData.form.get('gender')?.value
+                          }"
+                        >
+                          {{
+                            formData.form.get("gender")?.value
+                              ? (getGenderTranslationKey(
+                                  formData.form.get("gender")?.value
+                                ) | translate)
+                              : ("APP.ANIMALS.ADD.SELECT_GENDER" | translate)
+                          }}
+                        </span>
+                        <ng-icon
+                          name="lucideChevronDown"
+                          class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                          [ngClass]="{
+                            'rotate-180': formData.dropdownStates.gender
+                          }"
+                        ></ng-icon>
+                      </button>
+
+                      <ul
+                        *ngIf="formData.dropdownStates.gender"
+                        class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1"
+                      >
+                        <li
+                          *ngFor="let option of genderOptions"
+                          (click)="
+                            formData.form.patchValue({ gender: option.value });
+                            closeDropdown(i, 'gender')
+                          "
+                          class="flex items-center px-4 py-2 hover:bg-primary-500/20 cursor-pointer transition-colors duration-200 text-gray-800"
+                          [ngClass]="{
+                            'bg-primary-500/20':
+                              formData.form.get('gender')?.value ===
+                              option.value
+                          }"
+                        >
+                          <span class="font-medium">{{
+                            option.label | translate
+                          }}</span>
+                          <ng-icon
+                            *ngIf="
+                              formData.form.get('gender')?.value ===
+                              option.value
+                            "
+                            name="lucideCheck"
+                            class="w-4 h-4 text-primary-600 ml-auto"
+                          ></ng-icon>
+                        </li>
+                      </ul>
+                    </div>
+                    <app-validation-message
+                      [control]="formData.form.get('gender')"
+                      [field]="'APP.ANIMALS.ADD.GENDER' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Weight -->
+                  <div>
+                    <label
+                      for="weight-{{ i }}"
+                      class="block text-sm font-medium text-gray-400 mb-2"
+                    >
+                      {{ "APP.ANIMALS.ADD.WEIGHT" | translate }} *
+                    </label>
+                    <input
+                      id="weight-{{ i }}"
+                      type="number"
+                      formControlName="weight"
+                      min="0.1"
+                      max="200"
+                      step="0.1"
+                      class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                      [placeholder]="
+                        'APP.ANIMALS.ADD.WEIGHT_PLACEHOLDER' | translate
+                      "
+                    />
+                    <app-validation-message
+                      [control]="formData.form.get('weight')"
+                      [field]="'APP.ANIMALS.ADD.WEIGHT' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Animal Type -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                      {{ "APP.ANIMALS.ADD.ANIMAL_TYPE" | translate }} *
+                    </label>
+                    <div class="relative">
+                      <button
+                        type="button"
+                        (click)="toggleDropdown(i, 'animalType')"
+                        class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                        [attr.aria-expanded]="
+                          formData.dropdownStates.animalType
+                        "
+                      >
+                        <span
+                          [ngClass]="{
+                            'text-gray-400':
+                              !formData.form.get('animalTypeId')?.value,
+                            'text-white':
+                              formData.form.get('animalTypeId')?.value
+                          }"
+                        >
+                          {{
+                            formData.form.get("animalTypeId")?.value
+                              ? getAnimalTypeLabel(
+                                  formData.form.get("animalTypeId")?.value
+                                )
+                              : ("APP.ANIMALS.ADD.SELECT_ANIMAL_TYPE"
+                                | translate)
+                          }}
+                        </span>
+                        <ng-icon
+                          name="lucideChevronDown"
+                          class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                          [ngClass]="{
+                            'rotate-180': formData.dropdownStates.animalType
+                          }"
+                        ></ng-icon>
+                      </button>
+
+                      <ul
+                        *ngIf="formData.dropdownStates.animalType"
+                        class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1 max-h-60 overflow-y-auto custom-scrollbar"
+                      >
+                        <li
+                          *ngFor="let animalType of animalTypes"
+                          (click)="
+                            onAnimalTypeChange(i, animalType.id!);
+                            closeDropdown(i, 'animalType')
+                          "
+                          class="flex items-center px-4 py-2 hover:bg-primary-500/20 cursor-pointer transition-colors duration-200 text-gray-800"
+                          [ngClass]="{
+                            'bg-primary-500/20':
+                              formData.form.get('animalTypeId')?.value ===
+                              animalType.id
+                          }"
+                        >
+                          <span class="font-medium">{{ animalType.name }}</span>
+                          <ng-icon
+                            *ngIf="
+                              formData.form.get('animalTypeId')?.value ===
+                              animalType.id
+                            "
+                            name="lucideCheck"
+                            class="w-4 h-4 text-primary-600 ml-auto"
+                          ></ng-icon>
+                        </li>
+                      </ul>
+                    </div>
+                    <app-validation-message
+                      [control]="formData.form.get('animalTypeId')"
+                      [field]="'APP.ANIMALS.ADD.ANIMAL_TYPE' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Breed -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                      {{ "APP.ANIMALS.ADD.BREED" | translate }} *
+                    </label>
+                    <div class="relative">
+                      <button
+                        type="button"
+                        (click)="toggleDropdown(i, 'breed')"
+                        class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        [attr.aria-expanded]="formData.dropdownStates.breed"
+                        [disabled]="!formData.form.get('animalTypeId')?.value || isLoadingBreeds"
+                      >
+                        <span
+                          [ngClass]="{
+                            'text-gray-400':
+                              !formData.form.get('breedId')?.value,
+                            'text-white': formData.form.get('breedId')?.value
+                          }"
+                        >
+                          {{
+                            isLoadingBreeds
+                              ? ("APP.ANIMALS.ADD.LOADING_BREEDS" | translate)
+                              : formData.form.get("breedId")?.value
+                              ? getBreedLabel(
+                                  formData.form.get("breedId")?.value
+                                )
+                              : ("APP.ANIMALS.ADD.SELECT_BREED" | translate)
+                          }}
+                        </span>
+                        <ng-icon
+                          *ngIf="!isLoadingBreeds"
+                          name="lucideChevronDown"
+                          class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                          [ngClass]="{
+                            'rotate-180': formData.dropdownStates.breed
+                          }"
+                        ></ng-icon>
+                        <ng-icon
+                          *ngIf="isLoadingBreeds"
+                          name="lucideLoader"
+                          class="w-4 h-4 text-gray-400 animate-spin"
+                        ></ng-icon>
+                      </button>
+
+                      <ul
+                        *ngIf="formData.dropdownStates.breed"
+                        class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1 max-h-60 overflow-y-auto custom-scrollbar"
+                      >
+                        <li
+                          *ngIf="!isLoadingBreeds && filteredBreeds.length === 0"
+                          class="px-4 py-2 text-gray-500 text-sm italic"
+                        >
+                          {{ "APP.ANIMALS.ADD.NO_BREEDS_FOUND" | translate }}
+                        </li>
+                        <li
+                          *ngFor="let breed of filteredBreeds"
+                          (click)="
+                            formData.form.patchValue({ breedId: breed.id });
+                            closeDropdown(i, 'breed')
+                          "
+                          class="flex items-center px-4 py-2 hover:bg-primary-500/20 cursor-pointer transition-colors duration-200 text-gray-800"
+                          [ngClass]="{
+                            'bg-primary-500/20':
+                              formData.form.get('breedId')?.value === breed.id
+                          }"
+                        >
+                          <span class="font-medium">{{ breed.name }}</span>
+                          <ng-icon
+                            *ngIf="
+                              formData.form.get('breedId')?.value === breed.id
+                            "
+                            name="lucideCheck"
+                            class="w-4 h-4 text-primary-600 ml-auto"
+                          ></ng-icon>
+                        </li>
+                      </ul>
+                    </div>
+                    <app-validation-message
+                      [control]="formData.form.get('breedId')"
+                      [field]="'APP.ANIMALS.ADD.BREED' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Description -->
+                  <div class="lg:col-span-2">
+                    <label
+                      for="description-{{ i }}"
+                      class="block text-sm font-medium text-gray-400 mb-2"
+                    >
+                      {{ "APP.ANIMALS.ADD.DESCRIPTION" | translate }} *
+                    </label>
+                    <textarea
+                      id="description-{{ i }}"
+                      formControlName="description"
+                      rows="4"
+                      class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none"
+                      [placeholder]="
+                        'APP.ANIMALS.ADD.DESCRIPTION_PLACEHOLDER' | translate
+                      "
+                    ></textarea>
+                    <app-validation-message
+                      [control]="formData.form.get('description')"
+                      [field]="'APP.ANIMALS.ADD.DESCRIPTION' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Health Status -->
+                  <div class="lg:col-span-2">
+                    <label
+                      for="healthStatus-{{ i }}"
+                      class="block text-sm font-medium text-gray-400 mb-2"
+                    >
+                      {{ "APP.ANIMALS.ADD.HEALTH_STATUS" | translate }} *
+                    </label>
+                    <textarea
+                      id="healthStatus-{{ i }}"
+                      formControlName="healthStatus"
+                      rows="3"
+                      class="w-full px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 resize-none"
+                      [placeholder]="
+                        'APP.ANIMALS.ADD.HEALTH_STATUS_PLACEHOLDER' | translate
+                      "
+                    ></textarea>
+                    <app-validation-message
+                      [control]="formData.form.get('healthStatus')"
+                      [field]="'APP.ANIMALS.ADD.HEALTH_STATUS' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Adoption Status -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                      {{ "APP.ANIMALS.ADD.ADOPTION_STATUS" | translate }} *
+                    </label>
+                    <div class="relative">
+                      <button
+                        type="button"
+                        (click)="toggleDropdown(i, 'adoptionStatus')"
+                        class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200"
+                        [attr.aria-expanded]="
+                          formData.dropdownStates.adoptionStatus
+                        "
+                      >
+                        <span>
+                          {{
+                            getAdoptionStatusTranslationKey(
+                              formData.form.get("adoptionStatus")?.value
+                            ) | translate
+                          }}
+                        </span>
+                        <ng-icon
+                          name="lucideChevronDown"
+                          class="w-4 h-4 text-gray-400 transition-transform duration-200"
+                          [ngClass]="{
+                            'rotate-180': formData.dropdownStates.adoptionStatus
+                          }"
+                        ></ng-icon>
+                      </button>
+
+                      <ul
+                        *ngIf="formData.dropdownStates.adoptionStatus"
+                        class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1"
+                      >
+                        <li
+                          *ngFor="let option of adoptionStatusOptions"
+                          (click)="
+                            formData.form.patchValue({
+                              adoptionStatus: option.value
+                            });
+                            closeDropdown(i, 'adoptionStatus')
+                          "
+                          class="flex items-center px-4 py-2 hover:bg-primary-500/20 cursor-pointer transition-colors duration-200 text-gray-800"
+                          [ngClass]="{
+                            'bg-primary-500/20':
+                              formData.form.get('adoptionStatus')?.value ===
+                              option.value
+                          }"
+                        >
+                          <span class="font-medium">{{
+                            option.label | translate
+                          }}</span>
+                          <ng-icon
+                            *ngIf="
+                              formData.form.get('adoptionStatus')?.value ===
+                              option.value
+                            "
+                            name="lucideCheck"
+                            class="w-4 h-4 text-primary-600 ml-auto"
+                          ></ng-icon>
+                        </li>
+                      </ul>
+                    </div>
+                    <app-validation-message
+                      [control]="formData.form.get('adoptionStatus')"
+                      [field]="'APP.ANIMALS.ADD.ADOPTION_STATUS' | translate"
+                    ></app-validation-message>
+                  </div>
+
+                  <!-- Photos -->
+                  <div class="lg:col-span-2">
+                    <app-file-drop-area
+                      [form]="formData.form"
+                      controlName="attachedPhotosIds"
+                      [label]="'APP.ANIMALS.ADD.PHOTOS' | translate"
+                      [hint]="'APP.ANIMALS.ADD.PHOTOS_HINT' | translate"
+                      accept="image/*"
+                      [multiple]="true"
+                      [maxFiles]="3"
+                      [maxFileSize]="5242880"
+                      (filesChange)="onFilesChange(i, $event)"
+                      (uploadStateChange)="onUploadStateChange($event)"
+                    ></app-file-drop-area>
+                  </div>
+
+                  <!-- Image Preview Slider -->
+                  <div class="lg:col-span-2 image-slider" *ngIf="getImageFiles(formData).length > 0">
+                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                      {{ "APP.ANIMALS.ADD.IMAGE_PREVIEW" | translate }}
+                    </label>
+                    
+                    <!-- Current Image Filename Display -->
+                    <div class="mb-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <ng-icon name="lucideImage" [size]="'16'" class="text-primary-400"></ng-icon>
+                          <span class="text-sm font-medium text-white">
+                            {{ "APP.ANIMALS.ADD.CURRENT_IMAGE" | translate }}:
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="text-sm text-gray-300 font-mono bg-white/10 px-2 py-1 rounded">
+                            {{ getCurrentImageFile(formData)?.name || ('APP.ANIMALS.ADD.NO_FILE_NAME' | translate) }}
+                          </span>
+                          <span class="text-xs text-gray-400">
+                            ({{ getCurrentImageIndex(formData.id) + 1 }}/{{ getImageFiles(formData).length }})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="relative bg-white/5 rounded-xl border border-white/20 overflow-hidden slider-container">
+                      <!-- Main Image Display -->
+                      <div class="relative aspect-video bg-gray-800">
+                        <img 
+                          [src]="getCurrentImageFile(formData) | fileToUrl"
+                          [alt]="'Preview image ' + (getCurrentImageIndex(formData.id) + 1)"
+                          class="w-full h-full object-cover slider-image transition-transform duration-300 ease-in-out"
+                          [ngClass]="{
+                            'animate-slide-in-left': getSlideDirection(formData.id) === 'left',
+                            'animate-slide-in-right': getSlideDirection(formData.id) === 'right'
+                          }"
+                          *ngIf="getCurrentImageFile(formData)"
+                        />
+                        
+                        <!-- Placeholder when no image -->
+                        <div 
+                          *ngIf="!getCurrentImageFile(formData)"
+                          class="w-full h-full flex items-center justify-center text-gray-400"
+                        >
+                          <div class="text-center">
+                            <ng-icon name="lucideImage" [size]="'48'" class="mx-auto mb-2"></ng-icon>
+                            <p class="text-sm">{{ "APP.ANIMALS.ADD.NO_IMAGES_UPLOADED" | translate }}</p>
+                          </div>
+                        </div>
+                        
+                        <!-- Navigation Arrows -->
+                        <button
+                          *ngIf="getImageFiles(formData).length > 1"
+                          type="button"
+                          (click)="previousImage(formData.id, getImageFiles(formData).length)"
+                          class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white slider-nav-button shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                          [attr.aria-label]="'APP.ANIMALS.ADD.PREVIOUS_IMAGE' | translate"
+                        >
+                          <ng-icon name="lucideChevronLeft" [size]="'18'"></ng-icon>
+                        </button>
+                        
+                        <button
+                          *ngIf="getImageFiles(formData).length > 1"
+                          type="button"
+                          (click)="nextImage(formData.id, getImageFiles(formData).length)"
+                          class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white slider-nav-button shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
+                          [attr.aria-label]="'APP.ANIMALS.ADD.NEXT_IMAGE' | translate"
+                        >
+                          <ng-icon name="lucideChevronRight" [size]="'18'"></ng-icon>
+                        </button>
+                        
+                        <!-- Image Counter -->
+                        <div class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/20">
+                          {{ getCurrentImageIndex(formData.id) + 1 }} / {{ getImageFiles(formData).length }}
+                        </div>
+                      </div>
+                      
+                      <!-- Thumbnail Navigation -->
+                      <div class="p-3 bg-white/5" *ngIf="getImageFiles(formData).length > 1">
+                        <div class="flex gap-2 overflow-x-auto thumbnail-nav">
+                          <div
+                            *ngFor="let imageFile of getImageFiles(formData); let idx = index"
+                            class="flex-shrink-0 flex flex-col items-center gap-1"
+                          >
+                            <button
+                              type="button"
+                              (click)="goToImage(formData.id, idx)"
+                              class="w-16 h-16 rounded-lg overflow-hidden border-2 thumbnail-button"
+                              [ngClass]="{
+                                'border-primary-500': getCurrentImageIndex(formData.id) === idx,
+                                'border-white/20 hover:border-white/40': getCurrentImageIndex(formData.id) !== idx
+                              }"
+                              [title]="imageFile?.file?.name || 'Image ' + (idx + 1)"
+                            >
+                              <img 
+                                [src]="imageFile?.file | fileToUrl"
+                                [alt]="'Thumbnail ' + (idx + 1)"
+                                class="w-full h-full object-cover"
+                                *ngIf="imageFile?.file"
+                              />
+                            </button>
+                            <span 
+                              class="text-xs text-gray-400 max-w-16 truncate text-center"
+                              [title]="imageFile?.file?.name"
+                            >
+                              {{ imageFile?.file?.name || 'Image ' + (idx + 1) }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -64,7 +64,7 @@
       {
         "Permission": "DeleteAnimals",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "Shelter" ]
+        "AffiliatedRoles": []
       },
       {
         "Permission": "CanViewAnimalTypes",
@@ -139,7 +139,7 @@
       {
         "Permission": "DeleteAdoptionApplications",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": []
+        "AffiliatedRoles": ["Shelter"]
       },
       {
         "Permission": "CanViewFiles",

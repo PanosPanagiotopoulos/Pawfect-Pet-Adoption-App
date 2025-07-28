@@ -34,7 +34,6 @@ import { trigger, transition, style, animate } from '@angular/animations';
   selector: 'app-profile-adoption-applications',
   templateUrl: './profile-adoption-applications.component.html',
   styleUrls: ['./profile-adoption-applications.component.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
     trigger('slideDown', [
       transition(':enter', [

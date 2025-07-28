@@ -17,6 +17,7 @@ export interface OtpPayload {
 }
 
 export interface LoggedAccount {
+  shelterId?: string;
   email: string;
   phone: string;
   roles: string[];

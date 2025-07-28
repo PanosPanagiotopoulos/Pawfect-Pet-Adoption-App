@@ -43,9 +43,12 @@ namespace Main_API.Query.Queries
 
 		// Λίστα από καταστάσεις υιοθεσίας για φιλτράρισμα
 		public List<AdoptionStatus>? AdoptionStatuses { get; set; }
+        public List<Gender>? Genders { get; set; }
+        public double? AgeFrom { get; set; }
+        public double? AgeTo { get; set; }
 
-		// Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
-		public DateTime? CreateFrom { get; set; }
+        // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
+        public DateTime? CreateFrom { get; set; }
 
 		// Ημερομηνία λήξης για φιλτράρισμα (δημιουργήθηκε μέχρι)
 		public DateTime? CreatedTill { get; set; }
@@ -116,8 +119,24 @@ namespace Main_API.Query.Queries
 				filter &= builder.In(animal => animal.AdoptionStatus, AdoptionStatuses);
 			}
 
-			// Εφαρμόζει φίλτρο για την ημερομηνία έναρξης
-			if (CreateFrom.HasValue)
+            // Εφαρμόζει φίλτρο για τις καταστάσεις υιοθεσίας
+            if (Genders != null && Genders.Any())
+            {
+                filter &= builder.In(animal => animal.Gender, Genders);
+            }
+
+            if (AgeFrom.HasValue)
+            {
+                filter &= builder.Gte(animal => animal.Age, AgeFrom.Value);
+            }
+
+            if (AgeTo.HasValue)
+            {
+                filter &= builder.Lte(animal => animal.Age, AgeTo.Value);
+            }
+
+            // Εφαρμόζει φίλτρο για την ημερομηνία έναρξης
+            if (CreateFrom.HasValue)
 			{
 				filter &= builder.Gte(animal => animal.CreatedAt, CreateFrom.Value);
 			}

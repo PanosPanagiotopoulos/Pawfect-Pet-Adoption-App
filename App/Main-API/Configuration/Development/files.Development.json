@@ -89,8 +89,8 @@
 				"Description",
 				"Weight",
 				"HealthStatus",
-				"AnimalTypeName",
-				"BreedName"
+				"AnimalType Name",
+				"Breed Name"
 			],
 			"StaticDropdowns": {
 				"Gender": [ "Male", "Female" ]
@@ -118,7 +118,7 @@
 					"B": "BreedName"
 				}
 			},
-			"MaxRows": 1000,
+			"MaxRows": 1,
 			"AllowSheetExpansion": false
 		}
 	}

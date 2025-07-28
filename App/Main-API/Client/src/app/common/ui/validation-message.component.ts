@@ -40,6 +40,16 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         {{ ('APP.UI_COMPONENTS.VALIDATION_MESSAGE.MAX_LENGTH' | translate).replace('{field}', field | translate).replace('{length}', control?.errors?.['maxlength']?.requiredLength) }}
       </div>
 
+      <!-- Min value -->
+      <div *ngIf="control?.errors?.['min']">
+        {{ ('APP.UI_COMPONENTS.VALIDATION_MESSAGE.MIN_VALUE' | translate).replace('{field}', field | translate).replace('{min}', control?.errors?.['min']?.min) }}
+      </div>
+
+      <!-- Max value -->
+      <div *ngIf="control?.errors?.['max']">
+        {{ ('APP.UI_COMPONENTS.VALIDATION_MESSAGE.MAX_VALUE' | translate).replace('{field}', field | translate).replace('{max}', control?.errors?.['max']?.max) }}
+      </div>
+
       <!-- Pattern validation -->
       <div *ngIf="control?.errors?.['pattern']">
         <ng-container [ngSwitch]="field">

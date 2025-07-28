@@ -1,7 +1,12 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../common/services/base-http.service';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
-import { BehaviorSubject, Observable, throwError, Subject, shareReplay } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  throwError,
+  shareReplay,
+} from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { User } from '../models/user/user.model';
 import {
@@ -19,6 +24,7 @@ export class AuthService {
   private readonly authStateSubject = new BehaviorSubject<boolean>(false);
   public authState$ = this.authStateSubject.asObservable();
   private meRequest$: Observable<LoggedAccount> | null = null;
+  private refreshRequest$: Observable<LoggedAccount> | null = null;
 
   constructor(
     private readonly installationConfiguration: InstallationConfigurationService,
@@ -26,14 +32,22 @@ export class AuthService {
     private readonly secureStorage: SecureStorageService
   ) {
     // Initialize auth state after configuration is loaded
-    this.installationConfiguration.waitForConfig().then(() => {
-      const loggedAccount = this.secureStorage.getItem<LoggedAccount>(this.installationConfiguration.storageAccountKey);
-      if (loggedAccount) {
-        this.authStateSubject.next(true);
-      }
-    }).catch(error => {
-      console.warn('Failed to load configuration, skipping auth state initialization:', error);
-    });
+    this.installationConfiguration
+      .waitForConfig()
+      .then(() => {
+        const loggedAccount = this.secureStorage.getItem<LoggedAccount>(
+          this.installationConfiguration.storageAccountKey
+        );
+        if (loggedAccount) {
+          this.authStateSubject.next(true);
+        }
+      })
+      .catch((error) => {
+        console.warn(
+          'Failed to load configuration, skipping auth state initialization:',
+          error
+        );
+      });
   }
 
   private get apiBase(): string {
@@ -45,7 +59,9 @@ export class AuthService {
     const url = `${this.apiBase}/login`;
     const payload: LoginPayload = { email, password, loginProvider: 1 };
 
-    this.secureStorage.removeItem(this.installationConfiguration.storageAccountKey);
+    this.secureStorage.removeItem(
+      this.installationConfiguration.storageAccountKey
+    );
 
     return this.http.post<LoggedAccount>(url, payload).pipe(
       tap((response: LoggedAccount) => {
@@ -53,7 +69,10 @@ export class AuthService {
           this.setLoggedAccount(response);
         }
       }),
-      catchError((error: any) => throwError(error))
+      catchError((error: any) => {
+        this.clearLoggedAccount();
+        return throwError(error);
+      })
     );
   }
 
@@ -65,8 +84,10 @@ export class AuthService {
       loginProvider: 2,
       providerAccessCode: code,
     };
-    
-    this.secureStorage.removeItem(this.installationConfiguration.storageAccountKey);
+
+    this.secureStorage.removeItem(
+      this.installationConfiguration.storageAccountKey
+    );
 
     return this.http.post<LoggedAccount>(url, payload).pipe(
       tap((response: LoggedAccount) => {
@@ -74,21 +95,42 @@ export class AuthService {
           this.setLoggedAccount(response);
         }
       }),
-      catchError((error: any) => throwError(error))
+      catchError((error: any) => {
+        this.clearLoggedAccount();
+        return throwError(error);
+      })
     );
   }
 
   refresh(): Observable<LoggedAccount> {
-    const url = `${this.apiBase}/refresh`;
+    // If there's already a refresh request in progress, return that
+    if (this.refreshRequest$) {
+      return this.refreshRequest$;
+    }
 
-    return this.http.post<LoggedAccount>(url).pipe(
+    // Create new refresh request
+    const url = `${this.apiBase}/refresh`;
+    this.refreshRequest$ = this.http.post<LoggedAccount>(url).pipe(
       tap((response: LoggedAccount) => {
         if (response.isVerified) {
           this.setLoggedAccount(response);
+        } else {
+          this.clearLoggedAccount();
         }
+        // Clear the request after completion
+        this.refreshRequest$ = null;
       }),
-      catchError((error: any) => throwError(error))
+      catchError((error: any) => {
+        this.clearLoggedAccount();
+        // Clear the request after error
+        this.refreshRequest$ = null;
+        return throwError(error);
+      }),
+      // Share the result with all subscribers
+      shareReplay(1)
     );
+
+    return this.refreshRequest$;
   }
 
   logout(): Observable<void> {
@@ -218,6 +260,10 @@ export class AuthService {
     return this.loadLoggedAccount()?.email ?? null;
   }
 
+  getUserShelterId(): string | null {
+    return this.loadLoggedAccount()?.shelterId ?? null;
+  }
+
   hasPermission(permission: string): boolean {
     const permissions = this.loadLoggedAccount()?.permissions || [];
     return permissions.includes(permission);
@@ -225,7 +271,9 @@ export class AuthService {
 
   hasAnyPermission(permissions: string[]): boolean {
     const userPermissions = this.loadLoggedAccount()?.permissions || [];
-    return permissions.some((permission) => userPermissions.includes(permission));
+    return permissions.some((permission) =>
+      userPermissions.includes(permission)
+    );
   }
 
   getUserRoles(): string[] | null {
@@ -233,16 +281,23 @@ export class AuthService {
   }
 
   private setLoggedAccount(account: LoggedAccount): void {
-    this.secureStorage.setItem(this.installationConfiguration.storageAccountKey, account);
+    this.secureStorage.setItem(
+      this.installationConfiguration.storageAccountKey,
+      account
+    );
     this.authStateSubject.next(true);
   }
 
   private clearLoggedAccount(): void {
-    this.secureStorage.removeItem(this.installationConfiguration.storageAccountKey);
+    this.secureStorage.removeItem(
+      this.installationConfiguration.storageAccountKey
+    );
     this.authStateSubject.next(false);
   }
 
   private loadLoggedAccount(): LoggedAccount | null {
-    return this.secureStorage.getItem<LoggedAccount>(this.installationConfiguration.storageAccountKey);
+    return this.secureStorage.getItem<LoggedAccount>(
+      this.installationConfiguration.storageAccountKey
+    );
   }
 }

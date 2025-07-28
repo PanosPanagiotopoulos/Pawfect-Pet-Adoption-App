@@ -75,11 +75,7 @@ namespace Main_API.Repositories.Implementations
                 ? await _collection.BulkWriteAsync(session, updates, cancellationToken: default)
                 : await _collection.BulkWriteAsync(updates, cancellationToken: default);
 
-            if (result.ModifiedCount != entities.Count)
-            {
-                throw new InvalidOperationException($"Expected to update {entities.Count} entities, but modified {result.ModifiedCount}.");
-            }
-
+           
             return entities.Select(GetEntityId).ToList();
         }
 

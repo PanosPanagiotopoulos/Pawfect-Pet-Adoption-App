@@ -114,7 +114,7 @@ describe('ErrorMessageBannerComponent', () => {
 
     expect(component.getBackgroundClass()).toBe('bg-yellow-500/5 border border-yellow-500/20 backdrop-blur-sm');
     expect(component.getIconClass()).toBe('text-yellow-500');
-    expect(component.getIcon()).toBe('lucideAlertTriangle');
+    expect(component.getIcon()).toBe('lucideAlertCircle');
   });
 
   it('should apply correct styling for info type', () => {

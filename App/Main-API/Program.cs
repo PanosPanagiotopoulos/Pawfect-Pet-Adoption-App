@@ -87,7 +87,6 @@ public class Program
 		};
 
 		// Add configuration files for each section
-		//AddConfigurationFiles(configBuilder, configurationPaths, "cache", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "apis", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "auth", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "cors", env);
@@ -99,6 +98,7 @@ public class Program
         AddConfigurationFiles(configBuilder, configurationPaths, "permissions", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "background_tasks", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "profile-fields", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "animals", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "api-keys", env);
 
 
@@ -166,7 +166,7 @@ public class Program
 		.AddQueryAndBuilderServices()
 		.AddValidationServices()
 		.AddAdoptionApplicationServices()
-		.AddAnimalServices()
+		.AddAnimalServices(builder.Configuration.GetSection("Animals"))
 		.AddAnimalTypeServices()
 		.AddBreedServices()
 		.AddAuthenticationServices(builder.Configuration.GetSection("Authentication"), builder.Configuration.GetSection("PermissionConfig"))
