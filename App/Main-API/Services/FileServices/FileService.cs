@@ -65,19 +65,12 @@ namespace Main_API.Services.FileServices
             _filesConfig = filesConfig.Value;
 		}
 
-		public async Task<Models.File.File> Persist(FilePersist persist, List<String> fields)
+		public async Task<Models.File.File> Persist(FilePersist persist, List<String> fields, Boolean auth = true)
 		{
-			return (await this.Persist(new List<FilePersist>() { persist }, fields)).FirstOrDefault();
+			return (await this.Persist(new List<FilePersist>() { persist }, fields, auth)).FirstOrDefault();
 		}
-		public async Task<List<Models.File.File>> Persist(List<FilePersist> persists, List<String> fields)
+		public async Task<List<Models.File.File>> Persist(List<FilePersist> persists, List<String> fields, Boolean auth = true)
 		{
-			if (persists.All(persist => !String.IsNullOrEmpty(persist.OwnerId)))
-			{
-				//OwnedResource ownedResource = _authorizationContentResolver.BuildOwnedResource(new FileLookup(), [.. persists.Select(x => x.OwnerId)]);
-				//if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.CreateFiles))
-				//	throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
-			}
-
             Boolean isUpdate = persists.Select(f => f.Id).Any(_conventionService.IsValidId);
 			List<Data.Entities.File> persistData = new List<Data.Entities.File>();
 			foreach (FilePersist persist in persists)
@@ -86,6 +79,10 @@ namespace Main_API.Services.FileServices
 				if (isUpdate)
 				{
 					data = await _fileRepository.FindAsync(f => f.Id == persist.Id);
+
+					OwnedResource ownedResource = new OwnedResource(persist.OwnerId, new OwnedFilterParams(new FileLookup()));
+					if (auth && !await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.EditFiles))
+						throw new ForbiddenException();
 
 					if (data == null) throw new NotFoundException("File not found", persist.Id, typeof(Data.Entities.File));
 
@@ -101,7 +98,10 @@ namespace Main_API.Services.FileServices
 				}
 				else
 				{
-					_mapper.Map(persist, data);
+                    if (auth && !await _authorizationService.AuthorizeAsync(Permission.CreateFiles))
+                        throw new ForbiddenException();
+
+                    _mapper.Map(persist, data);
 
 					data.Id = null; // Ensure new ID is generated
 					data.FileSaveStatus = FileSaveStatus.Temporary;
@@ -135,9 +135,6 @@ namespace Main_API.Services.FileServices
 
 		public async Task<IEnumerable<Models.File.FilePersist>> SaveTemporarily(List<IFormFile> files)
 		{
-			//if (!await _authorizationService.AuthorizeAsync(Permission.CreateFiles))
-			//	throw new ForbiddenException("You do not have permission to create files.", typeof(Data.Entities.File), Permission.CreateFiles);
-
             if (files == null || files.Count == 0)
 				throw new ArgumentException("No files provided for upload.");
 

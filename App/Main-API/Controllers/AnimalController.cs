@@ -53,10 +53,6 @@ namespace Main_API.Controllers
             _animalsConfig = options.Value;
         }
 
-        /// <summary>
-        /// Query ζώων.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
         [HttpPost("query")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -111,10 +107,6 @@ namespace Main_API.Controllers
             });
         }
 
-        /// <summary>
-        /// Λήψη ζώου με βάση το ID.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
         [HttpGet("{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -144,9 +136,6 @@ namespace Main_API.Controllers
             return Ok(model);
 		}
 
-		/// <summary>
-		/// Persist an animal.
-		/// </summary>
 		[HttpPost("persist")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -212,10 +201,6 @@ namespace Main_API.Controllers
             return Ok(exctractedModels);
         }
 
-        /// <summary>
-        /// Delete an animal by ID.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-        /// </summary>
         [HttpPost("delete/{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]

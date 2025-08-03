@@ -1,4 +1,10 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ElementRef,
+  OnDestroy,
+} from '@angular/core';
 import { FormControl, FormGroup, FormBuilder } from '@angular/forms';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AnimalService } from 'src/app/services/animal.service';
@@ -6,7 +12,14 @@ import { AdoptionStatus, Animal } from 'src/app/models/animal/animal.model';
 import { Breed } from 'src/app/models/breed/breed.model';
 import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
 import { AnimalLookup } from 'src/app/lookup/animal-lookup';
-import { takeUntil, debounceTime, distinctUntilChanged, tap, finalize, catchError } from 'rxjs/operators';
+import {
+  takeUntil,
+  debounceTime,
+  distinctUntilChanged,
+  tap,
+  finalize,
+  catchError,
+} from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
 import { UtilsService } from 'src/app/common/services/utils.service';
@@ -28,11 +41,15 @@ interface SearchSuggestion {
 @Component({
   selector: 'app-search',
   templateUrl: './search.component.html',
-  styleUrls: ['./search.component.css']
+  styleUrls: ['./search.component.css'],
 })
-export class SearchComponent extends BaseComponent implements OnInit, OnDestroy {
-  @ViewChild('swipeCardContainer', { static: false }) swipeCardContainer!: ElementRef;
-  
+export class SearchComponent
+  extends BaseComponent
+  implements OnInit, OnDestroy
+{
+  @ViewChild('swipeCardContainer', { static: false })
+  swipeCardContainer!: ElementRef;
+
   searchControl = new FormControl('');
   searchForm: FormGroup;
 
@@ -52,7 +69,7 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
   loadThreshold = 0.55;
   hasMoreToLoad = true;
 
-  isInitialLoad = true; 
+  isInitialLoad = true;
 
   currentAnimalKey: string | null = null;
 
@@ -74,31 +91,45 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
   ) {
     super();
     this.searchForm = this.fb.group({
-      searchQuery: this.searchControl
+      searchQuery: this.searchControl,
     });
-    
+
     // Initialize search suggestions with translated text
     this.searchSuggestions = [
-      { 
-        text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY'),
-        query: this.translationService.translate('APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY_QUERY'),
-        icon: 'lucideHeart'
+      {
+        text: this.translationService.translate(
+          'APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY'
+        ),
+        query: this.translationService.translate(
+          'APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY_QUERY'
+        ),
+        icon: 'lucideHeart',
       },
-      { 
-        text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.SMALL_SIZE'),
-        query: this.translationService.translate('APP.SEARCH.SUGGESTIONS.SMALL_SIZE_QUERY'),
-        icon: 'lucideDog'
+      {
+        text: this.translationService.translate(
+          'APP.SEARCH.SUGGESTIONS.SMALL_SIZE'
+        ),
+        query: this.translationService.translate(
+          'APP.SEARCH.SUGGESTIONS.SMALL_SIZE_QUERY'
+        ),
+        icon: 'lucideDog',
       },
-      { 
-        text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.ACTIVE'),
-        query: this.translationService.translate('APP.SEARCH.SUGGESTIONS.ACTIVE_QUERY'),
-        icon: 'lucideActivity'
+      {
+        text: this.translationService.translate(
+          'APP.SEARCH.SUGGESTIONS.ACTIVE'
+        ),
+        query: this.translationService.translate(
+          'APP.SEARCH.SUGGESTIONS.ACTIVE_QUERY'
+        ),
+        icon: 'lucideActivity',
       },
-      { 
+      {
         text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.QUIET'),
-        query: this.translationService.translate('APP.SEARCH.SUGGESTIONS.QUIET_QUERY'),
-        icon: 'lucideMoon'
-      }
+        query: this.translationService.translate(
+          'APP.SEARCH.SUGGESTIONS.QUIET_QUERY'
+        ),
+        icon: 'lucideMoon',
+      },
     ];
   }
 
@@ -107,22 +138,28 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
     this.loadSavedAnimals();
 
     // Handle search query from URL
-    this.route.queryParams.pipe(
-      takeUntil(this._destroyed)
-    ).subscribe(params => {
-      const query = params['query'] || '';
-      if (!this.hasHandledInitialQuery && query !== this.searchControl.value) {
-        this.searchControl.setValue(query);
-        if (query) {
-          this.onSearch();
+    this.route.queryParams
+      .pipe(takeUntil(this._destroyed))
+      .subscribe((params) => {
+        const query = params['query'] || '';
+        if (
+          !this.hasHandledInitialQuery &&
+          query !== this.searchControl.value
+        ) {
+          this.searchControl.setValue(query);
+          if (query) {
+            this.onSearch();
+          }
+          this.hasHandledInitialQuery = true;
         }
-        this.hasHandledInitialQuery = true;
-      }
-    });
+      });
   }
 
   private loadSavedAnimals() {
-    const savedData = this.secureStorage.getItem<{ savedAnimals: Animal[], timestamp: number }>(this.STORAGE_KEY);
+    const savedData = this.secureStorage.getItem<{
+      savedAnimals: Animal[];
+      timestamp: number;
+    }>(this.STORAGE_KEY);
     if (savedData) {
       const now = new Date().getTime();
       const expirationTime = 20 * 60 * 1000; // 20 minutes
@@ -148,28 +185,41 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
       this.currentAnimalKey = null;
 
       const lookup: AnimalLookup = {
-        offset: this.currentOffset, 
+        offset: this.currentOffset,
         pageSize: this.pageSize,
+        excludedIds:
+          this.savedAnimals?.map((animal) => animal.id!) || undefined,
         adoptionStatuses: [AdoptionStatus.Available, AdoptionStatus.Pending],
         query: query,
         fields: [
-          nameof<Animal>(x => x.id),
-          nameof<Animal>(x => x.name),
-          nameof<Animal>(x => x.gender),
-          nameof<Animal>(x => x.description),
-          [nameof<Animal>(x => x.attachedPhotos), nameof<File>(x => x.sourceUrl)].join('.'),
-          nameof<Animal>(x => x.adoptionStatus),
-          nameof<Animal>(x => x.weight),
-          nameof<Animal>(x => x.age),
-          nameof<Animal>(x => x.healthStatus),
-          [nameof<Animal>(x => x.animalType), nameof<AnimalType>(x => x.name)].join('.'),
-          [nameof<Animal>(x => x.breed), nameof<Breed>(x => x.name)].join('.'),
-          [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.shelterName)].join('.'),
+          nameof<Animal>((x) => x.id),
+          nameof<Animal>((x) => x.name),
+          nameof<Animal>((x) => x.gender),
+          nameof<Animal>((x) => x.description),
+          [
+            nameof<Animal>((x) => x.attachedPhotos),
+            nameof<File>((x) => x.sourceUrl),
+          ].join('.'),
+          nameof<Animal>((x) => x.adoptionStatus),
+          nameof<Animal>((x) => x.weight),
+          nameof<Animal>((x) => x.age),
+          nameof<Animal>((x) => x.healthStatus),
+          [
+            nameof<Animal>((x) => x.animalType),
+            nameof<AnimalType>((x) => x.name),
+          ].join('.'),
+          [nameof<Animal>((x) => x.breed), nameof<Breed>((x) => x.name)].join(
+            '.'
+          ),
+          [
+            nameof<Animal>((x) => x.shelter),
+            nameof<Shelter>((x) => x.shelterName),
+          ].join('.'),
         ],
         sortBy: [],
-        sortDescending: false
+        sortDescending: false,
       };
-      
+
       this.animalService.queryFreeView(lookup).subscribe({
         next: (response) => {
           this.animals = response.items;
@@ -178,11 +228,12 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
             this.updateCurrentAnimalKey();
             setTimeout(() => {
               if (this.swipeCardContainer?.nativeElement) {
-                const containerRect = this.swipeCardContainer.nativeElement.getBoundingClientRect();
-                const scrollPosition = containerRect.top - 350; 
+                const containerRect =
+                  this.swipeCardContainer.nativeElement.getBoundingClientRect();
+                const scrollPosition = containerRect.top - 350;
                 window.scrollTo({
                   top: scrollPosition,
-                  behavior: 'smooth'
+                  behavior: 'smooth',
                 });
               }
             }, 100);
@@ -192,11 +243,15 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
         error: (error: any) => {
           this.isLoading = false;
           this.error = {
-            title: this.translationService.translate('APP.SEARCH.ERRORS.SEARCH_ERROR_TITLE'),
-            message: this.translationService.translate('APP.SEARCH.ERRORS.SEARCH_ERROR_MESSAGE')
+            title: this.translationService.translate(
+              'APP.SEARCH.ERRORS.SEARCH_ERROR_TITLE'
+            ),
+            message: this.translationService.translate(
+              'APP.SEARCH.ERRORS.SEARCH_ERROR_MESSAGE'
+            ),
           };
           this.cdr.markForCheck();
-        }
+        },
       });
     }
   }
@@ -210,7 +265,7 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
     if (!this.hasMoreToLoad && append) {
       return;
     }
-  
+
     if (!append) {
       this.isLoading = true;
       this.currentOffset = 1;
@@ -219,33 +274,45 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
     } else {
       this.isLoadingMore = true;
     }
-    
+
     const lookup: AnimalLookup = {
-      offset: this.currentOffset, 
+      offset: this.currentOffset,
       pageSize: this.pageSize,
       query: this.searchControl.value || '',
       fields: [
-        nameof<Animal>(x => x.id),
-        nameof<Animal>(x => x.name),
-        nameof<Animal>(x => x.gender),
-        nameof<Animal>(x => x.description),
-        [nameof<Animal>(x => x.attachedPhotos), nameof<File>(x => x.sourceUrl)].join('.'),
-        nameof<Animal>(x => x.adoptionStatus),
-        nameof<Animal>(x => x.weight),
-        nameof<Animal>(x => x.age),
-        nameof<Animal>(x => x.healthStatus),
-        [nameof<Animal>(x => x.animalType), nameof<AnimalType>(x => x.name)].join('.'),
-        [nameof<Animal>(x => x.breed), nameof<Breed>(x => x.name)].join('.'),
-        [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.shelterName)].join('.'),
+        nameof<Animal>((x) => x.id),
+        nameof<Animal>((x) => x.name),
+        nameof<Animal>((x) => x.gender),
+        nameof<Animal>((x) => x.description),
+        [
+          nameof<Animal>((x) => x.attachedPhotos),
+          nameof<File>((x) => x.sourceUrl),
+        ].join('.'),
+        nameof<Animal>((x) => x.adoptionStatus),
+        nameof<Animal>((x) => x.weight),
+        nameof<Animal>((x) => x.age),
+        nameof<Animal>((x) => x.healthStatus),
+        [
+          nameof<Animal>((x) => x.animalType),
+          nameof<AnimalType>((x) => x.name),
+        ].join('.'),
+        [nameof<Animal>((x) => x.breed), nameof<Breed>((x) => x.name)].join(
+          '.'
+        ),
+        [
+          nameof<Animal>((x) => x.shelter),
+          nameof<Shelter>((x) => x.shelterName),
+        ].join('.'),
       ],
       sortBy: [],
-      sortDescending: false
+      sortDescending: false,
     };
-  
-    this.animalService.queryFreeView(lookup)
+
+    this.animalService
+      .queryFreeView(lookup)
       .pipe(
         takeUntil(this._destroyed),
-        catchError(error => {
+        catchError((error) => {
           this.error = this.errorHandler.handleError(error);
           return of({ items: [], count: 0 });
         }),
@@ -255,13 +322,16 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
           this.cdr.markForCheck();
         })
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         if (response.items.length < this.pageSize) {
           this.hasMoreToLoad = false;
         }
 
-        this.animals = this.utilsService.combineDistinct(this.animals, response.items);
-        
+        this.animals = this.utilsService.combineDistinct(
+          this.animals,
+          response.items
+        );
+
         this.currentOffset++;
         this.updateCurrentAnimalKey();
         this.cdr.markForCheck();
@@ -270,13 +340,19 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
 
   checkLoadMore() {
     const viewedPercentage = this.currentIndex / this.animals.length;
-    if (viewedPercentage >= this.loadThreshold && !this.isLoadingMore && this.hasMoreToLoad) {
+    if (
+      viewedPercentage >= this.loadThreshold &&
+      !this.isLoadingMore &&
+      this.hasMoreToLoad
+    ) {
       this.loadAnimals(true);
     }
   }
 
   onSwipeRight(animal: Animal) {
-    this.savedAnimals = this.utilsService.combineDistinct(this.savedAnimals, [animal]);
+    this.savedAnimals = this.utilsService.combineDistinct(this.savedAnimals, [
+      animal,
+    ]);
     this.currentIndex++;
     this.updateCurrentAnimalKey();
     this.checkLoadMore();
@@ -314,14 +390,16 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
 
   private updateCurrentAnimalKey() {
     const currentAnimal = this.getCurrentAnimal();
-    this.currentAnimalKey = currentAnimal ? `${currentAnimal.id}-${this.currentIndex}` : null;
+    this.currentAnimalKey = currentAnimal
+      ? `${currentAnimal.id}-${this.currentIndex}`
+      : null;
   }
 
   private updateQueryParams(query: string) {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { query: query || null },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
   }
 
@@ -329,7 +407,7 @@ export class SearchComponent extends BaseComponent implements OnInit, OnDestroy 
     if (this.savedAnimals.length > 0) {
       const data = {
         savedAnimals: this.savedAnimals,
-        timestamp: new Date().getTime()
+        timestamp: new Date().getTime(),
       };
       this.secureStorage.setItem(this.STORAGE_KEY, data);
     }

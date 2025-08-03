@@ -4,7 +4,7 @@ import { InstallationConfigurationService } from '../common/services/installatio
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { UserLookup } from '../lookup/user-lookup';
-import { User, UserPersist } from '../models/user/user.model';
+import { User, UserUpdate } from '../models/user/user.model';
 import { AuthProvider } from '../common/enum/auth-provider.enum';
 import { HttpParams } from '@angular/common/http';
 import { QueryResult } from '../common/models/query-result';
@@ -32,7 +32,7 @@ export class UserService {
   getSingle(id: string, reqFields: string[] = []): Observable<User> {
     const url = `${this.apiBase}/${id}`;
     let params = new HttpParams();
-    reqFields.forEach(field => {
+    reqFields.forEach((field) => {
       params = params.append('fields', field);
     });
     const options = { params };
@@ -45,7 +45,7 @@ export class UserService {
     const url = `${this.apiBase}/me`;
 
     let params = new HttpParams();
-    reqFields.forEach(field => {
+    reqFields.forEach((field) => {
       params = params.append('fields', field);
     });
     const options = { params };
@@ -54,10 +54,10 @@ export class UserService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  persist(item: UserPersist, reqFields: string[] = []): Observable<User> {
-    const url = `${this.apiBase}/persist`;
+  update(item: UserUpdate, reqFields: string[] = []): Observable<User> {
+    const url = `${this.apiBase}/update`;
     let params = new HttpParams();
-    reqFields.forEach(field => {
+    reqFields.forEach((field) => {
       params = params.append('fields', field);
     });
     const options = { params };
@@ -78,16 +78,9 @@ export class UserService {
   }
 
   delete(id: string): Observable<void> {
-    const url = `${this.apiBase}/delete`;
+    const url = `${this.apiBase}/delete/${id}`;
     return this.http
-      .post<void>(url, { id })
-      .pipe(catchError((error: any) => throwError(error)));
-  }
-
-  deleteMany(ids: string[]): Observable<void> {
-    const url = `${this.apiBase}/delete/many`;
-    return this.http
-      .post<void>(url, ids)
+      .post<void>(url)
       .pipe(catchError((error: any) => throwError(error)));
   }
 }

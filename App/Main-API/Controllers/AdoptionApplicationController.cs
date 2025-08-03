@@ -15,7 +15,6 @@ using System.Security.Claims;
 using Main_API.Services.Convention;
 using Main_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Query;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Main_API.Controllers
 {
@@ -57,10 +56,6 @@ namespace Main_API.Controllers
             _conventionService = conventionService;
         }
 
-        /// <summary>
-        /// Query adoptionApplications.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
         [HttpPost("query")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -173,10 +168,6 @@ namespace Main_API.Controllers
             });
         }
 
-        /// <summary>
-        /// Get adoptionApplication by ID.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
         [HttpGet("{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -207,9 +198,6 @@ namespace Main_API.Controllers
             return Ok(model);
 		}
 
-		/// <summary>
-		/// Persist an adoption application
-		/// </summary>
 		[HttpPost("persist")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -238,10 +226,6 @@ namespace Main_API.Controllers
             return Ok(result);
         }
 
-        /// <summary>
-        /// Delete an adoption application by ID.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-        /// </summary>
         [HttpPost("delete/{id}")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]

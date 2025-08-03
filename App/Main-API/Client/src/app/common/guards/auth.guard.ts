@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import {
+  CanActivate,
+  Router,
+  ActivatedRouteSnapshot,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { Permission } from '../enum/permission.enum';
 import { SnackbarService } from '../services/snackbar.service';
@@ -8,7 +13,7 @@ import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
   constructor(
@@ -18,9 +23,12 @@ export class AuthGuard implements CanActivate {
     private translate: TranslationService
   ) {}
 
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): Observable<boolean> {
     const requiredPermissions = route.data['permissions'] as Permission[];
-    const attemptedUrl = state.url; 
+    const attemptedUrl = state.url;
 
     if (!requiredPermissions || requiredPermissions.length === 0) {
       return of(true);
@@ -50,24 +58,33 @@ export class AuthGuard implements CanActivate {
     return of(true);
   }
 
-  private redirectUnauthorized(isLoggedIn: boolean, attemptedUrl: string): void {
-    const messageKey = isLoggedIn
-      ? 'APP.SERVICES.AUTH_GUARD.INSUFFICIENT_PERMISSIONS'
-      : 'APP.SERVICES.AUTH_GUARD.LOGIN_REQUIRED';
+  private redirectUnauthorized(
+    isLoggedIn: boolean,
+    attemptedUrl: string
+  ): void {
+    if (isLoggedIn) {
+      // User is logged in but lacks permissions - redirect to unauthorized page
+      const message = 'APP.SERVICES.AUTH_GUARD.INSUFFICIENT_PERMISSIONS';
+      this.router.navigate(['/unauthorized'], {
+        queryParams: {
+          message: message,
+          returnUrl: attemptedUrl,
+        },
+      });
+    } else {
+      // User is not logged in - redirect to login
+      this.snackbarService.showError({
+        message: this.translate.translate(
+          'APP.SERVICES.AUTH_GUARD.LOGIN_REQUIRED'
+        ),
+        subMessage: this.translate.translate(
+          'APP.SERVICES.AUTH_GUARD.REDIRECT_TO_LOGIN'
+        ),
+      });
 
-    const subMessageKey = isLoggedIn
-      ? 'APP.SERVICES.AUTH_GUARD.REDIRECT_TO_404'
-      : 'APP.SERVICES.AUTH_GUARD.REDIRECT_TO_LOGIN';
-
-    this.snackbarService.showError({
-      message: this.translate.translate(messageKey),
-      subMessage: this.translate.translate(subMessageKey),
-    });
-
-    const redirectUrl = isLoggedIn ? '/404' : '/auth/login';
-
-    this.router.navigate([redirectUrl], {
-      queryParams: { returnUrl: attemptedUrl }
-    });
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: attemptedUrl },
+      });
+    }
   }
 }

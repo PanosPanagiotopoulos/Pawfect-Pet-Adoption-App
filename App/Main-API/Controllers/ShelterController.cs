@@ -36,17 +36,17 @@ namespace Main_API.Controllers
         private readonly IConventionService _conventionService;
 
         public ShelterController
-			(
-				IShelterService shelterService,
-                ILogger<ShelterController> logger,
-				IQueryFactory queryFactory, 
-                IBuilderFactory builderFactory,
-                ICensorFactory censorFactory, 
-                AuthContextBuilder contextBuilder,
-                IAuthorizationContentResolver authorizationContentResolver,
-                ClaimsExtractor claimsExtractor,
-                IConventionService conventionService
-            )
+		(
+			IShelterService shelterService,
+            ILogger<ShelterController> logger,
+			IQueryFactory queryFactory, 
+            IBuilderFactory builderFactory,
+            ICensorFactory censorFactory, 
+            AuthContextBuilder contextBuilder,
+            IAuthorizationContentResolver authorizationContentResolver,
+            ClaimsExtractor claimsExtractor,
+            IConventionService conventionService
+        )
 		{
 			_shelterService = shelterService;
 			_logger = logger;
@@ -59,10 +59,6 @@ namespace Main_API.Controllers
             _conventionService = conventionService;
         }
 
-		/// <summary>
-		/// Query ζώων.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("query")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -92,10 +88,6 @@ namespace Main_API.Controllers
 			});
 		}
 
-		/// <summary>
-		/// Λήψη ζώου με βάση το ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpGet("{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -127,42 +119,6 @@ namespace Main_API.Controllers
             return Ok(model);
 		}
 
-      
-        [HttpGet("me")]
-        [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> GetMe([FromQuery] List<String> fields)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            String shelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
-            if (!_conventionService.IsValidId(shelterId)) return null;
-
-            ShelterLookup lookup = new ShelterLookup();
-            // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            lookup.Offset = 1;
-            // Γενική τιμή για τη λήψη των dtos
-            lookup.PageSize = 1;
-            lookup.Ids = [shelterId];
-            lookup.Fields = fields;
-
-            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<ShelterCensor>().Censor(BaseCensor.PrepareFieldsList([.. lookup.Fields]), context);
-            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying shelters");
-
-            lookup.Fields = censoredFields;
-            Shelter model = (await _builderFactory.Builder<ShelterBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                                    .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
-                                    .FirstOrDefault();
-
-            if (model == null) throw new NotFoundException("Shelter not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.Shelter));
-
-            return Ok(model);
-        }
-
-        /// <summary>
-        /// Persist an shelter.
-        /// </summary>
         [HttpPost("persist")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -178,36 +134,16 @@ namespace Main_API.Controllers
 			
 		}
 
-		/// <summary>
-		/// Delete a shelter by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete")]
-		[Authorize]
+        [HttpPost("delete/{id}")]
+        [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Delete([FromBody] String id)
-		{
-			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
+        public async Task<IActionResult> Delete([FromRoute] String id)
+        {
+            if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
-			await _shelterService.Delete(id);
+            await _shelterService.Delete(id);
 
-			return Ok();
-		}
-
-		/// <summary>
-		/// Delete multiple shelters by IDs.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete/many")]
-		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
-		{
-			if (ids == null || ids.Count == 0 || !ModelState.IsValid) return BadRequest(ModelState);
-
-			await _shelterService.Delete(ids);
-
-			return Ok();
-		}
-	}
+            return Ok();
+        }
+    }
 }

@@ -40,18 +40,6 @@ export class ShelterService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  getMe(reqFields: string[] = []): Observable<Shelter> {
-    const url = `${this.apiBase}/me`;
-    let params = new HttpParams();
-    reqFields.forEach((field) => {
-      params = params.append('fields', field);
-    });
-    const options = { params };
-    return this.http
-      .get<Shelter>(url, options)
-      .pipe(catchError((error: any) => throwError(error)));
-  }
-
   persist(item: ShelterPersist, reqFields: string[] = []): Observable<Shelter> {
     const url = `${this.apiBase}/persist`;
     let params = new HttpParams();
@@ -65,16 +53,9 @@ export class ShelterService {
   }
 
   delete(id: string): Observable<void> {
-    const url = `${this.apiBase}/delete`;
+    const url = `${this.apiBase}/delete/${id}`;
     return this.http
-      .post<void>(url, { id })
-      .pipe(catchError((error: any) => throwError(error)));
-  }
-
-  deleteMany(ids: string[]): Observable<void> {
-    const url = `${this.apiBase}/delete/many`;
-    return this.http
-      .post<void>(url, ids)
+      .post<void>(url)
       .pipe(catchError((error: any) => throwError(error)));
   }
 }

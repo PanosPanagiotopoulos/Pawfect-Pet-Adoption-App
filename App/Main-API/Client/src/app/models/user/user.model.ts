@@ -38,6 +38,15 @@ export interface UserPersist {
   hasEmailVerified: boolean;
 }
 
+
+export interface UserUpdate {
+  id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  profilePhotoId?: string;
+}
+
 // Shared Models
 export interface Location {
   city?: string;

@@ -13,6 +13,7 @@ using Main_API.Models.Notification;
 using Main_API.Models.Report;
 using Main_API.Models.Shelter;
 using Main_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Models.User;
 
 namespace Main_API.Services.ValidationServices.Extentions
 {
@@ -25,7 +26,8 @@ namespace Main_API.Services.ValidationServices.Extentions
 				.AddFluentValidation(fv => fv.DisableDataAnnotationsValidation = true);
 
 			services.AddValidatorsFromAssemblyContaining<UserValidator>();
-			services.AddValidatorsFromAssemblyContaining<ShelterValidator>();
+            services.AddValidatorsFromAssemblyContaining<UserUpdateValidator>();
+            services.AddValidatorsFromAssemblyContaining<ShelterValidator>();
 			services.AddValidatorsFromAssemblyContaining<ReportValidator>();
 			services.AddValidatorsFromAssemblyContaining<NotificationValidator>();
 			services.AddValidatorsFromAssemblyContaining<MessageValidator>();

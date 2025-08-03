@@ -60,9 +60,8 @@
             _cookiesService = cookiesService;
         }
 
-		/// <summary>
-		/// Συνάρτηση για την εκτέλεση σύνδεσης χρήστη
-		/// </summary>
+		// ** AUTHENTICATION ** //
+
 		[HttpPost("login")]
 		public async Task<IActionResult> Login([FromBody] AuthPayload payload)
 		{
@@ -152,8 +151,8 @@
             if (String.IsNullOrEmpty(refreshTokenString))
                 return BadRequest("Refresh token is missing");
 
-            RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString);
-            if (refreshToken == null || refreshToken.ExpiresAt < DateTime.UtcNow)
+            RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString && rt.ExpiresAt < DateTime.UtcNow);
+            if (refreshToken == null)
                 return BadRequest("Invalid or expired refresh token");
 
             // ** ACCOUNT ** //
@@ -187,9 +186,6 @@
             });
         }
 
-        /// <summary>
-        /// Συνάρτηση για την εκτέλεση αποσύνδεσης χρήστη
-        /// </summary>
         [HttpPost("logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
@@ -280,13 +276,9 @@
             });
         }
 
-        [HttpGet("google/callback")]
-		public IActionResult GoogleCallback() { return Ok(); }
 
-		/// <summary>
-		/// Εγγραφή μη επιβεβαιωμένου χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
+		// ** REGISTER ** //
+
 		[HttpPost("register/unverified")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
 		public async Task<IActionResult> RegisterUserUnverified([FromBody] RegisterPersist toRegisterUser, [FromQuery] List<String> fields)
@@ -309,10 +301,6 @@
 			return Ok(model);
 		}
 
-		/// <summary>
-		/// Αποστολή OTP στον αριθμό τηλεφώνου του χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("send/otp")]
 		public async Task<IActionResult> SendOtp([FromBody] AuthPayload payload)
 		{
@@ -322,10 +310,6 @@
 			return Ok();
 		}
 
-		/// <summary>
-		/// Επιβεβαίωση OTP χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("verify-otp")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> VerifyUserOtp([FromBody] AuthPayload payload)
@@ -334,7 +318,6 @@
 
 			if (!_userService.VerifyOtp(payload.Phone, payload.Otp))
 			{
-				// LOGS //
 				_logger.LogError("Αποτυχία επιβεβαίωσης OTP");
 				ModelState.AddModelError("error", $"Αποτυχία επιβεβαίωσης OTP: {payload.Otp}");
 				return Unauthorized(ModelState);
@@ -343,7 +326,6 @@
             Data.Entities.User? verifyPhoneUser = null;
 			if ((verifyPhoneUser = (await _userService.RetrieveUserAsync(payload.Id, payload.Email))) == null)
 			{
-				// LOGS //
 				_logger.LogError("Failed to verify phonenumber. The user with this email or id was not found");
 				ModelState.AddModelError("error", "Failed to verify phonenumber. The user with this email or id was not found");
 				return BadRequest(ModelState);
@@ -358,10 +340,6 @@
 			return Ok();
 		}
 
-		/// <summary>
-		/// Αποστολή επιβεβαίωσης email.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("send/email-verification")]
 		public async Task<IActionResult> SendEmailVerification([FromBody] AuthPayload payload)
 		{
@@ -371,10 +349,6 @@
 			return Ok();
 		}
 
-		/// <summary>
-		/// Επιβεβαίωση email χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("verify-email")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> VerifyEmail([FromBody] AuthPayload payload)
@@ -397,7 +371,6 @@
 				return BadRequest(ModelState);
 			}
 
-            // ** VERIFY ** //
             verifyEmailUser.HasEmailVerified = true;
             Models.User.User persisted = await _userService.Persist(verifyEmailUser, false, [nameof(Models.User.User.Id), nameof(Models.User.User.Roles)]);
 
@@ -406,10 +379,6 @@
 			return Ok(persisted);
 		}
 
-		/// <summary>
-		/// Επιβεβαίωση email χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("verify-user")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> VerifyUser([FromBody] AuthPayload payload)
@@ -422,25 +391,16 @@
 			return Ok();
 		}
 
-		/// <summary>
-		/// Αποστολή email επαναφοράς κωδικού πρόσβασης.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("send/reset-password")]
 		public async Task<IActionResult> SendResetPasswordEmail([FromBody] AuthPayload AuthPayload)
 		{
             if (!ModelState.IsValid)  return BadRequest(ModelState);
 
-            // Αποστολή reset-password email για έναρξη επαναφοράς κωδικού
             await _userService.SendResetPasswordEmailAsync(AuthPayload.Email);
 
 			return Ok();
 		}
 
-		/// <summary>
-		/// Επιβεβαίωση email χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("verify-reset-password-token")]
 		public async Task<IActionResult> VerifyResetPasswordToken([FromBody] AuthPayload payload)
 		{
@@ -449,7 +409,6 @@
 			String identifiedEmail = await _userService.VerifyResetPasswordToken(payload.Token);
 			if (String.IsNullOrEmpty(identifiedEmail))
 			{
-				// LOGS //
 				_logger.LogError("Failed to verify token");
 				ModelState.AddModelError("error", "Failed to verify token");
 				return BadRequest(ModelState);
@@ -459,20 +418,14 @@
 			return Ok( new Models.User.User() { Email = identifiedEmail } );
 		}
 
-		/// <summary>
-		/// Επαναφορά κωδικού πρόσβασης χρήστη.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("reset-password")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> ResetPassword([FromBody] AuthPayload AuthPayload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			// Reset the password
 			if (!await _userService.ResetPasswordAsync(AuthPayload.Email, AuthPayload.Password))
 			{
-				// LOGS //
 				_logger.LogError("Αποτυχία επαναφοράς κωδικού");
 				ModelState.AddModelError("error", "Αποτυχία επαναφοράς κωδικού");
 				return BadRequest(ModelState);
@@ -480,5 +433,9 @@
 
 			return Ok();
 		}
-	}
+
+        // ** GOOGLE ** //
+        [HttpGet("google/callback")]
+        public IActionResult GoogleCallback() { return Ok(); }
+    }
 }

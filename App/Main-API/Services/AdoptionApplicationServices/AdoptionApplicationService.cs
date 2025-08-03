@@ -94,6 +94,12 @@ namespace Main_API.Services.AdoptionApplicationServices
                 String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
                 if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No authenticated user found");
 
+                if (!String.IsNullOrEmpty(await _authorizationContentResolver.CurrentPrincipalShelter()))
+                    throw new InvalidOperationException("Shelter cannot adopt an animal");
+
+                if (await _adoptionApplicationRepository.ExistsAsync(application => application.UserId.Equals(userId) && application.AnimalId.Equals(persist.AnimalId)))
+                    throw new InvalidOperationException("You have already tried to adopt this animal");
+
                 data.Id = null;
                 data.UserId = userId;
                 data.CreatedAt = DateTime.UtcNow;

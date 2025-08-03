@@ -56,10 +56,6 @@ namespace Main_API.Controllers
             _queryFactory = queryFactory;
         }
 
-        /// <summary>
-        /// Query notifications.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
         [HttpPost("query/mine")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -95,10 +91,6 @@ namespace Main_API.Controllers
             });
 		}
 
-		/// <summary>
-		/// Get notification by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpGet("{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -128,9 +120,6 @@ namespace Main_API.Controllers
             return Ok(model);
 		}
 
-		/// <summary>
-		/// Persist a notification.
-		/// </summary>
 		[HttpPost("persist")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -145,37 +134,16 @@ namespace Main_API.Controllers
 			return Ok(notification);
 		}
 
-		/// <summary>
-		/// Delete a notification by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete")]
-		[Authorize]
+        [HttpPost("delete/{id}")]
+        [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Delete([FromBody] String id)
-		{
-			// TODO: Add authorization
-			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
+        public async Task<IActionResult> Delete([FromRoute] String id)
+        {
+            if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
-			await _notificationService.Delete(id);
+            await _notificationService.Delete(id);
 
-			return Ok();
-		}
-
-		/// <summary>
-		/// Delete multiple notifications by IDs.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete/many")]
-		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
-		{
-			if (ids == null || !ids.Any() || !ModelState.IsValid) return BadRequest(ModelState);
-
-			await _notificationService.Delete(ids);
-
-			return Ok();
-		}
-	}
+            return Ok();
+        }
+    }
 }

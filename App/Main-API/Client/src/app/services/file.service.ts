@@ -27,18 +27,6 @@ export class FileService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  persistBatch(models: FilePersist[], fields: string[] = ["*"]): Observable<File[]> {
-    const url = `${this.apiBase}/persist`;
-    let params = new HttpParams();
-    fields.forEach(field => {
-      params = params.append('fields', field);
-    });
-    const options = { params };
-    return this.http
-      .post<File[]>(url, models, options)
-      .pipe(catchError((error: any) => throwError(error)));
-  }
-
   query(q: FileLookup): Observable<QueryResult<File>> {
     const url = `${this.apiBase}/query`;
     return this.http
@@ -59,16 +47,9 @@ export class FileService {
   }
 
   delete(id: string): Observable<void> {
-    const url = `${this.apiBase}/delete`;
+    const url = `${this.apiBase}/delete/${id}`;
     return this.http
-      .post<void>(url, { id })
-      .pipe(catchError((error: any) => throwError(error)));
-  }
-
-  deleteMany(ids: string[]): Observable<void> {
-    const url = `${this.apiBase}/delete/many`;
-    return this.http
-      .post<void>(url, ids)
+      .post<void>(url)
       .pipe(catchError((error: any) => throwError(error)));
   }
 }

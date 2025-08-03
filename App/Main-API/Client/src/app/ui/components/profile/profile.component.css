@@ -271,4 +271,22 @@
   .profile-tab-content {
     @apply p-2;
   }
+}
+
+/* Profile Photo Dialog Styling */
+::ng-deep .profile-photo-dialog-panel {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+::ng-deep .profile-photo-dialog-panel .mat-mdc-dialog-container {
+  padding: 24px !important;
+  border-radius: 12px !important;
+}
+
+/* Center the dialog */
+::ng-deep .cdk-overlay-pane {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 } 

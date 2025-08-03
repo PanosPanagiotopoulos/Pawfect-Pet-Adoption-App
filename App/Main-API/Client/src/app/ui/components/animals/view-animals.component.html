@@ -1,0 +1,499 @@
+<div class="min-h-screen bg-gray-900">
+  <div class="fixed inset-0 z-0">
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-to-br from-primary-900/20 via-secondary-900/20 to-accent-900/20 animate-gradient"
+    ></div>
+    <div
+      class="absolute inset-0 bg-gradient-radial from-transparent via-primary-900/10 to-transparent"
+    ></div>
+
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div
+        class="absolute top-1/4 left-1/4 w-32 h-32 text-primary-500/5 transform rotate-45 animate-float-1"
+      >
+        <ng-icon name="lucidePawPrint" [size]="'128'"></ng-icon>
+      </div>
+      <div
+        class="absolute bottom-1/3 right-1/3 w-24 h-24 text-secondary-500/5 transform -rotate-12 animate-float-2"
+      >
+        <ng-icon name="lucideHeart" [size]="'96'"></ng-icon>
+      </div>
+      <div
+        class="absolute top-1/3 right-1/4 w-20 h-20 text-accent-500/5 transform rotate-12 animate-float-3"
+      >
+        <ng-icon name="lucideDog" [size]="'80'"></ng-icon>
+      </div>
+      <div
+        class="absolute bottom-1/4 left-1/3 w-16 h-16 text-primary-500/5 transform -rotate-45 animate-float-4"
+      >
+        <ng-icon name="lucideCake" [size]="'64'"></ng-icon>
+      </div>
+    </div>
+
+    <div
+      class="absolute top-0 left-0 w-96 h-96 bg-primary-500/10 rounded-full filter blur-3xl animate-pulse"
+    ></div>
+    <div
+      class="absolute bottom-0 right-0 w-96 h-96 bg-accent-500/10 rounded-full filter blur-3xl animate-pulse delay-1000"
+    ></div>
+    <div
+      class="absolute top-1/2 left-1/2 w-96 h-96 bg-secondary-500/10 rounded-full filter blur-3xl animate-pulse delay-500"
+    ></div>
+  </div>
+
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Loading State -->
+    <div
+      *ngIf="isLoading"
+      class="flex justify-center items-center min-h-[60vh]"
+    >
+      <div class="relative">
+        <div
+          class="w-20 h-20 rounded-full border-4 border-primary-500/30 border-t-primary-500 animate-spin"
+        ></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <ng-icon
+            name="lucidePawPrint"
+            [size]="'32'"
+            class="text-primary-500 animate-bounce"
+          ></ng-icon>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div
+      *ngIf="error && !isLoading"
+      class="flex flex-col items-center justify-center min-h-[60vh]"
+    >
+      <div
+        class="bg-white/5 backdrop-blur-lg rounded-2xl p-10 flex flex-col items-center max-w-md mx-auto animate-fadeIn border border-white/10"
+      >
+        <ng-icon
+          name="lucideCircleAlert"
+          class="w-20 h-20 text-red-400 mb-6 animate-bounce"
+          aria-label="Error"
+          [size]="'30'"
+        ></ng-icon>
+        <div class="text-red-300 text-2xl font-bold mb-4 text-center">
+          {{ error | translate }}
+        </div>
+        <button
+          (click)="reloadPage()"
+          class="mt-6 px-6 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300"
+        >
+          {{ "APP.COMMONS.TRY_AGAIN" | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Animal Content -->
+    <div
+      *ngIf="animal && !isLoading"
+      class="grid grid-cols-1 lg:grid-cols-2 gap-8"
+    >
+      <!-- Left Column - Animal Images and Basic Info -->
+      <div @fadeInLeft class="space-y-8">
+        <!-- Back Button -->
+        <button
+          (click)="goBack()"
+          class="flex items-center gap-2 text-white/80 hover:text-white transition-colors duration-200"
+        >
+          <ng-icon name="lucideArrowLeft" [size]="'20'"></ng-icon>
+          <span>{{ "APP.ANIMALS.VIEW.GO_BACK" | translate }}</span>
+        </button>
+
+        <!-- Animal Images -->
+        <div class="relative rounded-2xl overflow-hidden group">
+          <div class="aspect-square relative">
+            <img
+              [src]="getCurrentImageUrl()"
+              [alt]="animal.name"
+              class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
+              (error)="onImageError($event)"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-gray-900/20 via-transparent to-gray-900/40"
+            ></div>
+
+            <!-- Image Navigation -->
+            <div
+              *ngIf="getImageFiles().length > 1"
+              class="absolute inset-0 flex items-center justify-between p-4"
+            >
+              <button
+                (click)="previousImage(getImageFiles().length)"
+                class="p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-300 hover:scale-110"
+              >
+                <ng-icon name="lucideChevronLeft" [size]="'24'"></ng-icon>
+              </button>
+              <button
+                (click)="nextImage(getImageFiles().length)"
+                class="p-2 bg-black/50 hover:bg-black/70 rounded-full text-white transition-all duration-300 hover:scale-110"
+              >
+                <ng-icon name="lucideChevronRight" [size]="'24'"></ng-icon>
+              </button>
+            </div>
+
+            <!-- Image Indicators -->
+            <div
+              *ngIf="getImageFiles().length > 1"
+              class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2"
+            >
+              <button
+                *ngFor="let photo of getImageFiles(); let i = index"
+                (click)="goToImage(i)"
+                class="w-2 h-2 rounded-full transition-all duration-300"
+                [ngClass]="{
+                  'bg-white': i === getCurrentImageIndex(),
+                  'bg-white/50': i !== getCurrentImageIndex()
+                }"
+              ></button>
+            </div>
+
+            <!-- Adoption Status Badge -->
+            <div class="absolute top-4 right-4">
+              <span
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-md border border-white/20"
+                [ngClass]="getAdoptionStatusClass(animal.adoptionStatus)"
+              >
+                <ng-icon
+                  [name]="getAdoptionStatusIcon(animal.adoptionStatus)"
+                  [size]="'16'"
+                ></ng-icon>
+                {{
+                  getAdoptionStatusTranslationKey(animal.adoptionStatus)
+                    | translate
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Animal Basic Info Card -->
+        <div
+          class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-primary-500/30 transition-all duration-300"
+        >
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h1 class="text-3xl font-bold text-white mb-2">
+                {{ animal.name }}
+              </h1>
+              <div class="flex items-center space-x-2">
+                <ng-icon
+                  name="lucidePawPrint"
+                  [size]="'16'"
+                  class="text-primary-400"
+                ></ng-icon>
+                <p class="text-gray-300">
+                  {{ animal.animalType?.name }} • {{ animal.breed?.name }}
+                </p>
+              </div>
+            </div>
+            <div
+              class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg border-2 border-white/20"
+              [ngClass]="getGenderClass(animal.gender)"
+            ></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div
+              class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center space-x-3 hover:bg-white/15 transition-all duration-300"
+            >
+              <ng-icon
+                name="lucideCake"
+                [size]="'20'"
+                class="text-primary-400"
+              ></ng-icon>
+              <div>
+                <p class="text-gray-400 text-sm">
+                  {{ "APP.ANIMALS.VIEW.AGE" | translate }}
+                </p>
+                <p class="text-white font-semibold">
+                  {{ animal.age }}
+                  {{ "APP.ANIMALS.VIEW.YEARS_OLD" | translate }}
+                </p>
+              </div>
+            </div>
+            <div
+              class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center space-x-3 hover:bg-white/15 transition-all duration-300"
+            >
+              <ng-icon
+                name="lucideScale"
+                [size]="'20'"
+                class="text-primary-400"
+              ></ng-icon>
+              <div>
+                <p class="text-gray-400 text-sm">
+                  {{ "APP.ANIMALS.VIEW.WEIGHT" | translate }}
+                </p>
+                <p class="text-white font-semibold">{{ animal.weight }} kg</p>
+              </div>
+            </div>
+            <div
+              class="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex items-center space-x-3 hover:bg-white/15 transition-all duration-300 col-span-2"
+            >
+              <ng-icon
+                [name]="getGenderIcon(animal.gender)"
+                [size]="'20'"
+                class="text-primary-400"
+              ></ng-icon>
+              <div>
+                <p class="text-gray-400 text-sm">
+                  {{ "APP.ANIMALS.VIEW.GENDER" | translate }}
+                </p>
+                <p class="text-white font-semibold">
+                  {{ getGenderTranslationKey(animal.gender) | translate }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Adopt Button -->
+          <button
+            *ngIf="animal.adoptionStatus === AdoptionStatus.Available"
+            (click)="navigateToAdopt()"
+            class="w-full px-6 py-4 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:shadow-primary-500/30 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-3"
+          >
+            <ng-icon name="lucideHeart" [size]="'24'"></ng-icon>
+            {{ "APP.ANIMALS.VIEW.ADOPT_ME" | translate }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column - Detailed Info -->
+      <div @fadeInRight class="space-y-8">
+        <!-- Description Card -->
+        <div
+          class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-primary-500/30 transition-all duration-300"
+        >
+          <div class="flex items-center gap-3 mb-4">
+            <ng-icon
+              name="lucideFileText"
+              [size]="'24'"
+              class="text-primary-400"
+            ></ng-icon>
+            <h2 class="text-2xl font-bold text-white">
+              {{ "APP.ANIMALS.VIEW.DESCRIPTION" | translate }}
+            </h2>
+          </div>
+          <div
+            class="max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-primary-400/30 scrollbar-track-transparent"
+          >
+            <p
+              class="text-gray-300 leading-relaxed break-words whitespace-pre-wrap"
+            >
+              {{
+                animal.description ||
+                  ("APP.ANIMALS.VIEW.NO_DESCRIPTION" | translate)
+              }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Health Status Card -->
+        <div
+          class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-primary-500/30 transition-all duration-300"
+        >
+          <div class="flex items-center gap-3 mb-4">
+            <ng-icon
+              name="lucideActivity"
+              [size]="'24'"
+              class="text-primary-400"
+            ></ng-icon>
+            <h2 class="text-2xl font-bold text-white">
+              {{ "APP.ANIMALS.VIEW.HEALTH_STATUS" | translate }}
+            </h2>
+          </div>
+          <div
+            class="max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-primary-400/30 scrollbar-track-transparent"
+          >
+            <p
+              class="text-gray-300 leading-relaxed break-words whitespace-pre-wrap"
+            >
+              {{
+                animal.healthStatus ||
+                  ("APP.ANIMALS.VIEW.GOOD_CONDITION" | translate)
+              }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Shelter Information Card -->
+        <div
+          *ngIf="animal.shelter"
+          class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 overflow-hidden hover:border-primary-500/30 transition-all duration-300"
+        >
+          <button
+            (click)="toggleShelterInfo()"
+            role="button"
+            [attr.aria-expanded]="isShelterInfoOpen"
+            class="w-full px-6 py-4 flex justify-between items-center hover:bg-white/5 transition-all duration-300"
+          >
+            <div class="flex items-center space-x-3">
+              <ng-icon
+                name="lucideHouse"
+                [size]="'24'"
+                class="text-primary-400"
+              ></ng-icon>
+              <h2 class="text-2xl font-bold text-white">
+                {{ "APP.ANIMALS.VIEW.SHELTER_INFO" | translate }}
+              </h2>
+            </div>
+            <ng-icon
+              [name]="
+                isShelterInfoOpen ? 'lucideChevronUp' : 'lucideChevronDown'
+              "
+              [size]="'24'"
+              class="text-primary-400 transition-transform duration-300"
+              [class.rotate-180]="isShelterInfoOpen"
+            ></ng-icon>
+          </button>
+
+          <div *ngIf="isShelterInfoOpen" [@slideDown] class="px-6 pb-6">
+            <div class="space-y-4">
+              <div class="flex items-start gap-4">
+                <!-- Shelter Profile Picture -->
+                <div class="flex-shrink-0">
+                  <img
+                    [src]="getShelterProfilePicture()"
+                    [alt]="animal.shelter.shelterName + ' profile'"
+                    class="w-16 h-16 rounded-full object-cover border-2 border-primary-400/30 shadow-lg hover:border-primary-400/60 transition-all duration-300 cursor-pointer"
+                    (click)="navigateToShelterProfile()"
+                    (error)="onShelterImageError($event)"
+                  />
+                </div>
+
+                <!-- Shelter Info -->
+                <div class="flex-1 min-w-0">
+                  <button
+                    (click)="navigateToShelterProfile()"
+                    class="text-xl font-semibold text-white mb-2 hover:text-primary-300 transition-colors duration-200 cursor-pointer underline decoration-primary-400/50 hover:decoration-primary-300 underline-offset-2 block text-left"
+                  >
+                    {{ animal.shelter.shelterName }}
+                  </button>
+                  <p class="text-gray-300 text-sm leading-relaxed break-words">
+                    {{ animal.shelter.description }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Social Links -->
+              <div class="flex flex-wrap gap-3">
+                <a
+                  *ngIf="animal.shelter.website"
+                  [href]="animal.shelter.website"
+                  target="_blank"
+                  rel="noopener"
+                  class="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-primary-400 hover:text-primary-300 transition-all duration-300"
+                >
+                  <ng-icon name="lucideGlobe" [size]="'16'"></ng-icon>
+                  <span class="text-sm">{{
+                    "APP.ANIMALS.VIEW.WEBSITE" | translate
+                  }}</span>
+                </a>
+                <a
+                  *ngIf="animal.shelter.socialMedia?.facebook"
+                  [href]="animal.shelter.socialMedia?.facebook"
+                  target="_blank"
+                  rel="noopener"
+                  class="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-blue-400 hover:text-blue-300 transition-all duration-300"
+                >
+                  <ng-icon name="lucideFacebook" [size]="'16'"></ng-icon>
+                  <span class="text-sm">Facebook</span>
+                </a>
+                <a
+                  *ngIf="animal.shelter.socialMedia?.instagram"
+                  [href]="animal.shelter.socialMedia?.instagram"
+                  target="_blank"
+                  rel="noopener"
+                  class="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-pink-400 hover:text-pink-300 transition-all duration-300"
+                >
+                  <ng-icon name="lucideInstagram" [size]="'16'"></ng-icon>
+                  <span class="text-sm">Instagram</span>
+                </a>
+              </div>
+
+              <!-- Operating Hours -->
+              <div *ngIf="animal.shelter.operatingHours" class="mt-4">
+                <h4
+                  class="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2"
+                >
+                  <ng-icon name="lucideClock" [size]="'16'"></ng-icon>
+                  {{ "APP.ANIMALS.VIEW.OPERATING_HOURS" | translate }}
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div
+                    *ngFor="
+                      let day of [
+                        'monday',
+                        'tuesday',
+                        'wednesday',
+                        'thursday',
+                        'friday',
+                        'saturday',
+                        'sunday'
+                      ]
+                    "
+                    class="flex justify-between items-center px-3 py-2 bg-white/5 rounded-lg text-sm"
+                  >
+                    <span class="capitalize text-gray-300">
+                      {{
+                        "APP.ANIMALS.VIEW.DAYS." + day.toUpperCase() | translate
+                      }}
+                    </span>
+                    <span class="text-gray-400">
+                      {{ getOperatingHours(day) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Info Card -->
+        <div
+          class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-primary-500/30 transition-all duration-300"
+        >
+          <div class="flex items-center gap-3 mb-4">
+            <ng-icon
+              name="lucideInfo"
+              [size]="'24'"
+              class="text-primary-400"
+            ></ng-icon>
+            <h2 class="text-2xl font-bold text-white">
+              {{ "APP.ANIMALS.VIEW.ADDITIONAL_INFO" | translate }}
+            </h2>
+          </div>
+          <div class="space-y-3">
+            <div
+              class="flex justify-between items-center py-2 border-b border-white/10"
+            >
+              <span class="text-gray-400">{{
+                "APP.ANIMALS.VIEW.LISTED_ON" | translate
+              }}</span>
+              <span class="text-white">{{
+                animal.createdAt | date : "mediumDate"
+              }}</span>
+            </div>
+            <div
+              *ngIf="animal.updatedAt"
+              class="flex justify-between items-center py-2"
+            >
+              <span class="text-gray-400">{{
+                "APP.ANIMALS.VIEW.LAST_UPDATED" | translate
+              }}</span>
+              <span class="text-white">{{
+                animal.updatedAt | date : "mediumDate"
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -94,10 +94,122 @@
     "Id": "e1af8fccdca9aef90043910a",
     "UserId": "709f3f99def98de900439032",
     "AnimalId": "90bf5fbbcfa9adf90043905a",
-    "ShelterId": "80af4faaef0a9ef90043904a",
+    "ShelterId": "80af4faaef0ස: "
+    "80af4faaef0a9ef90043904a\",",
+    : null,
     "Status": 2,
     "ApplicationDetails": "I live on a farm with large space, have raised horses, and am on the property full-time.",
     "CreatedAt": "2023-01-04T17:00:00Z",
     "UpdatedAt": "2023-01-04T18:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef90043910b",
+    "UserId": "709f3f99def98de900439031",
+    "AnimalId": "90bf5fbbcfa9adf90043905b",
+    "ShelterId": "80af4faaef0a9ef900439041",
+    "Status": 1,
+    "ApplicationDetails": "I have a large backyard and experience with large dogs.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T08:00:00Z",
+    "UpdatedAt": "2023-01-05T08:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef90043910c",
+    "UserId": "709f3f99def98de900439032",
+    "AnimalId": "90bf5fbbcfa9adf90043905c",
+    "ShelterId": "80af4faaef0a9ef900439042",
+    "Status": 2,
+    "ApplicationDetails": "I live in an apartment but have time to care for a cat.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T09:00:00Z",
+    "UpdatedAt": "2023-01-05T10:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef90043910d",
+    "UserId": "709f3f99def98de900439036",
+    "AnimalId": "90bf5fbbcfa9adf90043905d",
+    "ShelterId": "80af4faaef0a9ef900439043",
+    "Status": 1,
+    "ApplicationDetails": "I have a quiet home suitable for a bird.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T10:00:00Z",
+    "UpdatedAt": "2023-01-05T10:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef90043910e",
+    "UserId": "709f3f99def98de900439037",
+    "AnimalId": "90bf5fbbcfa9adf90043905e",
+    "ShelterId": "80af4faaef0a9ef900439044",
+    "Status": 3,
+    "ApplicationDetails": "I have experience with energetic dogs.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T11:00:00Z",
+    "UpdatedAt": "2023-01-05T12:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef90043910f",
+    "UserId": "709f3f99def98de900439031",
+    "AnimalId": "90bf5fbbcfa9adf90043905f",
+    "ShelterId": "80af4faaef0a9ef900439045",
+    "Status": 1,
+    "ApplicationDetails": "I am looking for a playful cat.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T12:00:00Z",
+    "UpdatedAt": "2023-01-05T12:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439110",
+    "UserId": "709f3f99def98de900439032",
+    "AnimalId": "90bf5fbbcfa9adf900439060",
+    "ShelterId": "80af4faaef0a9ef900439046",
+    "Status": 2,
+    "ApplicationDetails": "I have owned birds before and have a suitable cage.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T13:00:00Z",
+    "UpdatedAt": "2023-01-05T14:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439111",
+    "UserId": "709f3f99def98de900439036",
+    "AnimalId": "90bf5fbbcfa9adf900439061",
+    "ShelterId": "80af4faaef0a9ef900439047",
+    "Status": 1,
+    "ApplicationDetails": "I have a family with children who love dogs.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T14:00:00Z",
+    "UpdatedAt": "2023-01-05T14:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439112",
+    "UserId": "709f3f99def98de900439037",
+    "AnimalId": "90bf5fbbcfa9adf900439062",
+    "ShelterId": "80af4faaef0a9ef900439048",
+    "Status": 4,
+    "ApplicationDetails": "I am a first-time pet owner but eager to learn.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T15:00:00Z",
+    "UpdatedAt": "2023-01-05T16:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439113",
+    "UserId": "709f3f99def98de900439031",
+    "AnimalId": "90bf5fbbcfa9adf900439063",
+    "ShelterId": "80af4faaef0a9ef900439049",
+    "Status": 1,
+    "ApplicationDetails": "I have experience with parrots and can provide a stimulating environment.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T16:00:00Z",
+    "UpdatedAt": "2023-01-05T16:00:00Z"
+  },
+  {
+    "Id": "e1af8fccdca9aef900439114",
+    "UserId": "709f3f99def98de900439032",
+    "AnimalId": "90bf5fbbcfa9adf900439064",
+    "ShelterId": "80af4faaef0a9ef90043904a",
+    "Status": 2,
+    "ApplicationDetails": "I have a quiet home and am looking for a companion.",
+    "AttachedFilesIds": null,
+    "CreatedAt": "2023-01-05T17:00:00Z",
+    "UpdatedAt": "2023-01-05T18:00:00Z"
   }
 ]

@@ -2,7 +2,7 @@
 <div class="w-full flex flex-col sm:flex-row sm:items-start sm:justify-end items-center justify-center px-2 pt-4 gap-0 sm:gap-4">
   <!-- Add Animal Button (only show if user can edit animals) -->
   <button
-    *ngIf="canEditAnimals"
+    *ngIf="canAddAnimals()"
     type="button"
     (click)="onAddAnimalClick()"
     class="flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors outline-none focus:ring-2 focus:ring-green-400 z-[101] mb-2 sm:mb-0 sm:order-1 mx-4 sm:mx-0"
@@ -212,6 +212,7 @@
     {{ 'APP.PROFILE-PAGE.MY_ANIMALS.NO_ANIMALS_SUBTEXT' | translate }}
   </p>
   <button 
+    *ngIf="canAddAnimals()"
     type="button"
     (click)="onAddAnimalClick()"
     class="btn btn-primary rounded-full px-6 py-3 sm:px-10 sm:py-4 text-base sm:text-xl flex items-center gap-2 shadow-lg focus:ring-2 focus:ring-primary-400 focus:outline-none transition animate-gradient w-full max-w-xs sm:max-w-fit justify-center"

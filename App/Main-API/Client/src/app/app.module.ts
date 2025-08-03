@@ -40,14 +40,18 @@ import {
   lucideChevronUp,
   lucideChevronDown,
   lucideHousePlus,
-  lucideUsers, 
-  lucideRuler, 
+  lucideUsers,
+  lucideRuler,
   lucideBuilding,
   lucideCircle,
   lucideCircleHelp,
   lucideEye,
   lucideEyeOff,
   lucideShapes,
+  lucideShieldAlert,
+  lucideShield,
+  lucideLock,
+  lucideArrowLeft,
   lucideVenetianMask,
   lucideCakeSlice,
   lucideFileText,
@@ -65,7 +69,6 @@ import {
   lucideRefreshCw,
   lucideSettings,
   lucideCircleAlert,
-  lucideArrowLeft,
   lucideSave,
   lucideLoader,
   lucideFolderOpen,
@@ -86,6 +89,7 @@ import {
 
 import { AppComponent } from './app.component';
 import { FormLeaveConfirmationDialogComponent } from './common/ui/form-leave-confirmation-dialog.component';
+import { UnauthorizedComponent } from './ui/pages/unauthorized/unauthorized.component';
 import { InstallationConfigurationService } from './common/services/installation-configuration.service';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { UnauthorizedInterceptor } from 'src/app/common/tools/unauthorised.interceptor';
@@ -100,20 +104,40 @@ import { CookiesInterceptor } from './common/tools/cookies.interceptor';
 import { ApiKeyInterceptor } from './common/tools/api-key.interceptor';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from './common/services/translation.service';
-import { LucideAngularModule, LucideMapPin, LucideUser, LucideFile, LucideCheck, LucideBuilding, LucidePawPrint, LucideAlertCircle, LucideInstagram, LucideFacebook, LucidePlus, LucideMailbox, LucideEye, LucideXOctagon } from 'lucide-angular';
+import {
+  LucideAngularModule,
+  LucideMapPin,
+  LucideUser,
+  LucideFile,
+  LucideCheck,
+  LucideBuilding,
+  LucidePawPrint,
+  LucideAlertCircle,
+  LucideInstagram,
+  LucideFacebook,
+  LucidePlus,
+  LucideMailbox,
+  LucideEye,
+  LucideXOctagon,
+} from 'lucide-angular';
 
 export function initializeApp(
   installationConfigService: InstallationConfigurationService,
   translationService: TranslationService
 ) {
-  return () => Promise.all([
-    installationConfigService.loadConfig().toPromise(),
-    translationService.initialize().toPromise()
-  ]);
+  return () =>
+    Promise.all([
+      installationConfigService.loadConfig().toPromise(),
+      translationService.initialize().toPromise(),
+    ]);
 }
 
 @NgModule({
-  declarations: [AppComponent, FormLeaveConfirmationDialogComponent],
+  declarations: [
+    AppComponent,
+    FormLeaveConfirmationDialogComponent,
+    UnauthorizedComponent,
+  ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -151,6 +175,7 @@ export function initializeApp(
       lucidePawPrint,
       lucideCake,
       lucideDog,
+      lucideShield,
       lucideHeartPulse,
       lucideScale,
       lucideSettings,
@@ -168,14 +193,17 @@ export function initializeApp(
       lucideChevronUp,
       lucideChevronDown,
       lucideHousePlus,
-      lucideUsers, 
-      lucideRuler, 
+      lucideUsers,
+      lucideRuler,
       lucideBuilding,
       lucideCircleHelp,
       lucideCircle,
       lucideEye,
       lucideEyeOff,
       lucideShapes,
+      lucideShieldAlert,
+      lucideLock,
+      lucideArrowLeft,
       lucideVenetianMask,
       lucideCakeSlice,
       map: lucideMap,
@@ -192,7 +220,6 @@ export function initializeApp(
       lucideArrowUpWideNarrow,
       lucideRefreshCw,
       lucideCircleAlert,
-      lucideArrowLeft,
       lucideSave,
       lucideLoader,
       lucideFolderOpen,
@@ -208,7 +235,7 @@ export function initializeApp(
       lucideMusic,
       lucideCloud,
       lucideTrash2,
-      lucideCamera
+      lucideCamera,
     }),
     HeaderComponent,
     TranslatePipe,

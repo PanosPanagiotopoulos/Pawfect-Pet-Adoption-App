@@ -43,11 +43,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             _contextBuilder = contextBuilder;
             _queryFactory = queryFactory;
         }
-
-        /// <summary>
-        /// Query ζώων.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
+        
         [HttpPost("query")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -78,10 +74,6 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             });
         }
 
-        /// <summary>
-        /// Λήψη ζώου με βάση το ID.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
         [HttpGet("{id}")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -111,9 +103,6 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             return Ok(model);
         }
 
-        /// <summary>
-        /// Persist an Breed.
-        /// </summary>
         [HttpPost("persist")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -128,34 +117,14 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
             return Ok(breed);
         }
 
-        /// <summary>
-        /// Delete an Breed by ID.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-        /// </summary>
-        [HttpPost("delete")]
+        [HttpPost("delete/{id}")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Delete([FromBody] String id)
+        public async Task<IActionResult> Delete([FromRoute] String id)
         {
             if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
             await _breedService.Delete(id);
-
-            return Ok();
-        }
-
-        /// <summary>
-        /// Delete multiple Breeds by IDs.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-        /// </summary>
-        [HttpPost("delete/many")]
-        [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
-        {
-            if (ids == null || !ids.Any() || !ModelState.IsValid) return BadRequest(ModelState);
-
-            await _breedService.Delete(ids);
 
             return Ok();
         }

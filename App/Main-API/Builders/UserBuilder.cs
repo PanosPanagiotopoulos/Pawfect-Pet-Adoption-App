@@ -7,6 +7,7 @@ using Main_API.Models.Lookups;
 using Main_API.Models.User;
 using Main_API.Query;
 using Main_API.Services.AuthenticationServices;
+using Pawfect_Pet_Adoption_App_API.Models.User;
 using System.Security.Claims;
 using ZstdSharp;
 namespace Main_API.Builders
@@ -28,7 +29,10 @@ namespace Main_API.Builders
             // POST Request Dto Μοντέλα
             CreateMap<Data.Entities.User, UserPersist>();
             CreateMap<UserPersist, Data.Entities.User>();
-		}
+
+            CreateMap<Data.Entities.User, UserUpdate>();
+            CreateMap<UserUpdate, Data.Entities.User>();
+        }
 	}
 	public class UserBuilder : BaseBuilder<Models.User.User, Data.Entities.User>
 	{

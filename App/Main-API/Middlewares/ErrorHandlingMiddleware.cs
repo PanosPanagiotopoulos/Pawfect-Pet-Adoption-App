@@ -86,8 +86,8 @@ namespace Main_API.Middlewares
                 (HttpStatusCode.InternalServerError,
                  "Internal server error"),
             InvalidOperationException invOpEx =>
-                (HttpStatusCode.InternalServerError,
-                 "Internal server error"),
+                (HttpStatusCode.BadRequest,
+                 $"Invalid operation requested for reasson : ${invOpEx.Message}"),
             _ => (HttpStatusCode.InternalServerError,
                   "Internal server error")
         };

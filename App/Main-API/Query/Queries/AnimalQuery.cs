@@ -3,11 +3,8 @@ using MongoDB.Driver;
 
 using Main_API.Data.Entities.EnumTypes;
 using Main_API.Data.Entities.Types.Authorization;
-using Main_API.DevTools;
 using Main_API.Exceptions;
-using Main_API.Models.Lookups;
 using Main_API.Services.AuthenticationServices;
-using Main_API.Services.FilterServices;
 using Main_API.Services.MongoServices;
 
 namespace Main_API.Query.Queries
@@ -150,15 +147,7 @@ namespace Main_API.Query.Queries
 			// Εφαρμόζει φίλτρο για complex search. Εδώ θα επικοινωνεί με τον Search Server για την AI-based αναζήτηση
 			if (!String.IsNullOrEmpty(Query))
 			{
-				//// Χρήση υπηρεσίας search για να βρούμε τα ids των ζώων που ταιριάζουν στο query
-				//SearchRequest searchRequest = new SearchRequest { Query = Query, TopK = base.PageSize, Lang = "el" };
-				//List<String>? ids = ((await _searchService.SearchAnimalsAsync(searchRequest)) ?? new List<AnimalIndexModel>())
-				//					.Select(searchRes => searchRes.Id).ToList();
-				//// Φιλτράρουμε με αυτά τα ids
-				//if (ids != null && ids.Any())
-				//{
-				//	filter &= builder.In(animal => animal.Id, ids);
-				//}
+				
 			}
 
 

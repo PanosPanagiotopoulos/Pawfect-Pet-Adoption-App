@@ -29,11 +29,12 @@ namespace Main_API.Controllers
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
 
-        public ReportController(
-				IReportService reportService, ILogger<ReportController> logger,
-				IQueryFactory queryFactory, IBuilderFactory builderFactory,
-                ICensorFactory censorFactory, AuthContextBuilder contextBuilder
-            )
+        public ReportController
+		(
+			IReportService reportService, ILogger<ReportController> logger,
+			IQueryFactory queryFactory, IBuilderFactory builderFactory,
+            ICensorFactory censorFactory, AuthContextBuilder contextBuilder
+        )
 		{
 			_reportService = reportService;
 			_logger = logger;
@@ -43,10 +44,6 @@ namespace Main_API.Controllers
             _contextBuilder = contextBuilder;
         }
 
-		/// <summary>
-		/// Query reports.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("query")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -77,10 +74,6 @@ namespace Main_API.Controllers
 			});
 		}
 
-		/// <summary>
-		/// Get report by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpGet("{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -113,9 +106,6 @@ namespace Main_API.Controllers
             return Ok(model);
 		}
 
-		/// <summary>
-		/// Persist a report.
-		/// </summary>
 		[HttpPost("persist")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -130,36 +120,16 @@ namespace Main_API.Controllers
 			return Ok(report);
 		}
 
-		/// <summary>
-		/// Delete a report by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete")]
-		[Authorize]
+        [HttpPost("delete/{id}")]
+        [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Delete([FromBody] String id)
-		{
-			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
+        public async Task<IActionResult> Delete([FromRoute] String id)
+        {
+            if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
-			await _reportService.Delete(id);
+            await _reportService.Delete(id);
 
-			return Ok();
-		}
-
-		/// <summary>
-		/// Delete multiple reports by IDs.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete/many")]
-		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
-		{
-			if (ids == null || ids.Count == 0 || !ModelState.IsValid) return BadRequest(ModelState);
-
-			await _reportService.Delete(ids);
-
-			return Ok();
-		}
-	}
+            return Ok();
+        }
+    }
 }

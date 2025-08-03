@@ -15,6 +15,7 @@ using Main_API.Transactions;
 using System.Security.Claims;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Main_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Models.User;
 
 namespace Main_API.Controllers
 {
@@ -33,14 +34,14 @@ namespace Main_API.Controllers
         private readonly ClaimsExtractor _claimsExtractor;
 
         public UserController
-			(
-			    IUserService userService, ILogger<UserController> logger,
-			    IQueryFactory queryFactory, IBuilderFactory builderFactory,
-			    ICensorFactory censorFactory, AuthContextBuilder contextBuilder,
-                IConventionService conventionService, IAuthorizationContentResolver AuthorizationContentResolver,
-                ClaimsExtractor claimsExtractor
+		(
+			IUserService userService, ILogger<UserController> logger,
+			IQueryFactory queryFactory, IBuilderFactory builderFactory,
+			ICensorFactory censorFactory, AuthContextBuilder contextBuilder,
+            IConventionService conventionService, IAuthorizationContentResolver AuthorizationContentResolver,
+            ClaimsExtractor claimsExtractor
 
-            )
+        )
 		{
 			_userService = userService;
 			_logger = logger;
@@ -53,10 +54,6 @@ namespace Main_API.Controllers
             _claimsExtractor = claimsExtractor;
         }
 
-		/// <summary>
-		/// Query χρήστες.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpPost("query")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -86,10 +83,6 @@ namespace Main_API.Controllers
             });
 		}
 
-		/// <summary>
-		/// Query χρήστες.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpGet("{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -120,10 +113,6 @@ namespace Main_API.Controllers
             return Ok(model);
 		}
 
-        /// <summary>
-        /// Query χρήστες.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetMe([FromQuery] List<String> fields)
@@ -156,10 +145,20 @@ namespace Main_API.Controllers
             return Ok(model);
         }
 
-        /// <summary>
-        /// Delete a user by ID.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-        /// </summary>
+        [HttpPost("update")]
+        [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> Persist([FromBody] UserUpdate model, [FromQuery] List<String> fields)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            fields = BaseCensor.PrepareFieldsList(fields);
+
+            User animal = await _userService.Update(model, fields);
+
+            return Ok(animal);
+        }
+
         [HttpPost("delete")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -172,16 +171,11 @@ namespace Main_API.Controllers
 			return Ok();
 		}
 
-		/// <summary>
-		/// Delete multiple users by IDs.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
 		[HttpPost("delete/many")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
 		{
-			// TODO: Add authorization
 			if (ids == null || ids.Count == 0 || !ModelState.IsValid) return BadRequest(ModelState);
 
 			await _userService.Delete(ids);

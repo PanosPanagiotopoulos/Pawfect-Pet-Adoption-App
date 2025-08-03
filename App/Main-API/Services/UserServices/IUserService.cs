@@ -2,6 +2,7 @@
 using Main_API.Models;
 using Main_API.Models.Lookups;
 using Main_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Models.User;
 
 namespace Main_API.Services.UserServices
 {
@@ -53,15 +54,16 @@ namespace Main_API.Services.UserServices
 		/// <returns>Το ID του αποθηκευμένου χρήστη.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποθήκευση του χρήστη.</exception>
 		Task<Models.User.User?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true);
+        Task<Models.User.User?> Update(UserUpdate model, List<String> buildFields = null, Boolean buildDto = true);
 
-		/// <summary>
-		/// Αποθήκευση χρήστη.
-		/// </summary>
-		/// <param name="user">Ο χρήστης για αποθήκευση.</param>
-		/// <param name="allowCreation">Επιτρέπει τη δημιουργία νέου χρήστη αν δεν υπάρχει.</param>
-		/// <returns>Το ID του αποθηκευμένου χρήστη.</returns>
-		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποθήκευση του χρήστη.</exception>
-		Task<Models.User.User?> Persist(Data.Entities.User user, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true);
+        /// <summary>
+        /// Αποθήκευση χρήστη.
+        /// </summary>
+        /// <param name="user">Ο χρήστης για αποθήκευση.</param>
+        /// <param name="allowCreation">Επιτρέπει τη δημιουργία νέου χρήστη αν δεν υπάρχει.</param>
+        /// <returns>Το ID του αποθηκευμένου χρήστη.</returns>
+        /// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποθήκευση του χρήστη.</exception>
+        Task<Models.User.User?> Persist(Data.Entities.User user, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true);
 
 		/// <summary>
 		/// Επαλήθευση χρήστη.

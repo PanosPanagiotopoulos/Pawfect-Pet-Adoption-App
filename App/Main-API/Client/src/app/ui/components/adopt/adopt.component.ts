@@ -541,6 +541,19 @@ export class AdoptComponent
         this.isEditMode = true;
         this.loadAdoptionApplication(applicationId);
       } else if (animalId) {
+        // Check if user is a shelter - shelters cannot access /adopt/new page
+        const userShelterId = this.authService.getUserShelterId();
+        if (userShelterId) {
+          // Redirect shelters to unauthorized page
+          this.router.navigate(['/unauthorized'], {
+            queryParams: {
+              message: 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.FORBIDDEN',
+              returnUrl: '/profile?tab=received-applications',
+            },
+          });
+          return;
+        }
+
         this.isEditMode = false;
         this.loadAnimal(animalId);
       } else {
@@ -567,7 +580,6 @@ export class AdoptComponent
 
           this.checkShelterAccess(adoptionApplication.shelter?.id);
           this.checkDeletePermission(applicationId);
-          // Don't set isLoading = false here, wait for delete permission check
         },
         error: (error) => {
           this.error = this.errorHandler.handleError(error);

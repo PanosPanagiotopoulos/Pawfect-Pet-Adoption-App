@@ -36,6 +36,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { ProfileAnimalsComponent } from './profile-animals.component';
 import { ProfileAdoptionApplicationsComponent } from './profile-adoption-applications.component';
+import { AuthGuard } from 'src/app/common/guards/auth.guard';
+import { Permission } from 'src/app/common/enum/permission.enum';
 
 @NgModule({
   declarations: [
@@ -75,11 +77,19 @@ import { ProfileAdoptionApplicationsComponent } from './profile-adoption-applica
     RouterModule.forChild([
       { 
         path: '', 
-        component: ProfileComponent
+        component: ProfileComponent,
+        canActivate: [AuthGuard],
+        data: {
+          permissions: [Permission.BrowseUsers, Permission.BrowseShelters]
+        }
       },
       {   
         path: ':id', 
-        component: ProfileComponent
+        component: ProfileComponent,
+        canActivate: [AuthGuard],
+        data: {
+          permissions: [Permission.BrowseUsers, Permission.BrowseShelters]
+        }
       }
     ]),
   ],

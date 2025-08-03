@@ -26,6 +26,8 @@ using Main_API.Services.HttpServices;
 using Main_API.Services.ShelterServices;
 using Main_API.Services.SmsServices;
 using System.Security.Claims;
+using Pawfect_Pet_Adoption_App_API.Models.User;
+using Main_API.Services.Convention;
 
 namespace Main_API.Services.UserServices
 {
@@ -49,6 +51,7 @@ namespace Main_API.Services.UserServices
         private readonly ClaimsExtractor _claimsExtractor;
         private readonly IAuthorizationService _authorizationService;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
+        private readonly IConventionService _conventionService;
 
         public UserService
 		(
@@ -66,7 +69,8 @@ namespace Main_API.Services.UserServices
             AuthContextBuilder contextBuilder,
 			ClaimsExtractor claimsExtractor,
 			IAuthorizationService AuthorizationService,
-			IAuthorizationContentResolver AuthorizationContentResolver
+			IAuthorizationContentResolver authorizationContentResolver,
+            IConventionService conventionService
         )
 		{
             _queryFactory = queryFactory;
@@ -86,7 +90,8 @@ namespace Main_API.Services.UserServices
             _contextBuilder = contextBuilder;
             _claimsExtractor = claimsExtractor;
             _authorizationService = AuthorizationService;
-            _authorizationContentResolver = AuthorizationContentResolver;
+            _authorizationContentResolver = authorizationContentResolver;
+            _conventionService = conventionService;
         }
 
 		public async Task<Models.User.User?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist, List<String> fields)
@@ -115,8 +120,19 @@ namespace Main_API.Services.UserServices
 			return newUser;
 		}
 
-		private async Task PersistProfilePhoto(String profilePhoto, String oldProfilePhoto, String ownerId)
+		private async Task PersistProfilePhoto(String profilePhoto, String oldProfilePhoto, String ownerId, Boolean justCreated = false)
 		{
+			// If not new user who persists profile photo, include authorization
+			if (!justCreated)
+			{
+                ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+                String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+                if (String.IsNullOrEmpty(userId)) throw new UnAuthenticatedException();
+
+				if (!String.Equals(ownerId, userId))
+					throw new ForbiddenException("Unable to persist profile photo from another user , only the owner can");
+            }
+
 			Boolean emptyOldPhoto = String.IsNullOrEmpty(oldProfilePhoto);
 			Boolean emptyNewPhoto = String.IsNullOrEmpty(profilePhoto);
 
@@ -376,7 +392,6 @@ namespace Main_API.Services.UserServices
 
 		private async Task<Data.Entities.User> FetchUserInfoFromGoogle(String accessToken)
 		{
-			// TODO: HTTPS ?
 			using (HttpClient client = new HttpClient())
 			{
 				client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", $"{accessToken}");
@@ -418,16 +433,73 @@ namespace Main_API.Services.UserServices
 			}
 		}
 
-		public async Task<Models.User.User> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
+		public async Task<Models.User.User?> Update(UserUpdate model, List<String> buildFields = null, Boolean buildDto = true)
 		{
-            Data.Entities.User? workingUser = await this.RetrieveUserAsync(userPersist.Id, userPersist.Email);
-			String oldProfilePhoto = workingUser?.ProfilePhotoId;
+            Data.Entities.User? workingUser = await this.RetrieveUserAsync(model.Id, null);
+			if (workingUser == null) throw new NotFoundException();
 
-			Boolean IsCreation = false;
-			// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
-			if ( IsCreation = (workingUser == null) )
-			{
-                workingUser = _mapper.Map<Data.Entities.User>(userPersist);
+            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+			if (String.IsNullOrEmpty(userId)) throw new UnAuthenticatedException();
+
+			OwnedResource ownedResource = new OwnedResource(userId, new OwnedFilterParams(new UserLookup()));
+			if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.EditUsers))
+				throw new ForbiddenException();
+
+            String oldProfilePhoto = workingUser?.ProfilePhotoId;
+
+            _mapper.Map(model, workingUser);
+
+            workingUser.UpdatedAt = DateTime.UtcNow;
+
+			if (String.IsNullOrEmpty(await _userRepository.UpdateAsync(workingUser)))
+                throw new InvalidOperationException("Failed to update user");
+
+            await this.PersistProfilePhoto(model.ProfilePhotoId, oldProfilePhoto, workingUser.Id, justCreated: false);
+
+            Models.User.User persisted = null;
+            if (buildDto)
+            {
+                // Return dto model
+                UserLookup lookup = new UserLookup();
+                lookup.Ids = new List<String> { workingUser.Id };
+                lookup.Fields = buildFields ?? new List<String> { nameof(Models.User.User.FullName) };
+                lookup.Offset = 1;
+                lookup.PageSize = 1;
+
+                AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+                List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. lookup.Fields], context);
+                if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
+                lookup.Fields = censoredFields;
+
+                persisted = (await _builderFactory.Builder<UserBuilder>()
+                    .Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [.. lookup.Fields]))
+                    .FirstOrDefault();
+            }
+
+            return persisted;
+        }
+
+
+        public async Task<Models.User.User> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
+		{
+			if (_conventionService.IsValidId(userPersist.Id) || !String.IsNullOrWhiteSpace(userPersist.Email))
+				return await this.Update(
+					new UserUpdate()
+					{
+						Id  = userPersist.Id,
+						Email = userPersist.Email,
+						FullName = userPersist.FullName,
+						Location = userPersist.Location,
+						Phone = userPersist.Phone,
+						ProfilePhotoId = userPersist.ProfilePhotoId
+					},
+					buildFields,
+					buildDto
+				);
+
+
+                Data.Entities.User workingUser = _mapper.Map<Data.Entities.User>(userPersist);
 
 				// Get all needed access roles
 				if (userPersist.Role == UserRole.User)
@@ -442,27 +514,13 @@ namespace Main_API.Services.UserServices
 
 				workingUser.CreatedAt = DateTime.UtcNow;
 				workingUser.UpdatedAt = DateTime.UtcNow;
-			}
 
-			else
-			{
-     //           OwnedResource resource = _authorizationContentResolver.BuildOwnedResource(new UserLookup(), workingUser.Id);
-     //           // Ενημερώστε τον υπάρχοντα χρήστη αν είναι ο ίδιος.
-     //           if (!await _authorizationService.AuthorizeOrOwnedAsync(resource, Permission.EditUsers))
-					//throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.User), Permission.EditUsers);
-
-                _mapper.Map(userPersist, workingUser);
-				this.HashLoginCredentials(ref workingUser);
-				workingUser.UpdatedAt = DateTime.UtcNow;
-			}
-
-			if (IsCreation) workingUser.Id = await _userRepository.AddAsync(workingUser);
-			else workingUser.Id = await _userRepository.UpdateAsync(workingUser);
+				workingUser.Id = await _userRepository.AddAsync(workingUser);
 
             if (String.IsNullOrEmpty(workingUser.Id))
                 throw new InvalidOperationException("Persisting failed and user was not found");
 
-            await this.PersistProfilePhoto(userPersist.ProfilePhotoId, oldProfilePhoto, workingUser.Id);
+            await this.PersistProfilePhoto(userPersist.ProfilePhotoId, null, workingUser.Id, justCreated: true);
 
             Models.User.User persisted = new Models.User.User();
 			if (buildDto)
@@ -470,7 +528,7 @@ namespace Main_API.Services.UserServices
 				// Return dto model
 				UserLookup lookup = new UserLookup();
 				lookup.Ids = new List<String> { workingUser.Id };
-				lookup.Fields = buildFields ?? new List<String> { "*", nameof(Models.Shelter.Shelter) + ".*" };
+				lookup.Fields = buildFields ?? new List<String> { nameof(Models.User.User.FullName) };
 				lookup.Offset = 1;
 				lookup.PageSize = 1;
 
@@ -484,46 +542,22 @@ namespace Main_API.Services.UserServices
 		}
 		public async Task<Models.User.User> Persist(Data.Entities.User user, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
-			Data.Entities.User workingUser = null;
-			
-			// Ανακτήστε τον χρήστη με βάση το ID ή το email.
-			workingUser = await this.RetrieveUserAsync(user.Id, user.Email);
-			Boolean IsCreation = false;
-			// Δημιουργήστε έναν νέο χρήστη αν δεν υπάρχει.
-			if (IsCreation = (workingUser == null))
-			{
-                workingUser = _mapper.Map<Data.Entities.User>(user);
-				// Hash τα credentials συνθηματικών του χρήστη
-				this.HashLoginCredentials(ref workingUser);
+            Data.Entities.User workingUser = _mapper.Map<Data.Entities.User>(user);
+			// Hash τα credentials συνθηματικών του χρήστη
+			this.HashLoginCredentials(ref workingUser);
 
-				workingUser.CreatedAt = DateTime.UtcNow;
-				workingUser.UpdatedAt = DateTime.UtcNow;
-
-                if (String.IsNullOrEmpty(workingUser.Id))
-                    throw new InvalidOperationException("Persisting failed and user was not found");
-            }
-
-			else
-			{
-                //OwnedResource resource = _authorizationContentResolver.BuildOwnedResource(new UserLookup(), workingUser.Id);
-                //// Ενημερώστε τον υπάρχοντα χρήστη αν είναι ο ίδιος.
-                //if (!await _authorizationService.AuthorizeOrOwnedAsync(resource, Permission.EditUsers))
-                //    throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.User), Permission.EditUsers);
-
-                // Ενημερώστε τον υπάρχοντα χρήστη.
-                _mapper.Map(user, workingUser);
-				this.HashLoginCredentials(ref workingUser);
-				workingUser.UpdatedAt = DateTime.UtcNow;
-			}
-
-
-			if (IsCreation) workingUser.Id = await _userRepository.AddAsync(workingUser);
-			else workingUser.Id = await _userRepository.UpdateAsync(workingUser);
+			workingUser.CreatedAt = DateTime.UtcNow;
+			workingUser.UpdatedAt = DateTime.UtcNow;
 
             if (String.IsNullOrEmpty(workingUser.Id))
                 throw new InvalidOperationException("Persisting failed and user was not found");
 
-            await this.PersistProfilePhoto(user.ProfilePhotoId, workingUser.ProfilePhotoId, workingUser.Id);
+			workingUser.Id = await _userRepository.AddAsync(workingUser);
+
+            if (String.IsNullOrEmpty(workingUser.Id))
+                throw new InvalidOperationException("Persisting failed and user was not found");
+
+            await this.PersistProfilePhoto(user.ProfilePhotoId, workingUser.ProfilePhotoId, workingUser.Id, justCreated: true);
 
             Models.User.User persisted = new Models.User.User();
 			if (buildDto)
@@ -541,7 +575,7 @@ namespace Main_API.Services.UserServices
             }
 
 			return persisted;
-			}
+		}
 		public async Task<Data.Entities.User?> RetrieveUserAsync(String? id, String? email)
 		{
 			// Ανακτήστε τον χρήστη με βάση το ID.

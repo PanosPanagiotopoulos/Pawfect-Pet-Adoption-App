@@ -131,12 +131,11 @@ public class Seeder
         // Get animal files from the directory
         String animalFilesDirectory = Path.Combine("Seeders/TestData", "Files", "Animals");
         String[] animalFilePaths = Directory.GetFiles(animalFilesDirectory);
-        if (animalFilePaths.Length < 2 * animals.Count)
-            throw new Exception($"Not enough photos in {animalFilesDirectory}. Need {2 * animals.Count}, found {animalFilePaths.Length}.");
 
         List<Main_API.Data.Entities.File> fileEntities = new List<Main_API.Data.Entities.File>();
         Dictionary<String, List<String>> animalPhotoIds = new Dictionary<String, List<String>>();
-        int animalFileIndex = 0;
+        Random random = new Random();
+
         foreach (Animal animal in animals)
         {
             if (!shelterUserIds.TryGetValue(animal.ShelterId, out String ownerId))
@@ -145,15 +144,14 @@ public class Seeder
             List<String> photoIds = new List<String>();
             for (int i = 0; i < 2; i++)
             {
-                // Cycle through files if we run out
-                String filePath = animalFilePaths[animalFileIndex % animalFilePaths.Length];
-                animalFileIndex++;
-
+                // Select a random file
+                String filePath = animalFilePaths[random.Next(animalFilePaths.Length)];
                 String fileName = Path.GetFileName(filePath);
                 String fileId = ObjectId.GenerateNewId().ToString();
                 String extension = Path.GetExtension(fileName).ToLowerInvariant();
                 String mimeType = _conventionService.ToMimeType(extension);
                 String fileType = _conventionService.ToFileType(extension).ToString();
+
                 // Read the file into a stream and create an IFormFile
                 using FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
                 FormFile formFile = new FormFile(stream, 0, stream.Length, null, fileName)
@@ -201,7 +199,6 @@ public class Seeder
             throw new Exception($"Not enough profile pictures in {userFilesDirectory}. Need at least 5, found {userFilePaths.Length}.");
 
         // Select 5 random users
-        Random random = new Random();
         List<User> selectedUsers = [.. users.OrderBy(x => random.Next()).Take(5)];
         int userFileIndex = 0;
 
@@ -246,7 +243,7 @@ public class Seeder
 
             fileEntities.Add(fileEntity);
 
-            // Update the user's profile picture reference (assuming User has a ProfilePictureId field)
+            // Update the user's profile picture reference
             UpdateDefinition<User> update = Builders<User>.Update.Set(u => u.ProfilePhotoId, fileId);
             await usersCollection.UpdateOneAsync(u => u.Id == user.Id, update);
         }

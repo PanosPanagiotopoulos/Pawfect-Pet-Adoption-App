@@ -8,6 +8,7 @@ import { NgIconsModule } from '@ng-icons/core';
 
 import { AddAnimalsComponent } from './add-animals.component';
 import { EditAnimalsComponent } from './edit-animals.component';
+import { ViewAnimalsComponent } from './view-animals.component';
 import { AuthGuard } from 'src/app/common/guards/auth.guard';
 import { FormGuard } from 'src/app/common/guards/form.guard';
 import { Permission } from 'src/app/common/enum/permission.enum';
@@ -23,8 +24,8 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     canDeactivate: [FormGuard],
     data: {
-      permissions: [Permission.CreateAnimals]
-    }
+      permissions: [Permission.CreateAnimals],
+    },
   },
   {
     path: 'edit/:animalId',
@@ -32,13 +33,25 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     canDeactivate: [FormGuard],
     data: {
-      permissions: [Permission.EditAnimals]
-    }
-  }
+      permissions: [Permission.EditAnimals],
+    },
+  },
+  {
+    path: 'view/:animalId',
+    component: ViewAnimalsComponent,
+    canActivate: [AuthGuard],
+    data: {
+      permissions: [Permission.BrowseAnimals],
+    },
+  },
 ];
 
 @NgModule({
-  declarations: [AddAnimalsComponent, EditAnimalsComponent],
+  declarations: [
+    AddAnimalsComponent,
+    EditAnimalsComponent,
+    ViewAnimalsComponent,
+  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -51,6 +64,6 @@ const routes: Routes = [
     FileToUrlPipe,
     RouterModule.forChild(routes),
   ],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AnimalsModule { }
+export class AnimalsModule {}

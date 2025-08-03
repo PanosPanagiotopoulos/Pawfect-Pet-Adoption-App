@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { NotFoundComponent } from './ui/components/not-found/not-found.component';
+import { UnauthorizedComponent } from './ui/pages/unauthorized/unauthorized.component';
 import { AuthGuard } from './common/guards/auth.guard';
 import { Permission } from './common/enum/permission.enum';
 
@@ -34,7 +35,7 @@ export const routes: Routes = [
       ),
     canActivate: [AuthGuard],
     data: {
-      permissions: [Permission.CreateAdoptionApplications]
+      permissions: [Permission.CanViewAdoptionApplications]
     }
   },
   {
@@ -45,7 +46,7 @@ export const routes: Routes = [
       ),
     canActivate: [AuthGuard],
     data: {
-      permissions: [Permission.BrowseUsers]
+      permissions: [Permission.CanViewUsers, Permission.CanViewShelters]
     }
   },
   {
@@ -56,12 +57,16 @@ export const routes: Routes = [
       ),
     canActivate: [AuthGuard],
     data: {
-      permissions: [Permission.CreateAnimals]
+      permissions: [Permission.CanViewAnimals]
     }
   },
   {
     path: '404',
     component: NotFoundComponent
+  },
+  {
+    path: 'unauthorized',
+    component: UnauthorizedComponent,
   },
   {
     path: '**',

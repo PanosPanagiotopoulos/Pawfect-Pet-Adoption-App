@@ -55,6 +55,20 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         const failedRequestUrl = request.url.split('?')[0];
         const currentRoute = window.location.pathname;
+        
+        // Handle 403 Forbidden errors - redirect to unauthorized page
+        if (error.status === 403 && !this.excludedRoutes.includes(currentRoute)) {
+          const attemptedUrl = window.location.pathname + window.location.search + window.location.hash;
+          this.router.navigate(['/unauthorized'], {
+            queryParams: {
+              message: 'You do not have permission to access this resource.',
+              returnUrl: attemptedUrl
+            }
+          });
+          return throwError(() => error);
+        }
+
+        // Handle 401 Unauthorized errors
         if (
           error.status !== 401 ||
           failedRequestUrl.includes('/auth/refresh') ||

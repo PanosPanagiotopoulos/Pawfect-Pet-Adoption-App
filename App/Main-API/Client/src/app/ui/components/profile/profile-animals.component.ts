@@ -238,14 +238,28 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onCardClick(animal: Animal) {
-    if (this.canEditAnimals) {
+    // Check if current user is the owner of this animal's shelter
+    if (this.canEditAnimals && this.isOwnerOfAnimal(animal)) {
       this.router.navigate(['/animals/edit', animal.id]);
+    } else {
+      // External users or non-owners go to view page
+      this.router.navigate(['/animals/view', animal.id]);
     }
+  }
+
+  private isOwnerOfAnimal(animal: Animal): boolean {
+    // Check if the current shelter ID matches the animal's shelter ID
+    return this.shelterId === animal.shelter?.id;
   }
 
   onAddAnimalClick() {
     // Navigate to add animals page
     this.router.navigate(['/animals/new']);
+  }
+
+  canAddAnimals(): boolean {
+    // Only allow adding animals if user can edit animals and has a shelter
+    return this.canEditAnimals && !!this.shelterId;
   }
 
   onPageSizeChange(event: Event) {

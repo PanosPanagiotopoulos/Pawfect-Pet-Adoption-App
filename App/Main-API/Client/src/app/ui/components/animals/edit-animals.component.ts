@@ -18,7 +18,6 @@ import { LogService } from 'src/app/common/services/log.service';
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
 import { SnackbarService } from 'src/app/common/services/snackbar.service';
 import { AuthService } from 'src/app/services/auth.service';
-import { ShelterService } from 'src/app/services/shelter.service';
 
 import {
   Animal,
@@ -138,10 +137,10 @@ export class EditAnimalsComponent
     private snackbarService: SnackbarService,
     private cdr: ChangeDetectorRef,
     private authService: AuthService,
-    private shelterService: ShelterService,
     private dialog: MatDialog
   ) {
     this.animalForm = this.createAnimalForm();
+    this.currentUserShelterId = this.authService.getUserShelterId() || undefined;
   }
 
   ngOnInit(): void {
@@ -157,6 +156,30 @@ export class EditAnimalsComponent
         this.loadAnimal();
       } else {
         this.router.navigate(['/404']);
+      }
+    });
+  }
+
+  private checkEditPermissions(): void {
+    // Check if user has permission to edit animals
+    if (!this.authService.hasPermission(Permission.EditAnimals)) {
+      this.navigateToUnauthorized();
+      return;
+    }
+
+    // Check if user owns this animal's shelter
+    if (this.animal && this.currentUserShelterId && 
+        this.animal.shelter?.id !== this.currentUserShelterId) {
+      this.navigateToUnauthorized();
+      return;
+    }
+  }
+
+  private navigateToUnauthorized(): void {
+    this.router.navigate(['/unauthorized'], {
+      queryParams: {
+        message: 'You do not have permission to edit this animal',
+        returnUrl: `/animals/view/${this.animalId}`
       }
     });
   }
@@ -209,32 +232,7 @@ export class EditAnimalsComponent
       },
     });
 
-    // Load current user's shelter information
-    const shelterSub = this.shelterService
-      .getMe([nameof<Shelter>((x) => x.id)])
-      .subscribe({
-        next: (shelter) => {
-          this.currentUserShelterId = shelter.id;
-          this.isLoadingDeletePermission = false;
-          // Check if we can finish loading
-          if (this.animal) {
-            this.isLoading = false;
-          }
-          this.cdr.markForCheck();
-        },
-        error: (err) => {
-          // Silently handle error - user might not be a shelter
-          console.warn('Failed to load current shelter:', err);
-          this.isLoadingDeletePermission = false;
-          // Check if we can finish loading
-          if (this.animal) {
-            this.isLoading = false;
-          }
-          this.cdr.markForCheck();
-        },
-      });
-
-    this.subscriptions.push(loadSub, shelterSub);
+    this.subscriptions.push(loadSub);
   }
 
   loadAnimal(): void {
@@ -286,6 +284,10 @@ export class EditAnimalsComponent
       .subscribe({
         next: (animal) => {
           this.animal = animal;
+          
+          // Check permissions after loading animal data
+          this.checkEditPermissions();
+          
           this.populateForm(animal);
 
           // Load breeds for the animal type

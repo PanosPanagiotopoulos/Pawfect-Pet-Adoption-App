@@ -51,10 +51,6 @@ namespace Main_API.Controllers
             _queryFactory = queryFactory;
         }
 
-        /// <summary>
-        /// Persist an animal.
-        /// </summary>
-        /// // TODO: How to handle case that someone spams files since not authorized? 
         [HttpPost("persist/temporary/many")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> PersistBatchTemporarily()
@@ -71,27 +67,6 @@ namespace Main_API.Controllers
             return Ok(filesPersisted);
         }
 
-        /// <summary>
-        /// Persist an animal.
-        /// </summary>
-        [HttpPost("persist")]
-        [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> PersistBatch([FromBody] List<FilePersist> models, [FromQuery] List<String> fields)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            fields = BaseCensor.PrepareFieldsList(fields);
-
-            List<Models.File.File>? files = await _fileService.Persist(models, fields);
-
-            return Ok(files);
-        }
-
-        /// <summary>
-        /// Query ζώων.
-        /// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-        /// </summary>
         [HttpPost("query")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -121,10 +96,6 @@ namespace Main_API.Controllers
             });
 		}
 
-		/// <summary>
-		/// Λήψη ζώου με βάση το ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 500 String
-		/// </summary>
 		[HttpGet("{id}")]
 		[Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
@@ -153,36 +124,16 @@ namespace Main_API.Controllers
             return Ok(model);
 		}
 
-		/// <summary>
-		/// Delete a file by ID.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete")]
-		[Authorize]
+        [HttpPost("delete/{id}")]
+        [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Delete([FromBody] String id)
-		{
-			if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
+        public async Task<IActionResult> Delete([FromRoute] String id)
+        {
+            if (String.IsNullOrEmpty(id) || !ModelState.IsValid) return BadRequest(ModelState);
 
-			await _fileService.Delete(id);
+            await _fileService.Delete(id);
 
-			return Ok();
-		}
-
-		/// <summary>
-		/// Delete multiple files by IDs.
-		/// Επιστρέφει: 200 OK, 400 ValidationProblemDetails, 404 NotFound, 500 String
-		/// </summary>
-		[HttpPost("delete/many")]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
-		{
-			// TODO: Add authorization
-			if (ids == null || ids.Count == 0 || !ModelState.IsValid) return BadRequest(ModelState);
-
-			await _fileService.Delete(ids);
-
-			return Ok();
-		}
+            return Ok();
+        }
 	}
 }
