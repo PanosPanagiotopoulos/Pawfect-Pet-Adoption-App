@@ -1,9 +1,237 @@
 {
   "MongoDbConfig": {
-	"MongoDb": "%{MongoDb}%",
-	"DatabaseName": "%{DatabaseName}%"
-  },
-  "DatabaseSettings": {
-	"DatabaseName": "%{DatabaseName}%"
+    "MongoDb": "%{MongoDb}%",
+    "DatabaseName": "%{DatabaseName}%",
+    "IndexSettings": {
+      "AnimalVectorSearchIndexName": "animals_vector_search_index",
+      "AnimalSchemanticIndexName": "animals_text_search_index",
+      "Dims": 1024,
+      "NumCandidates": 5000,
+      "Topk": 8,
+      "VectorScoreThreshold": 0.86,
+      "TextScoreThreshold": 0.45,
+      "SynonymsBatch": [
+        {
+          "Category": "dog_breeds",
+          "Synonyms": [
+            "labrador,lab,labrador retriever,golden lab",
+            "german shepherd,gsd,alsatian,shepherd",
+            "golden retriever,golden,retriever",
+            "bulldog,english bulldog,british bulldog",
+            "french bulldog,frenchie,french bull",
+            "poodle,standard poodle,toy poodle,miniature poodle",
+            "beagle,beagles",
+            "rottweiler,rottie,rott",
+            "siberian husky,husky,sibe",
+            "chihuahua,chi,chihuahuas",
+            "dachshund,wiener dog,sausage dog,doxie",
+            "boxer,boxers",
+            "border collie,collie,bc",
+            "australian shepherd,aussie,australian",
+            "cocker spaniel,spaniel,cocker",
+            "mastiff,english mastiff,bull mastiff",
+            "great dane,dane,great danes",
+            "pit bull,pitbull,american pit bull,bully",
+            "jack russell,russell terrier,jrt",
+            "yorkshire terrier,yorkie,york"
+          ]
+        },
+        {
+          "Category": "cat_breeds",
+          "Synonyms": [
+            "persian,persian cat,long hair",
+            "siamese,siamese cat,seal point",
+            "maine coon,coon,maine",
+            "british shorthair,british,shorthair",
+            "ragdoll,ragdolls",
+            "bengal,bengal cat,bengals",
+            "abyssinian,aby,abys",
+            "russian blue,russian,blue cat",
+            "scottish fold,fold,scottish",
+            "sphynx,hairless,naked cat",
+            "american shorthair,american,domestic shorthair",
+            "norwegian forest,norwegian,forest cat",
+            "birman,birman cat,sacred cat",
+            "oriental,oriental shorthair,oriental cat",
+            "burmese,burmese cat,burma"
+          ]
+        },
+        {
+          "Category": "animal_types",
+          "Synonyms": [
+            "dog,canine,pup,puppy,hound,mutt,pooch,doggy,doggo,pupper",
+            "cat,feline,kitty,kitten,tabby,tom,pussy cat,meow,kitkat",
+            "rabbit,bunny,hare,cottontail,bunnies,rabbits",
+            "bird,avian,feathered,winged,birdie,birds",
+            "hamster,hammy,hamsters,gerbil",
+            "guinea pig,pig,piggy,cavy,guinea",
+            "ferret,ferrets,weasel",
+            "reptile,snake,lizard,turtle,tortoise,gecko",
+            "fish,aquatic,goldfish,tropical fish",
+            "horse,equine,pony,stallion,mare,colt,filly"
+          ]
+        },
+        {
+          "Category": "sizes",
+          "Synonyms": [
+            "tiny,teacup,micro,miniature,mini,pocket,petite",
+            "small,little,compact,toy,dwarf,bantam",
+            "medium,average,moderate,standard,regular,mid-size",
+            "large,big,giant,huge,massive,enormous,xl,extra large",
+            "extra small,xs,very small,itty bitty",
+            "extra large,xxl,jumbo,super large,gigantic"
+          ]
+        },
+        {
+          "Category": "ages",
+          "Synonyms": [
+            "baby,infant,newborn,very young,tiny baby",
+            "young,juvenile,adolescent,teen,teenager,youth",
+            "puppy,pup,puppies,whelp,young dog",
+            "kitten,kitty,young cat,baby cat,kittens",
+            "adult,grown,mature,full grown,fully grown",
+            "senior,elderly,old,aged,geriatric,vintage",
+            "middle aged,mid life,mature adult"
+          ]
+        },
+        {
+          "Category": "personalities",
+          "Synonyms": [
+            "friendly,social,outgoing,gregarious,sociable,people person,extroverted",
+            "playful,energetic,active,lively,spirited,frisky,bouncy,peppy",
+            "calm,quiet,gentle,peaceful,serene,mellow,laid back,chill",
+            "shy,timid,reserved,introverted,withdrawn,bashful,nervous",
+            "aggressive,hostile,mean,violent,dangerous,vicious,ferocious",
+            "loyal,faithful,devoted,dedicated,committed,steadfast,true",
+            "independent,aloof,solitary,lone wolf,self sufficient",
+            "affectionate,loving,cuddly,snuggly,sweet,tender,caring",
+            "intelligent,smart,clever,bright,wise,brilliant,genius",
+            "stubborn,headstrong,willful,determined,persistent,defiant",
+            "lazy,sleepy,lethargic,inactive,couch potato,sedentary",
+            "curious,inquisitive,nosy,investigative,explorer,adventurous",
+            "protective,guard,watchful,alert,vigilant,defensive",
+            "obedient,well behaved,disciplined,trained,good,compliant"
+          ]
+        },
+        {
+          "Category": "health_status",
+          "Synonyms": [
+            "healthy,fit,well,strong,robust,vigorous,good health,perfect health",
+            "sick,ill,unwell,diseased,unhealthy,poor health,ailing",
+            "injured,hurt,wounded,damaged,harmed,trauma,accident",
+            "disabled,handicapped,impaired,special needs,challenged,differently abled",
+            "blind,vision impaired,sight impaired,cannot see,sightless",
+            "deaf,hearing impaired,cannot hear,hard of hearing",
+            "limping,lame,mobility issues,walking problems,leg problems",
+            "recovering,healing,getting better,on the mend,rehabilitation",
+            "chronic,long term,ongoing,persistent,permanent condition",
+            "vaccinated,shots,immunized,protected,up to date",
+            "spayed,neutered,fixed,sterilized,altered,desexed",
+            "pregnant,expecting,gravid,with babies,carrying young"
+          ]
+        },
+        {
+          "Category": "training_behavior",
+          "Synonyms": [
+            "house trained,potty trained,housebroken,toilet trained,clean",
+            "leash trained,walks well,good on leash,heels",
+            "crate trained,kennel trained,comfortable in crate",
+            "socialized,good with people,people friendly,social",
+            "good with kids,child friendly,kid safe,loves children",
+            "good with dogs,dog friendly,plays well with dogs",
+            "good with cats,cat friendly,gets along with cats",
+            "aggressive with dogs,dog aggressive,doesn't like dogs",
+            "food aggressive,resource guarding,protective of food",
+            "separation anxiety,clingy,doesn't like being alone",
+            "destructive,chews,digs,tears up,damages things",
+            "escape artist,runs away,bolts,flight risk,houdini"
+          ]
+        },
+        {
+          "Category": "colors_patterns",
+          "Synonyms": [
+            "black,dark,ebony,jet,midnight,coal,raven,charcoal",
+            "white,light,pale,ivory,snow,cream,off white,pearl",
+            "brown,chocolate,coffee,mocha,tan,chestnut,mahogany,cocoa",
+            "golden,yellow,blonde,honey,amber,wheat,champagne",
+            "red,rust,copper,auburn,ginger,flame,crimson",
+            "gray,grey,silver,ash,slate,steel,pewter,gunmetal",
+            "orange,apricot,peach,coral,salmon,tangerine",
+            "brindle,striped,tiger striped,zebra striped",
+            "spotted,speckled,dappled,freckled,mottled,patched",
+            "solid,single color,one color,uniform,plain",
+            "mixed,multi colored,parti colored,calico,tortoiseshell",
+            "merle,blue merle,red merle,marbled,mottled"
+          ]
+        },
+        {
+          "Category": "coat_types",
+          "Synonyms": [
+            "short hair,short coat,smooth,sleek,short haired",
+            "long hair,long coat,fluffy,furry,long haired,flowing",
+            "medium hair,medium coat,moderate length",
+            "curly,wavy,kinky,coiled,poodle coat,woolly",
+            "straight,flat,smooth,sleek coat",
+            "thick,dense,double coat,heavy coat,winter coat",
+            "thin,sparse,light coat,summer coat,single coat",
+            "wiry,rough,coarse,bristly,harsh texture",
+            "soft,silky,smooth,velvety,plush,luxurious",
+            "shedding,sheds,molting,loses hair,fur everywhere",
+            "non shedding,hypoallergenic,allergy friendly,no shedding"
+          ]
+        },
+        {
+          "Category": "gender_related",
+          "Synonyms": [
+            "male,boy,masculine,tom,buck,boar,stallion,cock,drake",
+            "female,girl,feminine,lady,doe,sow,mare,hen,duck",
+            "neutered male,fixed male,altered male,castrated",
+            "spayed female,fixed female,altered female"
+          ]
+        },
+        {
+          "Category": "adoption_status",
+          "Synonyms": [
+            "available,ready,up for adoption,adoptable,free,looking for home",
+            "pending,hold,reserved,spoken for,application pending",
+            "adopted,taken,found home,placed,no longer available",
+            "foster,fostering,temporary home,foster care,foster family",
+            "rescue,saved,rescued,sanctuary,shelter animal",
+            "stray,found,wandering,homeless,lost,abandoned",
+            "surrender,owner surrender,given up,relinquished"
+          ]
+        },
+        {
+          "Category": "special_needs",
+          "Synonyms": [
+            "special needs,medical needs,requires medication,ongoing care",
+            "senior care,elderly care,geriatric care,old age care",
+            "behavioral issues,needs training,problem behavior",
+            "socialization needed,needs work with people,shy rescue",
+            "medical expenses,vet bills,treatment costs,ongoing medical",
+            "wheelchair,mobility aid,cart,special equipment",
+            "blind care,vision support,sight dog care",
+            "deaf care,hearing support,sign language,visual cues"
+          ]
+        },
+        {
+          "Category": "living_situations",
+          "Synonyms": [
+            "apartment friendly,small space,condo,urban living",
+            "house with yard,fenced yard,big yard,outdoor space",
+            "farm life,rural,country,acreage,open space",
+            "active family,energetic family,outdoorsy,hikers,runners",
+            "quiet home,calm environment,peaceful,low key",
+            "experienced owner,knowledgeable,breed experienced",
+            "first time owner,beginner,new to pets,novice",
+            "single person,individual,one person household",
+            "family with kids,children,youngsters,little ones",
+            "elderly owner,senior citizen,retired,older person",
+            "no other pets,only pet,single pet household",
+            "multi pet,other animals,pack,group,multiple pets"
+          ]
+        }
+      ]
+    }
   }
 }

@@ -279,9 +279,25 @@
     <div class="h-16"></div>
 
     <!-- Saved Animals Grid -->
-    <app-saved-animals-grid
-      [animals]="savedAnimals"
-    ></app-saved-animals-grid>
+    <div *ngIf="savedAnimals.length > 0">
+      <!-- Clear Saved Animals Button -->
+      <div class="flex justify-end mb-6">
+        <button
+          (click)="clearSavedAnimals()"
+          class="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg 
+                 hover:shadow-lg hover:shadow-red-500/20 transition-all duration-300 transform hover:scale-105
+                 flex items-center space-x-2 group text-sm font-medium"
+        >
+          <ng-icon name="lucideTrash2" [size]="'16'" class="text-white"></ng-icon>
+          <span>{{ 'APP.SEARCH.CLEAR_SAVED_ANIMALS' | translate }}</span>
+        </button>
+      </div>
+      
+      <app-saved-animals-grid
+        [animals]="savedAnimals"
+        (removeAnimal)="removeSavedAnimal($event)"
+      ></app-saved-animals-grid>
+    </div>
 
     <!-- Instructions Modal -->
     <app-instructions-modal

@@ -29,10 +29,17 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
           {{ animal.animalType?.name }}
         </div>
 
+        <!-- Remove Button -->
+        <button 
+          (click)="onRemoveClick($event)"
+          class="action-button absolute top-3 right-3 p-2.5 bg-red-500/80 hover:bg-red-500 backdrop-blur-sm rounded-full transition-all duration-300 shadow-lg">
+          <ng-icon name="lucideX" [size]="'22'" class="text-white stroke-[2.5px]"></ng-icon>
+        </button>
+
         <!-- Info Button -->
         <button 
           (click)="onInfoClick()"
-          class="action-button absolute top-3 right-3 p-2.5 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-full transition-all duration-300 shadow-lg">
+          class="action-button absolute top-16 right-3 p-2.5 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full transition-all duration-300 shadow-lg">
           <ng-icon name="lucideInfo" [size]="'22'" class="text-white stroke-[2.5px]"></ng-icon>
         </button>
       </div>
@@ -98,6 +105,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 export class AnimalCardComponent {
   @Input() animal!: Animal;
   @Output() showDetails = new EventEmitter<Animal>();
+  @Output() removeAnimal = new EventEmitter<Animal>();
   
   currentImageUrl: string = '';
   
@@ -130,5 +138,10 @@ export class AnimalCardComponent {
   
   onInfoClick() {
     this.showDetails.emit(this.animal);
+  }
+
+  onRemoveClick(event: Event) {
+    event.stopPropagation();
+    this.removeAnimal.emit(this.animal);
   }
 }

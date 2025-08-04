@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Animal } from 'src/app/models/animal/animal.model';
 import { AnimalCardComponent } from '../animal-card/animal-card.component';
@@ -16,6 +16,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
           *ngFor="let animal of animals"
           [animal]="animal!"
           (showDetails)="openDialog($event)"
+          (removeAnimal)="onRemoveAnimal($event)"
         ></app-animal-card>
       </div>
 
@@ -31,6 +32,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 })
 export class SavedAnimalsGridComponent {
   @Input() animals: Animal[] = [];
+  @Output() removeAnimal = new EventEmitter<Animal>();
   
   isDialogOpen = false;
   selectedAnimal?: Animal;
@@ -46,5 +48,9 @@ export class SavedAnimalsGridComponent {
   closeDialog() {
     this.isDialogOpen = false;
     this.cdr.markForCheck();
+  }
+
+  onRemoveAnimal(animal: Animal) {
+    this.removeAnimal.emit(animal);
   }
 }

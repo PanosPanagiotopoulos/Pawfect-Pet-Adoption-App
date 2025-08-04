@@ -8,23 +8,29 @@ using Main_API.Services.AwsServices;
 using Main_API.Services.Convention;
 using Main_API.Services.MongoServices;
 using System.Threading.Tasks;
+using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices;
+using Pawfect_Pet_Adoption_App_API.Models.Animal;
+using Microsoft.Extensions.AI;
 
 public class Seeder
 {
 	private readonly MongoDbService _dbService;
     private readonly IAwsService _awsService;
     private readonly IConventionService _conventionService;
+    private readonly IEmbeddingService _embeddingService;
 
     public Seeder
     (
         MongoDbService dbService, 
         IAwsService awsService,
-        IConventionService conventionService
+        IConventionService conventionService,
+        IEmbeddingService embeddingService
     )
 	{
 		this._dbService = dbService;
         this._awsService = awsService;
         this._conventionService = conventionService;
+        this._embeddingService = embeddingService;
     }
 
 	public async Task Seed()
@@ -37,7 +43,7 @@ public class Seeder
 		SeedAnimalTypes();
 		SeedBreeds();
         SeedUsersAndShelters();
-        SeedAnimals();
+        await SeedAnimals();
         await SeedFiles();
         SeedAdoptionApplications();
 		SeedConversations();
@@ -261,12 +267,58 @@ public class Seeder
             await animalsCollection.UpdateOneAsync(a => a.Id == animal.Key, update);
         }
     }
-    private void SeedAnimals()
+    private async Task SeedAnimals()
     {
         IMongoCollection<Animal> animalsCollection = this._dbService.GetCollection<Animal>();
         if (animalsCollection.CountDocuments(FilterDefinition<Animal>.Empty) == 0)
         {
+            // Get collections for breed and animal type lookups
+            IMongoCollection<Breed> breedsCollection = this._dbService.GetCollection<Breed>();
+            IMongoCollection<AnimalType> animalTypesCollection = this._dbService.GetCollection<AnimalType>();
+
+            // Load all breeds and animal types into memory for efficient lookup
+            List<Breed> allBreeds = await breedsCollection.Find(FilterDefinition<Breed>.Empty).ToListAsync();
+            List<AnimalType> allAnimalTypes = await animalTypesCollection.Find(FilterDefinition<AnimalType>.Empty).ToListAsync();
+
+            // Create lookup dictionaries for better performance
+            Dictionary<String, Breed> breedLookup = allBreeds.ToDictionary(b => b.Id, b => b);
+            Dictionary<String, AnimalType> animalTypeLookup = allAnimalTypes.ToDictionary(at => at.Id, at => at);
+
             List<Animal> animals = ReadFromJson<Animal>("animals.json");
+
+            foreach (Animal animal in animals)
+            {
+                // Get breed information
+                Breed breed = breedLookup.TryGetValue(animal.BreedId, out Breed foundBreed)
+                    ? foundBreed
+                    : new Breed { Name = "Unknown", Description = "No breed information available" };
+
+                // Get animal type information
+                AnimalType animalType = animalTypeLookup.TryGetValue(animal.AnimalTypeId, out AnimalType foundAnimalType)
+                    ? foundAnimalType
+                    : new AnimalType { Name = "Unknown", Description = "No animal type information available" };
+
+                // Create enhanced embedding with all information
+                String embeddingVal = new AnimalEmbed()
+                {
+                    Description = animal.Description ?? "No description available",
+                    HealthStatus = animal.HealthStatus ?? "Health status unknown",
+                    Age = animal.Age.ToString(),
+                    Gender = animal.Gender.ToString(),
+                    Weight = animal.Weight.ToString(),
+                    BreedName = breed.Name ?? "Unknown breed",
+                    BreedDescription = breed.Description ?? "No breed description available",
+                    AnimalTypeName = animalType.Name ?? "Unknown type",
+                    AnimalTypeDescription = animalType.Description ?? "No animal type description available"
+                }
+                .ToEmbeddingText();
+
+                // Generate embedding with enhanced information
+                Embedding<double> animalEmbed = await _embeddingService.GenerateEmbeddingAsyncDouble(embeddingVal);
+
+                animal.Embedding = animalEmbed.Vector.ToArray() ?? [];
+            }
+
             animalsCollection.InsertMany(animals);
         }
     }

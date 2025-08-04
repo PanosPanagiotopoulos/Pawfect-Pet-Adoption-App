@@ -405,7 +405,8 @@
       "NO_PETS_FOUND_SUBTITLE": "Let's refine your search for better matches",
       "SEEN_ALL_PETS": "You've explored all available companions",
       "SEEN_ALL_PETS_SUBTITLE": "Try adjusting your preferences for new discoveries",
-      "SHOW_INSTRUCTIONS": "Show me how it works"
+      "SHOW_INSTRUCTIONS": "Show me how it works",
+      "CLEAR_SAVED_ANIMALS": "Clear All Saved"
     },
     "UI_COMPONENTS": {
       "INSTRUCTIONS_MODAL": {
@@ -689,7 +690,6 @@
           "PREVIOUS_IMAGE": "Previous Image",
           "NEXT_IMAGE": "Next Image",
           "NO_IMAGES_UPLOADED": "No images uploaded yet",
-          "NO_FILE_NAME": "Unknown file",
           "NO_FILE_NAME": "Unknown file",
           "VALIDATION": {
             "NAME_REQUIRED": "Animal name is required",

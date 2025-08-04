@@ -2,6 +2,7 @@
 using MongoDB.Driver.Linq;
 using Main_API.Services.AuthenticationServices;
 using Main_API.Services.MongoServices;
+using System.Text.RegularExpressions;
 
 namespace Main_API.Query.Queries
 {
@@ -147,5 +148,9 @@ namespace Main_API.Query.Queries
             // Step 3: Count documents matching the filter
             return await _collection.CountDocumentsAsync(filter);
         }
+
+        #region Helper
+		protected String CleanQuery() => Regex.Replace(Regex.Replace(Query ?? "", @"[^\w\s]", "").ToLowerInvariant().Trim(), @"\s+", " ");
+        #endregion
     }
 }

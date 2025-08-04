@@ -70,8 +70,11 @@
 		/// </value>
 		public AdoptionStatus AdoptionStatus { get; set; }
 
+        [BsonIgnoreIfNull]
+        public double[] Embedding { get; set; }
 
-		public DateTime CreatedAt { get; set; }
+
+        public DateTime CreatedAt { get; set; }
 
 		public DateTime UpdatedAt { get; set; }
 	}

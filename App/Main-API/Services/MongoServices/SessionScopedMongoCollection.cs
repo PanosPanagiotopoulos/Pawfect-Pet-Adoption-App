@@ -1,9 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using MongoDB.Driver;
+﻿using MongoDB.Driver;
 using MongoDB.Bson;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Search;
 
@@ -14,6 +10,16 @@ namespace Main_API.Services.MongoServices
         private readonly IMongoCollection<T> _innerCollection;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        #region Properties
+        public CollectionNamespace CollectionNamespace => _innerCollection.CollectionNamespace;
+        public IMongoDatabase Database => _innerCollection.Database;
+        public IBsonSerializer<T> DocumentSerializer => _innerCollection.DocumentSerializer;
+        public IMongoIndexManager<T> Indexes => _innerCollection.Indexes;
+        public MongoCollectionSettings Settings => _innerCollection.Settings;
+        public IMongoSearchIndexManager SearchIndexes => _innerCollection.SearchIndexes;
+
+        public IMongoCollection<T> InternalCollection { get { return this._innerCollection; } }
+        #endregion
         public SessionScopedMongoCollection(IMongoCollection<T> innerCollection, IHttpContextAccessor httpContextAccessor)
         {
             _innerCollection = innerCollection ?? throw new ArgumentNullException(nameof(innerCollection));
@@ -24,15 +30,6 @@ namespace Main_API.Services.MongoServices
         {
             return _httpContextAccessor.HttpContext?.Items["MongoSession"] as IClientSessionHandle;
         }
-
-        #region Properties
-        public CollectionNamespace CollectionNamespace => _innerCollection.CollectionNamespace;
-        public IMongoDatabase Database => _innerCollection.Database;
-        public IBsonSerializer<T> DocumentSerializer => _innerCollection.DocumentSerializer;
-        public IMongoIndexManager<T> Indexes => _innerCollection.Indexes;
-        public MongoCollectionSettings Settings => _innerCollection.Settings;
-        public IMongoSearchIndexManager SearchIndexes => _innerCollection.SearchIndexes;
-        #endregion
 
         #region Aggregate Methods
         public IAsyncCursor<TResult> Aggregate<TResult>(PipelineDefinition<T, TResult> pipeline, AggregateOptions options = null, CancellationToken cancellationToken = default)

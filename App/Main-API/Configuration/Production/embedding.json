@@ -1,0 +1,7 @@
+{
+  "Embedding": {
+    "ApiKey": "%{EmbeddingApiKey}%",
+    "Model": "mistral-embed",
+    "Dims": "1024"
+  }
+}

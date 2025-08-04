@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-
 using MongoDB.Driver;
 using Main_API.BackgroundTasks.TemporaryFilesCleanupTask.Extensions;
 using Main_API.BackgroundTasks.UnverifiedUserCleanupTask.Extensions;
@@ -11,7 +10,6 @@ using Main_API.Data.Entities.Types.Cache;
 using Main_API.DevTools;
 using Main_API.Middleware;
 using Main_API.Middlewares;
-using Main_API.Models;
 using Main_API.Services.AdoptionApplicationServices.Extention;
 using Main_API.Services.AnimalServices.Extention;
 using Main_API.Services.AnimalTypeServices.Extentions;
@@ -43,6 +41,9 @@ using System.Text;
 using Main_API.BackgroundTasks.RefreshTokensCleanupTask.Extensions;
 using Pawfect_Pet_Adoption_App_API.Middlewares;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.Extentions;
+using Main_API.Services.MongoServices;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
 
 public class Program
 {
@@ -65,7 +66,14 @@ public class Program
 
         WebApplication app = builder.Build();
 
-        if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
+        // Bootsrap MongoDB
+        using (IServiceScope scope = app.Services.CreateScope())
+		{
+			MongoDbService mongoDbService = scope.ServiceProvider.GetRequiredService<MongoDbService>();
+			await mongoDbService.SetupSearchIndexesAsync();
+		}
+
+		//if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
 			SeedData(app);
 
 		Configure(app);
@@ -100,6 +108,7 @@ public class Program
         AddConfigurationFiles(configBuilder, configurationPaths, "profile-fields", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "animals", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "api-keys", env);
+		AddConfigurationFiles(configBuilder, configurationPaths, "embedding", env);
 
 
         // Load environment variables
@@ -129,7 +138,6 @@ public class Program
         String fileName = env.IsDevelopment()
             ? $"{baseFileName}.Development.json"
             : $"{baseFileName}.json";
-
 
 
         foreach (String path in paths)
@@ -188,7 +196,8 @@ public class Program
 		.AddUnverifiedUserCleanupTask(builder.Configuration.GetSection("BackgroundTasks:UnverifiedUserCleanupTask"))
 		.AddTemporaryFilesCleanupTask(builder.Configuration.GetSection("BackgroundTasks:TemporaryFilesCleanupTask"))
         .AddRefreshTokenCleanupTask(builder.Configuration.GetSection("BackgroundTasks:RefreshTokenCleanupTask"))
-        .AddCookiesServices();
+        .AddCookiesServices()
+		.AddEmbeddingServices(builder.Configuration.GetSection("Embedding"));
 
 
         // CORS
@@ -292,7 +301,9 @@ public class Program
 
 	public static void Configure(WebApplication app)
 	{
-		if (app.Environment.IsDevelopment())
+        app.UseCors("Cors");
+
+        if (app.Environment.IsDevelopment())
 		{
 			app.UseSwagger();
 			app.UseSwaggerUI();
@@ -306,8 +317,6 @@ public class Program
 			app.UseDefaultFiles();
 			app.UseStaticFiles();
         }
-
-		app.UseCors("Cors");
 
 		// Authentication
 		app.UseAuthentication();

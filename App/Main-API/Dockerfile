@@ -17,7 +17,7 @@ RUN mkdir -p /static && cp -r ../wwwroot/* /static/
 
 
 ###############  Stage 2 – Build / publish the ASP.NET Core API  ###############
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS server-build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS server-build
 WORKDIR /src
 
 COPY . ./
@@ -29,7 +29,7 @@ RUN dotnet publish "./Main-API.csproj" -c Release -o /app/publish
 
 
 ###############  Stage 3 – Final, lightweight runtime  ###############
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS final
 WORKDIR /app
 
 COPY --from=server-build /app/publish .

@@ -89,7 +89,7 @@ import {
 
 import { AppComponent } from './app.component';
 import { FormLeaveConfirmationDialogComponent } from './common/ui/form-leave-confirmation-dialog.component';
-import { UnauthorizedComponent } from './ui/pages/unauthorized/unauthorized.component';
+import { UnauthorizedComponent } from './ui/components/unauthorized/unauthorized.component';
 import { InstallationConfigurationService } from './common/services/installation-configuration.service';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { UnauthorizedInterceptor } from 'src/app/common/tools/unauthorised.interceptor';

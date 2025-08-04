@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { NotFoundComponent } from './ui/components/not-found/not-found.component';
-import { UnauthorizedComponent } from './ui/pages/unauthorized/unauthorized.component';
+import { UnauthorizedComponent } from './ui/components/unauthorized/unauthorized.component';
 import { AuthGuard } from './common/guards/auth.guard';
 import { Permission } from './common/enum/permission.enum';
 

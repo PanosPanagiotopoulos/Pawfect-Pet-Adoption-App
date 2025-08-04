@@ -12,14 +12,7 @@ import { AdoptionStatus, Animal } from 'src/app/models/animal/animal.model';
 import { Breed } from 'src/app/models/breed/breed.model';
 import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
 import { AnimalLookup } from 'src/app/lookup/animal-lookup';
-import {
-  takeUntil,
-  debounceTime,
-  distinctUntilChanged,
-  tap,
-  finalize,
-  catchError,
-} from 'rxjs/operators';
+import { takeUntil, finalize, catchError } from 'rxjs/operators';
 import { nameof } from 'ts-simple-nameof';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
 import { UtilsService } from 'src/app/common/services/utils.service';
@@ -31,6 +24,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { TranslationService } from 'src/app/common/services/translation.service';
+import { QueryResult } from 'src/app/common/models/query-result';
 
 interface SearchSuggestion {
   text: string;
@@ -66,14 +60,20 @@ export class SearchComponent
   // Pagination related properties
   pageSize = 20;
   currentOffset = 0;
-  loadThreshold = 0.55;
+  loadThreshold = 0.8; // Changed to 80% as requested
   hasMoreToLoad = true;
+  totalAnimalsCount = 0; // Track total count from query response
 
   isInitialLoad = true;
 
   currentAnimalKey: string | null = null;
 
   showInstructionsModal = true;
+
+  // Track all animals that have been seen (saved + non-saved)
+  private allSeenAnimalIds: Set<string> = new Set();
+  private currentSearchQuery = '';
+  private currentFilters: Partial<AnimalLookup> = {};
 
   private readonly STORAGE_KEY = 'savedAnimals';
   private hasHandledInitialQuery = false;
@@ -165,6 +165,14 @@ export class SearchComponent
       const expirationTime = 20 * 60 * 1000; // 20 minutes
       if (now - savedData.timestamp < expirationTime) {
         this.savedAnimals = savedData.savedAnimals || [];
+
+        // Add saved animals to seen list
+        this.savedAnimals.forEach((animal) => {
+          if (animal.id) {
+            this.allSeenAnimalIds.add(animal.id);
+          }
+        });
+
         this.cdr.markForCheck();
       } else {
         this.secureStorage.removeItem(this.STORAGE_KEY);
@@ -177,82 +185,35 @@ export class SearchComponent
       const query = this.searchControl.value || '';
       this.updateQueryParams(query);
 
+      // Reset for new search query
+      this.currentOffset = 0;
+      this.currentSearchQuery = query;
       this.isLoading = true;
       this.isInitialLoad = false;
       this.error = null;
       this.currentIndex = 0;
       this.animals = [];
       this.currentAnimalKey = null;
+      this.hasMoreToLoad = true;
 
-      const lookup: AnimalLookup = {
-        offset: this.currentOffset,
-        pageSize: this.pageSize,
-        excludedIds:
-          this.savedAnimals?.map((animal) => animal.id!) || undefined,
+      // Store current filters for pagination
+      this.currentFilters = {
         adoptionStatuses: [AdoptionStatus.Available, AdoptionStatus.Pending],
-        query: query,
-        fields: [
-          nameof<Animal>((x) => x.id),
-          nameof<Animal>((x) => x.name),
-          nameof<Animal>((x) => x.gender),
-          nameof<Animal>((x) => x.description),
-          [
-            nameof<Animal>((x) => x.attachedPhotos),
-            nameof<File>((x) => x.sourceUrl),
-          ].join('.'),
-          nameof<Animal>((x) => x.adoptionStatus),
-          nameof<Animal>((x) => x.weight),
-          nameof<Animal>((x) => x.age),
-          nameof<Animal>((x) => x.healthStatus),
-          [
-            nameof<Animal>((x) => x.animalType),
-            nameof<AnimalType>((x) => x.name),
-          ].join('.'),
-          [nameof<Animal>((x) => x.breed), nameof<Breed>((x) => x.name)].join(
-            '.'
-          ),
-          [
-            nameof<Animal>((x) => x.shelter),
-            nameof<Shelter>((x) => x.shelterName),
-          ].join('.'),
-        ],
-        sortBy: [],
-        sortDescending: false,
+        // Add other filters here as needed
       };
 
-      this.animalService.queryFreeView(lookup).subscribe({
-        next: (response) => {
-          this.animals = response.items;
-          this.isLoading = false;
-          if (this.animals.length > 0) {
-            this.updateCurrentAnimalKey();
-            setTimeout(() => {
-              if (this.swipeCardContainer?.nativeElement) {
-                const containerRect =
-                  this.swipeCardContainer.nativeElement.getBoundingClientRect();
-                const scrollPosition = containerRect.top - 350;
-                window.scrollTo({
-                  top: scrollPosition,
-                  behavior: 'smooth',
-                });
-              }
-            }, 100);
-          }
-          this.cdr.markForCheck();
-        },
-        error: (error: any) => {
-          this.isLoading = false;
-          this.error = {
-            title: this.translationService.translate(
-              'APP.SEARCH.ERRORS.SEARCH_ERROR_TITLE'
-            ),
-            message: this.translationService.translate(
-              'APP.SEARCH.ERRORS.SEARCH_ERROR_MESSAGE'
-            ),
-          };
-          this.cdr.markForCheck();
-        },
-      });
+      this.loadAnimalsWithCurrentSettings();
+    } else {
+      // Handle form validation errors if needed
+      this.error = {
+        title: this.translationService.translate(
+          'APP.SEARCH.ERRORS.SEARCH_ERROR_TITLE'
+        ),
+        message: this.translationService.translate(
+          'APP.SEARCH.ERRORS.SEARCH_ERROR_MESSAGE'
+        ),
+      };
+      this.cdr.markForCheck();
     }
   }
 
@@ -261,24 +222,23 @@ export class SearchComponent
     this.onSearch();
   }
 
-  loadAnimals(append: boolean = false) {
+  private loadAnimalsWithCurrentSettings(append: boolean = false) {
     if (!this.hasMoreToLoad && append) {
       return;
     }
 
-    if (!append) {
-      this.isLoading = true;
-      this.currentOffset = 1;
-      this.hasMoreToLoad = true;
-      this.error = null;
-    } else {
+    if (append) {
       this.isLoadingMore = true;
     }
+
+    const excludedIds = Array.from(this.allSeenAnimalIds);
 
     const lookup: AnimalLookup = {
       offset: this.currentOffset,
       pageSize: this.pageSize,
-      query: this.searchControl.value || '',
+      query: this.currentSearchQuery,
+      excludedIds: excludedIds.length > 0 ? excludedIds : undefined,
+      ...this.currentFilters,
       fields: [
         nameof<Animal>((x) => x.id),
         nameof<Animal>((x) => x.name),
@@ -322,15 +282,52 @@ export class SearchComponent
           this.cdr.markForCheck();
         })
       )
-      .subscribe((response) => {
+      .subscribe((response: QueryResult<Animal>) => {
+        // Update total count from response
+        this.totalAnimalsCount = response.count || 0;
+
         if (response.items.length < this.pageSize) {
           this.hasMoreToLoad = false;
         }
 
-        this.animals = this.utilsService.combineDistinct(
-          this.animals,
-          response.items
-        );
+        if (append) {
+          this.animals = this.utilsService.combineDistinct(
+            this.animals,
+            response.items
+          );
+        } else {
+          this.animals = response.items;
+          // Add initial animals to seen list
+          response.items.forEach((animal) => {
+            if (animal.id) {
+              this.allSeenAnimalIds.add(animal.id);
+            }
+          });
+
+          if (this.animals.length > 0) {
+            this.updateCurrentAnimalKey();
+            setTimeout(() => {
+              if (this.swipeCardContainer?.nativeElement) {
+                const containerRect =
+                  this.swipeCardContainer.nativeElement.getBoundingClientRect();
+                const scrollPosition = containerRect.top - 350;
+                window.scrollTo({
+                  top: scrollPosition,
+                  behavior: 'smooth',
+                });
+              }
+            }, 100);
+          }
+        }
+
+        // Add new animals to seen list
+        if (append) {
+          response.items.forEach((animal) => {
+            if (animal.id) {
+              this.allSeenAnimalIds.add(animal.id);
+            }
+          });
+        }
 
         this.currentOffset++;
         this.updateCurrentAnimalKey();
@@ -338,8 +335,16 @@ export class SearchComponent
       });
   }
 
+  loadAnimals(append: boolean = false) {
+    this.loadAnimalsWithCurrentSettings(append);
+  }
+
   checkLoadMore() {
-    const viewedPercentage = this.currentIndex / this.animals.length;
+    // Calculate viewed percentage based on total animals count from query response
+    const viewedPercentage =
+      this.totalAnimalsCount > 0
+        ? this.currentIndex / this.totalAnimalsCount
+        : 0;
     if (
       viewedPercentage >= this.loadThreshold &&
       !this.isLoadingMore &&
@@ -353,6 +358,12 @@ export class SearchComponent
     this.savedAnimals = this.utilsService.combineDistinct(this.savedAnimals, [
       animal,
     ]);
+
+    // Add to seen animals list
+    if (animal.id) {
+      this.allSeenAnimalIds.add(animal.id);
+    }
+
     this.currentIndex++;
     this.updateCurrentAnimalKey();
     this.checkLoadMore();
@@ -361,10 +372,18 @@ export class SearchComponent
   }
 
   onSwipeLeft() {
+    const currentAnimal = this.getCurrentAnimal();
+
+    // Add to seen animals list (non-saved)
+    if (currentAnimal?.id) {
+      this.allSeenAnimalIds.add(currentAnimal.id);
+    }
+
     if (this.hasMoreAnimals()) {
       this.currentIndex++;
       this.updateCurrentAnimalKey();
     }
+    this.checkLoadMore();
     this.cdr.markForCheck();
   }
 
@@ -377,14 +396,40 @@ export class SearchComponent
   }
 
   resetSearch() {
-    this.currentOffset = 1;
+    this.currentOffset = 0;
+    this.currentSearchQuery = '';
+    this.currentFilters = {};
+    this.allSeenAnimalIds.clear();
+    this.totalAnimalsCount = 0;
     this.error = null;
     this.currentIndex = 0;
     this.animals = [];
     this.currentAnimalKey = null;
     this.isInitialLoad = true;
+    this.hasMoreToLoad = true;
     this.searchControl.setValue('');
     this.updateQueryParams('');
+    this.cdr.markForCheck();
+  }
+
+  clearSavedAnimals() {
+    this.savedAnimals = [];
+    this.allSeenAnimalIds.clear();
+    this.secureStorage.removeItem(this.STORAGE_KEY);
+    this.cdr.markForCheck();
+  }
+
+  removeSavedAnimal(animalToRemove: Animal) {
+    this.savedAnimals = this.savedAnimals.filter(
+      (animal) => animal.id !== animalToRemove.id
+    );
+
+    // Remove from seen animals list so it can appear again in search
+    if (animalToRemove.id) {
+      this.allSeenAnimalIds.delete(animalToRemove.id);
+    }
+
+    this.saveSavedAnimals();
     this.cdr.markForCheck();
   }
 
