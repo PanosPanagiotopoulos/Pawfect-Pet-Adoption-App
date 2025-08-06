@@ -105,6 +105,7 @@
 			return Ok(
 				new LoggedAccount()
 				{
+                    UserId = user.Id,
 					ShelterId = user.ShelterId,
 					Email = user.Email,
 					Phone = user.Phone,
@@ -174,6 +175,7 @@
 
             return Ok(new LoggedAccount
             {
+                UserId = user.Id,
                 ShelterId = user.ShelterId,
                 Email = user.Email,
                 Phone = user.Phone,
@@ -264,6 +266,7 @@
             // Return LoggedAccount
             return Ok(new LoggedAccount()
             {
+                UserId = user.Id,
                 ShelterId = user.ShelterId,
                 Email = user.Email,
                 Phone = user.Phone,

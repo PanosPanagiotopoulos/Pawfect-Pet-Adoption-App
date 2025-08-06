@@ -26,8 +26,8 @@ import { TranslationService } from 'src/app/common/services/translation.service'
     LocalFileDropAreaComponent,
   ],
   template: `
-    <div class="excel-import-dialog" (click)="clearErrorOnInteraction()">
-      <div class="dialog-header">
+    <div class="excel-import-dialog max-h-[90vh] flex flex-col" (click)="clearErrorOnInteraction()">
+      <div class="dialog-header flex-shrink-0">
         <div class="flex items-center space-x-3">
           <div class="icon-container">
             <ng-icon
@@ -47,7 +47,7 @@ import { TranslationService } from 'src/app/common/services/translation.service'
         </div>
       </div>
 
-      <div class="dialog-content">
+      <div class="dialog-content overflow-y-auto flex-1">
         <!-- Instructions -->
         <div class="instructions-section">
           <h3 class="instructions-title">
@@ -109,7 +109,7 @@ import { TranslationService } from 'src/app/common/services/translation.service'
       </div>
 
       <!-- Dialog Actions -->
-      <div class="dialog-actions">
+      <div class="dialog-actions flex-shrink-0">
         <button
           type="button"
           (click)="onCancel()"
@@ -157,6 +157,7 @@ import { TranslationService } from 'src/app/common/services/translation.service'
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         overflow: hidden;
         animation: slideInScale 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        min-height: 0;
       }
 
       .dialog-header {
@@ -215,6 +216,7 @@ import { TranslationService } from 'src/app/common/services/translation.service'
       .dialog-content {
         padding: 1.5rem 2rem;
         space-y: 1.5rem;
+        min-height: 0;
       }
 
       .instructions-section {
@@ -363,6 +365,25 @@ import { TranslationService } from 'src/app/common/services/translation.service'
           opacity: 1;
           transform: scale(1) translateY(0);
         }
+      }
+
+      /* Custom scrollbar styling */
+      .dialog-content::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .dialog-content::-webkit-scrollbar-track {
+        background: rgba(31, 41, 55, 0.3);
+        border-radius: 3px;
+      }
+
+      .dialog-content::-webkit-scrollbar-thumb {
+        background: rgba(34, 197, 94, 0.5);
+        border-radius: 3px;
+      }
+
+      .dialog-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(34, 197, 94, 0.7);
       }
 
       @media (max-width: 640px) {

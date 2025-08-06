@@ -1,35 +1,38 @@
 <div class="dialog-container">
   <div class="dialog-content">
+    <!-- Decorative top border -->
+    <div class="dialog-border"></div>
+
     <!-- Header -->
     <div class="dialog-header">
       <div class="icon-container">
-        <ng-icon [name]="data.icon || 'lucideCircleAlert'" [size]="'28'" class="warning-icon"></ng-icon>
+        <ng-icon
+          [name]="data.icon || 'lucideCircleAlert'"
+          [size]="'32'"
+          class="warning-icon"
+        ></ng-icon>
       </div>
       <div class="header-text">
         <h2 class="dialog-title">
-          {{ data.title || ('APP.COMMONS.FORM_GUARD.TITLE' | translate) }}
+          {{ data.title || "APP.COMMONS.FORM_GUARD.TITLE" | translate }}
         </h2>
         <p class="dialog-message">
-          {{ data.message || ('APP.COMMONS.FORM_GUARD.MESSAGE' | translate) }}
+          {{ data.message || "APP.COMMONS.FORM_GUARD.MESSAGE" | translate }}
         </p>
       </div>
     </div>
 
     <!-- Actions -->
     <div class="dialog-actions">
-      <button
-        type="button"
-        (click)="onCancel()"
-        class="btn-secondary"
-      >
-        {{ data.cancelText || ('APP.COMMONS.FORM_GUARD.STAY' | translate) }}
+      <button type="button" (click)="onCancel()" class="btn-secondary">
+        {{ data.cancelText || "APP.COMMONS.FORM_GUARD.STAY" | translate }}
       </button>
       <button
         type="button"
         (click)="onConfirm()"
         [class]="data.confirmButtonClass || 'btn-danger'"
       >
-        {{ data.confirmText || ('APP.COMMONS.FORM_GUARD.LEAVE' | translate) }}
+        {{ data.confirmText || "APP.COMMONS.FORM_GUARD.LEAVE" | translate }}
       </button>
     </div>
   </div>

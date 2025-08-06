@@ -73,9 +73,6 @@ namespace Main_API.Services.AnimalServices
         {
             Boolean isUpdate = models.Select(model => model.Id).All(_conventionService.IsValidId);
 
-            if (!await _authorizationService.AuthorizeAsync(Permission.EditAnimals))
-                throw new ForbiddenException("You are not authorized to edit animals", typeof(Data.Entities.Animal), Permission.EditAnimals);
-
             String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
             if (!_conventionService.IsValidId(userShelterId)) throw new ForbiddenException("A non-shelter cannot create animals");
 
@@ -87,9 +84,12 @@ namespace Main_API.Services.AnimalServices
             q.PageSize = models.Count;
             if (isUpdate)
             {
-				q.Ids = models.Select(m => m.Id).ToList();
+                q.Ids = models.Select(m => m.Id).ToList();
 
 				datas = await q.CollectAsync();
+
+                if (!await this.AuthorizeAnimalPersist(models, datas.Select(d => d.ShelterId).ToList()))
+                    throw new ForbiddenException("You are not authorized to edit animals", typeof(Data.Entities.Animal), Permission.EditAnimals);
 
                 if (datas == null || datas.Count != models.Count) throw new NotFoundException("Not all animals found to persist", null, typeof(Data.Entities.Animal));
 
@@ -107,6 +107,9 @@ namespace Main_API.Services.AnimalServices
             }
             else
             {
+                if (!await _authorizationService.AuthorizeAsync(Permission.CreateAnimals))
+                    throw new ForbiddenException("You are not authorized to create animals", typeof(Data.Entities.Animal), Permission.CreateAnimals);
+
                 foreach (AnimalPersist animalPersist in models)
                 {
                     Data.Entities.Animal animal = _mapper.Map<Data.Entities.Animal>(animalPersist);
@@ -144,6 +147,25 @@ namespace Main_API.Services.AnimalServices
             lookup.Fields = censoredFields;
 
 			return await _builderFactory.Builder<AnimalBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields);
+        }
+
+        private async Task<Boolean> AuthorizeAnimalPersist(List<AnimalPersist> models, List<String> shelterIds = null)
+        {
+            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+
+            String shelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
+            if (!_conventionService.IsValidId(shelterId)) throw new ForbiddenException("Cannot delete if not a shelter");
+
+            OwnedResource ownership = new OwnedResource(userId, new OwnedFilterParams(new AnimalLookup()));
+
+            AnimalLookup affiliation = new AnimalLookup();
+            if (shelterId != null)
+                affiliation.ShelterIds = shelterIds;
+
+            AffiliatedResource affiliatedResource = new AffiliatedResource(new AffiliatedFilterParams(affiliation));
+
+            return await _authorizationService.AuthorizeOrOwnedOrAffiliated(_contextBuilder.OwnedFrom(ownership).AffiliatedWith(affiliation).Build(), Permission.EditAnimals);
         }
 
         private async Task PersistFiles(List<String> attachedFilesIds, List<String> currentFileIds)

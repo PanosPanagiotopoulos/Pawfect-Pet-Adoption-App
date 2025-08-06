@@ -73,6 +73,7 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
       'adoptionStatus',
       'age',
       'gender',
+      'shelter.id',
     ],
     sortBy: [],
     sortDescending: true,
@@ -238,16 +239,17 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onCardClick(animal: Animal) {
-    // Check if current user is the owner of this animal's shelter
-    if (this.canEditAnimals && this.isOwnerOfAnimal(animal)) {
-      this.router.navigate(['/animals/edit', animal.id]);
-    } else {
-      // External users or non-owners go to view page
-      this.router.navigate(['/animals/view', animal.id]);
-    }
+    // Always go to view page when clicking the card/row
+    this.router.navigate(['/animals/view', animal.id]);
   }
 
-  private isOwnerOfAnimal(animal: Animal): boolean {
+  onEditClick(animal: Animal, event: Event) {
+    // Stop event propagation to prevent card click
+    event.stopPropagation();
+    this.router.navigate(['/animals/edit', animal.id]);
+  }
+
+  isOwnerOfAnimal(animal: Animal): boolean {
     // Check if the current shelter ID matches the animal's shelter ID
     return this.shelterId === animal.shelter?.id;
   }

@@ -3,23 +3,21 @@
     "External": [
       "Id",
       "FullName",
+      "Email",
+      "CreatedAt",
+      "Roles",
+      "IsVerified",
       "Phone",
-      "Location",
-      "CreatedAt"
+      "Location"
     ],
     "Owner": [
       "Id",
       "Email",
-      "Password",
       "FullName",
-      "Roles",
       "Phone",
       "Location",
-      "AuthProvider",
-      "AuthProviderId",
       "IsVerified",
-      "HasPhoneVerified",
-      "HasEmailVerified",
+      "Roles",
       "CreatedAt",
       "UpdatedAt"
     ]

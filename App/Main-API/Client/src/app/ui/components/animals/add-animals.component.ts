@@ -883,9 +883,14 @@ export class AddAnimalsComponent
   }
 
   hasUnsavedChanges(): boolean {
-    // Check if any form has been touched/modified
+    // Don't show guard dialog if files are currently uploading
+    if (this.isUploadingFiles) {
+      return false;
+    }
+
+    // Check if any form has meaningful changes (only dirty, not just touched)
     return this.animalForms.some(
-      (formData) => formData.form.dirty || formData.form.touched
+      (formData) => formData.form.dirty
     );
   }
 }

@@ -152,7 +152,10 @@ export class HeaderComponent extends BaseComponent {
 
   navigateToLogin(): void {
     if (this.router.url !== '/auth/login') {
-      this.router.navigate(['/auth/login']);
+      const returnUrl = this.router.url;
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: returnUrl }
+      });
     }
   }
 

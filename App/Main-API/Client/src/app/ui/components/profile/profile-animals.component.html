@@ -500,21 +500,35 @@
             </span>
           </div>
         </div>
-        <button
-          mat-fab
-          color="primary"
-          class="absolute bottom-0 left-0 w-full rounded-none rounded-b-2xl z-30 bg-primary-600 text-white border-0 shadow-none py-3 flex items-center justify-center"
-          (click)="$event.stopPropagation(); onCardClick(animal)"
-          [attr.aria-label]="
-            'APP.PROFILE-PAGE.MY_ANIMALS.VIEW_ANIMAL' | translate
-          "
-        >
-          <ng-icon
-            name="lucideEye"
-            class="w-5 h-5"
-            aria-hidden="true"
-          ></ng-icon>
-        </button>
+        <div class="absolute bottom-0 left-0 w-full flex">
+          <button
+            class="flex-1 rounded-none rounded-bl-2xl z-30 bg-primary-600 text-white border-0 shadow-none py-3 flex items-center justify-center hover:bg-primary-700 transition-colors"
+            (click)="$event.stopPropagation(); onCardClick(animal)"
+            [attr.aria-label]="
+              'APP.PROFILE-PAGE.MY_ANIMALS.VIEW_ANIMAL' | translate
+            "
+          >
+            <ng-icon
+              name="lucideEye"
+              class="w-5 h-5"
+              aria-hidden="true"
+            ></ng-icon>
+          </button>
+          <button
+            *ngIf="canEditAnimals || isOwnerOfAnimal(animal)"
+            class="w-12 rounded-none rounded-br-2xl z-30 bg-accent-600 text-white border-0 shadow-none py-3 flex items-center justify-center hover:bg-accent-700 transition-colors border-l border-white/20"
+            (click)="onEditClick(animal, $event)"
+            [attr.aria-label]="
+              'APP.PROFILE-PAGE.MY_ANIMALS.EDIT_ANIMAL' | translate
+            "
+          >
+            <ng-icon
+              name="lucidePencil"
+              class="w-4 h-4"
+              aria-hidden="true"
+            ></ng-icon>
+          </button>
+        </div>
       </div>
     </div>
     <!-- Desktop Table View -->
@@ -546,6 +560,11 @@
               class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
             >
               {{ "APP.PROFILE-PAGE.MY_ANIMALS.STATUS" | translate }}
+            </th>
+            <th
+              class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
+            >
+              {{ "APP.PROFILE-PAGE.MY_ANIMALS.ACTIONS" | translate }}
             </th>
           </tr>
         </thead>
@@ -596,6 +615,37 @@
                     | translate
                 }}</span>
               </span>
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap">
+              <div class="flex items-center gap-2">
+                <button
+                  (click)="onCardClick(animal); $event.stopPropagation()"
+                  class="p-2 text-primary-600 hover:text-primary-800 hover:bg-primary-50 rounded-lg transition-colors"
+                  [attr.aria-label]="
+                    'APP.PROFILE-PAGE.MY_ANIMALS.VIEW_ANIMAL' | translate
+                  "
+                >
+                  <ng-icon
+                    name="lucideEye"
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  ></ng-icon>
+                </button>
+                <button
+                  *ngIf="canEditAnimals || isOwnerOfAnimal(animal)"
+                  (click)="onEditClick(animal, $event)"
+                  class="p-2 text-accent-600 hover:text-accent-800 hover:bg-accent-50 rounded-lg transition-colors"
+                  [attr.aria-label]="
+                    'APP.PROFILE-PAGE.MY_ANIMALS.EDIT_ANIMAL' | translate
+                  "
+                >
+                  <ng-icon
+                    name="lucidePencil"
+                    class="w-4 h-4"
+                    aria-hidden="true"
+                  ></ng-icon>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>

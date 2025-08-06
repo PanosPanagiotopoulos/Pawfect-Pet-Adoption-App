@@ -46,7 +46,7 @@ import { TimezoneService } from 'src/app/common/services/time-zone.service';
         canActivate: [AuthGuard],
         canDeactivate: [FormGuard],
         data: {
-          permissions: [Permission.EditAdoptionApplications],
+          permissions: [Permission.CanViewAdoptionApplications],
         },
       },
       {

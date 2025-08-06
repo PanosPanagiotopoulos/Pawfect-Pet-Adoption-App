@@ -11,7 +11,8 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
   template: `
     <div 
       [@fadeIn]
-      class="relative group overflow-hidden rounded-xl bg-gradient-to-br from-gray-800/95 to-gray-900/95 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-500/10 overflow-x-hidden"
+      (click)="navigateToAnimalView()"
+      class="relative group overflow-hidden rounded-xl bg-gradient-to-br from-gray-800/95 to-gray-900/95 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary-500/10 overflow-x-hidden cursor-pointer"
     >
       <!-- Image -->
       <div class="aspect-video overflow-hidden relative">
@@ -38,7 +39,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
         <!-- Info Button -->
         <button 
-          (click)="onInfoClick()"
+          (click)="onInfoClick($event)"
           class="action-button absolute top-16 right-3 p-2.5 bg-white/30 hover:bg-white/40 backdrop-blur-sm rounded-full transition-all duration-300 shadow-lg">
           <ng-icon name="lucideInfo" [size]="'22'" class="text-white stroke-[2.5px]"></ng-icon>
         </button>
@@ -136,12 +137,17 @@ export class AnimalCardComponent {
     this.router.navigate(['/adopt', this.animal.id]);
   }
   
-  onInfoClick() {
+  onInfoClick(event: Event) {
+    event.stopPropagation();
     this.showDetails.emit(this.animal);
   }
 
   onRemoveClick(event: Event) {
     event.stopPropagation();
     this.removeAnimal.emit(this.animal);
+  }
+
+  navigateToAnimalView() {
+    this.router.navigate(['/animals/view', this.animal.id]);
   }
 }

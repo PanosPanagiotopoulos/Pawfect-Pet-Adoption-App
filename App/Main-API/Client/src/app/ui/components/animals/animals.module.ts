@@ -32,9 +32,6 @@ const routes: Routes = [
     component: EditAnimalsComponent,
     canActivate: [AuthGuard],
     canDeactivate: [FormGuard],
-    data: {
-      permissions: [Permission.EditAnimals],
-    },
   },
   {
     path: 'view/:animalId',

@@ -59,12 +59,12 @@
       {
         "Permission": "EditAnimals",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "Shelter" ]
+        "AffiliatedRoles": []
       },
       {
         "Permission": "DeleteAnimals",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "Shelter" ]
+        "AffiliatedRoles": []
       },
       {
         "Permission": "CanViewAnimalTypes",
@@ -134,12 +134,12 @@
       {
         "Permission": "EditAdoptionApplications",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": [ "User", "Shelter" ]
+        "AffiliatedRoles": [ "Shelter" ]
       },
       {
         "Permission": "DeleteAdoptionApplications",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": []
+        "AffiliatedRoles": [ "Shelter" ]
       },
       {
         "Permission": "CanViewFiles",

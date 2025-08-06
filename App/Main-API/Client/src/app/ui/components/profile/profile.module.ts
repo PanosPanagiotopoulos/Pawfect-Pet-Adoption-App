@@ -32,11 +32,13 @@ import { MatPaginatorIntl } from '@angular/material/paginator';
 import { inject } from '@angular/core';
 import { TranslationService } from 'src/app/common/services/translation.service';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialogModule } from '@angular/material/dialog';
 
 
 import { ProfileAnimalsComponent } from './profile-animals.component';
 import { ProfileAdoptionApplicationsComponent } from './profile-adoption-applications.component';
 import { AuthGuard } from 'src/app/common/guards/auth.guard';
+import { FormGuard } from 'src/app/common/guards/form.guard';
 import { Permission } from 'src/app/common/enum/permission.enum';
 
 @NgModule({
@@ -74,11 +76,13 @@ import { Permission } from 'src/app/common/enum/permission.enum';
     MatMenuModule,
     MatPaginatorModule,
     MatCheckboxModule,
+    MatDialogModule,
     RouterModule.forChild([
       { 
         path: '', 
         component: ProfileComponent,
         canActivate: [AuthGuard],
+        canDeactivate: [FormGuard],
         data: {
           permissions: [Permission.BrowseUsers, Permission.BrowseShelters]
         }
@@ -87,6 +91,7 @@ import { Permission } from 'src/app/common/enum/permission.enum';
         path: ':id', 
         component: ProfileComponent,
         canActivate: [AuthGuard],
+        canDeactivate: [FormGuard],
         data: {
           permissions: [Permission.BrowseUsers, Permission.BrowseShelters]
         }

@@ -28,6 +28,7 @@ import { Subscription } from 'rxjs';
 import { TranslationService } from 'src/app/common/services/translation.service';
 import { Permission } from 'src/app/common/enum/permission.enum';
 import { AuthService } from 'src/app/services/auth.service';
+import { Router } from '@angular/router';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 @Component({
@@ -140,7 +141,8 @@ export class ProfileAdoptionApplicationsComponent
     private errorHandler: ErrorHandlerService,
     private cdr: ChangeDetectorRef,
     public translationService: TranslationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -294,13 +296,23 @@ export class ProfileAdoptionApplicationsComponent
   }
 
   onRowClick(application: AdoptionApplication) {
-    if (this.canEditApplications) {
+    if (this.tabType === 'adoption-applications') {
+      // For user's own applications, navigate directly to edit page
+      this.router.navigate(['/adopt/edit', application.id]);
+    } else if (this.canEditApplications) {
+      // For received applications, emit event to parent (shelter management)
       this.viewDetails.emit(application);
     }
   }
 
   onEditApplication(application: AdoptionApplication) {
-    this.viewDetails.emit(application);
+    if (this.tabType === 'adoption-applications') {
+      // For user's own applications, navigate directly to edit page
+      this.router.navigate(['/adopt/edit', application.id]);
+    } else {
+      // For received applications, emit event to parent (shelter management)
+      this.viewDetails.emit(application);
+    }
   }
 
   toggleFilterPanel() {

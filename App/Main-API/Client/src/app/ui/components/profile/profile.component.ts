@@ -20,6 +20,7 @@ import { BehaviorSubject } from 'rxjs';
 import { nameof } from 'ts-simple-nameof';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CustomValidators } from 'src/app/ui/components/auth/validators/custom.validators';
+import { CanComponentDeactivate } from 'src/app/common/guards/form.guard';
 import {
   ProfilePhotoDialogComponent,
   ProfilePhotoDialogData,
@@ -55,7 +56,7 @@ interface ProfileTab {
 })
 export class ProfileComponent
   extends BaseComponent
-  implements OnInit, OnDestroy
+  implements OnInit, OnDestroy, CanComponentDeactivate
 {
   // Profile data
   profileUser: User | null = null;
@@ -68,6 +69,7 @@ export class ProfileComponent
   isEditMode = false;
   isSaving = false;
   editForm: any = null;
+  private formSaved = false;
 
   // Operating hours properties (from shelter-info component)
   days = [
@@ -403,6 +405,7 @@ export class ProfileComponent
     if (!this.profileUser || !this.isOwnProfile) return;
 
     this.isEditMode = true;
+    this.formSaved = false; // Reset form saved state when entering edit mode
     this.createEditForm();
     this.initializeOperatingHours();
     this.cdr.markForCheck();
@@ -528,6 +531,7 @@ export class ProfileComponent
   cancelEdit(): void {
     this.isEditMode = false;
     this.editForm = null;
+    this.formSaved = false; // Reset form saved state
     // Clean up local profile photo preview
     this.clearLocalProfilePhotoPreview();
     this.cdr.markForCheck();
@@ -715,6 +719,7 @@ export class ProfileComponent
         ),
       });
 
+      this.formSaved = true; // Mark form as saved to prevent guard dialog
       this.isEditMode = false;
       this.editForm = null;
       // Clear local preview after successful save
@@ -1333,6 +1338,21 @@ export class ProfileComponent
 
   reloadPage(): void {
     window.location.reload();
+  }
+
+  // CanComponentDeactivate implementation
+  canDeactivate(): boolean {
+    return !this.hasUnsavedChanges();
+  }
+
+  hasUnsavedChanges(): boolean {
+    // Don't show guard dialog if form was saved or not in edit mode
+    if (this.formSaved || !this.isEditMode || !this.editForm) {
+      return false;
+    }
+
+    // Check if the edit form has unsaved changes
+    return this.editForm.dirty;
   }
 
   // Form validation helpers

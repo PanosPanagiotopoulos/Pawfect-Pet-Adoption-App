@@ -186,7 +186,10 @@ export class MobileMenuComponent {
 
   navigateToLogin(): void {
     if (!this.isLoginRoute()) {
-      this.router.navigate(['/auth/login']);
+      const returnUrl = this.router.url;
+      this.router.navigate(['/auth/login'], {
+        queryParams: { returnUrl: returnUrl }
+      });
       this.close.emit();
     }
   }

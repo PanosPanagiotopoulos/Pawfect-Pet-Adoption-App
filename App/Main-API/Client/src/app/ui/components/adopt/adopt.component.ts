@@ -138,140 +138,143 @@ import { Permission } from 'src/app/common/enum/permission.enum';
               </p>
             </div>
 
-            <div class="relative rounded-2xl overflow-hidden group">
-              <div class="absolute inset-0">
+            <!-- Compact Animal Card -->
+            <div
+              class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 overflow-hidden hover:border-primary-500/30 transition-all duration-300"
+            >
+              <div class="relative h-64 overflow-hidden">
                 <img
                   [src]="animal.attachedPhotos?.[0]?.sourceUrl || '/assets/placeholder.jpg'"
                   [alt]="animal.name"
-                  class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110"
+                  class="w-full h-full object-cover transform transition-transform duration-500 hover:scale-110"
                 />
                 <div
-                  class="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/90 to-gray-900/95"
+                  class="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/50 to-transparent"
                 ></div>
-              </div>
 
-              <div class="relative p-6 space-y-6">
-                <div class="flex justify-between items-start">
-                  <div class="flex items-center space-x-3">
-                    <ng-icon
-                      name="lucideHeartPulse"
-                      [size]="'24'"
-                      class="text-primary-400 stroke-[2.5px]"
-                    ></ng-icon>
-                    <h2 class="text-2xl font-bold text-white">
-                      {{ 'APP.ADOPT.PET_DETAILS_TITLE' | translate }}
-                    </h2>
-                  </div>
-                  <button
-                    (click)="openDialog()"
-                    class="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 hover:scale-110"
-                  >
-                    <ng-icon
-                      name="lucideInfo"
-                      [size]="'24'"
-                      class="text-primary-400 stroke-[2.5px]"
-                    ></ng-icon>
-                  </button>
-                </div>
-
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between">
-                    <div>
-                      <h3 class="text-2xl font-semibold text-white">
-                        {{ animal.name }}
-                      </h3>
-                      <div class="flex items-center space-x-2 mt-1">
-                        <ng-icon
-                          name="lucidePawPrint"
-                          [size]="'16'"
-                          class="text-primary-400 stroke-[2.5px]"
-                        ></ng-icon>
-                        <p class="text-gray-400">
-                          {{ animal.animalType?.name }} •
-                          {{ animal.breed?.name }}
-                        </p>
-                      </div>
-                    </div>
+                <!-- Quick Info Overlay -->
+                <div class="absolute bottom-4 left-4 right-4">
+                  <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-2xl font-bold text-white">
+                      {{ animal.name }}
+                    </h3>
                     <div
-                      class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+                      class="w-8 h-8 rounded-full flex items-center justify-center"
                       [ngClass]="{
-                        'bg-blue-500/25': animal.gender === 1,
-                        'bg-pink-500/25': animal.gender === 2
+                        'bg-blue-500/30': animal.gender === 1,
+                        'bg-pink-500/30': animal.gender === 2
                       }"
                     >
                       <ng-icon
                         [name]="
                           animal.gender === 1 ? 'lucideMars' : 'lucideVenus'
                         "
-                        [size]="'20'"
+                        [size]="'16'"
                         [class]="
                           animal.gender === 1
-                            ? 'text-blue-400 stroke-[2.5px]'
-                            : 'text-pink-400 stroke-[2.5px]'
+                            ? 'text-blue-400'
+                            : 'text-pink-400'
                         "
                       ></ng-icon>
                     </div>
                   </div>
+                  <div
+                    class="flex items-center space-x-4 text-sm text-gray-300"
+                  >
+                    <span>{{ animal.animalType?.name }}</span>
+                    <span>•</span>
+                    <span>{{ animal.breed?.name }}</span>
+                    <span>•</span>
+                    <span
+                      >{{ animal.age }}
+                      {{ 'APP.ADOPT.AGE_YEARS' | translate }}</span
+                    >
+                  </div>
+                </div>
 
-                  <div class="grid grid-cols-2 gap-4">
-                    <div
-                      class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center space-x-2 group-hover:bg-white/15 transition-all duration-300"
+                <!-- View Details Button -->
+                <button
+                  (click)="openDialog()"
+                  class="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg transition-all duration-300"
+                >
+                  <ng-icon
+                    name="lucideInfo"
+                    [size]="'20'"
+                    class="text-white"
+                  ></ng-icon>
+                </button>
+              </div>
+
+              <!-- Compact Details -->
+              <div class="p-4">
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                  <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <ng-icon
+                      name="lucideScale"
+                      [size]="'16'"
+                      class="text-primary-400 mx-auto mb-1"
+                    ></ng-icon>
+                    <p class="text-xs text-gray-400">
+                      {{ 'APP.ADOPT.WEIGHT' | translate }}
+                    </p>
+                    <p class="text-sm font-medium text-white">
+                      {{ animal.weight }} kg
+                    </p>
+                  </div>
+                  <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <ng-icon
+                      name="lucideActivity"
+                      [size]="'16'"
+                      class="text-primary-400 mx-auto mb-1"
+                    ></ng-icon>
+                    <p class="text-xs text-gray-400">
+                      {{ 'APP.ADOPT.HEALTH' | translate }}
+                    </p>
+                    <p
+                      class="text-sm font-medium text-white truncate"
+                      [title]="
+                        animal.healthStatus ||
+                        ('APP.ADOPT.GOOD_CONDITION' | translate)
+                      "
                     >
-                      <ng-icon
-                        name="lucideCake"
-                        [size]="'18'"
-                        class="text-primary-400 stroke-[2.5px]"
-                      ></ng-icon>
-                      <span class="text-gray-300"
-                        >{{ animal.age }}
-                        {{ 'APP.ADOPT.AGE_YEARS' | translate }}</span
-                      >
-                    </div>
-                    <div
-                      class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center space-x-2 group-hover:bg-white/15 transition-all duration-300"
-                    >
-                      <ng-icon
-                        name="lucideScale"
-                        [size]="'18'"
-                        class="text-primary-400 stroke-[2.5px]"
-                      ></ng-icon>
-                      <span class="text-gray-300">{{ animal.weight }} kg</span>
-                    </div>
-                    <div
-                      class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center space-x-2 group-hover:bg-white/15 transition-all duration-300"
-                    >
-                      <ng-icon
-                        name="lucideActivity"
-                        [size]="'18'"
-                        class="text-primary-400 stroke-[2.5px]"
-                      ></ng-icon>
-                      <span class="text-gray-300">{{
+                      {{
                         animal.healthStatus ||
                           ('APP.ADOPT.GOOD_CONDITION' | translate)
-                      }}</span>
-                    </div>
-                    <div
-                      class="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-center space-x-2 group-hover:bg-white/15 transition-all duration-300"
-                    >
-                      <ng-icon
-                        name="lucideHeart"
-                        [size]="'18'"
-                        class="text-primary-400 stroke-[2.5px]"
-                      ></ng-icon>
-                      <span class="text-gray-300">{{
-                        getAdoptionStatusLabel(animal.adoptionStatus)
-                      }}</span>
-                    </div>
-                  </div>
-
-                  <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                    <p class="text-gray-300 text-sm leading-relaxed">
-                      {{
-                        animal.description ||
-                          ('APP.ADOPT.NO_DESCRIPTION' | translate)
+                          | slice : 0 : 8
+                      }}{{
+                        (animal.healthStatus?.length || 0) > 8 ? '...' : ''
                       }}
                     </p>
                   </div>
+                  <div class="text-center p-3 bg-white/5 rounded-lg">
+                    <ng-icon
+                      name="lucideHeart"
+                      [size]="'16'"
+                      class="text-primary-400 mx-auto mb-1"
+                    ></ng-icon>
+                    <p class="text-xs text-gray-400">
+                      {{ 'APP.ADOPT.STATUS' | translate }}
+                    </p>
+                    <p class="text-sm font-medium text-white">
+                      {{ getAdoptionStatusLabel(animal.adoptionStatus) }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Description Preview -->
+                <div
+                  class="bg-white/5 rounded-lg p-3"
+                  *ngIf="animal.description"
+                >
+                  <p class="text-sm text-gray-300 line-clamp-2">
+                    {{ animal.description }}
+                  </p>
+                  <button
+                    (click)="openDialog()"
+                    class="text-xs text-primary-400 hover:text-primary-300 mt-1 transition-colors"
+                  >
+                    {{ 'APP.ADOPT.READ_MORE' | translate }}
+                  </button>
                 </div>
               </div>
             </div>
@@ -447,6 +450,7 @@ import { Permission } from 'src/app/common/enum/permission.enum';
                 [isDeletingApplication]="isDeletingApplication"
                 (applicationSubmitted)="onApplicationSubmitted($event)"
                 (deleteRequested)="showDeleteConfirmation()"
+                (fileUploadStateChange)="onFileUploadStateChange($event)"
               ></app-adoption-form>
             </div>
           </div>
@@ -489,6 +493,16 @@ import { Permission } from 'src/app/common/enum/permission.enum';
       ]),
     ]),
   ],
+  styles: [
+    `
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    `,
+  ],
 })
 export class AdoptComponent
   extends BaseComponent
@@ -502,10 +516,12 @@ export class AdoptComponent
   isShelterInfoOpen = true;
   isEditMode = false;
   canEditApplication = false;
+  currentUserId?: string;
   currentUserShelterId?: string;
   isDeletingApplication = false;
   canDeleteApp = false;
   isLoadingDeletePermission = true;
+  isUploadingFiles = false;
   private formSaved = false;
   private formDeleted = false;
 
@@ -543,7 +559,7 @@ export class AdoptComponent
       } else if (animalId) {
         // Check if user is a shelter - shelters cannot access /adopt/new page
         const userShelterId = this.authService.getUserShelterId();
-        if (userShelterId) {
+        if (userShelterId && !this.isEditMode) {
           // Redirect shelters to unauthorized page
           this.router.navigate(['/unauthorized'], {
             queryParams: {
@@ -628,7 +644,15 @@ export class AdoptComponent
       if (this.isEditMode) {
         window.location.reload();
       } else {
-        this.location.back();
+        // Route based on user type: users to adoption-applications, shelters to received-applications
+        const userShelterId = this.authService.getUserShelterId();
+        const targetTab = userShelterId
+          ? 'received-applications'
+          : 'adoption-applications';
+
+        this.router.navigate(['/profile'], {
+          queryParams: { tab: targetTab },
+        });
       }
     }
   }
@@ -671,15 +695,18 @@ export class AdoptComponent
   }
 
   private checkShelterAccess(applicationShelterId?: string): void {
-    if (!applicationShelterId) {
-      this.canEditApplication = false;
-      return;
-    }
-
     const shelterId: string | null = this.authService.getUserShelterId();
+    const userId: string | null = this.authService.getUserId();
 
+    this.currentUserId = userId ?? undefined;
     this.currentUserShelterId = shelterId ?? undefined;
-    this.canEditApplication = shelterId === applicationShelterId;
+
+    // Check if user can edit: either they own the application or they're from the same shelter
+    const isApplicationOwner =
+      this.adoptionApplication?.user?.id === this.currentUserId;
+    const isShelterUser = shelterId === applicationShelterId;
+
+    this.canEditApplication = isApplicationOwner || isShelterUser;
   }
 
   private checkDeletePermission(applicationId: string): void {
@@ -988,8 +1015,67 @@ export class AdoptComponent
       return false;
     }
 
+    // Don't show guard dialog if files are currently uploading
+    if (this.isUploadingFiles) {
+      return false;
+    }
+
     // Check if the adoption form has unsaved changes
-    return this.adoptionFormComponent?.applicationForm?.dirty || false;
+    // Only consider it unsaved if the form is both dirty and has actual content changes
+    const form = this.adoptionFormComponent?.applicationForm;
+    if (!form) {
+      return false;
+    }
+
+    // Check if form is dirty and has meaningful changes
+    if (form.dirty) {
+      const applicationDetails = form.get('applicationDetails')?.value;
+      const attachedFiles = form.get('attachedFiles')?.value;
+
+      // For new applications, check if user has started typing or added files
+      if (!this.isEditMode) {
+        return (
+          (applicationDetails && applicationDetails.trim().length > 0) ||
+          (attachedFiles && attachedFiles.length > 0)
+        );
+      }
+
+      // For edit mode, check if values have actually changed from original
+      if (this.adoptionApplication) {
+        const originalDetails = this.adoptionApplication.applicationDetails || '';
+        const originalFileIds = (this.adoptionApplication.attachedFiles || [])
+          .map(f => f.id || f)
+          .filter(id => id && typeof id === 'string')
+          .sort();
+        const currentFileIds = (attachedFiles || []).sort();
+
+        // Check if application details changed
+        const detailsChanged = (applicationDetails || '').trim() !== originalDetails.trim();
+        
+        // Check if files changed (compare sorted arrays)
+        const filesChanged = JSON.stringify(originalFileIds) !== JSON.stringify(currentFileIds);
+
+        // Check if status changed (for shelter users)
+        let statusChanged = false;
+        if (this.adoptionFormComponent?.canManageApplicationStatus && 
+            this.adoptionFormComponent?.isCurrentUserShelter) {
+          const currentStatus = form.get('status')?.value;
+          const originalStatus = this.adoptionApplication.status;
+          statusChanged = currentStatus !== originalStatus;
+        }
+
+        return detailsChanged || filesChanged || statusChanged;
+      }
+
+      // Fallback: if we don't have original data, consider any dirty state as changes
+      return true;
+    }
+
+    return false;
+  }
+
+  onFileUploadStateChange(isUploading: boolean): void {
+    this.isUploadingFiles = isUploading;
   }
 
   // Permission check for delete - use service call

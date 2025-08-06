@@ -30,9 +30,9 @@ export interface ProfilePhotoDialogResult {
     FileDropAreaComponent
   ],
   template: `
-    <div class="profile-photo-dialog max-w-lg mx-auto bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-xl shadow-2xl overflow-hidden">
+    <div class="profile-photo-dialog max-w-lg mx-auto bg-gradient-to-br from-gray-800 to-gray-900 text-white rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
       <!-- Compact Header -->
-      <div class="dialog-header relative bg-gradient-to-r from-primary-600 to-accent-600 p-4 text-center">
+      <div class="dialog-header relative bg-gradient-to-r from-primary-600 to-accent-600 p-4 text-center flex-shrink-0">
         <div class="absolute inset-0 bg-black/20"></div>
         <div class="relative z-10">
           <div class="w-12 h-12 mx-auto mb-3 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
@@ -47,7 +47,7 @@ export interface ProfilePhotoDialogResult {
         </div>
       </div>
 
-      <div class="dialog-content p-6">
+      <div class="dialog-content p-6 overflow-y-auto flex-1">
         <!-- Compact Photo Preview -->
         <div class="flex justify-center mb-6">
           <div class="relative group">
@@ -109,7 +109,7 @@ export interface ProfilePhotoDialogResult {
       </div>
 
       <!-- Compact action buttons -->
-      <div class="dialog-actions bg-gray-800/90 backdrop-blur-sm p-4 border-t border-gray-600/50">
+      <div class="dialog-actions bg-gray-800/90 backdrop-blur-sm p-4 border-t border-gray-600/50 flex-shrink-0">
         <div class="flex justify-between items-center">
           <div>
             <button 
@@ -163,6 +163,7 @@ export interface ProfilePhotoDialogResult {
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
       border: none;
       animation: slideInUp 0.3s ease-out;
+      min-height: 0;
     }
     
     .dialog-header {
@@ -173,6 +174,7 @@ export interface ProfilePhotoDialogResult {
     
     .dialog-content {
       background: linear-gradient(135deg, rgba(31, 41, 55, 0.98) 0%, rgba(17, 24, 39, 0.98) 100%);
+      min-height: 0;
     }
     
     .dialog-actions {
@@ -233,6 +235,25 @@ export interface ProfilePhotoDialogResult {
     :host ::ng-deep .file-drop-area div {
       color: white !important;
       background: transparent !important;
+    }
+
+    /* Custom scrollbar styling */
+    .dialog-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .dialog-content::-webkit-scrollbar-track {
+      background: rgba(31, 41, 55, 0.3);
+      border-radius: 3px;
+    }
+
+    .dialog-content::-webkit-scrollbar-thumb {
+      background: rgba(124, 58, 237, 0.5);
+      border-radius: 3px;
+    }
+
+    .dialog-content::-webkit-scrollbar-thumb:hover {
+      background: rgba(124, 58, 237, 0.7);
     }
   `]
 })

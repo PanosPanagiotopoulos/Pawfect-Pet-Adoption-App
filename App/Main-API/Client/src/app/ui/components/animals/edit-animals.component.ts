@@ -81,7 +81,6 @@ export class EditAnimalsComponent
   isDeleting = false;
   error: string | null = null;
   currentUserShelterId?: string;
-  isLoadingDeletePermission = true;
   private formSaved = false;
   private formDeleted = false;
 
@@ -140,7 +139,8 @@ export class EditAnimalsComponent
     private dialog: MatDialog
   ) {
     this.animalForm = this.createAnimalForm();
-    this.currentUserShelterId = this.authService.getUserShelterId() || undefined;
+    this.currentUserShelterId =
+      this.authService.getUserShelterId() || undefined;
   }
 
   ngOnInit(): void {
@@ -152,6 +152,8 @@ export class EditAnimalsComponent
       this.formDeleted = false;
 
       if (this.animalId) {
+        // Start loading state
+        this.isLoading = true;
         this.loadInitialData();
         this.loadAnimal();
       } else {
@@ -161,15 +163,13 @@ export class EditAnimalsComponent
   }
 
   private checkEditPermissions(): void {
-    // Check if user has permission to edit animals
-    if (!this.authService.hasPermission(Permission.EditAnimals)) {
-      this.navigateToUnauthorized();
-      return;
-    }
-
     // Check if user owns this animal's shelter
-    if (this.animal && this.currentUserShelterId && 
-        this.animal.shelter?.id !== this.currentUserShelterId) {
+    if (
+      !this.authService.hasPermission(Permission.EditAnimals) &&
+      this.animal &&
+      this.currentUserShelterId &&
+      this.animal.shelter?.id !== this.currentUserShelterId
+    ) {
       this.navigateToUnauthorized();
       return;
     }
@@ -179,8 +179,8 @@ export class EditAnimalsComponent
     this.router.navigate(['/unauthorized'], {
       queryParams: {
         message: 'You do not have permission to edit this animal',
-        returnUrl: `/animals/view/${this.animalId}`
-      }
+        returnUrl: `/animals/view/${this.animalId}`,
+      },
     });
   }
 
@@ -212,9 +212,11 @@ export class EditAnimalsComponent
     const loadSub = this.animalTypeService.query(animalTypesQuery).subscribe({
       next: (data) => {
         this.animalTypes = data.items;
+        // Don't set isLoading = false here, let loadAnimal() handle it
         this.cdr.markForCheck();
       },
       error: (err) => {
+        this.isLoading = false; // Set loading to false on error
         this.snackbarService.showError({
           message: this.translationService.translate(
             'APP.ANIMALS.ADD.LOAD_ANIMAL_TYPES_ERROR'
@@ -284,10 +286,10 @@ export class EditAnimalsComponent
       .subscribe({
         next: (animal) => {
           this.animal = animal;
-          
+
           // Check permissions after loading animal data
           this.checkEditPermissions();
-          
+
           this.populateForm(animal);
 
           // Load breeds for the animal type
@@ -295,10 +297,8 @@ export class EditAnimalsComponent
             this.loadBreedsForAnimalType(animal.animalType.id);
           }
 
-          // Only finish loading when delete permission check is also complete
-          if (!this.isLoadingDeletePermission) {
-            this.isLoading = false;
-          }
+          // Finish loading - no need to wait for delete permission check
+          this.isLoading = false;
           this.cdr.markForCheck();
         },
         error: (err) => {
@@ -325,7 +325,7 @@ export class EditAnimalsComponent
   }
 
   private populateForm(animal: Animal): void {
-    this.animalForm.patchValue({
+    const formData = {
       name: animal.name || '',
       age: animal.age || null,
       gender: animal.gender || null,
@@ -336,7 +336,12 @@ export class EditAnimalsComponent
       breedId: animal.breed?.id || null,
       attachedPhotosIds: animal.attachedPhotos?.map((photo) => photo.id) || [],
       adoptionStatus: animal.adoptionStatus || AdoptionStatus.Available,
-    });
+    };
+
+    console.log('Populating form with data:', formData);
+    console.log('Original animal data:', animal);
+
+    this.animalForm.patchValue(formData);
 
     // Convert existing photos to FileItem format for preview
     if (animal.attachedPhotos && animal.attachedPhotos.length > 0) {
@@ -346,8 +351,26 @@ export class EditAnimalsComponent
       this.currentImageIndex = 0;
     }
 
-    // Mark form as pristine after initial population
-    this.animalForm.markAsPristine();
+    // Use setTimeout to ensure all child components have finished initializing
+    setTimeout(() => {
+      // Mark form as pristine and untouched after initial population
+      this.animalForm.markAsPristine();
+      this.animalForm.markAsUntouched();
+
+      // Log form state after population
+      console.log('Form state after population:');
+      console.log('Form valid:', this.animalForm.valid);
+      console.log('Form errors:', this.animalForm.errors);
+      console.log('Form values:', this.animalForm.value);
+
+      // Check individual controls
+      Object.keys(this.animalForm.controls).forEach((key) => {
+        const control = this.animalForm.get(key);
+        if (control?.invalid) {
+          console.log(`${key} is invalid:`, control.errors);
+        }
+      });
+    }, 0);
   }
 
   private convertFileToFileItem(file: File): FileItem {
@@ -388,7 +411,6 @@ export class EditAnimalsComponent
         [
           Validators.required,
           Validators.minLength(10),
-          Validators.maxLength(1000),
         ],
       ],
       weight: [
@@ -400,7 +422,6 @@ export class EditAnimalsComponent
         [
           Validators.required,
           Validators.minLength(5),
-          Validators.maxLength(500),
         ],
       ],
       animalTypeId: [null, Validators.required],
@@ -630,9 +651,25 @@ export class EditAnimalsComponent
   async saveAnimal(): Promise<void> {
     if (this.isSaving || this.isUploadingFiles) return;
 
-    this.markFormGroupTouched(this.animalForm);
-
+    // Check validity first without marking as touched
     if (this.animalForm.invalid) {
+      // Log validation errors for debugging
+      console.log('Form validation errors:', this.getFormValidationErrors());
+      console.log('Form values:', this.animalForm.value);
+      console.log('Form errors:', this.animalForm.errors);
+
+      // Log individual control errors
+      Object.keys(this.animalForm.controls).forEach((key) => {
+        const control = this.animalForm.get(key);
+        if (control?.invalid) {
+          console.log(`${key} errors:`, control.errors);
+          console.log(`${key} value:`, control.value);
+        }
+      });
+
+      // Only mark as touched if there are validation errors to show them
+      this.markFormGroupTouched(this.animalForm);
+
       this.snackbarService.showError({
         message: this.translationService.translate(
           'APP.ANIMALS.EDIT.VALIDATION_ERROR'
@@ -804,7 +841,13 @@ export class EditAnimalsComponent
       return false;
     }
 
-    return this.animalForm.dirty || this.animalForm.touched;
+    // Don't show guard dialog if files are currently uploading
+    if (this.isUploadingFiles) {
+      return false;
+    }
+
+    // Only consider meaningful changes, not just touched state
+    return this.animalForm.dirty;
   }
 
   // Permission check for delete - check if current shelter owns the animal

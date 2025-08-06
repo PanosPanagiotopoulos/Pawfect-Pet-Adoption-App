@@ -1,12 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../common/services/base-http.service';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
-import {
-  BehaviorSubject,
-  Observable,
-  throwError,
-  shareReplay,
-} from 'rxjs';
+import { BehaviorSubject, Observable, throwError, shareReplay } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { User } from '../models/user/user.model';
 import {
@@ -70,7 +65,7 @@ export class AuthService {
         }
       }),
       catchError((error: any) => {
-        this.clearLoggedAccount();
+        this.clearUserData();
         return throwError(error);
       })
     );
@@ -96,7 +91,7 @@ export class AuthService {
         }
       }),
       catchError((error: any) => {
-        this.clearLoggedAccount();
+        this.clearUserData();
         return throwError(error);
       })
     );
@@ -115,13 +110,13 @@ export class AuthService {
         if (response.isVerified) {
           this.setLoggedAccount(response);
         } else {
-          this.clearLoggedAccount();
+          this.clearUserData();
         }
         // Clear the request after completion
         this.refreshRequest$ = null;
       }),
       catchError((error: any) => {
-        this.clearLoggedAccount();
+        this.clearUserData();
         // Clear the request after error
         this.refreshRequest$ = null;
         return throwError(error);
@@ -137,10 +132,10 @@ export class AuthService {
     const url = `${this.apiBase}/logout`;
     return this.http.post<void>(url, {}).pipe(
       tap(() => {
-        this.clearLoggedAccount();
+        this.clearUserData();
       }),
       catchError((error: any) => {
-        this.clearLoggedAccount();
+        this.clearUserData();
         return throwError(() => error);
       })
     );
@@ -159,13 +154,13 @@ export class AuthService {
         if (response.isVerified) {
           this.setLoggedAccount(response);
         } else {
-          this.clearLoggedAccount();
+          this.clearUserData();
         }
         // Clear the request after completion
         this.meRequest$ = null;
       }),
       catchError((error: any) => {
-        this.clearLoggedAccount();
+        this.clearUserData();
         // Clear the request after error
         this.meRequest$ = null;
         return throwError(error);
@@ -260,6 +255,10 @@ export class AuthService {
     return this.loadLoggedAccount()?.email ?? null;
   }
 
+  getUserId(): string | null {
+    return this.loadLoggedAccount()?.userId ?? null;
+  }
+
   getUserShelterId(): string | null {
     return this.loadLoggedAccount()?.shelterId ?? null;
   }
@@ -288,10 +287,8 @@ export class AuthService {
     this.authStateSubject.next(true);
   }
 
-  private clearLoggedAccount(): void {
-    this.secureStorage.removeItem(
-      this.installationConfiguration.storageAccountKey
-    );
+  private clearUserData(): void {
+    sessionStorage.clear();
     this.authStateSubject.next(false);
   }
 
