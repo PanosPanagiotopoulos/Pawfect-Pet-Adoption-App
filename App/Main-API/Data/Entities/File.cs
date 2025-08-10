@@ -11,7 +11,7 @@ namespace Main_API.Data.Entities
 		[BsonRepresentation(BsonType.ObjectId)]
 		public String Id { get; set; }
 		public String Filename { get; set; }
-		public double Size { get; set; }
+		public Double Size { get; set; }
 
 		[BsonRepresentation(BsonType.ObjectId)]
 		public String OwnerId { get; set; }

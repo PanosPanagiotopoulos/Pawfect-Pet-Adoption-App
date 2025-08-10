@@ -10,6 +10,7 @@ using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
 using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
+using MongoDB.Bson.Serialization;
 
 namespace Main_API.Query.Queries
 {
@@ -51,8 +52,8 @@ namespace Main_API.Query.Queries
 		// Λίστα από καταστάσεις υιοθεσίας για φιλτράρισμα
 		public List<AdoptionStatus>? AdoptionStatuses { get; set; }
         public List<Gender>? Genders { get; set; }
-        public double? AgeFrom { get; set; }
-        public double? AgeTo { get; set; }
+        public Double? AgeFrom { get; set; }
+        public Double? AgeTo { get; set; }
 
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
         public DateTime? CreateFrom { get; set; }
@@ -156,57 +157,68 @@ namespace Main_API.Query.Queries
 				filter &= builder.Lte(animal => animal.CreatedAt, CreatedTill.Value);
 			}
 
-            // Εφαρμόζει φίλτρο για complex search. Εδώ θα επικοινωνεί με τον Search Server για την AI-based αναζήτηση
-            if (!String.IsNullOrWhiteSpace(Query))
-            {
-                FilterDefinition<Data.Entities.Animal> searchFilter = await this.ApplyHybridSearchFilter(builder);
-                filter &= searchFilter;
-            }
-
-
             return await Task.FromResult(filter);
 		}
 
-        private async Task<FilterDefinition<Data.Entities.Animal>> ApplyHybridSearchFilter(FilterDefinitionBuilder<Data.Entities.Animal> builder)
+        public override async Task<FilterDefinition<Data.Entities.Animal>> ApplyAuthorization(FilterDefinition<Data.Entities.Animal> filter)
         {
-            // Get vector search results (70% weight)
-            List<(String id, double score)> vectorResults = await this.PerformVectorSearchAsync();
+            if (_authorise.HasFlag(AuthorizationFlags.Permission))
+                if (await _authorizationService.AuthorizeAsync(Permission.BrowseAnimals))
+                    return filter;
+                else throw new ForbiddenException();
 
-            // Get text search results (30% weight)
-            List<(String id, double score)> textResults = await this.PerformTextSearchAsync();
-
-            // Combine results and get ranked IDs
-            List<String> rankedIds = this.CombineSearchResultsToIds(vectorResults, textResults);
-
-            // If no search results found, return filter that matches nothing
-            if (!rankedIds.Any()) return builder.Empty;
-
-            // Convert ranked IDs to ObjectIds for MongoDB filter
-            List<ObjectId> objectIds = rankedIds
-                .Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty)
-                .Where(id => id != ObjectId.Empty)
-                .ToList();
-
-            // Return filter that matches the ranked IDs
-            return builder.In(nameof(Data.Entities.Animal.Id), objectIds);
+            return await Task.FromResult(filter);
         }
 
-        #region Vector Search Filtering
-        private async Task<List<(String id, double score)>> PerformVectorSearchAsync()
+        #endregion
+
+        public override async Task<List<Data.Entities.Animal>> CollectAsync()
         {
-            // Generate embedding for search query
-            String cleanedQuery = base.CleanQuery();
-
-            double[] queryEmbedding = (await _embeddingService.GenerateEmbeddingAsyncDouble(cleanedQuery)).Vector.ToArray();
-
-            int pageSize = Math.Min(base.PageSize, _config.IndexSettings.Topk);
-            int skip = base.Offset * pageSize;
-
-            int totalNeeded = skip + pageSize;
-            int vectorSearchLimit = Math.Max(totalNeeded, _config.IndexSettings.Topk);
-            // MongoDB Vector Search aggregation pipeline - only return IDs and scores
-            BsonDocument[] pipeline = new[]
+            // If no search query is set, use the base implementation
+            if (String.IsNullOrWhiteSpace(this.Query))
             {
+                return await base.CollectAsync();
+            }
+
+            FilterDefinition<Data.Entities.Animal> filter = await this.ApplyFilters();
+            filter = await this.ApplyAuthorization(filter);
+
+            RenderArgs<Data.Entities.Animal> renderArgs = new RenderArgs<Data.Entities.Animal>(
+                BsonSerializer.SerializerRegistry.GetSerializer<Data.Entities.Animal>(),
+                BsonSerializer.SerializerRegistry
+            );
+
+            BsonDocument filterDoc = filter.Render(renderArgs);
+
+            String query = this.CleanQuery();
+            
+            Task<List<Data.Entities.Animal>> vectorSearchTask = this.AnimalVectorSearch(filterDoc, query);
+            Task<List<Data.Entities.Animal>> semanticSearchTask = this.AnimalSemanticSearch(filterDoc, query);
+
+            List<Data.Entities.Animal>[] results = await Task.WhenAll(vectorSearchTask, semanticSearchTask);
+
+            List<Data.Entities.Animal> vectorResults = results[0];
+            List<Data.Entities.Animal> semanticResults = results[1];
+
+            List<Data.Entities.Animal> combinedResults = this.CombineSearchResults(vectorResults, semanticResults);
+
+            return combinedResults;
+        }
+
+        #region Vector Search
+        private async Task<List<Data.Entities.Animal>> AnimalVectorSearch(BsonDocument baseFilter, String query)
+        {
+            if (String.IsNullOrWhiteSpace(query)) return new List<Data.Entities.Animal>();
+
+            Double[] queryEmbedding = (await _embeddingService.GenerateEmbeddingAsyncDouble(query)).Vector.ToArray();
+
+            int totalNeeded = Math.Max(this.Offset - 1, 0) * this.PageSize + this.PageSize;
+            int vectorSearchLimit = Math.Max(totalNeeded * 2, _config.IndexSettings.Topk);
+
+            // Build vector search aggregation pipeline
+            List<BsonDocument> pipeline = new List<BsonDocument>
+            {
+                // Vector search stage
                 new BsonDocument("$vectorSearch", new BsonDocument
                 {
                     { "index", _config.IndexSettings.AnimalVectorSearchIndexName },
@@ -215,267 +227,273 @@ namespace Main_API.Query.Queries
                     { "numCandidates", _config.IndexSettings.NumCandidates },
                     { "limit", vectorSearchLimit }
                 }),
+        
+                // Add vector score
                 new BsonDocument("$addFields", new BsonDocument
                 {
-                    { "vectorScore", new BsonDocument("$meta", "vectorSearchScore") }
+                    { "searchScore", new BsonDocument("$meta", "vectorSearchScore") }
                 }),
+        
+                // Apply score threshold
                 new BsonDocument("$match", new BsonDocument
                 {
-                    { "vectorScore", new BsonDocument("$gte", _config.IndexSettings.VectorScoreThreshold) }
-                }),
-                new BsonDocument("$sort", new BsonDocument
-                {
-                    { "vectorScore", -1 }
-                }),
-                new BsonDocument("$skip", skip),
-                new BsonDocument("$project", new BsonDocument
-                {
-                    { "_id", 1 },
-                    { "vectorScore", 1 }
+                    { "searchScore", new BsonDocument("$gte", _config.IndexSettings.VectorScoreThreshold) }
                 })
             };
 
-            // Apply internal collection use without the context session because thats how aggregation needs to work
-            SessionScopedMongoCollection<Data.Entities.Animal> scopedCollection = (SessionScopedMongoCollection<Data.Entities.Animal>) _collection;
-            List<BsonDocument> results = await scopedCollection.InternalCollection.Aggregate<BsonDocument>(pipeline).ToListAsync();
+            // Add base filters if any
+            if (baseFilter != null && baseFilter.ElementCount > 0) pipeline.Add(new BsonDocument("$match", baseFilter));
 
-            return results.Select(doc =>
-            {
-                String id = doc["_id"].AsObjectId.ToString();
-                double score = doc.GetValue("vectorScore", 0.0).AsDouble;
+            // Apply sorting, pagination, and projection
+            pipeline = this.ApplySorting(pipeline);
+            pipeline = this.ApplyPagination(pipeline);
+            pipeline = this.ApplyProjection(pipeline);
 
-                return (id, score);
-            }).ToList();
+            // Execute aggregation
+            SessionScopedMongoCollection<Data.Entities.Animal> scopedCollection = (SessionScopedMongoCollection<Data.Entities.Animal>)_collection;
+
+            return await scopedCollection.InternalCollection.Aggregate<Data.Entities.Animal>(pipeline).ToListAsync();
         }
 
         #endregion
 
         #region Schemantic Search Filtering
-
-        private async Task<List<(String id, double score)>> PerformTextSearchAsync()
+        private async Task<List<Data.Entities.Animal>> AnimalSemanticSearch(BsonDocument baseFilter, String query)
         {
-            String cleanedQuery = base.CleanQuery();
+            if (String.IsNullOrWhiteSpace(query)) return new List<Data.Entities.Animal>();
 
-            if (String.IsNullOrWhiteSpace(cleanedQuery)) return new List<(String id, double score)>();
+            // Build semantic search queries
+            List<BsonDocument> searchQueries = await this.BuildSemanticSearchQueries(query);
 
-            // Build comprehensive semantic search queries using config synonyms
-            List<BsonDocument> searchQueries = await this.BuildSemanticSearchQueries(cleanedQuery);
+            if (!searchQueries.Any()) return new List<Data.Entities.Animal>();
 
-            if (!searchQueries.Any()) return new List<(String id, double score)>();
-
-            // Create the search stage with compound queries
-            BsonDocument searchStage = new BsonDocument("$search", new BsonDocument
+            // Build semantic search aggregation pipeline
+            List<BsonDocument> pipeline = new List<BsonDocument>
             {
-                { "index", _config.IndexSettings.AnimalSchemanticIndexName },
-                { "compound", new BsonDocument
-                    {
-                        { "should", new BsonArray(searchQueries) },
-                        { "minimumShouldMatch", 1 }
+                // Semantic search stage
+                new BsonDocument("$search", new BsonDocument
+                {
+                    { "index", _config.IndexSettings.AnimalSchemanticIndexName },
+                    { "compound", new BsonDocument
+                        {
+                            { "should", new BsonArray(searchQueries) },
+                            { "minimumShouldMatch", this.GetMinimumShouldMatch() }
+                        }
                     }
-                }
-            });
+                }),
 
-            int pageSize = Math.Min(base.PageSize, _config.IndexSettings.Topk);
-            int skip = base.Offset * pageSize;
-            BsonDocument[] pipeline = new[]
-            {
-                searchStage,
+                // Add text score
                 new BsonDocument("$addFields", new BsonDocument
                 {
-                    { "textScore", new BsonDocument("$meta", "searchScore") }
+                    { "searchScore", new BsonDocument("$meta", "searchScore") }
                 }),
-                // Apply text score threshold from config
+
+                // Apply score threshold
                 new BsonDocument("$match", new BsonDocument
                 {
-                    { "textScore", new BsonDocument("$gte", _config.IndexSettings.TextScoreThreshold) }
-                }),
-                new BsonDocument("$sort", new BsonDocument
-                {
-                    { "textScore", -1 }
-                }),
-                new BsonDocument("$skip", skip),
-                new BsonDocument("$limit", pageSize),
-                new BsonDocument("$project", new BsonDocument
-                {
-                    { "_id", 1 },
-                    { "textScore", 1 }
-                }),
+                    { "searchScore", new BsonDocument("$gte", _config.IndexSettings.TextScoreThreshold) }
+                })
             };
 
+            // Add base filters if any
+            if (baseFilter != null && baseFilter.ElementCount > 0)
+            {
+                pipeline.Add(new BsonDocument("$match", baseFilter));
+            }
+
+            // Apply sorting, pagination, and projection
+            pipeline = this.ApplySorting(pipeline);
+            pipeline = this.ApplyPagination(pipeline);
+            pipeline = this.ApplyProjection(pipeline);
+
+            // Execute aggregation
             SessionScopedMongoCollection<Data.Entities.Animal> scopedCollection = (SessionScopedMongoCollection<Data.Entities.Animal>)_collection;
 
-            List<BsonDocument> results = await scopedCollection.InternalCollection.Aggregate<BsonDocument>(pipeline).ToListAsync();
-
-            return results.Select(doc =>
-            {
-                String id = doc["_id"].AsObjectId.ToString();
-                double score = doc.GetValue("textScore", 0.0).AsDouble;
-
-                return (id, score);
-            }).ToList();
+            return await scopedCollection.InternalCollection.Aggregate<Data.Entities.Animal>(pipeline).ToListAsync();
         }
 
         private async Task<List<BsonDocument>> BuildSemanticSearchQueries(String query)
         {
             List<BsonDocument> searchQueries = new List<BsonDocument>();
 
-            // Primary semantic search on description with highest boost
-            searchQueries.Add(new BsonDocument("text", new BsonDocument
-            {
-                { "query", query },
-                { "path", new BsonArray {
-                    "description",
-                    "description.english",
-                    "description.standard",
-                    "description.stemmed"
-                } },
-                { "fuzzy", new BsonDocument
-                    {
-                        { "maxEdits", 2 },
-                        { "prefixLength", 1 }
-                    }
-                },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 4.0)) }
-            }));
+            // Detect language and get appropriate paths
+            String detectedLanguage = this.DetectLanguage(query);
+            String[] languagePaths = this.GetLanguageSpecificPaths(detectedLanguage);
 
-            // Name search with corrected field paths
-            searchQueries.Add(new BsonDocument("text", new BsonDocument
-            {
-                { "query", query },
-                { "path", new BsonArray {
-                    "name",
-                    "name.exact",
-                    "name.english"
-                } },
-                { "fuzzy", new BsonDocument { { "maxEdits", 1 } } },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 3.0)) }
-            }));
+            // Primary semantic search on description with configurable fields and boosts
+            this.AddDescriptionSearch(searchQueries, query, languagePaths);
 
-            // Separate autocomplete search for name (uses separate field)
-            searchQueries.Add(new BsonDocument("autocomplete", new BsonDocument
-            {
-                { "query", query },
-                { "path", "nameAutocomplete" },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 2.8)) }
-            }));
+            // Multilingual name search with configurable settings
+            this.AddNameSearch(searchQueries, query, languagePaths);
 
-            // Separate autocomplete search for description
-            searchQueries.Add(new BsonDocument("autocomplete", new BsonDocument
-            {
-                { "query", query },
-                { "path", "descriptionAutocomplete" },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 2.5)) }
-            }));
+            // Configurable autocomplete searches
+            this.AddAutocompleteSearches(searchQueries, query);
 
-            // Healthstatus semantic search
-            searchQueries.Add(new BsonDocument("text", new BsonDocument
-            {
-                { "query", query },
-                { "path", new BsonArray {
-                    "healthStatus",
-                    "healthStatus.exact",
-                    "healthStatus.standard"
-                } },
-                { "fuzzy", new BsonDocument { { "maxEdits", 2 } } },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 2.0)) }
-            }));
+            // Enhanced multilingual health status search
+            this.AddMultilingualHealthStatusSearch(searchQueries, query, detectedLanguage, languagePaths);
 
-            // Numeric searches
+            // Enhanced configurable methods
             this.AddNumericSearchQueries(searchQueries, query);
-
-            // Gender searches (fixed case sensitivity)
-            this.AddGenderSearchQueries(searchQueries, query);
-
-            // Config-based synonym searches
+            this.AddMultilingualGenderSearchQueries(searchQueries, query, detectedLanguage);
+            this.AddMultilingualSynonymSearches(searchQueries, query, detectedLanguage);
             this.AddConfigBasedSynonymSearches(searchQueries, query);
 
             return await Task.FromResult(searchQueries);
         }
 
+        private void AddDescriptionSearch(List<BsonDocument> searchQueries, String query, String[] languagePaths)
+        {
+            FieldMappings fieldMappings = this.GetFieldMappings();
+            FuzzyConfiguration fuzzySettings = this.GetFuzzySettings("description");
+            Double boostValue = this.GetFieldBoostValue("description");
+
+            List<String> descriptionFields = fieldMappings.DescriptionFields ?? new List<String> { "description" };
+            IEnumerable<String> pathsWithLanguage = languagePaths.SelectMany(p => descriptionFields.Select(f => $"{f}.{p}")).Concat(descriptionFields);
+
+            searchQueries.Add(new BsonDocument("text", new BsonDocument
+            {
+                { "query", query },
+                { "path", new BsonArray(pathsWithLanguage) },
+                { "fuzzy", new BsonDocument
+                    {
+                        { "maxEdits", fuzzySettings.MaxEdits },
+                        { "prefixLength", fuzzySettings.PrefixLength },
+                        { "maxExpansions", fuzzySettings.MaxExpansions }
+                    }
+                },
+                { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
+            }));
+        }
+
+        private void AddNameSearch(List<BsonDocument> searchQueries, String query, String[] languagePaths)
+        {
+            FieldMappings fieldMappings = this.GetFieldMappings();
+            FuzzyConfiguration fuzzySettings = this.GetFuzzySettings("name");
+            Double boostValue = this.GetFieldBoostValue("name");
+
+            List<String> nameFields = fieldMappings.NameFields ?? new List<String> { "name" };
+            IEnumerable<String> pathsWithLanguage = languagePaths.SelectMany(p => nameFields.Select(f => $"{f}.{p}")).Concat(nameFields);
+
+            searchQueries.Add(new BsonDocument("text", new BsonDocument
+            {
+                { "query", query },
+                { "path", new BsonArray(pathsWithLanguage) },
+                { "fuzzy", new BsonDocument
+                    {
+                        { "maxEdits", fuzzySettings.MaxEdits },
+                        { "maxExpansions", fuzzySettings.MaxExpansions }
+                    }
+                },
+                { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
+            }));
+        }
+
+        private void AddAutocompleteSearches(List<BsonDocument> searchQueries, String query)
+        {
+            Double nameAutocompleteBoost = this.GetOperatorBoostValue("nameAutocomplete");
+            Double descriptionAutocompleteBoost = this.GetOperatorBoostValue("descriptionAutocomplete");
+
+            searchQueries.Add(new BsonDocument("autocomplete", new BsonDocument
+            {
+                { "query", query },
+                { "path", "nameAutocomplete" },
+                { "score", new BsonDocument("boost", new BsonDocument("value", nameAutocompleteBoost)) }
+            }));
+
+            searchQueries.Add(new BsonDocument("autocomplete", new BsonDocument
+            {
+                { "query", query },
+                { "path", "descriptionAutocomplete" },
+                { "score", new BsonDocument("boost", new BsonDocument("value", descriptionAutocompleteBoost)) }
+            }));
+        }
+
         private void AddNumericSearchQueries(List<BsonDocument> searchQueries, String query)
         {
-            if (double.TryParse(query, out double numericValue))
+            // First check for age-related keywords with multilingual support
+            this.AddAgeKeywordSearches(searchQueries, query);
+
+            // Then handle numeric values with configurable mappings
+            if (Double.TryParse(query, out Double numericValue))
             {
-                // Intelligent age range based on value
-                double ageRange = numericValue switch
+                List<NumericSearchMapping> numericMappings = this.GetNumericSearchMappings();
+                foreach (NumericSearchMapping mapping in numericMappings)
                 {
-                    < 1 => 0.5,      // Very young animals
-                    < 5 => 1.0,      // Young animals
-                    < 10 => 2.0,     // Adult animals
-                    _ => 3.0         // Senior animals
-                };
-
-                searchQueries.Add(new BsonDocument("range", new BsonDocument
-                {
-                    { "path", "age" },
-                    { "gte", Math.Max(0, numericValue - ageRange) },
-                    { "lte", numericValue + ageRange },
-                    { "score", new BsonDocument("boost", new BsonDocument("value", 2.5)) }
-                }));
-
-                // Intelligent weight range based on value
-                double weightRange = numericValue switch
-                {
-                    < 5 => 2.0,      // Very small animals
-                    < 20 => 5.0,     // Small to medium animals
-                    < 50 => 10.0,    // Medium to large animals
-                    _ => 20.0        // Very large animals
-                };
-
-                searchQueries.Add(new BsonDocument("range", new BsonDocument
-                {
-                    { "path", "weight" },
-                    { "gte", Math.Max(0, numericValue - weightRange) },
-                    { "lte", numericValue + weightRange },
-                    { "score", new BsonDocument("boost", new BsonDocument("value", 2.0)) }
-                }));
+                    NumericRange rangeConfig = this.GetRangeForValue(mapping.RangeMappings, numericValue);
+                    if (rangeConfig != null)
+                    {
+                        searchQueries.Add(new BsonDocument("range", new BsonDocument
+                        {
+                            { "path", mapping.FieldName },
+                            { "gte", Math.Max(0, numericValue - rangeConfig.RangeTolerance) },
+                            { "lte", numericValue + rangeConfig.RangeTolerance },
+                            { "score", new BsonDocument("boost", new BsonDocument("value", mapping.BoostValue)) }
+                        }));
+                    }
+                }
             }
         }
 
-        private void AddGenderSearchQueries(List<BsonDocument> searchQueries, String lowerQuery)
+        private void AddMultilingualGenderSearchQueries(List<BsonDocument> searchQueries, String query, String detectedLanguage)
         {
-            // Dynamic gender mapping based on the actual enum values
-            Dictionary<String, Gender[]> genderMappings = new Dictionary<String, Gender[]>
+            MultilingualSettings multilingualSettings = _config.IndexSettings.MultilingualSettings;
+            if (multilingualSettings?.GenderMappings == null)
             {
-                { "male", new[] { Gender.Male } },
-                { "female", new[] { Gender.Female } },
-                { "boy", new[] { Gender.Male } },
-                { "girl", new[] { Gender.Female } },
-                { "tom", new[] { Gender.Male } },         // Male cat
-                { "queen", new[] { Gender.Female } },     // Female cat
-                { "buck", new[] { Gender.Male } },        // Male rabbit
-                { "doe", new[] { Gender.Female } },       // Female rabbit
-                { "stallion", new[] { Gender.Male } },    // Male horse
-                { "mare", new[] { Gender.Female } },      // Female horse
-                { "cock", new[] { Gender.Male } },        // Male bird
-                { "hen", new[] { Gender.Female } },       // Female bird
-                { "masculine", new[] { Gender.Male } },
-                { "feminine", new[] { Gender.Female } }
-            };
+                return;
+            }
 
-            foreach (KeyValuePair<String, Gender[]> mapping in genderMappings)
+            String lowerQuery = query.ToLower();
+            Double boostValue = this.GetFieldBoostValue("gender");
+
+            foreach (GenderMapping genderMapping in multilingualSettings.GenderMappings)
             {
-                if (lowerQuery.Contains(mapping.Key))
+                if (lowerQuery.Contains(genderMapping.Term.ToLower()))
                 {
-                    foreach (Gender gender in mapping.Value)
+                    if (Enum.TryParse<Gender>(genderMapping.Gender, out Gender gender))
                     {
                         // Use both numeric value and String representation for better matching
                         searchQueries.Add(new BsonDocument("text", new BsonDocument
                         {
                             { "query", gender.ToString() },
                             { "path", "gender" },
-                            { "score", new BsonDocument("boost", new BsonDocument("value", 3.5)) }
+                            { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
                         }));
 
-                        // Also search by numeric value in case it's stored as number
                         searchQueries.Add(new BsonDocument("equals", new BsonDocument
                         {
                             { "path", "gender" },
                             { "value", (int)gender },
-                            { "score", new BsonDocument("boost", new BsonDocument("value", 3.5)) }
+                            { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
                         }));
                     }
+                    break;
+                }
+            }
+        }
 
+        private void AddAgeKeywordSearches(List<BsonDocument> searchQueries, String query)
+        {
+            MultilingualSettings multilingualSettings = _config.IndexSettings.MultilingualSettings;
+            if (multilingualSettings?.AgeKeywords == null)
+            {
+                return;
+            }
+
+            String lowerQuery = query.ToLower();
+            String detectedLanguage = this.DetectLanguage(query);
+            Double boostValue = this.GetCategoryBoostValue("ages");
+
+            foreach (AgeKeywordMapping ageKeyword in multilingualSettings.AgeKeywords.Where(a => a.Language == detectedLanguage))
+            {
+                if (lowerQuery.Contains(ageKeyword.Keyword.ToLower()))
+                {
+                    searchQueries.Add(new BsonDocument("range", new BsonDocument
+                    {
+                        { "path", "age" },
+                        { "gte", ageKeyword.MinAge },
+                        { "lte", ageKeyword.MaxAge },
+                        { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
+                    }));
                     break;
                 }
             }
@@ -483,161 +501,311 @@ namespace Main_API.Query.Queries
 
         private void AddConfigBasedSynonymSearches(List<BsonDocument> searchQueries, String query)
         {
+            HashSet<String> processedSynonyms = new HashSet<String>();
 
-            HashSet<String> processedSynonyms = new HashSet<String>(); // Avoid duplicates
-
-            // Process ALL categories, don't exit early
             foreach (IndexSynonyms categoryGroup in _config.IndexSettings.SynonymsBatch)
             {
                 foreach (String synonymGroup in categoryGroup.Synonyms)
                 {
                     String[] synonyms = synonymGroup.Split(',').Select(s => s.Trim().ToLower()).ToArray();
 
-                    // Check if query matches any synonym in this group
                     if (synonyms.Any(synonym => query.Contains(synonym) || this.IsPartialMatch(query, synonym)))
                     {
-                        // Add searches for all synonyms in this group
                         foreach (String synonym in synonyms)
                         {
-                            if (processedSynonyms.Add(synonym)) // Only add if not already processed
+                            if (processedSynonyms.Add(synonym))
                             {
-                                double boostValue = this.GetBoostValueForCategory(categoryGroup.Category);
+                                Double boostValue = this.GetCategoryBoostValue(categoryGroup.Category);
                                 String[] searchPaths = this.GetSearchPathsForCategory(categoryGroup.Category);
+                                FuzzyConfiguration fuzzySettings = this.GetFuzzySettings("synonym");
 
-                                // Add main synonym search
                                 searchQueries.Add(new BsonDocument("text", new BsonDocument
                                 {
                                     { "query", synonym },
                                     { "path", new BsonArray(searchPaths) },
-                                    { "fuzzy", new BsonDocument { { "maxEdits", 1 } } },
+                                    { "fuzzy", new BsonDocument { { "maxEdits", fuzzySettings.MaxEdits } } },
                                     { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
                                 }));
 
-                                // Add exact match variant for important terms
-                                if (this.IsHighValueTerm(synonym, categoryGroup.Category))
+                                if (this.IsHighValueTerm(synonym, categoryGroup.Category) && this.IsPhraseBoosingEnabled())
                                 {
+                                    Double phraseBoosting = this.GetPhraseBoosting();
                                     searchQueries.Add(new BsonDocument("phrase", new BsonDocument
-                                {
-                                    { "query", synonym },
-                                    { "path", searchPaths[0] }, // Use primary path for exact matches
-                                    { "score", new BsonDocument("boost", new BsonDocument("value", boostValue * 1.2)) }
-                                }));
+                                    {
+                                        { "query", synonym },
+                                        { "path", searchPaths[0] },
+                                        { "score", new BsonDocument("boost", new BsonDocument("value", boostValue * phraseBoosting)) }
+                                    }));
                                 }
                             }
                         }
-                        break; // Found match in this synonym group, move to next group
+                        break;
+                    }
+                }
+            }
+        }
+
+        #region Multilingual Helper Methods
+
+        private String DetectLanguage(String query)
+        {
+            if (String.IsNullOrWhiteSpace(query))
+                return this.GetDefaultLanguage();
+
+            MultilingualSettings multilingualSettings = _config.IndexSettings.MultilingualSettings;
+            if (multilingualSettings?.LanguageMappings == null)
+                return this.GetDefaultLanguage();
+
+            foreach (LanguageMapping languageMapping in multilingualSettings.LanguageMappings)
+            {
+                if (languageMapping.UnicodeRanges != null)
+                {
+                    foreach (String range in languageMapping.UnicodeRanges)
+                    {
+                        if (this.ContainsCharactersInRange(query, range))
+                        {
+                            return languageMapping.Language;
+                        }
                     }
                 }
             }
 
-            return;
+            return this.GetDefaultLanguage();
         }
 
-        #endregion
-
-        #region Combine Free-Text Results
-        private List<String> CombineSearchResultsToIds(
-               List<(String id, double score)> vectorResults,
-               List<(String id, double score)> textResults)
+        private Boolean ContainsCharactersInRange(String text, String range)
         {
-            // Handle edge cases
-            if (!vectorResults.Any() && !textResults.Any()) return new List<String>();
+            if (String.IsNullOrWhiteSpace(text) || String.IsNullOrWhiteSpace(range)) return false;
 
-            if (!vectorResults.Any()) return textResults.OrderByDescending(r => r.score).Select(r => r.id).ToList();
+            String[] parts = range.Split('-');
+            if (parts.Length != 2) return false;
 
-            if (!textResults.Any()) return vectorResults.OrderByDescending(r => r.score).Select(r => r.id).ToList();
-
-            // Normalize scores to 0-1 range for fair combination
-            double maxVectorScore = vectorResults.Max(r => r.score);
-            double maxTextScore = textResults.Max(r => r.score);
-
-            Dictionary<String, double> combinedScores = new Dictionary<String, double>();
-
-            // Add vector results with 70% weight
-            foreach ((String id, double score) in vectorResults)
+            if (int.TryParse(parts[0].Replace("U+", ""), System.Globalization.NumberStyles.HexNumber, null, out int start) &&
+                int.TryParse(parts[1].Replace("U+", ""), System.Globalization.NumberStyles.HexNumber, null, out int end))
             {
-                double normalizedScore = maxVectorScore > 0 ? score / maxVectorScore : 0;
-                combinedScores[id] = normalizedScore * 0.7;
-            }
-
-            // Add text results with 30% weight
-            foreach ((String id, double score) in textResults)
-            {
-                double normalizedScore = maxTextScore > 0 ? score / maxTextScore : 0;
-
-                if (combinedScores.ContainsKey(id))
-                {
-                    combinedScores[id] += normalizedScore * 0.3;
-                }
-                else
-                {
-                    combinedScores[id] = normalizedScore * 0.3;
-                }
-            }
-
-            // Return IDs ordered by combined score (highest first)
-            return combinedScores
-                .OrderByDescending(kvp => kvp.Value)
-                .Select(kvp => kvp.Key)
-                .ToList();
-        }
-        #endregion
-
-        private Boolean ContainsAllWords(String query, String[] words)
-        {
-            return words.All(word => query.Contains(word.ToLower()));
-        }
-        private Boolean IsPartialMatch(String query, String synonym)
-        {
-            if (synonym.Contains(" "))
-            {
-                var words = synonym.Split(' ');
-                return words.Any(word => query.Contains(word) && word.Length > 2);
-            }
-            if (synonym.Length > 4)
-            {
-                return query.Contains(synonym.Substring(0, Math.Min(4, synonym.Length)));
+                return text.Any(c => c >= start && c <= end);
             }
 
             return false;
         }
 
-        private Boolean IsHighValueTerm(String synonym, String category)
+        private String[] GetLanguageSpecificPaths(String language)
         {
-            return category.ToLower() switch
+            LanguageMapping languageMapping = _config.IndexSettings.MultilingualSettings?.LanguageMappings?.FirstOrDefault(l => l.Language == language);
+            return languageMapping?.SearchPaths?.ToArray() ?? new[] { language, "standard", "exact" };
+        }
+
+        private void AddMultilingualHealthStatusSearch(List<BsonDocument> searchQueries, String query, String detectedLanguage, String[] languagePaths)
+        {
+            FieldMappings fieldMappings = this.GetFieldMappings();
+            FuzzyConfiguration fuzzySettings = this.GetFuzzySettings("healthStatus");
+            Double boostValue = this.GetFieldBoostValue("healthStatus");
+
+            List<String> healthStatusFields = fieldMappings.HealthStatusFields ?? new List<String> { "healthStatus" };
+            IEnumerable<String> pathsWithLanguage = languagePaths.SelectMany(p => healthStatusFields.Select(f => $"{f}.{p}")).Concat(healthStatusFields);
+
+            searchQueries.Add(new BsonDocument("text", new BsonDocument
             {
-                "dog_breeds" or "cat_breeds" => true,
-                "animal_types" => true,
-                "health_status" => synonym.Length > 4, // Only longer health terms
-                "adoption_status" => true,
-                _ => false
+                { "query", query },
+                { "path", new BsonArray(pathsWithLanguage) },
+                { "fuzzy", new BsonDocument
+                    {
+                        { "maxEdits", fuzzySettings.MaxEdits },
+                        { "maxExpansions", fuzzySettings.MaxExpansions }
+                    }
+                },
+                { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
+            }));
+
+            if (query.Contains(" ") && this.IsPhraseBoosingEnabled())
+            {
+                Double phraseBoosting = this.GetPhraseBoosting();
+                IEnumerable<String> allFields = pathsWithLanguage.Concat(languagePaths.SelectMany(p => fieldMappings.DescriptionFields.Select(f => $"{f}.{p}")));
+
+                searchQueries.Add(new BsonDocument("phrase", new BsonDocument
+                {
+                    { "query", query },
+                    { "path", new BsonArray(allFields) },
+                    { "slop", 2 },
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostValue * phraseBoosting)) }
+                }));
+            }
+
+            this.AddConfigBasedHealthStatusMappings(searchQueries, query, detectedLanguage, languagePaths);
+        }
+
+        private void AddConfigBasedHealthStatusMappings(List<BsonDocument> searchQueries, String query, String detectedLanguage, String[] languagePaths)
+        {
+            MultilingualSettings multilingualSettings = _config.IndexSettings.MultilingualSettings;
+            if (multilingualSettings?.HealthStatusMappings == null) return;
+
+            String lowerQuery = query.ToLower();
+            FieldMappings fieldMappings = this.GetFieldMappings();
+            Double boostValue = this.GetCategoryBoostValue("health_status");
+            FuzzyConfiguration fuzzySettings = this.GetFuzzySettings("healthMapping");
+
+            foreach (HealthStatusMapping healthMapping in multilingualSettings.HealthStatusMappings.Where(h => h.Language == detectedLanguage))
+            {
+                if (lowerQuery.Contains(healthMapping.Term.ToLower()))
+                {
+                    foreach (String englishEquivalent in healthMapping.EnglishEquivalents)
+                    {
+                        IEnumerable<String> allHealthPaths = languagePaths.SelectMany(p => fieldMappings.HealthStatusFields.Select(f => $"{f}.{p}"))
+                            .Concat(languagePaths.SelectMany(p => fieldMappings.DescriptionFields.Select(f => $"{f}.{p}")));
+
+                        searchQueries.Add(new BsonDocument("text", new BsonDocument
+                        {
+                            { "query", englishEquivalent },
+                            { "path", new BsonArray(allHealthPaths) },
+                            { "fuzzy", new BsonDocument { { "maxEdits", fuzzySettings.MaxEdits } } },
+                            { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
+                        }));
+                    }
+                    break;
+                }
+            }
+        }
+
+        private void AddMultilingualSynonymSearches(List<BsonDocument> searchQueries, String query, String detectedLanguage)
+        {
+            MultilingualSettings multilingualSettings = _config.IndexSettings.MultilingualSettings;
+            if (multilingualSettings?.MultilingualSynonyms == null) return;
+
+            String lowerQuery = query.ToLower();
+            HashSet<String> processedSynonyms = new HashSet<String>();
+
+            foreach (MultilingualSynonym synonymGroup in multilingualSettings.MultilingualSynonyms.Where(s => s.Language == detectedLanguage))
+            {
+                foreach (String term in synonymGroup.Terms)
+                {
+                    if (lowerQuery.Contains(term.ToLower()))
+                    {
+                        foreach (String englishEquivalent in synonymGroup.EnglishEquivalents)
+                        {
+                            if (processedSynonyms.Add(englishEquivalent))
+                            {
+                                Double boostValue = this.GetCategoryBoostValue(synonymGroup.Category);
+                                String[] searchPaths = this.GetSearchPathsForCategory(synonymGroup.Category);
+                                FuzzyConfiguration fuzzySettings = this.GetFuzzySettings("multilingualSynonym");
+
+                                searchQueries.Add(new BsonDocument("text", new BsonDocument
+                        {
+                            { "query", englishEquivalent },
+                            { "path", new BsonArray(searchPaths) },
+                            { "fuzzy", new BsonDocument { { "maxEdits", fuzzySettings.MaxEdits } } },
+                            { "score", new BsonDocument("boost", new BsonDocument("value", boostValue)) }
+                        }));
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Configuration Helper Methods
+
+        private String GetDefaultLanguage()
+        {
+            return _config.IndexSettings.MultilingualSettings?.DefaultLanguage ?? "english";
+        }
+
+        private String GetDefaultAnalyzer()
+        {
+            return _config.IndexSettings.MultilingualSettings?.DefaultAnalyzer ?? "lucene.standard";
+        }
+
+        private int GetMinimumShouldMatch()
+        {
+            return _config.IndexSettings.SearchSettings?.CombinationSettings?.MinimumShouldMatch ?? 1;
+        }
+
+        private FuzzyConfiguration GetFuzzySettings(String context)
+        {
+            FuzzySettings searchSettings = _config.IndexSettings.SearchSettings?.FuzzySettings;
+            if (searchSettings?.FieldSpecificSettings?.ContainsKey(context) == true)
+            {
+                return searchSettings.FieldSpecificSettings[context];
+            }
+
+            return new FuzzyConfiguration
+            {
+                MaxEdits = searchSettings?.DefaultMaxEdits ?? 2,
+                PrefixLength = searchSettings?.DefaultPrefixLength ?? 1,
+                MaxExpansions = searchSettings?.DefaultMaxExpansions ?? 50
             };
         }
 
-        private double GetBoostValueForCategory(String category)
+        private Double GetFieldBoostValue(String fieldName)
         {
-            return category.ToLower() switch
+            return _config.IndexSettings.SearchSettings?.BoostSettings?.FieldBoosts?.GetValueOrDefault(fieldName) ?? 2.0;
+        }
+
+        private Double GetCategoryBoostValue(String category)
+        {
+            return _config.IndexSettings.SearchSettings?.BoostSettings?.CategoryBoosts?.GetValueOrDefault(category) ?? 2.0;
+        }
+
+        private Double GetOperatorBoostValue(String operatorName)
+        {
+            return _config.IndexSettings.SearchSettings?.BoostSettings?.OperatorBoosts?.GetValueOrDefault(operatorName) ?? 2.0;
+        }
+
+        private FieldMappings GetFieldMappings()
+        {
+            return _config.IndexSettings.SearchSettings?.FieldMappings ?? new FieldMappings
             {
-                "dog_breeds" => 3.2,
-                "cat_breeds" => 3.2,
-                "animal_types" => 3.8,
-                "personalities" => 2.5,
-                "health_status" => 2.8,
-                "training_behavior" => 2.3,
-                "colors_patterns" => 1.5,
-                "coat_types" => 1.4,
-                "sizes" => 1.8,
-                "ages" => 2.2,
-                "adoption_status" => 2.9,
-                "special_needs" => 2.6,
-                "living_situations" => 1.9,
-                "gender_related" => 3.5,
-                _ => 1.5 // Default boost for unknown categories
+                DescriptionFields = new List<String> { "description" },
+                NameFields = new List<String> { "name" },
+                HealthStatusFields = new List<String> { "healthStatus" },
+                CategoryFieldMappings = new Dictionary<String, List<String>>()
             };
+        }
+
+        private List<NumericSearchMapping> GetNumericSearchMappings()
+        {
+            return _config.IndexSettings.MultilingualSettings?.NumericSearchMappings ?? new List<NumericSearchMapping>
+    {
+        new NumericSearchMapping
+        {
+            FieldName = "age",
+            BoostValue = 2.5,
+            RangeMappings = new List<NumericRange>
+            {
+                new NumericRange { MinValue = 0, MaxValue = 1, RangeTolerance = 0.5 },
+                new NumericRange { MinValue = 1, MaxValue = 5, RangeTolerance = 1.0 },
+                new NumericRange { MinValue = 5, MaxValue = 10, RangeTolerance = 2.0 },
+                new NumericRange { MinValue = 10, MaxValue = Double.MaxValue, RangeTolerance = 3.0 }
+            }
+        }
+    };
+        }
+
+        private NumericRange GetRangeForValue(List<NumericRange> ranges, Double value)
+        {
+            return ranges?.FirstOrDefault(r => value >= r.MinValue && value <= r.MaxValue);
+        }
+
+        private Boolean IsPhraseBoosingEnabled()
+        {
+            return _config.IndexSettings.SearchSettings?.CombinationSettings?.EnablePhraseBoosting ?? true;
+        }
+
+        private Double GetPhraseBoosting()
+        {
+            return _config.IndexSettings.SearchSettings?.CombinationSettings?.PhraseBoosting ?? 1.2;
         }
 
         private String[] GetSearchPathsForCategory(String category)
         {
+            FieldMappings fieldMappings = this.GetFieldMappings();
+            if (fieldMappings.CategoryFieldMappings?.ContainsKey(category) == true)
+            {
+                return fieldMappings.CategoryFieldMappings[category].ToArray();
+            }
+
             return category.ToLower() switch
             {
                 "dog_breeds" or "cat_breeds" => new[] { "description", "name" },
@@ -653,51 +821,157 @@ namespace Main_API.Query.Queries
                 "special_needs" => new[] { "description", "healthStatus" },
                 "living_situations" => new[] { "description" },
                 "gender_related" => new[] { "gender", "description" },
-                _ => new[] { "description", "name" } 
+                _ => new[] { "description", "name" }
             };
         }
 
         #endregion
 
-        public override async Task<FilterDefinition<Data.Entities.Animal>> ApplyAuthorization(FilterDefinition<Data.Entities.Animal> filter)
+        #region Combine Results
+        private List<Data.Entities.Animal> CombineSearchResults(
+            List<Data.Entities.Animal> vectorResults,
+            List<Data.Entities.Animal> semanticResults)
         {
-            if (_authorise.HasFlag(AuthorizationFlags.Permission))
-                if (await _authorizationService.AuthorizeAsync(Permission.BrowseAnimals))
-                    return filter;
-				else throw new ForbiddenException();
+            if (!vectorResults.Any() && !semanticResults.Any())
+            {
+                return new List<Data.Entities.Animal>();
+            }
 
-            return await Task.FromResult(filter);
+            if (!vectorResults.Any())
+            {
+                return semanticResults;
+            }
+
+            if (!semanticResults.Any())
+            {
+                return vectorResults;
+            }
+
+            SearchCombinationSettings combinationSettings = _config.IndexSettings.SearchSettings?.CombinationSettings;
+            Double vectorWeight = combinationSettings?.VectorWeight ?? 0.6;
+            Double semanticWeight = combinationSettings?.SemanticWeight ?? 0.4;
+
+            Dictionary<String, (Data.Entities.Animal animal, Double combinedScore)> combinedMap = new Dictionary<String, (Data.Entities.Animal, Double)>();
+
+            // Add vector results with configurable weight
+            for (int i = 0; i < vectorResults.Count; i++)
+            {
+                Data.Entities.Animal animal = vectorResults[i];
+                String id = animal.Id.ToString();
+
+                Double vectorScore = (vectorResults.Count - i) / (Double)vectorResults.Count;
+                Double weightedScore = vectorScore * vectorWeight;
+
+                combinedMap[id] = (animal, weightedScore);
+            }
+
+            // Add semantic results with configurable weight
+            for (int i = 0; i < semanticResults.Count; i++)
+            {
+                Data.Entities.Animal animal = semanticResults[i];
+                String id = animal.Id.ToString();
+
+                Double semanticScore = (semanticResults.Count - i) / (Double)semanticResults.Count;
+                Double weightedScore = semanticScore * semanticWeight;
+
+                if (combinedMap.ContainsKey(id))
+                {
+                    (Data.Entities.Animal animal, Double combinedScore) existing = combinedMap[id];
+                    combinedMap[id] = (existing.animal, existing.combinedScore + weightedScore);
+                }
+                else
+                {
+                    combinedMap[id] = (animal, weightedScore);
+                }
+            }
+
+            List<Data.Entities.Animal> finalResults = combinedMap.Values
+                .OrderByDescending(x => x.combinedScore)
+                .Select(x => x.animal)
+                .ToList();
+
+            int startIndex = Math.Max(this.Offset - 1, 0) * this.PageSize;
+
+            if (startIndex >= finalResults.Count) return new List<Data.Entities.Animal>();
+
+            return finalResults
+                .Skip(startIndex)
+                .Take(this.PageSize)
+                .ToList();
         }
+        #endregion
+
+        #endregion
 
         // Επιστρέφει τα ονόματα πεδίων που θα προβληθούν στο αποτέλεσμα του ερωτήματος
-        // Είσοδος: fields - μια λίστα με τα ονόματα των πεδίων που θα προβληθούν
-        // Έξοδος: List<String> - τα ονόματα των πεδίων που θα προβληθούν
         public override List<String> FieldNamesOf(List<String> fields)
-		{
-			if (fields == null || !fields.Any()) return new List<String>();
+        {
+            if (fields == null || !fields.Any()) return new List<String>();
 
-			HashSet<String> projectionFields = new HashSet<String>();
-			foreach (String item in fields)
-			{
-				// Αντιστοιχίζει τα ονόματα πεδίων AnimalDto στα ονόματα πεδίων Animal
-				projectionFields.Add(nameof(Data.Entities.Animal.Id));
-				if (item.Equals(nameof(Models.Animal.Animal.Name))) projectionFields.Add(nameof(Data.Entities.Animal.Name));
-				if (item.Equals(nameof(Models.Animal.Animal.Description))) projectionFields.Add(nameof(Data.Entities.Animal.Description));
-				if (item.Equals(nameof(Models.Animal.Animal.Gender))) projectionFields.Add(nameof(Data.Entities.Animal.Gender));
-				if (item.Equals(nameof(Models.Animal.Animal.Age))) projectionFields.Add(nameof(Data.Entities.Animal.Age));
-				if (item.Equals(nameof(Models.Animal.Animal.Weight))) projectionFields.Add(nameof(Data.Entities.Animal.Weight));
-				if (item.Equals(nameof(Models.Animal.Animal.AdoptionStatus))) projectionFields.Add(nameof(Data.Entities.Animal.AdoptionStatus));
-				if (item.Equals(nameof(Models.Animal.Animal.HealthStatus))) projectionFields.Add(nameof(Data.Entities.Animal.HealthStatus));
-				if (item.Equals(nameof(Models.Animal.Animal.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Animal.CreatedAt));
-				if (item.Equals(nameof(Models.Animal.Animal.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.Animal.UpdatedAt));
-                
-				if (item.StartsWith(nameof(Models.Animal.Animal.AttachedPhotos))) projectionFields.Add(nameof(Data.Entities.Animal.PhotosIds));
+            HashSet<String> projectionFields = new HashSet<String>();
+            foreach (String item in fields)
+            {
+                projectionFields.Add(nameof(Data.Entities.Animal.Id));
+                if (item.Equals(nameof(Models.Animal.Animal.Name))) projectionFields.Add(nameof(Data.Entities.Animal.Name));
+                if (item.Equals(nameof(Models.Animal.Animal.Description))) projectionFields.Add(nameof(Data.Entities.Animal.Description));
+                if (item.Equals(nameof(Models.Animal.Animal.Gender))) projectionFields.Add(nameof(Data.Entities.Animal.Gender));
+                if (item.Equals(nameof(Models.Animal.Animal.Age))) projectionFields.Add(nameof(Data.Entities.Animal.Age));
+                if (item.Equals(nameof(Models.Animal.Animal.Weight))) projectionFields.Add(nameof(Data.Entities.Animal.Weight));
+                if (item.Equals(nameof(Models.Animal.Animal.AdoptionStatus))) projectionFields.Add(nameof(Data.Entities.Animal.AdoptionStatus));
+                if (item.Equals(nameof(Models.Animal.Animal.HealthStatus))) projectionFields.Add(nameof(Data.Entities.Animal.HealthStatus));
+                if (item.Equals(nameof(Models.Animal.Animal.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Animal.CreatedAt));
+                if (item.Equals(nameof(Models.Animal.Animal.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.Animal.UpdatedAt));
+
+                if (item.StartsWith(nameof(Models.Animal.Animal.AttachedPhotos))) projectionFields.Add(nameof(Data.Entities.Animal.PhotosIds));
                 if (item.StartsWith(nameof(Models.Animal.Animal.Shelter))) projectionFields.Add(nameof(Data.Entities.Animal.ShelterId));
-				if (item.StartsWith(nameof(Models.Animal.Animal.Breed))) projectionFields.Add(nameof(Data.Entities.Animal.BreedId));
-				if (item.StartsWith(nameof(Models.Animal.Animal.AnimalType))) projectionFields.Add(nameof(Data.Entities.Animal.AnimalTypeId));
-			}
+                if (item.StartsWith(nameof(Models.Animal.Animal.Breed))) projectionFields.Add(nameof(Data.Entities.Animal.BreedId));
+                if (item.StartsWith(nameof(Models.Animal.Animal.AnimalType))) projectionFields.Add(nameof(Data.Entities.Animal.AnimalTypeId));
+            }
 
-			return projectionFields.ToList();
-		}
-	}
+            return projectionFields.ToList();
+        }
+
+        #region Helpers
+
+        private Boolean ContainsAllWords(String query, String[] words)
+        {
+            return words.All(word => query.Contains(word.ToLower()));
+        }
+
+        private Boolean IsPartialMatch(String query, String synonym)
+        {
+            if (synonym.Contains(" "))
+            {
+                String[] words = synonym.Split(' ');
+                return words.Any(word => query.Contains(word) && word.Length > 2);
+            }
+            if (synonym.Length > 4)
+            {
+                return query.Contains(synonym.Substring(0, Math.Min(4, synonym.Length)));
+            }
+
+            return false;
+        }
+
+        private Boolean IsHighValueTerm(String synonym, String category)
+        {
+            FieldMappings fieldMappings = this.GetFieldMappings();
+            if (fieldMappings.CategoryFieldMappings?.ContainsKey($"{category}_highvalue") == true)
+            {
+                return fieldMappings.CategoryFieldMappings[$"{category}_highvalue"].Contains(synonym);
+            }
+
+            return category.ToLower() switch
+            {
+                "dog_breeds" or "cat_breeds" => true,
+                "animal_types" => true,
+                "health_status" => synonym.Length > 4,
+                "adoption_status" => true,
+                _ => false
+            };
+        }
+
+        #endregion
+
+    }
 }

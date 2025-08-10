@@ -69,12 +69,23 @@ public class Program
         // Bootsrap MongoDB
         using (IServiceScope scope = app.Services.CreateScope())
 		{
-			MongoDbService mongoDbService = scope.ServiceProvider.GetRequiredService<MongoDbService>();
+			if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
+			{
+                try
+                {
+                    Seeder seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
+                    await seeder.Seed();
+                    Console.WriteLine("Data seeding completed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Data seeding failed: {ex}");
+                }
+            }
+
+            MongoDbService mongoDbService = scope.ServiceProvider.GetRequiredService<MongoDbService>();
 			await mongoDbService.SetupSearchIndexesAsync();
 		}
-
-		//if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
-			SeedData(app);
 
 		Configure(app);
 
@@ -343,19 +354,4 @@ public class Program
 			});
 		}
     }
-
-	public static void SeedData(IHost app)
-	{
-		try
-		{
-			using IServiceScope scope = app.Services.CreateScope();
-			Seeder seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
-			seeder.Seed();
-			Console.WriteLine("Data seeding completed successfully.");
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"Data seeding failed: {ex}");
-		}
-	}
 }

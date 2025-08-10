@@ -8,7 +8,7 @@ namespace Main_API.Models
 {
 	public class OperatingHoursValidator : AbstractValidator<OperatingHours>
 	{
-		private readonly String OperatingHoursRegex = @"^(?:[01]\d|2[0-3]):[0-5]\d,(?:[01]\d|2[0-3]):[0-5]\d$";
+		private readonly String OperatingHoursRegex = @"^(?:[01]\Double|2[0-3]):[0-5]\Double,(?:[01]\Double|2[0-3]):[0-5]\d$";
 		private readonly String OperatingHoursErrorMessage = "Η μορφή ώρας πρέπει να είναι ΩΩ:ΛΛ,ΩΩ:ΛΛ ή 'closed'";
 
 		public OperatingHoursValidator()

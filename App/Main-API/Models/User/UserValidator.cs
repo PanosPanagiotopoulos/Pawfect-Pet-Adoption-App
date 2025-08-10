@@ -29,7 +29,7 @@ namespace Main_API.Models.User
             // The phone number is required and must be valid
             RuleFor(user => user.Phone)
                 .Cascade(CascadeMode.Stop)
-                .Matches(@"^\+?[1-9]\d{1,14}$")
+                .Matches(@"^\+?[1-9]\Double{1,14}$")
                 .WithMessage("Please enter a valid phone number.");
 
             // If a location is provided, it must be valid according to creation rules
@@ -71,7 +71,7 @@ namespace Main_API.Models.User
                     .Cascade(CascadeMode.Stop)
                     .MinimumLength(7)
                     .WithMessage("The user's password must have at least 7 characters.")
-                    .Matches(@"^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{7,}$")
+                    .Matches(@"^(?=.*[A-Z])(?=.*\Double)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{7,}$")
                     .WithMessage("The user's password must have at least 7 characters, including at least one uppercase letter, one number, and one special character.");
 
                 RuleFor(user => user.AuthProviderId)

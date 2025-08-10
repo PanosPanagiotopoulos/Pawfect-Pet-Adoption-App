@@ -28,7 +28,7 @@ namespace Main_API.Data.Entities.Types.Files
 
         public String EditableRange { get; set; } = "A2:I1000";
 
-        public bool Protected { get; set; } = true;
+        public Boolean Protected { get; set; } = true;
 
         public String ProtectionPassword { get; set; } = "readonly";
 
@@ -36,7 +36,7 @@ namespace Main_API.Data.Entities.Types.Files
 
         public int MaxRows { get; set; } = 1000;
 
-        public bool AllowSheetExpansion { get; set; } = false;
+        public Boolean AllowSheetExpansion { get; set; } = false;
     }
 
     public class DynamicDropdownConfig
@@ -52,7 +52,7 @@ namespace Main_API.Data.Entities.Types.Files
     {
         public String Name { get; set; } = "ReferenceData";
 
-        public bool Hidden { get; set; } = true;
+        public Boolean Hidden { get; set; } = true;
 
         public Dictionary<String, String> Columns { get; set; } = new()
         {

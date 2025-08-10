@@ -3,6 +3,18 @@
     "MongoDb": "%{MongoDb}%",
     "DatabaseName": "%{DatabaseName}%",
     "IndexSettings": {
+      "PlainTextIndexNames": {
+        "UserFullNameTextIndex": "user_fullname_text_index",
+        "UserFullNameRegexIndex": "user_fullname_regex_index",
+        "ShelterNameTextIndex": "shelter_name_text_index",
+        "ShelterNameRegexIndex": "shelter_name_regex_index",
+        "FileNameTextIndex": "file_name_text_index",
+        "FileNameRegexIndex": "file_name_regex_index",
+        "AnimalTypeNameTextIndex": "animal_type_name_text_index",
+        "AnimalTypeNameRegexIndex": "animal_type_name_regex_index",
+        "BreedNameTextIndex": "breed_name_text_index",
+        "BreedNameRegexIndex": "breed_name_regex_index"
+      },
       "AnimalVectorSearchIndexName": "animals_vector_search_index",
       "AnimalSchemanticIndexName": "animals_text_search_index",
       "Dims": 1024,
@@ -231,7 +243,530 @@
             "multi pet,other animals,pack,group,multiple pets"
           ]
         }
-      ]
+      ],
+      "MultilingualSettings": {
+        "DefaultLanguage": "english",
+        "DefaultAnalyzer": "lucene.standard",
+        "LanguageMappings": [
+          {
+            "Language": "english",
+            "Analyzer": "lucene.english",
+            "UnicodeRanges": [ "U+0020-U+007F" ],
+            "SearchPaths": [ "english", "standard", "exact" ]
+          },
+          {
+            "Language": "greek",
+            "Analyzer": "lucene.greek",
+            "UnicodeRanges": [ "U+0370-U+03FF", "U+1F00-U+1FFF" ],
+            "SearchPaths": [ "greek", "standard", "exact" ]
+          }
+        ],
+        "MultilingualSynonyms": [
+          {
+            "Category": "animal_types",
+            "Language": "greek",
+            "Terms": [ "σκύλος", "σκυλάκι", "κουτάβι", "σκυλί" ],
+            "EnglishEquivalents": [ "dog", "canine", "puppy", "hound", "mutt", "pooch" ]
+          },
+          {
+            "Category": "animal_types",
+            "Language": "greek",
+            "Terms": [ "γάτα", "γατάκι", "γατούλα", "γάτος" ],
+            "EnglishEquivalents": [ "cat", "feline", "kitty", "kitten", "tabby" ]
+          },
+          {
+            "Category": "animal_types",
+            "Language": "greek",
+            "Terms": [ "κουνέλι", "λαγός" ],
+            "EnglishEquivalents": [ "rabbit", "bunny", "hare" ]
+          },
+          {
+            "Category": "animal_types",
+            "Language": "greek",
+            "Terms": [ "πουλί", "πτηνό" ],
+            "EnglishEquivalents": [ "bird", "avian", "feathered" ]
+          }
+        ],
+        "AgeKeywords": [
+          {
+            "Language": "english",
+            "Keyword": "baby",
+            "MinAge": 0,
+            "MaxAge": 0.5
+          },
+          {
+            "Language": "english",
+            "Keyword": "infant",
+            "MinAge": 0,
+            "MaxAge": 0.3
+          },
+          {
+            "Language": "english",
+            "Keyword": "newborn",
+            "MinAge": 0,
+            "MaxAge": 0.2
+          },
+          {
+            "Language": "english",
+            "Keyword": "puppy",
+            "MinAge": 0,
+            "MaxAge": 1.5
+          },
+          {
+            "Language": "english",
+            "Keyword": "kitten",
+            "MinAge": 0,
+            "MaxAge": 1.0
+          },
+          {
+            "Language": "english",
+            "Keyword": "young",
+            "MinAge": 0.5,
+            "MaxAge": 3.0
+          },
+          {
+            "Language": "english",
+            "Keyword": "juvenile",
+            "MinAge": 1.0,
+            "MaxAge": 2.5
+          },
+          {
+            "Language": "english",
+            "Keyword": "adult",
+            "MinAge": 2.0,
+            "MaxAge": 7.0
+          },
+          {
+            "Language": "english",
+            "Keyword": "mature",
+            "MinAge": 4.0,
+            "MaxAge": 8.0
+          },
+          {
+            "Language": "english",
+            "Keyword": "senior",
+            "MinAge": 7.0,
+            "MaxAge": 15.0
+          },
+          {
+            "Language": "english",
+            "Keyword": "elderly",
+            "MinAge": 8.0,
+            "MaxAge": 15.0
+          },
+          {
+            "Language": "english",
+            "Keyword": "old",
+            "MinAge": 15.0,
+            "MaxAge": 40.0
+          },
+          {
+            "Language": "greek",
+            "Keyword": "μωρό",
+            "MinAge": 0,
+            "MaxAge": 0.5
+          },
+          {
+            "Language": "greek",
+            "Keyword": "νεογέννητο",
+            "MinAge": 0,
+            "MaxAge": 0.2
+          },
+          {
+            "Language": "greek",
+            "Keyword": "κουτάβι",
+            "MinAge": 0,
+            "MaxAge": 1.5
+          },
+          {
+            "Language": "greek",
+            "Keyword": "γατάκι",
+            "MinAge": 0,
+            "MaxAge": 1.0
+          },
+          {
+            "Language": "greek",
+            "Keyword": "νεαρός",
+            "MinAge": 0.5,
+            "MaxAge": 3.0
+          },
+          {
+            "Language": "greek",
+            "Keyword": "μικρός",
+            "MinAge": 0.5,
+            "MaxAge": 2.0
+          },
+          {
+            "Language": "greek",
+            "Keyword": "ενήλικος",
+            "MinAge": 2.0,
+            "MaxAge": 7.0
+          },
+          {
+            "Language": "greek",
+            "Keyword": "ώριμος",
+            "MinAge": 4.0,
+            "MaxAge": 8.0
+          },
+          {
+            "Language": "greek",
+            "Keyword": "ηλικιωμένος",
+            "MinAge": 7.0,
+            "MaxAge": 15.0
+          },
+          {
+            "Language": "greek",
+            "Keyword": "γέρος",
+            "MinAge": 15.0,
+            "MaxAge": 40.0
+          }
+        ],
+        "GenderMappings": [
+          {
+            "Language": "english",
+            "Term": "male",
+            "Gender": "Male"
+          },
+          {
+            "Language": "english",
+            "Term": "female",
+            "Gender": "Female"
+          },
+          {
+            "Language": "english",
+            "Term": "boy",
+            "Gender": "Male"
+          },
+          {
+            "Language": "english",
+            "Term": "girl",
+            "Gender": "Female"
+          },
+          {
+            "Language": "english",
+            "Term": "tom",
+            "Gender": "Male"
+          },
+          {
+            "Language": "english",
+            "Term": "queen",
+            "Gender": "Female"
+          },
+          {
+            "Language": "english",
+            "Term": "buck",
+            "Gender": "Male"
+          },
+          {
+            "Language": "english",
+            "Term": "doe",
+            "Gender": "Female"
+          },
+          {
+            "Language": "english",
+            "Term": "stallion",
+            "Gender": "Male"
+          },
+          {
+            "Language": "english",
+            "Term": "mare",
+            "Gender": "Female"
+          },
+          {
+            "Language": "english",
+            "Term": "cock",
+            "Gender": "Male"
+          },
+          {
+            "Language": "english",
+            "Term": "hen",
+            "Gender": "Female"
+          },
+          {
+            "Language": "english",
+            "Term": "masculine",
+            "Gender": "Male"
+          },
+          {
+            "Language": "english",
+            "Term": "feminine",
+            "Gender": "Female"
+          },
+          {
+            "Language": "greek",
+            "Term": "αρσενικό",
+            "Gender": "Male"
+          },
+          {
+            "Language": "greek",
+            "Term": "θηλυκό",
+            "Gender": "Female"
+          },
+          {
+            "Language": "greek",
+            "Term": "αγόρι",
+            "Gender": "Male"
+          },
+          {
+            "Language": "greek",
+            "Term": "κορίτσι",
+            "Gender": "Female"
+          },
+          {
+            "Language": "greek",
+            "Term": "αρσενικός",
+            "Gender": "Male"
+          },
+          {
+            "Language": "greek",
+            "Term": "θηλυκή",
+            "Gender": "Female"
+          },
+          {
+            "Language": "greek",
+            "Term": "αρσενική",
+            "Gender": "Female"
+          }
+        ],
+        "HealthStatusMappings": [
+          {
+            "Language": "greek",
+            "Term": "υγιής",
+            "EnglishEquivalents": [ "healthy", "fit", "well", "strong" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "άρρωστος",
+            "EnglishEquivalents": [ "sick", "ill", "unwell", "diseased" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "άρρωστη",
+            "EnglishEquivalents": [ "sick", "ill", "unwell", "diseased" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "τραυματισμένος",
+            "EnglishEquivalents": [ "injured", "hurt", "wounded", "damaged" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "τραυματισμένη",
+            "EnglishEquivalents": [ "injured", "hurt", "wounded", "damaged" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "τυφλός",
+            "EnglishEquivalents": [ "blind", "vision impaired", "sight impaired" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "τυφλή",
+            "EnglishEquivalents": [ "blind", "vision impaired", "sight impaired" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "κωφός",
+            "EnglishEquivalents": [ "deaf", "hearing impaired" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "κωφή",
+            "EnglishEquivalents": [ "deaf", "hearing impaired" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "εμβολιασμένος",
+            "EnglishEquivalents": [ "vaccinated", "immunized", "shots" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "εμβολιασμένη",
+            "EnglishEquivalents": [ "vaccinated", "immunized", "shots" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "στειρωμένος",
+            "EnglishEquivalents": [ "neutered", "spayed", "fixed", "sterilized" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "στειρωμένη",
+            "EnglishEquivalents": [ "neutered", "spayed", "fixed", "sterilized" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "έγκυος",
+            "EnglishEquivalents": [ "pregnant", "expecting", "with babies" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "αναρρώνων",
+            "EnglishEquivalents": [ "recovering", "healing", "getting better" ]
+          },
+          {
+            "Language": "greek",
+            "Term": "αναρρώνουσα",
+            "EnglishEquivalents": [ "recovering", "healing", "getting better" ]
+          }
+        ],
+        "NumericSearchMappings": [
+          {
+            "FieldName": "age",
+            "BoostValue": 2.5,
+            "RangeMappings": [
+              {
+                "MinValue": 0,
+                "MaxValue": 1,
+                "RangeTolerance": 0.5
+              },
+              {
+                "MinValue": 1,
+                "MaxValue": 5,
+                "RangeTolerance": 1.0
+              },
+              {
+                "MinValue": 5,
+                "MaxValue": 10,
+                "RangeTolerance": 2.0
+              },
+              {
+                "MinValue": 10,
+                "MaxValue": 999999,
+                "RangeTolerance": 3.0
+              }
+            ]
+          },
+          {
+            "FieldName": "weight",
+            "BoostValue": 2.0,
+            "RangeMappings": [
+              {
+                "MinValue": 0,
+                "MaxValue": 5,
+                "RangeTolerance": 2.0
+              },
+              {
+                "MinValue": 5,
+                "MaxValue": 20,
+                "RangeTolerance": 5.0
+              },
+              {
+                "MinValue": 20,
+                "MaxValue": 50,
+                "RangeTolerance": 10.0
+              },
+              {
+                "MinValue": 50,
+                "MaxValue": 999999,
+                "RangeTolerance": 20.0
+              }
+            ]
+          }
+        ]
+      },
+      "SearchSettings": {
+        "FuzzySettings": {
+          "DefaultMaxEdits": 2,
+          "DefaultPrefixLength": 1,
+          "DefaultMaxExpansions": 50,
+          "FieldSpecificSettings": {
+            "description": {
+              "MaxEdits": 2,
+              "PrefixLength": 1,
+              "MaxExpansions": 50
+            },
+            "name": {
+              "MaxEdits": 1,
+              "PrefixLength": 0,
+              "MaxExpansions": 30
+            },
+            "healthStatus": {
+              "MaxEdits": 2,
+              "PrefixLength": 1,
+              "MaxExpansions": 50
+            },
+            "synonym": {
+              "MaxEdits": 1,
+              "PrefixLength": 0,
+              "MaxExpansions": 25
+            },
+            "multilingualSynonym": {
+              "MaxEdits": 1,
+              "PrefixLength": 0,
+              "MaxExpansions": 30
+            },
+            "healthMapping": {
+              "MaxEdits": 1,
+              "PrefixLength": 1,
+              "MaxExpansions": 25
+            }
+          }
+        },
+        "BoostSettings": {
+          "CategoryBoosts": {
+            "dog_breeds": 3.2,
+            "cat_breeds": 3.2,
+            "animal_types": 3.8,
+            "personalities": 2.5,
+            "health_status": 2.8,
+            "training_behavior": 2.3,
+            "colors_patterns": 1.5,
+            "coat_types": 1.4,
+            "sizes": 1.8,
+            "ages": 2.2,
+            "adoption_status": 2.9,
+            "special_needs": 2.6,
+            "living_situations": 1.9,
+            "gender_related": 3.5
+          },
+          "FieldBoosts": {
+            "description": 4.0,
+            "name": 3.0,
+            "healthStatus": 2.5,
+            "gender": 3.5
+          },
+          "OperatorBoosts": {
+            "nameAutocomplete": 2.8,
+            "descriptionAutocomplete": 2.5,
+            "phrase": 1.2,
+            "exact": 1.5
+          }
+        },
+        "FieldMappings": {
+          "DescriptionFields": [ "description" ],
+          "NameFields": [ "name" ],
+          "HealthStatusFields": [ "healthStatus" ],
+          "CategoryFieldMappings": {
+            "dog_breeds": [ "description", "name" ],
+            "cat_breeds": [ "description", "name" ],
+            "animal_types": [ "description", "name" ],
+            "personalities": [ "description", "healthStatus" ],
+            "health_status": [ "healthStatus", "description" ],
+            "training_behavior": [ "description", "healthStatus" ],
+            "colors_patterns": [ "description", "name" ],
+            "coat_types": [ "description" ],
+            "sizes": [ "description", "name" ],
+            "ages": [ "description", "name" ],
+            "adoption_status": [ "adoptionStatus", "description" ],
+            "special_needs": [ "description", "healthStatus" ],
+            "living_situations": [ "description" ],
+            "gender_related": [ "gender", "description" ],
+            "dog_breeds_highvalue": [ "labrador", "german shepherd", "golden retriever", "bulldog", "poodle" ],
+            "cat_breeds_highvalue": [ "persian", "siamese", "maine coon", "british shorthair", "ragdoll" ],
+            "animal_types_highvalue": [ "dog", "cat", "rabbit", "bird" ],
+            "health_status_highvalue": [ "healthy", "vaccinated", "spayed", "neutered", "injured", "disabled" ],
+            "adoption_status_highvalue": [ "available", "adopted", "rescue", "foster" ]
+          }
+        },
+        "CombinationSettings": {
+          "VectorWeight": 0.6,
+          "SemanticWeight": 0.4,
+          "MinimumShouldMatch": 1,
+          "EnablePhraseBoosting": true,
+          "PhraseBoosting": 1.2
+        }
+      }
     }
   }
 }

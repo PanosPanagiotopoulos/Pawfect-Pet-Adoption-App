@@ -33,7 +33,7 @@
 				byte[] data = Convert.FromBase64String(value);
 				return data.Length == 32 || data.Length == 64;
 			}
-			catch (FormatException)
+			catch (Exception)
 			{
 				return false;
 			}

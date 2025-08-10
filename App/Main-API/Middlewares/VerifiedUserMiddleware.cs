@@ -17,7 +17,7 @@ namespace Pawfect_Pet_Adoption_App_API.Middlewares
             if (context.User.Identity?.IsAuthenticated == true && !context.Request.Path.Value?.ToLower().Contains("auth") == true)
             {
                 System.Security.Claims.Claim isVerifiedClaim = context.User.FindFirst("isVerified");
-                if (isVerifiedClaim == null || !bool.TryParse(isVerifiedClaim.Value, out Boolean isVerified) || !isVerified)
+                if (isVerifiedClaim == null || !Boolean.TryParse(isVerifiedClaim.Value, out Boolean isVerified) || !isVerified)
                 {
                     context.Response.StatusCode = StatusCodes.Status403Forbidden;
                     await context.Response.WriteAsync("User is not verified to access information.");

@@ -175,7 +175,7 @@ public class Seeder
                 {
                     Id = fileId,
                     Filename = fileName,
-                    Size = (double)stream.Length,
+                    Size = (Double)stream.Length,
                     OwnerId = ownerId,
                     MimeType = mimeType,
                     FileType = fileType,
@@ -236,7 +236,7 @@ public class Seeder
             {
                 Id = fileId,
                 Filename = fileName,
-                Size = (double)stream.Length,
+                Size = (Double)stream.Length,
                 OwnerId = user.Id,
                 MimeType = mimeType,
                 FileType = fileType,
@@ -314,7 +314,7 @@ public class Seeder
                 .ToEmbeddingText();
 
                 // Generate embedding with enhanced information
-                Embedding<double> animalEmbed = await _embeddingService.GenerateEmbeddingAsyncDouble(embeddingVal);
+                Embedding<Double> animalEmbed = await _embeddingService.GenerateEmbeddingAsyncDouble(embeddingVal);
 
                 animal.Embedding = animalEmbed.Vector.ToArray() ?? [];
             }

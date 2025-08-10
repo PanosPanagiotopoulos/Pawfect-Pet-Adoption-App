@@ -3,6 +3,7 @@ using MongoDB.Driver.Linq;
 using Main_API.Services.AuthenticationServices;
 using Main_API.Services.MongoServices;
 using System.Text.RegularExpressions;
+using MongoDB.Bson;
 
 namespace Main_API.Query.Queries
 {
@@ -58,7 +59,7 @@ namespace Main_API.Query.Queries
 		public abstract Task<FilterDefinition<T>> ApplyAuthorization(FilterDefinition<T> filter);
         
 		// Εφαρμόζει την προβολή για δυναμικά πεδία
-        private IFindFluent<T, T> ApplyProjection(IFindFluent<T, T> finder)
+        protected IFindFluent<T, T> ApplyProjection(IFindFluent<T, T> finder)
 		{
 			if (Fields == null || Fields.Count == 0)
 				return finder;
@@ -72,8 +73,26 @@ namespace Main_API.Query.Queries
 			return finder.Project<T>(projection);
 		}
 
-		// Εφαρμόζει την ταξινόμηση στην ερώτηση
-		private IFindFluent<T, T> ApplySorting(IFindFluent<T, T> finder)
+        protected List<BsonDocument> ApplyProjection(List<BsonDocument> pipeline)
+        {
+            if (Fields == null || Fields.Count == 0)
+                return pipeline;
+
+            BsonDocument projectStage = new BsonDocument();
+
+            this.Fields = this.FieldNamesOf(this.Fields.ToList());
+
+            // Include requested fields
+            foreach (String field in this.Fields) projectStage[field] = 1;
+
+            // Add the $project stage to pipeline
+            pipeline.Add(new BsonDocument("$project", projectStage));
+
+            return pipeline;
+        }
+
+        // Εφαρμόζει την ταξινόμηση στην ερώτηση
+        protected IFindFluent<T, T> ApplySorting(IFindFluent<T, T> finder)
 		{
 			SortDefinitionBuilder<T> builder = Builders<T>.Sort;
 
@@ -98,8 +117,42 @@ namespace Main_API.Query.Queries
 			return finder.Sort(sortDefinition);
 		}
 
-		// Εφαρμόζει την σελιδοποίηση στην ερώτηση
-		private IFindFluent<T, T> ApplyPagination(IFindFluent<T, T> finder)
+		protected List<BsonDocument> ApplySorting(List<BsonDocument> pipeline)
+        {
+            BsonDocument sortStage = new BsonDocument();
+
+            if (this.SortBy == null || this.SortBy.Count == 0)
+            {
+                // Default sort: CreatedAt ascending, then _id ascending
+                sortStage["CreatedAt"] = 1;
+                sortStage["_id"] = 1;
+            }
+            else
+            {
+                Boolean descending = this.SortDescending.GetValueOrDefault(false);
+                int sortDirection = descending ? -1 : 1;
+
+                // Add all sort fields with the same direction
+                foreach (String sortField in this.SortBy)
+                {
+                    sortStage[sortField] = sortDirection;
+                }
+
+                // Always add _id as final tie-breaker (ascending)
+                if (!sortStage.Contains("_id"))
+                {
+                    sortStage["_id"] = 1;
+                }
+            }
+
+            // Add the $sort stage to pipeline
+            pipeline.Add(new BsonDocument("$sort", sortStage));
+
+            return pipeline;
+        }
+
+        // Εφαρμόζει την σελιδοποίηση στην ερώτηση
+        protected IFindFluent<T, T> ApplyPagination(IFindFluent<T, T> finder)
 		{
 			if (Offset > 0)
 			{
@@ -113,9 +166,18 @@ namespace Main_API.Query.Queries
 
 			return finder;
 		}
+        protected List<BsonDocument> ApplyPagination(List<BsonDocument> pipeline)
+        {
+            int skipCount = (Math.Max(this.Offset - 1, 0)) * this.PageSize;
+            pipeline.Add(new BsonDocument("$skip", skipCount));
 
-		// Συλλέγει τα αποτελέσματα της ερώτησης
-		public virtual async Task<List<T>> CollectAsync()
+            pipeline.Add(new BsonDocument("$limit", Math.Max(this.PageSize, 1)));
+
+            return pipeline;
+        }
+
+        // Συλλέγει τα αποτελέσματα της ερώτησης
+        public virtual async Task<List<T>> CollectAsync()
 		{
 			// Βήμα 1: Εφαρμογή φίλτρων στην ερώτηση
 			FilterDefinition<T> filter = await this.ApplyFilters();

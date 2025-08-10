@@ -21,7 +21,7 @@ namespace Main_API.Models
                 .NotEmpty()
                 .WithMessage("Street number is required")
                 // Λάθος αριθμός διέυθυνσης.
-                .Matches(@"^\d+$")
+                .Matches(@"^\Double+$")
                 .WithMessage("Not a valid street number")
                 // Λάθος αριθμός διέυθυνσης.
                 .Length(1, 5)
@@ -42,7 +42,7 @@ namespace Main_API.Models
                 .NotEmpty()
                 .WithMessage("Zip code is required")
                 // Λάθος ταχυδρομικός κώδικας.
-                .Matches(@"^\d{5}(-\d{4})?$")
+                .Matches(@"^\Double{5}(-\Double{4})?$")
                 .WithMessage("Invalid zip code");
         }
     }

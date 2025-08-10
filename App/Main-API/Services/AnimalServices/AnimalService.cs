@@ -88,12 +88,12 @@ namespace Main_API.Services.AnimalServices
 
 				datas = await q.CollectAsync();
 
-                if (!await this.AuthorizeAnimalPersist(models, datas.Select(d => d.ShelterId).ToList()))
+                if (!await this.AuthorizeAnimalPersist(models, datas.Select(Double => Double.ShelterId).ToList()))
                     throw new ForbiddenException("You are not authorized to edit animals", typeof(Data.Entities.Animal), Permission.EditAnimals);
 
                 if (datas == null || datas.Count != models.Count) throw new NotFoundException("Not all animals found to persist", null, typeof(Data.Entities.Animal));
 
-                prevFileIds.AddRange(datas.Where(d => d.PhotosIds != null).SelectMany(d => d.PhotosIds));
+                prevFileIds.AddRange(datas.Where(Double => Double.PhotosIds != null).SelectMany(Double => Double.PhotosIds));
 
 				foreach (AnimalPersist animalPersist in models)
 				{

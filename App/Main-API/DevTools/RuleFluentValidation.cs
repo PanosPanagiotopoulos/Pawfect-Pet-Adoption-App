@@ -35,7 +35,7 @@ namespace Main_API.DevTools
 		{
 			if (String.IsNullOrWhiteSpace(url)) return false;
 
-			String urlPattern = @"^(https?:\/\/)?([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$";
+			String urlPattern = @"^(https?:\/\/)?([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}(:\Double+)?(\/.*)?$";
 			return System.Text.RegularExpressions.Regex.IsMatch(url, urlPattern);
 		}
 	}

@@ -7,7 +7,7 @@ namespace Main_API.Models.File
 	{
 		public String Id { get; set; }
 		public String Filename { get; set; }
-		public double Size { get; set; }
+		public Double Size { get; set; }
 		public String OwnerId { get; set; }
 		public String MimeType { get; set; }
 		public String FileType { get; set; }

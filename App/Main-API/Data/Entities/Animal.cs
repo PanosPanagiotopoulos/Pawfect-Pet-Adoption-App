@@ -19,7 +19,7 @@
 		public String Name { get; set; }
 
 
-		public double Age { get; set; }
+		public Double Age { get; set; }
 
 		public Gender Gender { get; set; }
 
@@ -27,7 +27,7 @@
 		public String Description { get; set; }
 
 
-		public double Weight { get; set; }
+		public Double Weight { get; set; }
 
 
 		/// <value>
@@ -71,7 +71,7 @@
 		public AdoptionStatus AdoptionStatus { get; set; }
 
         [BsonIgnoreIfNull]
-        public double[] Embedding { get; set; }
+        public Double[] Embedding { get; set; }
 
 
         public DateTime CreatedAt { get; set; }

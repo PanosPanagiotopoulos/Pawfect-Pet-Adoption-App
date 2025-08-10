@@ -28,8 +28,8 @@
         // Λίστα από καταστάσεις υιοθεσίας για φιλτράρισμα
         public List<AdoptionStatus>? AdoptionStatuses { get; set; }
         public List<Gender>? Genders { get; set; }
-        public double? AgeFrom { get; set; }
-        public double? AgeTo { get; set; }
+        public Double? AgeFrom { get; set; }
+        public Double? AgeTo { get; set; }
 
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
         public DateTime? CreateFrom { get; set; }

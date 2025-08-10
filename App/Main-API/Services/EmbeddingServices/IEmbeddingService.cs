@@ -6,7 +6,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
     {
         Task<Embedding<Decimal>> GenerateEmbeddingAsync(String value);
         Task<GeneratedEmbeddings<Embedding<Decimal>>> GenerateEmbeddingsAsync(List<String> values);
-        Task<Embedding<double>> GenerateEmbeddingAsyncDouble(String value);
-        Task<GeneratedEmbeddings<Embedding<double>>> GenerateEmbeddingsAsyncDouble(List<String> values);
+        Task<Embedding<Double>> GenerateEmbeddingAsyncDouble(String value);
+        Task<GeneratedEmbeddings<Embedding<Double>>> GenerateEmbeddingsAsyncDouble(List<String> values);
     }
 }
