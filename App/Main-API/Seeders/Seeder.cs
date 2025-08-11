@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Microsoft.Extensions.AI;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
+using Pawfect_Pet_Adoption_App_API.Services.TranslationServices;
 
 public class Seeder
 {
@@ -18,19 +20,22 @@ public class Seeder
     private readonly IAwsService _awsService;
     private readonly IConventionService _conventionService;
     private readonly IEmbeddingService _embeddingService;
+    private readonly ITranslationService _translationService;
 
     public Seeder
     (
         MongoDbService dbService, 
         IAwsService awsService,
         IConventionService conventionService,
-        IEmbeddingService embeddingService
+        IEmbeddingService embeddingService,
+        ITranslationService translationService
     )
 	{
 		this._dbService = dbService;
         this._awsService = awsService;
         this._conventionService = conventionService;
         this._embeddingService = embeddingService;
+        this._translationService = translationService;
     }
 
 	public async Task Seed()
@@ -299,19 +304,23 @@ public class Seeder
                     : new AnimalType { Name = "Unknown", Description = "No animal type information available" };
 
                 // Create enhanced embedding with all information
-                String embeddingVal = new AnimalEmbed()
-                {
-                    Description = animal.Description ?? "No description available",
-                    HealthStatus = animal.HealthStatus ?? "Health status unknown",
-                    Age = animal.Age.ToString(),
-                    Gender = animal.Gender.ToString(),
-                    Weight = animal.Weight.ToString(),
-                    BreedName = breed.Name ?? "Unknown breed",
-                    BreedDescription = breed.Description ?? "No breed description available",
-                    AnimalTypeName = animalType.Name ?? "Unknown type",
-                    AnimalTypeDescription = animalType.Description ?? "No animal type description available"
-                }
-                .ToEmbeddingText();
+                String embeddingVal = await _translationService.TranslateAsync(
+                    new AnimalEmbed()
+                    {
+                        Description = animal.Description ?? "No description available",
+                        HealthStatus = animal.HealthStatus ?? "Health status unknown",
+                        Age = animal.Age.ToString(),
+                        Gender = animal.Gender.ToString(),
+                        Weight = animal.Weight.ToString(),
+                        BreedName = breed.Name ?? "Unknown breed",
+                        BreedDescription = breed.Description ?? "No breed description available",
+                        AnimalTypeName = animalType.Name ?? "Unknown type",
+                        AnimalTypeDescription = animalType.Description ?? "No animal type description available"
+                    }
+                    .ToEmbeddingText(),
+                    null,
+                    SupportedLanguages.English
+                );
 
                 // Generate embedding with enhanced information
                 Embedding<Double> animalEmbed = await _embeddingService.GenerateEmbeddingAsyncDouble(embeddingVal);

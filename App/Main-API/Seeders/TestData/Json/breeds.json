@@ -3,7 +3,7 @@
     "Id": "608f2f88cdf97ce800439021",
     "Name": "Labrador Retriever",
     "AnimalTypeId": "507f1f77bcf86cd799439011",
-    "Description": "Friendly and outgoing dog breed",
+    "Description": "Labrador Retrievers are medium to large-sized dogs known for their friendly, outgoing nature and high energy levels. Originally bred as fishing dogs in Newfoundland, they excel at retrieving and water activities. Labs are excellent family pets, highly trainable, and great with children.",
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
   },
@@ -11,7 +11,7 @@
     "Id": "608f2f88cdf97ce800439022",
     "Name": "German Shepherd",
     "AnimalTypeId": "507f1f77bcf86cd799439011",
-    "Description": "Intelligent and versatile dog breed",
+    "Description": "German Shepherds are large, intelligent working dogs originally bred for herding sheep in Germany. They are known for their loyalty, courage, and versatility in various working roles including police and military service. These dogs require experienced owners who can provide consistent training and mental stimulation.",
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
   },
@@ -19,7 +19,7 @@
     "Id": "608f2f88cdf97ce800439023",
     "Name": "Persian",
     "AnimalTypeId": "507f1f77bcf86cd799439012",
-    "Description": "Long-haired cat breed",
+    "Description": "Persian cats are a long-haired breed known for their flat faces, round eyes, and luxurious coats. They have a calm, gentle temperament and prefer quiet, stable environments. Persians require daily grooming to prevent matting and regular eye cleaning due to their facial structure.",
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
   },
@@ -27,7 +27,7 @@
     "Id": "608f2f88cdf97ce800439024",
     "Name": "Siamese",
     "AnimalTypeId": "507f1f77bcf86cd799439012",
-    "Description": "Vocal and social cat breed",
+    "Description": "Siamese cats are an ancient breed from Thailand, known for their distinctive color-point pattern and striking blue eyes. They are highly vocal, social, and intelligent cats that form strong bonds with their owners. Siamese cats are active and playful, requiring interactive toys and mental stimulation.",
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
   },
@@ -35,7 +35,7 @@
     "Id": "608f2f88cdf97ce800439025",
     "Name": "Parakeet",
     "AnimalTypeId": "507f1f77bcf86cd799439013",
-    "Description": "Small, colorful bird",
+    "Description": "Parakeets, also known as budgerigars, are small, colorful birds native to Australia. They are social, intelligent birds capable of learning words and tricks with proper training. Parakeets are relatively easy to care for and make excellent starter birds for new bird owners.",
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
   },
@@ -43,7 +43,7 @@
     "Id": "608f2f88cdf97ce800439026",
     "Name": "Holland Lop",
     "AnimalTypeId": "507f1f77bcf86cd799439014",
-    "Description": "Small rabbit with floppy ears",
+    "Description": "Holland Lops are small rabbits characterized by their distinctive drooping ears and compact, rounded body shape. They typically weigh 2-4 pounds and have gentle, friendly temperaments that make them popular pets. These rabbits require hay-based diets and benefit from supervised exercise time outside their enclosures.",
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
   },
@@ -51,31 +51,7 @@
     "Id": "608f2f88cdf97ce800439027",
     "Name": "Syrian Hamster",
     "AnimalTypeId": "507f1f77bcf86cd799439015",
-    "Description": "Common pet hamster",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "608f2f88cdf97ce800439028",
-    "Name": "Goldfish",
-    "AnimalTypeId": "507f1f77bcf86cd799439016",
-    "Description": "Popular aquarium fish",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "608f2f88cdf97ce800439029",
-    "Name": "Red-Eared Slider",
-    "AnimalTypeId": "507f1f77bcf86cd799439017",
-    "Description": "Common pet turtle",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "608f2f88cdf97ce80043902a",
-    "Name": "Appaloosa",
-    "AnimalTypeId": "507f1f77bcf86cd799439019",
-    "Description": "Spotted horse breed",
+    "Description": "Syrian hamsters, also known as golden hamsters, are the largest and most common pet hamster species. They are solitary animals that must be housed alone and are known for their cheek pouches used for storing food. Syrian hamsters are nocturnal and require wheels for exercise and enrichment activities.",
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
   }

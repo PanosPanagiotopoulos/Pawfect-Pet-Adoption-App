@@ -44,6 +44,7 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.Extentions;
 using Main_API.Services.MongoServices;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
+using Pawfect_Pet_Adoption_App_API.Services.TranslationServices.Extentions;
 
 public class Program
 {
@@ -69,7 +70,7 @@ public class Program
         // Bootsrap MongoDB
         using (IServiceScope scope = app.Services.CreateScope())
 		{
-			if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
+			if (args.Length == 0 || args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
 			{
                 try
                 {
@@ -120,6 +121,7 @@ public class Program
         AddConfigurationFiles(configBuilder, configurationPaths, "animals", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "api-keys", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "embedding", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "translation", env);
 
 
         // Load environment variables
@@ -208,7 +210,8 @@ public class Program
 		.AddTemporaryFilesCleanupTask(builder.Configuration.GetSection("BackgroundTasks:TemporaryFilesCleanupTask"))
         .AddRefreshTokenCleanupTask(builder.Configuration.GetSection("BackgroundTasks:RefreshTokenCleanupTask"))
         .AddCookiesServices()
-		.AddEmbeddingServices(builder.Configuration.GetSection("Embedding"));
+		.AddEmbeddingServices(builder.Configuration.GetSection("Embedding"))
+        .AddTranslationServices(builder.Configuration.GetSection("Translation"));
 
 
         // CORS

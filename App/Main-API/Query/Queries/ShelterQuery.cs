@@ -10,6 +10,7 @@ using Main_API.Models.Shelter;
 using Main_API.Services.AuthenticationServices;
 using Main_API.Services.FilterServices;
 using Main_API.Services.MongoServices;
+using System.Text.RegularExpressions;
 
 namespace Main_API.Query.Queries
 {
@@ -97,13 +98,47 @@ namespace Main_API.Query.Queries
 				filter &= builder.In(nameof(Data.Entities.Shelter.VerifiedById), referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
-			// Εφαρμόζει φίλτρο για fuzzy search μέσω indexing στη Mongo σε πεδίο : ShelterName
-			if (!String.IsNullOrEmpty(Query))
-			{
-				filter &= builder.Text(Query);
-			}
+            // Εφαρμόζει φίλτρο για fuzzy search μέσω indexing στη Mongo σε πεδίο : ShelterName
+            if (!String.IsNullOrEmpty(Query))
+            {
+                List<FilterDefinition<Data.Entities.Shelter>> searchFilters = new List<FilterDefinition<Data.Entities.Shelter>>();
 
-			return Task.FromResult(filter);
+                // 1. Standard MongoDB text index search - good for exact and partial matches
+                searchFilters.Add(builder.Text(Query));
+
+                String wordBoundaryPattern = $@"\b{Regex.Escape(Query)}";
+                BsonRegularExpression wordBoundaryRegex = new BsonRegularExpression(wordBoundaryPattern, "i");
+                searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), wordBoundaryRegex));
+
+                // 3. Character-level fuzzy matching (handles minor typos) - only for longer queries
+                if (Query.Length >= 3)
+                {
+                    String fuzzyPattern = String.Empty;
+                    String escapedFuzzyQuery = Regex.Escape(Query);
+
+                    for (Int32 i = 0; i < escapedFuzzyQuery.Length; i++)
+                    {
+                        Char currentChar = escapedFuzzyQuery[i];
+
+                        // Add the current character with optional preceding character (handles insertions)
+                        fuzzyPattern += $".?{currentChar}";
+
+                        // Allow for character substitution (replace with any character)
+                        if (i < escapedFuzzyQuery.Length - 1)
+                        {
+                            fuzzyPattern += "?";
+                        }
+                    }
+
+                    BsonRegularExpression fuzzyRegex = new BsonRegularExpression(fuzzyPattern, "i");
+                    searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), fuzzyRegex));
+                }
+
+                // Combine all search filters with OR
+                filter &= builder.Or(searchFilters);
+            }
+
+            return Task.FromResult(filter);
 		}
 
         public override async Task<FilterDefinition<Data.Entities.Shelter>> ApplyAuthorization(FilterDefinition<Data.Entities.Shelter> filter)

@@ -1,0 +1,9 @@
+{
+  "Translation": {
+    "BaseUrl": "https://libretranslate.de",
+    "DefaultLanguage": "en",
+    "TimeoutSeconds": 18,
+    "EnableCaching": true,
+    "MaxCacheSize":  25
+  }
+}

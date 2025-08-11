@@ -11,12 +11,15 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
 using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
 using MongoDB.Bson.Serialization;
+using Pawfect_Pet_Adoption_App_API.Services.TranslationServices;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
 
 namespace Main_API.Query.Queries
 {
 	public class AnimalQuery : BaseQuery<Data.Entities.Animal>
 	{
         private readonly IEmbeddingService _embeddingService;
+        private readonly ITranslationService _translationService;
         private readonly MongoDbConfig _config;
 
         public AnimalQuery
@@ -26,11 +29,13 @@ namespace Main_API.Query.Queries
             ClaimsExtractor claimsExtractor,
             IAuthorizationContentResolver authorizationContentResolver,
             IEmbeddingService _embeddingService,
+            ITranslationService translationService,
             IOptions<MongoDbConfig> options
 
         ) : base(mongoDbService, AuthorizationService, authorizationContentResolver, claimsExtractor)
         {
             this._embeddingService = _embeddingService;
+            this._translationService = translationService;
             this._config = options.Value;
         }
 
@@ -210,7 +215,9 @@ namespace Main_API.Query.Queries
         {
             if (String.IsNullOrWhiteSpace(query)) return new List<Data.Entities.Animal>();
 
-            Double[] queryEmbedding = (await _embeddingService.GenerateEmbeddingAsyncDouble(query)).Vector.ToArray();
+            String translatedQuery = await _translationService.TranslateAsync(query, null, SupportedLanguages.English);
+
+            Double[] queryEmbedding = (await _embeddingService.GenerateEmbeddingAsyncDouble(translatedQuery)).Vector.ToArray();
 
             int totalNeeded = Math.Max(this.Offset - 1, 0) * this.PageSize + this.PageSize;
             int vectorSearchLimit = Math.Max(totalNeeded * 2, _config.IndexSettings.Topk);
