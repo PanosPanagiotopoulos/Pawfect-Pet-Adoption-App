@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
 using System.Collections.Concurrent;
-using System.Net.Http;
-using System.Text.Json;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
 {
@@ -31,10 +29,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
             String normalizedTargetLang = this.NormalizeLanguageCode(targetLang);
 
             if (normalizedSourceLang.Equals(normalizedTargetLang, StringComparison.OrdinalIgnoreCase))
-                return input;
-
-            // Fast check - if already in target language, return as is
-            if (this.IsAlreadyInTargetLanguage(input, normalizedTargetLang))
                 return input;
 
             // Check cache first
@@ -101,9 +95,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
             // Fast character-based detection for Greek/English
             if (this.ContainsGreekCharacters(text))
                 return SupportedLanguages.Greek;
-
-            if (this.ContainsLatinCharacters(text))
-                return SupportedLanguages.English;
 
             // Fallback to API detection if character-based detection is inconclusive
             LanguageDetectionRequest request = new LanguageDetectionRequest
@@ -172,7 +163,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
             return targetLanguage switch
             {
                 SupportedLanguages.Greek => ContainsGreekCharacters(text) && !ContainsLatinCharacters(text),
-                SupportedLanguages.English => ContainsLatinCharacters(text) && !ContainsGreekCharacters(text),
                 _ => false
             };
         }
