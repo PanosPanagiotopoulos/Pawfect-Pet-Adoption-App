@@ -23,6 +23,10 @@ import { TranslationService } from 'src/app/common/services/translation.service'
 import { Permission } from 'src/app/common/enum/permission.enum';
 import { AuthService } from 'src/app/services/auth.service';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { nameof } from 'ts-simple-nameof';
+import { Breed } from 'src/app/models/breed/breed.model';
+import { File } from 'src/app/models/file/file.model';
+import { Shelter } from 'src/app/models/shelter/shelter.model';
 
 @Component({
   selector: 'app-profile-animals',
@@ -47,9 +51,10 @@ import { trigger, transition, style, animate } from '@angular/animations';
   ],
 })
 export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() shelterId: string | null = null;
+  @Input() viewingAnimalsShelterId: string | null = null;
   @Output() addAnimal = new EventEmitter<void>();
 
+  currentUserShelterId: string | null = null;
   animals: Animal[] = [];
   totalAnimals = 0;
   pageSize = 6;
@@ -66,14 +71,14 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     offset: 0,
     pageSize: 6,
     fields: [
-      'id',
-      'name',
-      'breed.name',
-      'attachedPhotos.sourceUrl',
-      'adoptionStatus',
-      'age',
-      'gender',
-      'shelter.id',
+      nameof<Animal>(x => x.id),
+      nameof<Animal>(x => x.name),
+      [nameof<Animal>(x => x.breed), nameof<Breed>(x => x.name)].join('.'),
+      [nameof<Animal>(x => x.attachedPhotos), nameof<File>(x => x.sourceUrl)].join('.'),
+      nameof<Animal>(x => x.adoptionStatus),
+      nameof<Animal>(x => x.age),
+      nameof<Animal>(x => x.gender),
+      [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.id)].join('.'),
     ],
     sortBy: [],
     sortDescending: true,
@@ -153,11 +158,9 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.canEditAnimals = this.authService.hasPermission(
-      Permission.EditAnimals
-    );
-    if (this.shelterId) {
-      this.lookup.shelterIds = [this.shelterId];
+    if (this.viewingAnimalsShelterId) {
+      this.currentUserShelterId = this.authService.getUserShelterId();
+      this.lookup.shelterIds = [this.viewingAnimalsShelterId];
       this.loadAnimals();
     }
     this.translationSub = this.translationService.languageChanged$.subscribe(
@@ -184,7 +187,7 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   loadAnimals(event?: PageEvent) {
-    if (!this.shelterId) return;
+    if (!this.viewingAnimalsShelterId) return;
 
     this.dataSub?.unsubscribe();
     this.updatePagination(event);
@@ -192,7 +195,7 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     this.error = null;
     this.cdr.markForCheck();
 
-    this.lookup.shelterIds = [this.shelterId];
+    this.lookup.shelterIds = [this.viewingAnimalsShelterId];
 
     this.dataSub = this.animalService.query(this.lookup).subscribe({
       next: (data) => {
@@ -200,6 +203,9 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
         this.totalAnimals = data.count;
         this.isLoading = false;
         this.cdr.markForCheck();
+
+        this.canEditAnimals = this.authService.hasPermission(Permission.EditAnimals) ||
+                          (!!this.currentUserShelterId && this.animals.filter(a => a.shelter?.id === this.currentUserShelterId).length == this.animals.length);
       },
       error: (err) => {
         this.error = 'APP.PROFILE-PAGE.ANIMALS.LOAD_ERROR';
@@ -249,11 +255,6 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     this.router.navigate(['/animals/edit', animal.id]);
   }
 
-  isOwnerOfAnimal(animal: Animal): boolean {
-    // Check if the current shelter ID matches the animal's shelter ID
-    return this.shelterId === animal.shelter?.id;
-  }
-
   onAddAnimalClick() {
     // Navigate to add animals page
     this.router.navigate(['/animals/new']);
@@ -261,7 +262,7 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
 
   canAddAnimals(): boolean {
     // Only allow adding animals if user can edit animals and has a shelter
-    return this.canEditAnimals && !!this.shelterId;
+    return this.canEditAnimals && this.authService.hasPermission(Permission.CreateAnimals);
   }
 
   onPageSizeChange(event: Event) {

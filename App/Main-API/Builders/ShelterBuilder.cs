@@ -104,6 +104,8 @@ namespace Main_API.Builders
             // Λήψη των αναγνωριστικών των ξένων κλειδιών για να γίνει ερώτημα στα επιπλέον entities
             List<String> userIds = [.. shelters.Select(x => x.UserId).Distinct()];
 
+            userFields.Add(String.Join('.', nameof(Models.Shelter.Shelter.User), nameof(Models.User.User.Id))); 
+
             UserLookup userLookup = new UserLookup();
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
             userLookup.Offset = 1;

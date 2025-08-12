@@ -18,8 +18,10 @@
     using Main_API.Transactions;
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
+    using Microsoft.Extensions.Caching.Memory;
+    using Main_API.Data.Entities.Types.Cache;
 
-	[ApiController]
+    [ApiController]
 	[Route("auth")]
 	public class AuthController : ControllerBase
 	{
@@ -30,6 +32,7 @@
         private readonly PermissionPolicyProvider _permissionPolicyProvider;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IMemoryCache _memoryCache;
         private readonly IConventionService _conventionService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly ICookiesService _cookiesService;
@@ -43,6 +46,7 @@
 			PermissionPolicyProvider permissionPolicyProvider,
 			IAuthorizationContentResolver AuthorizationContentResolver, 
 			ClaimsExtractor claimsExtractor,
+            IMemoryCache memoryCache,
 			IConventionService conventionService, 
 			IRefreshTokenRepository refreshTokenRepository,
 			ICookiesService cookiesService
@@ -55,6 +59,7 @@
             _permissionPolicyProvider = permissionPolicyProvider;
             _authorizationContentResolver = AuthorizationContentResolver;
             _claimsExtractor = claimsExtractor;
+            _memoryCache = memoryCache;
             _conventionService = conventionService;
             _refreshTokenRepository = refreshTokenRepository;
             _cookiesService = cookiesService;
@@ -101,22 +106,24 @@
 			_cookiesService.SetCookie(JwtService.ACCESS_TOKEN, token, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
             _cookiesService.SetCookie(JwtService.REFRESH_TOKEN, refreshToken.Token, refreshToken.ExpiresAt);
 
-			// ** ACCOUNT SERVE ** //
-			return Ok(
-				new LoggedAccount()
-				{
-                    UserId = user.Id,
-					ShelterId = user.ShelterId,
-					Email = user.Email,
-					Phone = user.Phone,
-					Roles = userRoles,
-					Permissions = permissions,
-					LoggedAt = DateTime.UtcNow,
-					IsEmailVerified = user.HasEmailVerified,
-					IsPhoneVerified = user.HasPhoneVerified,
-					IsVerified = user.IsVerified
-				}
-			);
+            LoggedAccount loggedAccount = new LoggedAccount()
+            {
+                UserId = user.Id,
+                ShelterId = user.ShelterId,
+                Email = user.Email,
+                Phone = user.Phone,
+                Roles = userRoles,
+                Permissions = permissions,
+                LoggedAt = DateTime.UtcNow,
+                IsEmailVerified = user.HasEmailVerified,
+                IsPhoneVerified = user.HasPhoneVerified,
+                IsVerified = user.IsVerified
+            };
+
+            _memoryCache.Set($"User_Account_{user.Id}", JsonHelper.SerializeObjectFormatted(loggedAccount), TimeSpan.FromMinutes(_jwtService.JwtExpireAfterMinutes));
+
+            // ** ACCOUNT SERVE ** //
+            return Ok(loggedAccount);
 		}
 
         [HttpPost("refresh")]
@@ -173,7 +180,7 @@
 
             _cookiesService.SetCookie(JwtService.ACCESS_TOKEN, newAccessToken, DateTime.UtcNow.AddMinutes(_jwtService.JwtExpireAfterMinutes));
 
-            return Ok(new LoggedAccount
+            LoggedAccount loggedAccount = new LoggedAccount
             {
                 UserId = user.Id,
                 ShelterId = user.ShelterId,
@@ -185,7 +192,12 @@
                 IsEmailVerified = user.HasEmailVerified,
                 IsPhoneVerified = user.HasPhoneVerified,
                 IsVerified = user.IsVerified
-            });
+            };
+
+            _memoryCache.Remove($"User_Account_{user.Id}");
+            _memoryCache.Set($"User_Account_{user.Id}", JsonHelper.SerializeObjectFormatted(loggedAccount), TimeSpan.FromMinutes(_jwtService.JwtExpireAfterMinutes));
+
+            return Ok(loggedAccount);
         }
 
         [HttpPost("logout")]
@@ -246,6 +258,9 @@
 			ClaimsPrincipal currentUser = _authorizationContentResolver.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(currentUser);
             if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+
+            LoggedAccount loggedAccount = JsonHelper.DeserializeObjectFormattedSafe<LoggedAccount>(_memoryCache.Get<String>($"User_Account_{userId}"));
+            if (loggedAccount != null) return Ok(loggedAccount);
 
             // ** TOKENS ** //	
             String? token = _cookiesService.GetCookie(JwtService.ACCESS_TOKEN);

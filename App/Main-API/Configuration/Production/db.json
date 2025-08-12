@@ -19,8 +19,8 @@
       "AnimalSchemanticIndexName": "animals_text_search_index",
       "Dims": 1024,
       "NumCandidates": 5000,
-      "Topk": 8,
-      "VectorScoreThreshold": 0.86,
+      "Topk": 15,
+      "VectorScoreThreshold": 0.802,
       "TextScoreThreshold": 0.45,
       "SynonymsBatch": [
         {
@@ -760,8 +760,8 @@
           }
         },
         "CombinationSettings": {
-          "VectorWeight": 0.6,
-          "SemanticWeight": 0.4,
+          "VectorWeight": 0.65,
+          "SemanticWeight": 0.35,
           "MinimumShouldMatch": 1,
           "EnablePhraseBoosting": true,
           "PhraseBoosting": 1.2

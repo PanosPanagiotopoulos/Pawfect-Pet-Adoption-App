@@ -103,35 +103,77 @@ namespace Main_API.Query.Queries
             {
                 List<FilterDefinition<Data.Entities.Shelter>> searchFilters = new List<FilterDefinition<Data.Entities.Shelter>>();
 
-                // 1. Standard MongoDB text index search - good for exact and partial matches
-                searchFilters.Add(builder.Text(Query));
+                String normalizedQuery = Query.Trim();
+                String escapedQuery = Regex.Escape(normalizedQuery);
 
-                String wordBoundaryPattern = $@"\b{Regex.Escape(Query)}";
+                // Exact match (highest priority)
+                BsonRegularExpression exactRegex = new BsonRegularExpression($"^{escapedQuery}$", "i");
+                searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), exactRegex));
+
+                // Starts with query (very high priority)
+                BsonRegularExpression startsWithRegex = new BsonRegularExpression($"^{escapedQuery}", "i");
+                searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), startsWithRegex));
+
+                // Word boundary matching - query matches start of any word
+                String wordBoundaryPattern = $@"\b{escapedQuery}";
                 BsonRegularExpression wordBoundaryRegex = new BsonRegularExpression(wordBoundaryPattern, "i");
                 searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), wordBoundaryRegex));
 
-                // 3. Character-level fuzzy matching (handles minor typos) - only for longer queries
-                if (Query.Length >= 3)
+                // Contains query anywhere in name (lower priority)
+                BsonRegularExpression containsRegex = new BsonRegularExpression(escapedQuery, "i");
+                searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), containsRegex));
+
+                // Individual word matching for multi-word queries
+                String[] words = normalizedQuery.Split(new char[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                if (words.Length > 1)
                 {
-                    String fuzzyPattern = String.Empty;
-                    String escapedFuzzyQuery = Regex.Escape(Query);
-
-                    for (Int32 i = 0; i < escapedFuzzyQuery.Length; i++)
+                    // All words must be found (AND logic for individual words)
+                    List<FilterDefinition<Data.Entities.Shelter>> wordFilters = new List<FilterDefinition<Data.Entities.Shelter>>();
+                    foreach (String word in words)
                     {
-                        Char currentChar = escapedFuzzyQuery[i];
-
-                        // Add the current character with optional preceding character (handles insertions)
-                        fuzzyPattern += $".?{currentChar}";
-
-                        // Allow for character substitution (replace with any character)
-                        if (i < escapedFuzzyQuery.Length - 1)
+                        if (word.Length >= 2) // Ignore very short words
                         {
-                            fuzzyPattern += "?";
+                            String escapedWord = Regex.Escape(word);
+                            String wordPattern = $@"\b{escapedWord}";
+                            BsonRegularExpression wordRegex = new BsonRegularExpression(wordPattern, "i");
+                            wordFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), wordRegex));
                         }
                     }
 
-                    BsonRegularExpression fuzzyRegex = new BsonRegularExpression(fuzzyPattern, "i");
-                    searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), fuzzyRegex));
+                    if (wordFilters.Any())
+                    {
+                        // All words must be present (stricter matching)
+                        searchFilters.Add(builder.And(wordFilters));
+                    }
+                }
+
+                // Limited fuzzy matching - only for queries 4+ characters and very restrictive
+                if (normalizedQuery.Length >= 4)
+                {
+                    // Only allow one character difference for very close matches
+                    String restrictedFuzzyPattern = String.Empty;
+                    for (Int32 i = 0; i < escapedQuery.Length; i++)
+                    {
+                        Char currentChar = escapedQuery[i];
+                        if (i == 0)
+                        {
+                            // First character must match or be close
+                            restrictedFuzzyPattern += $"[{currentChar}.]";
+                        }
+                        else if (i == escapedQuery.Length - 1)
+                        {
+                            // Last character must match or be close  
+                            restrictedFuzzyPattern += $"[{currentChar}.]";
+                        }
+                        else
+                        {
+                            // Middle characters must match exactly
+                            restrictedFuzzyPattern += currentChar;
+                        }
+                    }
+
+                    BsonRegularExpression restrictedFuzzyRegex = new BsonRegularExpression(restrictedFuzzyPattern, "i");
+                    searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), restrictedFuzzyRegex));
                 }
 
                 // Combine all search filters with OR

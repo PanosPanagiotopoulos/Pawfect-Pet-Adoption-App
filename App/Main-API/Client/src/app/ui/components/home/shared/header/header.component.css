@@ -34,3 +34,364 @@
     background-position: 0% 50%;
   }
 }
+
+/* Search dropdown styling */
+.shelter-search-dropdown .line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom smooth purple scrollbar for search results - Desktop and Mobile */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: rgba(147, 51, 234, 0.1);
+  border-radius: 2px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #9333ea, #7c3aed);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #7c3aed, #6d28d9);
+  transform: scaleX(1.2);
+}
+
+/* Firefox scrollbar styling */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #9333ea rgba(147, 51, 234, 0.1);
+}
+
+/* Smooth scrolling behavior for search results */
+.overflow-y-auto {
+  scroll-behavior: smooth;
+}
+
+/* Specific styling for search dropdown containers */
+.shelter-search-dropdown .overflow-y-auto,
+.mobile-search-overlay .overflow-y-auto {
+  /* Enhanced smooth scrolling */
+  scroll-behavior: smooth;
+  /* Ensure consistent styling */
+  scrollbar-width: thin;
+  scrollbar-color: #9333ea rgba(147, 51, 234, 0.1);
+}
+
+/* Recent searches styling */
+.recent-search-item {
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.recent-search-item:hover {
+  background-color: rgba(147, 51, 234, 0.05);
+  transform: translateX(2px);
+  box-shadow: 0 2px 4px rgba(147, 51, 234, 0.1);
+}
+
+.recent-search-item:hover .text-gray-400 {
+  color: #9333ea;
+  transform: scale(1.1);
+}
+
+.recent-search-item:active {
+  transform: translateX(1px) scale(0.98);
+}
+
+/* Delete button styling */
+.recent-search-item button {
+  transition: all 0.2s ease-in-out;
+  border-radius: 50%;
+}
+
+.recent-search-item button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.recent-search-item button:active {
+  transform: scale(0.95);
+}
+
+.recent-search-item button ng-icon {
+  transition: all 0.2s ease-in-out;
+}
+
+.recent-search-item button:hover ng-icon {
+  transform: rotate(90deg);
+}
+
+/* Recent searches header styling */
+.recent-searches-header {
+  background: linear-gradient(90deg, rgba(147, 51, 234, 0.05), rgba(147, 51, 234, 0.02));
+  border-left: 3px solid #9333ea;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Enhanced search results container */
+.search-results-container {
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(147, 51, 234, 0.1);
+}
+
+/* Loading state for cached results */
+.cached-result-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(45deg, #9333ea, #7c3aed);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  opacity: 0.8;
+}
+
+/* Mobile search overlay animation */
+.mobile-search-overlay {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search result hover effects */
+.shelter-search-dropdown .search-result-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.shelter-search-dropdown .search-result-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Desktop search bar expansion animation */
+.search-bar-expanded {
+  animation: expandSearchBar 0.3s ease-out forwards;
+  transform-origin: left center;
+}
+
+@keyframes expandSearchBar {
+  from {
+    width: 40px;
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  to {
+    width: 100%;
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Search input focus effects */
+.desktop-search-input:focus,
+.mobile-search-input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* Improved mobile search overlay */
+.mobile-search-overlay {
+  animation: slideDownFade 0.25s ease-out forwards;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search button hover effects */
+.desktop-search-container button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-search-button:hover {
+  transform: scale(1.1);
+}
+
+/* Profile image fallback styling */
+.search-result-item img {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.search-result-item img[style*="display: none"] + ng-icon {
+  display: block !important;
+}
+
+/* Beautiful search icon animations */
+@keyframes searchFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-2px) rotate(5deg);
+  }
+  50% {
+    transform: translateY(-1px) rotate(-3deg);
+  }
+  75% {
+    transform: translateY(-3px) rotate(2deg);
+  }
+}
+
+@keyframes searchPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.animate-search-float {
+  animation: searchFloat 4s ease-in-out infinite;
+}
+
+.animate-search-pulse {
+  animation: searchPulse 2s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Search button styling - matches header theme */
+.search-toggle-btn {
+  position: relative;
+}
+
+.search-toggle-btn:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Navigation links pushing effect when search expands - only About Us and Contact */
+.nav-links-pushed {
+  transform: translateX(-320px);
+}
+
+/* Search bar expansion animation - expands from button to the left */
+.search-bar-expanded {
+  width: 288px;
+  animation: expandLeftFromButton 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  transform-origin: right center;
+}
+
+@keyframes expandLeftFromButton {
+  0% {
+    width: 40px;
+    opacity: 0;
+    transform: scaleX(0.1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scaleX(0.5);
+  }
+  100% {
+    width: 288px;
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+/* Enhanced mobile search overlay with smoother animation */
+.mobile-search-overlay {
+  animation: slideDownSmoothFade 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes slideDownSmoothFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  60% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Button hover effects - simplified to match header theme */
+.desktop-search-container .search-toggle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-search-button:hover {
+  transform: scale(1.1);
+}
+
+/* Search input focus effects - matches header theme */
+.desktop-search-input:focus,
+.mobile-search-input:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.5);
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Close button rotation animation - simplified */
+.desktop-search-container button:hover ng-icon,
+.mobile-search-overlay button:hover ng-icon {
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
+}
+
+/* Loading spinner enhancement */
+@keyframes spinGlow {
+  0% {
+    transform: rotate(0deg);
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+  }
+  100% {
+    transform: rotate(360deg);
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+  }
+}
+
+.animate-spin {
+  animation: spinGlow 1s linear infinite;
+}

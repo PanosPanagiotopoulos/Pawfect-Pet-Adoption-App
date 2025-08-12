@@ -94,7 +94,7 @@ export class ErrorMessageBannerComponent {
       case 'info':
         return 'lucideInfo';
       default:
-        return 'lucideAlertCircle';
+        return 'lucideCircleAlert';
     }
   }
 

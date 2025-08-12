@@ -21,11 +21,6 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
     '/auth/login',
     '/auth/sign-up',
     '/auth/google/callback',
-    '/search',
-    '/home',
-    '/',
-    '/404',
-    '',
   ];
   private readonly LANG_STORAGE_KEY = 'pawfect-language';
 

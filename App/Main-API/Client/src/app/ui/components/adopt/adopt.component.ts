@@ -1042,23 +1042,28 @@ export class AdoptComponent
 
       // For edit mode, check if values have actually changed from original
       if (this.adoptionApplication) {
-        const originalDetails = this.adoptionApplication.applicationDetails || '';
+        const originalDetails =
+          this.adoptionApplication.applicationDetails || '';
         const originalFileIds = (this.adoptionApplication.attachedFiles || [])
-          .map(f => f.id || f)
-          .filter(id => id && typeof id === 'string')
+          .map((f) => f.id || f)
+          .filter((id) => id && typeof id === 'string')
           .sort();
         const currentFileIds = (attachedFiles || []).sort();
 
         // Check if application details changed
-        const detailsChanged = (applicationDetails || '').trim() !== originalDetails.trim();
-        
+        const detailsChanged =
+          (applicationDetails || '').trim() !== originalDetails.trim();
+
         // Check if files changed (compare sorted arrays)
-        const filesChanged = JSON.stringify(originalFileIds) !== JSON.stringify(currentFileIds);
+        const filesChanged =
+          JSON.stringify(originalFileIds) !== JSON.stringify(currentFileIds);
 
         // Check if status changed (for shelter users)
         let statusChanged = false;
-        if (this.adoptionFormComponent?.canManageApplicationStatus && 
-            this.adoptionFormComponent?.isCurrentUserShelter) {
+        if (
+          this.adoptionFormComponent?.canManageApplicationStatus &&
+          this.adoptionFormComponent?.isCurrentUserShelter
+        ) {
           const currentStatus = form.get('status')?.value;
           const originalStatus = this.adoptionApplication.status;
           statusChanged = currentStatus !== originalStatus;

@@ -69,7 +69,7 @@ namespace Main_API.Services.AdoptionApplicationServices
 
                 if (data == null) throw new NotFoundException("No adoption application found with id given", persist.Id, typeof(Data.Entities.AdoptionApplication));
 
-                if (!await AuthorisePersistAdoptionApplication(data, Permission.EditAdoptionApplications))
+                if (!await AuthoriseAdoptionApplication(data, Permission.EditAdoptionApplications))
                     throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.AdoptionApplication), Permission.EditAdoptionApplications);
 
                 String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
@@ -134,9 +134,9 @@ namespace Main_API.Services.AdoptionApplicationServices
                 .FirstOrDefault();
         }
 
-        private async Task<Boolean> AuthorisePersistAdoptionApplication(Data.Entities.AdoptionApplication data, String permission)
-            => await AuthorisePersistAdoptionApplication(new List<Data.Entities.AdoptionApplication> { data }, permission);
-        private async Task<Boolean> AuthorisePersistAdoptionApplication(List<Data.Entities.AdoptionApplication> datas, String permission)
+        private async Task<Boolean> AuthoriseAdoptionApplication(Data.Entities.AdoptionApplication data, String permission)
+            => await AuthoriseAdoptionApplication(new List<Data.Entities.AdoptionApplication> { data }, permission);
+        private async Task<Boolean> AuthoriseAdoptionApplication(List<Data.Entities.AdoptionApplication> datas, String permission)
         {
             ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
@@ -219,23 +219,44 @@ namespace Main_API.Services.AdoptionApplicationServices
             lookup.Offset = 1;
             lookup.PageSize = 10000;
             lookup.Fields = new List<String> {
-                                                nameof(Models.AdoptionApplication.AdoptionApplication.Id),
-                                                nameof(Models.AdoptionApplication.AdoptionApplication.Shelter) + "." + nameof(Models.Shelter.Shelter.Id),
-                                                nameof(Models.AdoptionApplication.AdoptionApplication.User) + "." + nameof(Models.User.User.Id),
-                                                nameof(Models.AdoptionApplication.AdoptionApplication.AttachedFiles) + "." + nameof(Models.File.File.Id),
-                                             };
+                nameof(Models.AdoptionApplication.AdoptionApplication.Id),
+                nameof(Models.AdoptionApplication.AdoptionApplication.Shelter) + "." + nameof(Models.Shelter.Shelter.Id),
+                nameof(Models.AdoptionApplication.AdoptionApplication.User) + "." + nameof(Models.User.User.Id),
+                nameof(Models.AdoptionApplication.AdoptionApplication.AttachedFiles) + "." + nameof(Models.File.File.Id),
+                };
 
-            List<Data.Entities.AdoptionApplication> datas = await lookup.EnrichLookup(_queryFactory).CollectAsync();
+            List<Data.Entities.AdoptionApplication> datas = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync();
 
             if (datas == null || !datas.Any()) return;
 
-			if (!await this.AuthorisePersistAdoptionApplication(datas, Permission.DeleteAdoptionApplications))
+            if (!await this.AuthoriseAdoptionApplication(datas, Permission.DeleteAdoptionApplications))
                 throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.AdoptionApplication), Permission.DeleteAdoptionApplications);
 
             await _fileService.Value.Delete([.. datas.Where(data => data.AttachedFilesIds != null).SelectMany(data => data.AttachedFilesIds)]);
 
             await _adoptionApplicationRepository.DeleteAsync(ids);
-		}
+        }
+
+        public async Task DeleteFromAnimal(String animalId) => await this.DeleteFromAnimals(new List<String> { animalId });
+
+        public async Task DeleteFromAnimals(List<String> animalIds)
+        {
+            if (animalIds == null || !animalIds.Any()) return;
+
+            AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
+            lookup.AnimalIds = animalIds;
+            lookup.Offset = 1;
+            lookup.PageSize = 10000;
+            lookup.Fields = new List<String> {
+                nameof(Models.AdoptionApplication.AdoptionApplication.Id),
+            };
+
+            List<Data.Entities.AdoptionApplication> datas = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync();
+
+            if (datas == null || !datas.Any()) return;
+
+            await this.Delete(datas.Select(x => x.Id).ToList());
+        }
 
         public async Task<Boolean> CanDeleteApplication(String applicationId)
         {
@@ -251,5 +272,6 @@ namespace Main_API.Services.AdoptionApplicationServices
 
             return await _authorizationService.AuthorizeOrOwnedOrAffiliated(context, Permission.DeleteAdoptionApplications);
         }
+
     }
 }

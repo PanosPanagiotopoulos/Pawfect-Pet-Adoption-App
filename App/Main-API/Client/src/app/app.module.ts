@@ -85,6 +85,7 @@ import {
   lucideCloud,
   lucideTrash2,
   lucideCamera,
+  lucideHistory,
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -236,6 +237,7 @@ export function initializeApp(
       lucideCloud,
       lucideTrash2,
       lucideCamera,
+      lucideHistory,
     }),
     HeaderComponent,
     TranslatePipe,

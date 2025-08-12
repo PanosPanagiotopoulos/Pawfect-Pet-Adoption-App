@@ -2,7 +2,6 @@
 {
     public interface ITranslationService
     {
-        Task<String> DetectLanguageAsync(String text);
         Task<String> TranslateAsync(String input, String sourceLang, String targetLang);
     }
 }

@@ -1261,7 +1261,7 @@
             *ngIf="tabs[selectedTabIndex]?.component === 'my-animals'"
           >
             <app-profile-animals
-              [shelterId]="
+              [viewingAnimalsShelterId]="
                 profileUser && profileUser.shelter
                   ? profileUser.shelter.id ?? null
                   : null

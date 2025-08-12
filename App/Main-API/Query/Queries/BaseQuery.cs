@@ -80,8 +80,6 @@ namespace Main_API.Query.Queries
 
             BsonDocument projectStage = new BsonDocument();
 
-            this.Fields = this.FieldNamesOf(this.Fields.ToList());
-
             // Include requested fields
             foreach (String field in this.Fields) projectStage[field] = 1;
 

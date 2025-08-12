@@ -318,9 +318,22 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
       attachedFiles: [[]],
       status: [{ value: ApplicationStatus.Pending, disabled: true }],
     });
+    
+    console.log('AdoptionFormComponent constructor - form created');
+    console.log('Initial form valid:', this.applicationForm.valid);
+    console.log('Initial form errors:', this.applicationForm.errors);
+    console.log('ApplicationDetails control:', this.applicationForm.get('applicationDetails'));
+    console.log('ApplicationDetails errors:', this.applicationForm.get('applicationDetails')?.errors);
   }
 
   ngOnInit() {
+    console.log('AdoptionFormComponent ngOnInit');
+    console.log('Initial form state:');
+    console.log('Form valid:', this.applicationForm.valid);
+    console.log('Form values:', this.applicationForm.value);
+    console.log('Is edit mode:', this.isEditMode);
+    console.log('Adoption application:', this.adoptionApplication);
+    
     this.initializePermissions();
     this.loadExistingData();
   }
@@ -371,9 +384,24 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
   }
 
   onSubmit() {
+    console.log('onSubmit called');
+    
     this.validationErrors = [];
     this.showErrorSummary = false;
     this.error = undefined;
+
+    // Mark all fields as touched to show validation errors
+    this.markFormGroupTouched(this.applicationForm);
+    
+    console.log('After marking as touched:');
+    console.log('Form valid:', this.applicationForm.valid);
+    console.log('Form errors:', this.applicationForm.errors);
+    
+    // Check individual controls
+    Object.keys(this.applicationForm.controls).forEach(key => {
+      const control = this.applicationForm.get(key);
+      console.log(`${key} - valid: ${control?.valid}, errors:`, control?.errors, 'value:', control?.value);
+    });
 
     if (this.applicationForm.valid) {
       this.isSubmitting = true;
@@ -395,13 +423,55 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
           },
         });
     } else {
+      // Log form validation state for debugging
+      console.log('Form is invalid. Form errors:', this.applicationForm.errors);
+      console.log('Form values:', this.applicationForm.value);
+      
+      // Log individual control errors
+      Object.keys(this.applicationForm.controls).forEach(key => {
+        const control = this.applicationForm.get(key);
+        if (control?.invalid) {
+          console.log(`${key} errors:`, control.errors);
+          console.log(`${key} value:`, control.value);
+        }
+      });
+      
+      // Track form errors and show error summary
       this.validationErrors = this.formErrorTracker.trackFormErrors(
         this.applicationForm,
         this.formContainer.nativeElement
       );
+      
+      console.log('Validation errors tracked:', this.validationErrors);
+      
       this.showErrorSummary = true;
-      this.formErrorTracker.scrollToFirstError(this.validationErrors);
+      
+      // Scroll to first error
+      if (this.validationErrors.length > 0) {
+        this.formErrorTracker.scrollToFirstError(this.validationErrors);
+      }
+      
+      // Also show a general error message
+      this.error = {
+        title: 'Validation Error',
+        message: 'Please fix the errors below and try again.',
+        type: 'error'
+      } as ErrorDetails;
+      
+      console.log('Error banner should show:', this.error);
+      console.log('Show error summary:', this.showErrorSummary);
     }
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      control?.markAsTouched();
+      
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      }
+    });
   }
 
   onDelete(): void {
@@ -426,6 +496,8 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
 
   private loadExistingData() {
     if (this.isEditMode && this.adoptionApplication) {
+      console.log('Loading existing data:', this.adoptionApplication);
+      
       this.applicationForm.patchValue({
         applicationDetails: this.adoptionApplication.applicationDetails || '',
         status: this.adoptionApplication.status || ApplicationStatus.Pending,
@@ -445,7 +517,17 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
         // Mark as pristine and untouched to prevent unnecessary form guard dialogs
         this.applicationForm.markAsPristine();
         this.applicationForm.markAsUntouched();
+        
+        console.log('Form state after loading existing data:');
+        console.log('Form valid:', this.applicationForm.valid);
+        console.log('Form values:', this.applicationForm.value);
+        console.log('Form errors:', this.applicationForm.errors);
       }, 0);
+    } else {
+      console.log('Not in edit mode or no adoption application data');
+      console.log('Form state for new application:');
+      console.log('Form valid:', this.applicationForm.valid);
+      console.log('Form values:', this.applicationForm.value);
     }
   }
 

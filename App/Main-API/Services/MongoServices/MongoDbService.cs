@@ -598,12 +598,12 @@ namespace Main_API.Services.MongoServices
                 IMongoCollection<BsonDocument> collection = this.FindCollection(typeof(Data.Entities.Animal));
 
                 // Try using aggregation with $listSearchIndexes stage instead of command
-                var pipeline = new BsonArray
+                BsonArray pipeline = new BsonArray
                 {
                     new BsonDocument("$listSearchIndexes", new BsonDocument())
                 };
 
-                        var aggregateCommand = new BsonDocument
+                BsonDocument aggregateCommand = new BsonDocument
                 {
                     { "aggregate", collection.CollectionNamespace.CollectionName },
                     { "pipeline", pipeline },

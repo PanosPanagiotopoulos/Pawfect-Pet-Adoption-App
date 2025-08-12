@@ -1,9 +1,10 @@
 {
   "Translation": {
-    "BaseUrl": "https://libretranslate.de",
+    "Url": "https://api.mymemory.translated.net/get",
     "DefaultLanguage": "en",
     "TimeoutSeconds": 18,
     "EnableCaching": true,
-    "MaxCacheSize":  25
+    "MaxChunkSize": 450,
+    "MaxCacheSize": 1000
   }
 }

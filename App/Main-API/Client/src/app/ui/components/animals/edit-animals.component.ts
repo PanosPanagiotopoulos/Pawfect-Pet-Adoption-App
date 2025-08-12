@@ -167,7 +167,7 @@ export class EditAnimalsComponent
     if (
       !this.authService.hasPermission(Permission.EditAnimals) &&
       this.animal &&
-      this.currentUserShelterId &&
+      !this.currentUserShelterId &&
       this.animal.shelter?.id !== this.currentUserShelterId
     ) {
       this.navigateToUnauthorized();

@@ -515,7 +515,7 @@
             ></ng-icon>
           </button>
           <button
-            *ngIf="canEditAnimals || isOwnerOfAnimal(animal)"
+            *ngIf="canEditAnimals"
             class="w-12 rounded-none rounded-br-2xl z-30 bg-accent-600 text-white border-0 shadow-none py-3 flex items-center justify-center hover:bg-accent-700 transition-colors border-l border-white/20"
             (click)="onEditClick(animal, $event)"
             [attr.aria-label]="
@@ -632,7 +632,7 @@
                   ></ng-icon>
                 </button>
                 <button
-                  *ngIf="canEditAnimals || isOwnerOfAnimal(animal)"
+                  *ngIf="canEditAnimals"
                   (click)="onEditClick(animal, $event)"
                   class="p-2 text-accent-600 hover:text-accent-800 hover:bg-accent-50 rounded-lg transition-colors"
                   [attr.aria-label]="

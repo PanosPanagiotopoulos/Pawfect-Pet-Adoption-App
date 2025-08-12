@@ -11,6 +11,7 @@ using Main_API.Models.Lookups;
 using Main_API.Query;
 using Main_API.Query.Queries;
 using Main_API.Repositories.Interfaces;
+using Main_API.Services.AdoptionApplicationServices;
 using Main_API.Services.AuthenticationServices;
 using Main_API.Services.Convention;
 using Main_API.Services.FileServices;
@@ -29,6 +30,7 @@ namespace Main_API.Services.AnimalServices
         private readonly ClaimsExtractor _claimsExtractor;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly Lazy<IFileService> _fileService;
+        private readonly Lazy<IAdoptionApplicationService> _adoptionApplicationService;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
         private readonly IQueryFactory _queryFactory;
@@ -41,6 +43,7 @@ namespace Main_API.Services.AnimalServices
 				IAnimalRepository animalRepository,
 				IMapper mapper,
 				Lazy<IFileService> fileService,
+                Lazy<IAdoptionApplicationService> adoptionApplicationService,
 				ICensorFactory censorFactory,
                 AuthContextBuilder contextBuilder,
                 IQueryFactory queryFactory,
@@ -59,6 +62,7 @@ namespace Main_API.Services.AnimalServices
             _claimsExtractor = claimsExtractor;
             _authorizationContentResolver = AuthorizationContentResolver;
             _fileService = fileService;
+            _adoptionApplicationService = adoptionApplicationService;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
             _authorizationService = AuthorizationService;
@@ -230,12 +234,14 @@ namespace Main_API.Services.AnimalServices
             lookup.Offset = 1;
             lookup.PageSize = 10000;
 
-            List<Main_API.Data.Entities.Animal> animals = [.. await lookup.EnrichLookup(_queryFactory).CollectAsync()];
+            List<Main_API.Data.Entities.Animal> animals = [.. await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync()];
 
             if (!await _authorizationService.AuthorizeAsync(Permission.DeleteAnimals)
                 && (animals == null || !animals.Any())) throw new ForbiddenException("You are not authorized to delete animals", typeof(Data.Entities.Animal), Permission.DeleteAnimals);
 
-			await _fileService.Value.Delete([..animals.Where(animal => animal.PhotosIds != null).SelectMany(animal => animal.PhotosIds)]);
+            await _adoptionApplicationService.Value.DeleteFromAnimals([.. animals.Select(x => x.Id)]);
+
+            await _fileService.Value.Delete([..animals.Where(animal => animal.PhotosIds != null).SelectMany(animal => animal.PhotosIds)]);
 
 			await _animalRepository.DeleteAsync(ids);
 		}

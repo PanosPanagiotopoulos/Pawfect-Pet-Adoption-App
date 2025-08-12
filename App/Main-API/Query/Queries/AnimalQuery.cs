@@ -202,10 +202,7 @@ namespace Main_API.Query.Queries
 
             List<Data.Entities.Animal>[] results = await Task.WhenAll(vectorSearchTask, semanticSearchTask);
 
-            List<Data.Entities.Animal> vectorResults = results[0];
-            List<Data.Entities.Animal> semanticResults = results[1];
-
-            List<Data.Entities.Animal> combinedResults = this.CombineSearchResults(vectorResults, semanticResults);
+            List<Data.Entities.Animal> combinedResults = this.CombineSearchResults(results[0], results[1]);
 
             return combinedResults;
         }

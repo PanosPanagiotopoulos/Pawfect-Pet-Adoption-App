@@ -19,12 +19,12 @@ import { CommonModule } from '@angular/common';
       <!-- Image or fallback icon -->
       <div class="relative flex items-center justify-center w-full h-full">
         <img 
-          *ngIf="imageUrl" 
-          [src]="imageUrl" 
+          [src]="imageUrl || 'assets/placeholder.jpg'" 
           [alt]="name || 'User avatar'"
-          class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110" />
+          class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110"
+          (error)="onImageError($event)" />
         <ng-icon 
-          *ngIf="!imageUrl"
+          *ngIf="showFallbackIcon"
           name="lucideUser"
           [size]="size === 'sm' ? '16' : '20'"
           class="text-white transition-transform duration-200 group-hover:scale-110">
@@ -37,4 +37,14 @@ export class UserAvatarComponent {
   @Input() imageUrl?: string;
   @Input() name?: string;
   @Input() size: 'sm' | 'md' = 'md';
+  
+  showFallbackIcon = false;
+
+  onImageError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
+      this.showFallbackIcon = true;
+    }
+  }
 }

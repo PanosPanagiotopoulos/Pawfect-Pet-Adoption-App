@@ -1,7 +1,7 @@
 [
   {
     "Id": "80af4faaef0a9ef900439041",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439033",
     "ShelterName": "Happy Paws Shelter",
     "Description": "A caring shelter for dogs and cats",
     "Website": "https://happypaws.org",
@@ -25,7 +25,7 @@
   },
   {
     "Id": "80af4faaef0a9ef900439042",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439034",
     "ShelterName": "City Animal Rescue",
     "Description": "Rescuing animals in urban areas",
     "Website": "https://cityrescue.org",
@@ -49,7 +49,7 @@
   },
   {
     "Id": "80af4faaef0a9ef900439043",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439038",
     "ShelterName": "Pawsome Haven",
     "Description": "A safe haven for all pets",
     "Website": null,
@@ -73,7 +73,7 @@
   },
   {
     "Id": "80af4faaef0a9ef900439044",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439039",
     "ShelterName": "Furry Friends Rescue",
     "Description": "Dedicated to saving furry friends",
     "Website": "https://furryfriends.org",
@@ -97,7 +97,7 @@
   },
   {
     "Id": "80af4faaef0a9ef900439045",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439031",
     "ShelterName": "Urban Paws",
     "Description": "Shelter for city pets",
     "Website": null,
@@ -121,7 +121,7 @@
   },
   {
     "Id": "80af4faaef0a9ef900439046",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439032",
     "ShelterName": "Safe Haven Shelter",
     "Description": "A sanctuary for animals",
     "Website": "https://safehaven.org",
@@ -145,7 +145,7 @@
   },
   {
     "Id": "80af4faaef0a9ef900439047",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439036",
     "ShelterName": "Pet Paradise",
     "Description": "A paradise for homeless pets",
     "Website": "https://petparadise.org",
@@ -169,7 +169,7 @@
   },
   {
     "Id": "80af4faaef0a9ef900439048",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439037",
     "ShelterName": "Kindred Spirits",
     "Description": "Helping animals find loving homes",
     "Website": null,
@@ -193,7 +193,7 @@
   },
   {
     "Id": "80af4faaef0a9ef900439049",
-    "UserId": null,
+    "UserId": "709f3f99def98de90043903a",
     "ShelterName": "Forever Homes",
     "Description": "Finding forever homes for pets",
     "Website": "https://foreverhomes.org",
@@ -217,7 +217,7 @@
   },
   {
     "Id": "80af4faaef0a9ef90043904a",
-    "UserId": null,
+    "UserId": "709f3f99def98de900439035",
     "ShelterName": "Animal Sanctuary",
     "Description": "A sanctuary for all animals",
     "Website": "https://animalsanctuary.org",

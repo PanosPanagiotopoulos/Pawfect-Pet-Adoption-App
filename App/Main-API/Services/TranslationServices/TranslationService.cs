@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
 using System.Collections.Concurrent;
+using System.Text;
+using System.Text.Json;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
 {
@@ -28,30 +30,65 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
             String normalizedSourceLang = this.NormalizeLanguageCode(sourceLang);
             String normalizedTargetLang = this.NormalizeLanguageCode(targetLang);
 
-            if (normalizedSourceLang.Equals(normalizedTargetLang, StringComparison.OrdinalIgnoreCase))
-                return input;
+            if (normalizedSourceLang.Equals(SupportedLanguages.Auto)) normalizedSourceLang = await this.DetectLanguageAsync(input);
 
-            // Check cache first
-            String cacheKey = $"{input.GetHashCode()}|{normalizedSourceLang}|{normalizedTargetLang}";
-            if (_config.EnableCaching && _translationCache.TryGetValue(cacheKey, out String? cachedResult))
+            if (normalizedSourceLang.Equals(normalizedTargetLang, StringComparison.OrdinalIgnoreCase)) return input;
+
+            StringBuilder translatedResult = new StringBuilder();
+            Int32 currentIndex = 0;
+
+            // Process input in chunks until all text is translated
+            for (; currentIndex < input.Length;)
             {
-                _logger.LogDebug($"Translation found in cache for key: {cacheKey}");
-                return cachedResult;
+                Int32 remainingLength = input.Length - currentIndex;
+                Int32 chunkSize = Math.Min(_config.MaxChunkSize, remainingLength);
+                String chunk = input.Substring(currentIndex, chunkSize);
+
+                // If not the last chunk, try to break at space character
+                if (currentIndex + chunkSize < input.Length)
+                {
+                    Int32 lastSpaceIndex = chunk.LastIndexOf(' ');
+                    if (lastSpaceIndex > 0)
+                    {
+                        chunk = chunk.Substring(0, lastSpaceIndex);
+                        chunkSize = lastSpaceIndex;
+                    }
+                }
+
+                String translatedChunk = await this.TranslateChunk(chunk, normalizedSourceLang, normalizedTargetLang);
+                translatedResult.Append(translatedChunk);
+
+                // Add space if we broke at a space and it's not the last chunk
+                if (currentIndex + chunkSize < input.Length && chunk.Length < _config.MaxChunkSize)
+                {
+                    translatedResult.Append(' ');
+                    chunkSize++;
+                }
+
+                currentIndex += chunkSize;
             }
 
-            TranslationRequest request = new TranslationRequest
+            return translatedResult.ToString();
+        }
+
+        private async Task<String> TranslateChunk(String input, String sourceLang, String targetLang)
+        {
+            // Check cache first at chunk level
+            String cacheKey = $"{input.GetHashCode()}|{sourceLang}|{targetLang}";
+            if (_config.EnableCaching && _translationCache.TryGetValue(cacheKey, out String? cachedResult))
             {
-                Query = input,
-                Source = normalizedSourceLang,
-                Target = normalizedTargetLang,
-                Format = "text"
-            };
+                _logger.LogDebug($"Translation found in cache for chunk: {input.Substring(0, Math.Min(input.Length, 30))}...");
+                return cachedResult;
+            }
 
             using (HttpClient httpClient = new HttpClient())
             {
                 httpClient.Timeout = TimeSpan.FromSeconds(_config.TimeoutSeconds);
 
-                HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{_config.Url}/translate", request);
+                String encodedText = Uri.EscapeDataString(input);
+                String url = $"{_config.Url}?q={encodedText}&langpair={sourceLang}|{targetLang}";
+
+                HttpResponseMessage response = await httpClient.GetAsync(url);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -60,70 +97,63 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
                     throw new HttpRequestException($"Translation failed: {response.StatusCode} - {errorContent}");
                 }
 
-                TranslationResponse? result = await response.Content.ReadFromJsonAsync<TranslationResponse>();
+                String responseContent = await response.Content.ReadAsStringAsync();
 
-                if (result == null || String.IsNullOrWhiteSpace(result.TranslatedText))
+                TranslationResponse? result = JsonSerializer.Deserialize<TranslationResponse>(responseContent, new JsonSerializerOptions
                 {
-                    _logger.LogWarning($"Empty translation result received for: {input}");
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (result?.ResponseData == null || String.IsNullOrWhiteSpace(result.ResponseData.TranslatedText))
+                {
+                    _logger.LogWarning($"Empty or null translation result received for: {input}");
                     return input;
                 }
 
-                // Cache the result for future use
-                if (_config.EnableCaching)
+                // Check if response indicates an error
+                if (result.ResponseData.TranslatedText.Contains("QUERY LENGTH LIMIT EXCEEDED") ||
+                    result.ResponseData.TranslatedText.Contains("QUOTA EXCEEDED") ||
+                    result.ResponseData.TranslatedText.Contains("INVALID PARAMETERS") ||
+                    result.ResponseData.TranslatedText.Contains("NO QUERY SPECIFIED"))
                 {
-                    _translationCache.TryAdd(cacheKey, result.TranslatedText);
+                    _logger.LogWarning($"API error in response for chunk: {input.Substring(0, Math.Min(input.Length, 50))}... Error: {result.ResponseData.TranslatedText}");
+                    return input; // Return original text as fallback
+                }
 
-                    String[] keysToRemove = _translationCache.Keys.Take(_translationCache.Count - _config.MaxCacheSize).ToArray();
-                    foreach (String key in keysToRemove)
+                String translatedText = result.ResponseData.TranslatedText;
+
+                // Cache the result at chunk level
+                if (_config.EnableCaching && !String.IsNullOrWhiteSpace(translatedText))
+                {
+                    _translationCache.TryAdd(cacheKey, translatedText);
+
+                    // Clean up cache if it exceeds max size
+                    if (_translationCache.Count > _config.MaxCacheSize)
                     {
-                        _translationCache.TryRemove(key, out String? _);
+                        String[] keysToRemove = _translationCache.Keys.Take(_translationCache.Count - _config.MaxCacheSize).ToArray();
+                        foreach (String key in keysToRemove)
+                        {
+                            _translationCache.TryRemove(key, out String? _);
+                        }
                     }
                 }
 
-                return result.TranslatedText;
+                return translatedText;
             }
         }
 
-        public async Task<String> DetectLanguageAsync(String text)
+        private async Task<String> DetectLanguageAsync(String text)
         {
             if (String.IsNullOrWhiteSpace(text))
-            {
-                _logger.LogWarning("Empty text provided for language detection");
-                return _config.DefaultLanguage;
-            }
+                return await Task.FromResult(_config.DefaultLanguage);
 
-            // Fast character-based detection for Greek/English
+            // Fast character-based detection for Greek
             if (this.ContainsGreekCharacters(text))
-                return SupportedLanguages.Greek;
+                return await Task.FromResult(SupportedLanguages.Greek);
 
-            // Fallback to API detection if character-based detection is inconclusive
-            LanguageDetectionRequest request = new LanguageDetectionRequest
-            {
-                Query = text
-            };
 
-            using (HttpClient httpClient = new HttpClient())
-            {
-                httpClient.Timeout = TimeSpan.FromSeconds(_config.TimeoutSeconds);
-
-                HttpResponseMessage response = await httpClient.PostAsJsonAsync($"{_config.Url}/detect", request);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    String errorContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError($"Language detection API error: {response.StatusCode} - {errorContent}");
-                    return _config.DefaultLanguage;
-                }
-
-                List<LanguageDetectionResponse>? results = await response.Content.ReadFromJsonAsync<List<LanguageDetectionResponse>>();
-                String detectedLanguage = results?.FirstOrDefault()?.Language ?? _config.DefaultLanguage;
-
-                _logger.LogInformation($"Detected language '{detectedLanguage}' for text: '{text.Substring(0, Math.Min(text.Length, 50))}...'");
-
-                return this.NormalizeLanguageCode(detectedLanguage);
-            }
+            return await Task.FromResult(_config.DefaultLanguage);
         }
-
 
         private Boolean ContainsGreekCharacters(String text)
         {
@@ -140,37 +170,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
             return false;
         }
 
-        private Boolean ContainsLatinCharacters(String text)
-        {
-            if (String.IsNullOrEmpty(text))
-                return false;
-
-            // Optimized Latin character detection
-            ReadOnlySpan<Char> span = text.AsSpan();
-            foreach (Char c in span)
-            {
-                if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
-                    return true;
-            }
-            return false;
-        }
-
-        private Boolean IsAlreadyInTargetLanguage(String text, String targetLanguage)
-        {
-            if (String.IsNullOrWhiteSpace(text))
-                return true;
-
-            return targetLanguage switch
-            {
-                SupportedLanguages.Greek => ContainsGreekCharacters(text) && !ContainsLatinCharacters(text),
-                _ => false
-            };
-        }
-
-        private String NormalizeLanguageCode(String languageCode)
+        private String NormalizeLanguageCode(String? languageCode)
         {
             if (String.IsNullOrWhiteSpace(languageCode))
-                return _config.DefaultLanguage;
+                return SupportedLanguages.Auto;
 
             String normalized = languageCode.ToLowerInvariant().Trim();
 
@@ -179,6 +182,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
             {
                 "en" or "eng" or "english" => SupportedLanguages.English,
                 "el" or "gr" or "gre" or "greek" => SupportedLanguages.Greek,
+                "auto" or "detect" => SupportedLanguages.Auto,
                 _ => normalized
             };
         }
