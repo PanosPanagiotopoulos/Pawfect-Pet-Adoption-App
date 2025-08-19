@@ -87,7 +87,8 @@ namespace Main_API.Controllers
             if (_memoryCache.TryGetValue(cacheKey, out String queryResultValue))
             {
                 queryResult = JsonHelper.DeserializeObjectFormattedSafe<QueryResult<Shelter>>(queryResultValue);
-                if (queryResult != null) return Ok(queryResult);
+                if (shelterLookup?.ExcludedIds?.Any() == true)
+                    queryResult.Items = queryResult.Items.Where(shelter => !shelterLookup.ExcludedIds.Contains(shelter.Id)).ToList();
             }
 
             ShelterQuery q = shelterLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
