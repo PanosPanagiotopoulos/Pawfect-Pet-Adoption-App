@@ -225,9 +225,18 @@ export class HeaderComponent extends BaseComponent {
     this.shelterSearchControl.setValue('');
     this.currentSearchQuery = ''; // Clear current search query
     
-    // Navigate to shelter profile or handle selection as needed
     if (shelter.user?.id) {
-      this.router.navigate(['/profile', shelter.user.id]);
+      const targetUrl = `/profile/${shelter.user.id}`;
+      const currentUrl = this.router.url;
+      
+      if (currentUrl === targetUrl) {
+        // If navigating to the same URL, force a reload
+        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+          this.router.navigate(['/profile', shelter?.user?.id]);
+        });
+      } else {
+        this.router.navigate(['/profile', shelter.user.id]);
+      }
     }
   }
 

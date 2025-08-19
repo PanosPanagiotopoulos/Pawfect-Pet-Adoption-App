@@ -144,6 +144,10 @@ export class AccountDetailsComponent {
   @Output() back = new EventEmitter<void>();
   @ViewChild('formContainer') formContainer!: ElementRef;
 
+  hasUnsavedChanges(): boolean {
+    return !!this.form && this.form.dirty;
+  }
+
   isPasswordRequirementMet(requirement: string): boolean {
     const passwordControl = this.form.get('password');
     const confirmPasswordControl = this.form.get('confirmPassword');

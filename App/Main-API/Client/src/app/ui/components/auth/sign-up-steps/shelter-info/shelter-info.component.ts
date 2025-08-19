@@ -77,6 +77,14 @@ export class ShelterInfoComponent implements OnInit {
   }[] = [];
   showErrorSummary = false;
 
+  hasUnsavedChanges(): boolean {
+    const shelterForm = this.getShelterForm();
+    const socialForm = this.getSocialMediaForm();
+    const hoursForm = this.getOperatingHoursForm();
+    const anyDirty = !!shelterForm?.dirty || !!socialForm?.dirty || !!hoursForm?.dirty;
+    return anyDirty || this.operatingHoursModified;
+  }
+
   constructor(private cdr: ChangeDetectorRef) {
     this.days.forEach((day) => {
       this.closedDays[day] = false;

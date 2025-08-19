@@ -31,6 +31,10 @@ import { TranslationService } from 'src/app/common/services/translation.service'
 import { MatDialog } from '@angular/material/dialog';
 import { FormLeaveConfirmationDialogComponent } from 'src/app/common/ui/form-leave-confirmation-dialog.component';
 import { Observable } from 'rxjs';
+import { CanComponentDeactivate } from 'src/app/common/guards/form.guard';
+import { PersonalInfoComponent } from './sign-up-steps/personal-info/personal-info.component';
+import { AccountDetailsComponent } from './sign-up-steps/account-details/account-details.component';
+import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
 
 interface LocationFormGroup extends FormGroup {
   controls: {
@@ -133,9 +137,12 @@ export enum SignupStep {
 })
 export class SignupComponent
   extends BaseComponent
-  implements OnInit, OnDestroy
+  implements OnInit, OnDestroy, CanComponentDeactivate
 {
   @ViewChild(OtpInputComponent) otpInputComponent?: OtpInputComponent;
+  @ViewChild(PersonalInfoComponent) personalInfoCmp?: PersonalInfoComponent;
+  @ViewChild(AccountDetailsComponent) accountDetailsCmp?: AccountDetailsComponent;
+  @ViewChild(ShelterInfoComponent) shelterInfoCmp?: ShelterInfoComponent;
   currentStep = SignupStep.PersonalInfo;
   SignupStep = SignupStep;
   stepDirection: 'next' | 'prev' = 'next';
@@ -157,8 +164,10 @@ export class SignupComponent
 
   registrationForm!: RegistrationFormGroup;
   otpForm!: OtpFormGroup;
+  personalInfoForm!: FormGroup;
+  accountDetailsForm!: FormGroup;
 
-  private hasUnsavedChanges = false;
+  private hasUnsavedChangesFlag = false;
   private isSubmitting = false;
 
   constructor(
@@ -226,11 +235,6 @@ export class SignupComponent
       this.resendEmailVerification();
     }
 
-    history.pushState(null, '', location.href);
-    window.onpopstate = () => {
-      history.pushState(null, '', location.href);
-    };
-
     // Track form changes for unsaved changes detection
     this.setupFormChangeTracking();
   }
@@ -243,7 +247,7 @@ export class SignupComponent
 
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any): void {
-    if (this.hasUnsavedChanges && !this.isSubmitting) {
+    if (this.hasUnsavedChanges()) {
       $event.returnValue = this.translationService.translate('APP.COMMONS.FORM_GUARD.MESSAGE');
     }
   }
@@ -252,20 +256,36 @@ export class SignupComponent
     // Track changes in registration form
     this.registrationForm.valueChanges.subscribe(() => {
       if (!this.isSubmitting) {
-        this.hasUnsavedChanges = true;
+        this.hasUnsavedChangesFlag = true;
       }
     });
 
     // Track changes in OTP form
     this.otpForm.valueChanges.subscribe(() => {
       if (!this.isSubmitting) {
-        this.hasUnsavedChanges = true;
+        this.hasUnsavedChangesFlag = true;
       }
     });
+
+    // Track changes in step forms
+    if (this.personalInfoForm) {
+      this.personalInfoForm.valueChanges.subscribe(() => {
+        if (!this.isSubmitting) {
+          this.hasUnsavedChangesFlag = true;
+        }
+      });
+    }
+    if (this.accountDetailsForm) {
+      this.accountDetailsForm.valueChanges.subscribe(() => {
+        if (!this.isSubmitting) {
+          this.hasUnsavedChangesFlag = true;
+        }
+      });
+    }
   }
 
   canDeactivate(): Observable<boolean> | boolean {
-    if (!this.hasUnsavedChanges || this.isSubmitting) {
+    if (!this.hasUnsavedChanges()) {
       return true;
     }
 
@@ -276,12 +296,33 @@ export class SignupComponent
         confirmText: this.translationService.translate('APP.COMMONS.FORM_GUARD.LEAVE'),
         cancelText: this.translationService.translate('APP.COMMONS.FORM_GUARD.STAY')
       },
-      disableClose: true,
-      width: '400px'
+      disableClose: false,
+      width: '28rem',
+      panelClass: 'form-guard-panel',
+      backdropClass: 'form-guard-backdrop',
+      autoFocus: false,
+      hasBackdrop: true
     });
 
     return dialogRef.afterClosed();
   }
+
+  hasUnsavedChanges(): boolean {
+    if (this.isSubmitting) {
+      return false;
+    }
+    const formDirty = !!this.registrationForm && this.registrationForm.dirty;
+    const otpDirty = !!this.otpForm && this.otpForm.dirty;
+
+    const stepDirty = !!(
+      (this.personalInfoCmp && this.personalInfoCmp.hasUnsavedChanges && this.personalInfoCmp.hasUnsavedChanges()) ||
+      (this.accountDetailsCmp && this.accountDetailsCmp.hasUnsavedChanges && this.accountDetailsCmp.hasUnsavedChanges()) ||
+      (this.shelterInfoCmp && this.shelterInfoCmp.hasUnsavedChanges && this.shelterInfoCmp.hasUnsavedChanges())
+    );
+
+    return this.hasUnsavedChangesFlag || formDirty || otpDirty || stepDirty;
+  }
+
   private initializeForms(): void {
     // Change this in the initializeForms() method:
     const operatingHoursGroup = this.fb.group({
@@ -360,6 +401,22 @@ export class SignupComponent
         operatingHours: operatingHoursGroup,
       }) as ShelterFormGroup,
     }) as RegistrationFormGroup;
+
+    // Create stable step forms referencing registration controls
+    this.personalInfoForm = this.fb.group({
+      fullName: this.registrationForm.get('fullName'),
+      email: this.registrationForm.get('email'),
+      countryCode: this.registrationForm.get('countryCode'),
+      phoneNumber: this.registrationForm.get('phoneNumber'),
+      phone: this.registrationForm.get('phone'),
+      location: this.registrationForm.get('location'),
+      profilePhoto: this.registrationForm.get('profilePhoto'),
+    });
+
+    this.accountDetailsForm = this.fb.group({
+      password: this.registrationForm.get('password'),
+      confirmPassword: this.registrationForm.get('confirmPassword'),
+    });
 
     // Add password confirmation validator
     this.registrationForm
@@ -515,24 +572,11 @@ export class SignupComponent
   }
 
   getPersonalInfoForm(): FormGroup {
-    const personalInfoForm = this.fb.group({
-      fullName: this.registrationForm.get('fullName'),
-      email: this.registrationForm.get('email'),
-      countryCode: this.registrationForm.get('countryCode'),
-      phoneNumber: this.registrationForm.get('phoneNumber'),
-      phone: this.registrationForm.get('phone'),
-      location: this.registrationForm.get('location'),
-      profilePhoto: this.registrationForm.get('profilePhoto'),
-    });
-    return personalInfoForm;
+    return this.personalInfoForm;
   }
 
   getAccountDetailsForm(): FormGroup {
-    const accountDetailsForm = this.fb.group({
-      password: this.registrationForm.get('password'),
-      confirmPassword: this.registrationForm.get('confirmPassword'),
-    });
-    return accountDetailsForm;
+    return this.accountDetailsForm;
   }
 
   getFileUploadForm(): FormGroup {
@@ -627,7 +671,7 @@ export class SignupComponent
 
         this.googlePopulatedFields = googlePopulatedFields;
         this.hasGoogleData = true;
-        this.hasUnsavedChanges = true; // Mark as having changes since Google data was populated
+        this.hasUnsavedChangesFlag = true; // Mark as having changes since Google data was populated
 
         this.isExternalProviderLoading = false;
         this.error = undefined;
@@ -783,7 +827,7 @@ export class SignupComponent
 
           this.isLoading = false;
           this.isSubmitting = false;
-          this.hasUnsavedChanges = false;
+          this.hasUnsavedChangesFlag = false;
           this.error = undefined;
         },
         error: (error) => {
@@ -856,7 +900,7 @@ export class SignupComponent
           next: () => {
             this.isLoading = false;
             this.isSubmitting = false;
-            this.hasUnsavedChanges = false;
+            this.hasUnsavedChangesFlag = false;
             this.error = undefined;
 
             // Clear phone verification from storage since it's now verified
@@ -977,7 +1021,7 @@ export class SignupComponent
   onEmailVerificationComplete(): void {
     // Clear email verification from storage since it's now complete
     this.secureStorageService.removeItem('unverifiedEmail');
-    this.hasUnsavedChanges = false;
+    this.hasUnsavedChangesFlag = false;
 
     if (this.fromLogin) {
       // Coming from login, redirect to home

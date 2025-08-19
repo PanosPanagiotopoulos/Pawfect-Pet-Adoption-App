@@ -4,7 +4,7 @@
     "Email": "admin1@gmail.com",
     "Password": "admin",
     "FullName": "John Doe",
-    "Roles": [ 1 ],
+    "Roles": [ 1, 2 ],
     "Phone": "+12345678901",
     "Location": {
       "Address": "Main St",
@@ -12,7 +12,7 @@
       "City": "New York",
       "ZipCode": "10001"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439045",
     "AuthProvider": 1,
     "AuthProviderId": null,
     "IsVerified": true,
@@ -26,7 +26,7 @@
     "Email": "jane.smith@example.com",
     "Password": null,
     "FullName": "Jane Smith",
-    "Roles": [ 1 ],
+    "Roles": [ 1, 2 ],
     "Phone": "+12345678902",
     "Location": {
       "Address": "Oak Ave",
@@ -34,7 +34,7 @@
       "City": "Los Angeles",
       "ZipCode": "90001"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439046",
     "AuthProvider": 2,
     "AuthProviderId": "google123456",
     "IsVerified": false,
@@ -56,7 +56,7 @@
       "City": "Chicago",
       "ZipCode": "60601"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439041",
     "AuthProvider": 1,
     "AuthProviderId": null,
     "IsVerified": true,
@@ -78,7 +78,7 @@
       "City": "Miami",
       "ZipCode": "33101"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439042",
     "AuthProvider": 2,
     "AuthProviderId": "google789012",
     "IsVerified": true,
@@ -100,7 +100,7 @@
       "City": "Boston",
       "ZipCode": "02108"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef90043904a",
     "AuthProvider": 1,
     "AuthProviderId": null,
     "IsVerified": true,
@@ -114,7 +114,7 @@
     "Email": "admin4@gmail.com",
     "Password": "admin",
     "FullName": "Alice Brown",
-    "Roles": [ 1 ],
+    "Roles": [ 1, 2 ],
     "Phone": "+12345678906",
     "Location": {
       "Address": "Maple Dr",
@@ -122,7 +122,7 @@
       "City": "Seattle",
       "ZipCode": "98101"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439047",
     "AuthProvider": 1,
     "AuthProviderId": null,
     "IsVerified": true,
@@ -136,7 +136,7 @@
     "Email": "admin5@gmail.com",
     "Password": null,
     "FullName": "Bob Jones",
-    "Roles": [ 1 ],
+    "Roles": [ 1, 2 ],
     "Phone": "+12345678907",
     "Location": {
       "Address": "Birch Ave",
@@ -144,7 +144,7 @@
       "City": "San Francisco",
       "ZipCode": "94101"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439048",
     "AuthProvider": 2,
     "AuthProviderId": "google345678",
     "IsVerified": false,
@@ -166,7 +166,7 @@
       "City": "Austin",
       "ZipCode": "78701"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439043",
     "AuthProvider": 1,
     "AuthProviderId": null,
     "IsVerified": true,
@@ -188,7 +188,7 @@
       "City": "Denver",
       "ZipCode": "80201"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439044",
     "AuthProvider": 2,
     "AuthProviderId": "google901234",
     "IsVerified": true,
@@ -210,7 +210,7 @@
       "City": "Phoenix",
       "ZipCode": "85001"
     },
-    "ShelterId": null,
+    "ShelterId": "80af4faaef0a9ef900439049",
     "AuthProvider": 1,
     "AuthProviderId": null,
     "IsVerified": true,

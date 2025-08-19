@@ -27,6 +27,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
             this._logger = logger;
             this._indexConfig = indexConfigOptions.Value.IndexSettings;
         }
+
         public async Task<Embedding<Double>> GenerateEmbeddingAsyncDouble(String value) => (await this.GenerateEmbeddingsAsyncDouble([value]))?.FirstOrDefault();
 
         public async Task<GeneratedEmbeddings<Embedding<Double>>> GenerateEmbeddingsAsyncDouble(List<String> values)
@@ -35,14 +36,15 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
 
             return new GeneratedEmbeddings<Embedding<Double>>(
                 results?.Select(res => new Embedding<Double>(
-                    new ReadOnlyMemory<Double>(res.Vector.ToArray().Select(x => Convert.ToDouble(x)).ToArray())) 
-                    { 
-                        CreatedAt = res.CreatedAt, 
-                        ModelId = res.ModelId 
-                    })
+                    new ReadOnlyMemory<Double>(res.Vector.ToArray().Select(x => Convert.ToDouble(x)).ToArray()))
+                {
+                    CreatedAt = res.CreatedAt,
+                    ModelId = res.ModelId
+                })
                     .ToList()
               );
         }
+
         public async Task<Embedding<Decimal>> GenerateEmbeddingAsync(String value) => (await this.GenerateEmbeddingsAsync([value]))?.FirstOrDefault();
 
         public async Task<GeneratedEmbeddings<Embedding<Decimal>>> GenerateEmbeddingsAsync(List<String> values)
@@ -51,7 +53,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
             if (values.Count == 0) throw new ArgumentException("Empty values given to embed");
 
             MistralClient client = new MistralClient(_config.ApiKey);
-            
+
             EmbeddingRequest request = new EmbeddingRequest(
                 ModelDefinitions.MistralEmbed,
                 values,
@@ -60,14 +62,13 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
 
             EmbeddingResponse response = await client.Embeddings.GetEmbeddingsAsync(request);
 
-            List<Embedding<Decimal>> results = response.Data.Select(data => 
+            List<Embedding<Decimal>> results = response.Data.Select(data =>
             new Embedding<Decimal>(new ReadOnlyMemory<Decimal>(this.NormalizeEmbedding(data.Embedding.ToArray())))
             {
-                 CreatedAt = DateTime.UtcNow,
-                 ModelId = response.Model
+                CreatedAt = DateTime.UtcNow,
+                ModelId = response.Model
             })
             .ToList();
-
 
             client.Dispose();
 
@@ -120,7 +121,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
                     TextChunk textChunk = textChunks[i];
                     Decimal[] embeddingVector = chunkEmbeddings[i].Vector.ToArray();
 
-                    // Calculate chunk weight based on content length and position
+                    // Pre-normalize each chunk embedding for optimal cosine similarity
+                    embeddingVector = this.NormalizeEmbedding(embeddingVector);
+
+                    // Calculate chunk weight based on enhanced content analysis
                     Double contentWeight = this.CalculateChunkWeight(textChunk, textChunks);
 
                     weightedChunks.Add(new WeightedChunk<Decimal>
@@ -135,7 +139,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
                 }
 
                 // Aggregate chunks into single optimal embedding
-                Decimal[] aggregatedVector = this.AggregateChunksOptimally(weightedChunks);
+                Decimal[] aggregatedVector = this.AggregateChunks(weightedChunks);
 
                 // Create final embedding result
                 Embedding<Decimal> aggregatedEmbedding = new Embedding<Decimal>(new ReadOnlyMemory<Decimal>(aggregatedVector))
@@ -191,42 +195,65 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
                 positionWeight = 0.7 + 0.6 * Math.Exp(-Math.Pow(normalizedPosition - 0.5, 2) / 0.2);
             }
 
-            // Content quality weight (chunks with more meaningful content)
-            Double qualityWeight = this.CalculateContentQuality(chunk.Content);
+            // Enhanced content quality weight for better semantic representation
+            Double qualityWeight = this.CalculateContent(chunk.Content);
 
             return lengthWeight * positionWeight * qualityWeight;
         }
 
-        private Double CalculateContentQuality(String content)
+        private Double CalculateContent(String content)
         {
             if (String.IsNullOrWhiteSpace(content)) return 0.1;
 
-            // Higher quality for content with more unique words
             String[] words = content.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
             HashSet<String> uniqueWords = new HashSet<String>(words, StringComparer.OrdinalIgnoreCase);
 
+            // Lexical diversity (unique word ratio)
             Double uniquenessRatio = words.Length > 0 ? (Double)uniqueWords.Count / words.Length : 0;
 
-            // Prefer content with good word variety and reasonable length
-            Double lengthBonus = Math.Min(2.0, Math.Log(Math.Max(10, content.Length)) / Math.Log(50));
+            //  Content density (information per character)
+            Double contentDensity = words.Length > 0 ? (Double)words.Length / content.Length : 0;
 
-            return Math.Max(0.1, uniquenessRatio * lengthBonus);
+            // Semantic signal strength (optimal length range)
+            Double lengthOptimality = 1.0;
+            if (content.Length < 50)
+                lengthOptimality = content.Length / 50.0; // Penalty for very short
+            else if (content.Length > 500)
+                lengthOptimality = 500.0 / content.Length; // Penalty for very long
+
+            // Word length distribution (prefer meaningful words)
+            Double avgWordLength = words.Length > 0 ? words.Average(w => w.Length) : 0;
+            Double wordLengthScore = Math.Min(1.0, avgWordLength / 5.0); // Optimal around 5 characters
+
+            // Combine factors with weights optimized for embedding quality
+            Double qualityScore = (0.3 * uniquenessRatio +
+                                  0.2 * contentDensity +
+                                  0.3 * lengthOptimality +
+                                  0.2 * wordLengthScore);
+
+            return Math.Max(0.1, Math.Min(1.0, qualityScore));
         }
 
-        private T[] AggregateChunksOptimally<T>(List<WeightedChunk<T>> weightedChunks) where T : INumber<T>
+        private T[] AggregateChunks<T>(List<WeightedChunk<T>> weightedChunks) where T : INumber<T>
         {
             if (!weightedChunks.Any()) return new T[_indexConfig.Dims];
 
-            // Method 1: Weighted Average with Attention-like Mechanism
+            // Enhanced weighted averaging with cosine similarity optimization
             return this.WeightedAverageWithAttention(weightedChunks);
         }
 
         private T[] WeightedAverageWithAttention<T>(List<WeightedChunk<T>> weightedChunks) where T : INumber<T>
         {
+            // Ensure all chunk embeddings are pre-normalized for optimal cosine similarity
+            foreach (var chunk in weightedChunks)
+            {
+                chunk.Embedding = this.NormalizeEmbedding(chunk.Embedding);
+            }
+
             Double totalWeight = weightedChunks.Sum(c => c.Weight);
             if (totalWeight == 0) return new T[_indexConfig.Dims];
 
-            // Normalize weights
+            // Normalize weights to sum to 1
             foreach (WeightedChunk<T> chunk in weightedChunks)
             {
                 chunk.Weight /= totalWeight;
@@ -250,10 +277,10 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
                 }
             }
 
-            // Apply attention mechanism: boost dimensions that are consistently important across chunks
+            // Apply enhanced attention mechanism for better semantic representation
             aggregatedVector = this.ApplyAttentionBoost(aggregatedVector, weightedChunks);
 
-            // Final normalization to target dimensions
+            // Final normalization ensures optimal cosine similarity properties
             return this.NormalizeEmbedding(aggregatedVector);
         }
 
@@ -261,51 +288,53 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
         {
             if (chunks.Count <= 1) return baseVector;
 
-            // Calculate attention scores for each dimension
+            // Calculate cosine-optimized attention scores
             Double[] attentionScores = new Double[_indexConfig.Dims];
 
             for (Int32 dim = 0; dim < _indexConfig.Dims; dim++)
             {
-                Double variance = 0;
-                Double mean = 0;
-                Int32 validChunks = 0;
+                Double[] dimValues = new Double[chunks.Count];
+                Double[] weights = new Double[chunks.Count];
 
-                // Calculate mean for this dimension across chunks
-                foreach (WeightedChunk<T> chunk in chunks)
+                // Collect dimension values and weights
+                for (int c = 0; c < chunks.Count; c++)
                 {
-                    if (dim < chunk.Embedding.Length)
+                    if (dim < chunks[c].Embedding.Length)
                     {
-                        mean += Double.CreateChecked(chunk.Embedding[dim]) * chunk.Weight;
-                        validChunks++;
+                        dimValues[c] = Double.CreateChecked(chunks[c].Embedding[dim]);
+                        weights[c] = chunks[c].Weight;
                     }
                 }
 
-                if (validChunks == 0) continue;
+                if (weights.Sum() == 0) continue;
 
-                // Calculate weighted variance
-                foreach (WeightedChunk<T> chunk in chunks)
+                // Calculate weighted correlation across chunks for this dimension
+                Double weightedMean = dimValues.Zip(weights, (v, w) => v * w).Sum() / weights.Sum();
+
+                // Calculate consistency measure (lower variance = higher consistency)
+                Double correlation = 0;
+                Double totalWeight = weights.Sum();
+
+                for (int c = 0; c < chunks.Count; c++)
                 {
-                    if (dim < chunk.Embedding.Length)
-                    {
-                        Double value = Double.CreateChecked(chunk.Embedding[dim]);
-                        variance += Math.Pow(value - mean, 2) * chunk.Weight;
-                    }
+                    Double deviation = dimValues[c] - weightedMean;
+                    correlation += Math.Abs(deviation) * weights[c];
                 }
 
-                // High variance = more discriminative = higher attention
-                // Low variance = consistent across chunks = also important
-                Double consistencyScore = 1.0 / (1.0 + variance); // High when low variance
-                Double diversityScore = Math.Min(2.0, variance); // High when high variance
+                correlation = correlation / totalWeight;
 
-                attentionScores[dim] = 0.7 * consistencyScore + 0.3 * diversityScore;
+                // Transform correlation to attention score
+                // Higher consistency (lower correlation) = higher attention
+                // Scale between 0.8 and 1.4 for moderate but effective boosting
+                attentionScores[dim] = 0.8 + 0.6 / (1.0 + correlation * 2.0);
             }
 
-            // Apply attention scores
+            // Apply attention with preservation of vector magnitude relationships
             T[] attentionBoostedVector = new T[_indexConfig.Dims];
             for (Int32 i = 0; i < _indexConfig.Dims; i++)
             {
                 Double originalValue = Double.CreateChecked(baseVector[i]);
-                Double boostedValue = originalValue * (0.8 + 0.4 * attentionScores[i]); // Boost between 0.8x and 1.2x
+                Double boostedValue = originalValue * attentionScores[i];
                 attentionBoostedVector[i] = T.CreateChecked(boostedValue);
             }
 
@@ -314,7 +343,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
         #endregion
 
         #region Chunk Helper Methods
-
         private List<TextChunk> CreateTextChunks<TInput>(TInput input) where TInput : class
         {
             // Convert input to String
@@ -413,7 +441,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
             return (content.StartsWith("{") && content.EndsWith("}")) ||
                    (content.StartsWith("[") && content.EndsWith("]"));
         }
-
         #endregion
 
         #region Vector Normalization
@@ -425,7 +452,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
             if (_indexConfig.Dims <= 0)
                 throw new ArgumentException("Target dimensions must be positive");
 
-            // Calculate L2 norm of original vector
             Double sumOfSquares = 0.0;
             for (int i = 0; i < vector.Length; i++)
             {
@@ -435,22 +461,29 @@ namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
 
             Double magnitude = Math.Sqrt(sumOfSquares);
 
-            if (magnitude == 0.0) return new T[_indexConfig.Dims];
+            if (magnitude == 0.0)
+            {
+                return new T[_indexConfig.Dims];
+            }
 
-            // Normalize and resize in one step
-            T[] result = new T[_indexConfig.Dims];
-            int copyLength = Math.Min(vector.Length, _indexConfig.Dims);
-
-            // Normalize the overlapping portion
-            for (int i = 0; i < copyLength; i++)
+            T[] unitVector = new T[vector.Length];
+            for (int i = 0; i < vector.Length; i++)
             {
                 Double normalized = Double.CreateChecked(vector[i]) / magnitude;
-                result[i] = T.CreateChecked(normalized);
+                unitVector[i] = T.CreateChecked(normalized);
+            }
+
+            T[] result = new T[_indexConfig.Dims];
+            int copyLength = Math.Min(unitVector.Length, _indexConfig.Dims);
+
+            // Copy normalized values
+            for (int i = 0; i < copyLength; i++)
+            {
+                result[i] = unitVector[i];
             }
 
             return result;
         }
-
         #endregion
     }
 }

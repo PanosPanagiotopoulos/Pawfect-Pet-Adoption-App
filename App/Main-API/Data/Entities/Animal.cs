@@ -73,6 +73,8 @@
 		/// </value>
 		public AdoptionStatus AdoptionStatus { get; set; }
 
+		// ** Search Related Properties * //
+
         [BsonIgnoreIfNull]
         public Double[] Embedding { get; set; }
 
@@ -81,6 +83,10 @@
 
         [BsonIgnoreIfNull]
         public Double? SearchScore { get; set; }
+        [BsonIgnoreIfNull]
+        public Double? AdjustedScore { get; set; }
+
+        // ** Search Related Properties * //
 
         public DateTime CreatedAt { get; set; }
 

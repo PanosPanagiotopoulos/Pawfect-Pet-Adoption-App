@@ -13,6 +13,9 @@ using Pawfect_Pet_Adoption_App_API.Services.TranslationServices;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Animals;
 using System.Text.RegularExpressions;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Search;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Embedding;
 
 namespace Main_API.Query.Queries
 {
@@ -212,7 +215,14 @@ namespace Main_API.Query.Queries
         {
             if (String.IsNullOrWhiteSpace(query)) return new List<AnimalSearchResult>();
 
-            Double[] queryEmbedding = (await _embeddingService.GenerateEmbeddingAsyncDouble(query)).Vector.ToArray();
+            Double[] queryEmbedding = (await _embeddingService.GenerateAggregatedEmbeddingAsyncDouble(
+                new ChunkedEmbeddingInput<String>()
+                {
+                    Content = query,
+                    SourceId = null,
+                    SourceType = nameof(String)
+                }
+            )).Vector.ToArray();
 
             int requestedResults = this.PageSize;
             int searchLimit = Math.Min(
@@ -294,71 +304,86 @@ namespace Main_API.Query.Queries
 
         #endregion
 
-        #region Schemantic Search Filtering
+        #region Semantic Search
         private async Task<List<AnimalSearchResult>> AnimalSemanticSearch(BsonDocument baseFilter, String query)
         {
             if (String.IsNullOrWhiteSpace(query)) return new List<AnimalSearchResult>();
 
-            // Build STRICT semantic search pipeline
+            QueryAnalysis queryAnalysis = this.AnalyzeQuery(query);
+
             List<BsonDocument> pipeline = new List<BsonDocument>
-            {   
-                // Primary semantic search with stricter requirements
+            {
                 new BsonDocument("$search", new BsonDocument
                 {
                     { "index", _config.IndexSettings.AnimalSchemanticIndexName },
                     { "compound", new BsonDocument
                         {
-                            { "should", new BsonArray(await BuildSemanticTextQueries(query)) },
-                            // Increase minimum should match for multi-word queries
-                            { "minimumShouldMatch", GetMinimumShouldMatch(query) }
+                            { "should", new BsonArray(await BuildSemanticTextQueries(query, queryAnalysis)) },
+                            { "minimumShouldMatch", this.GetDynamicMinimumShouldMatch(query, queryAnalysis) }
                         }
                     }
                 }),
 
-                // Add search score for ranking
                 new BsonDocument("$addFields", new BsonDocument
                 {
-                    { nameof(Data.Entities.Animal.SearchScore), new BsonDocument("$meta", "searchScore") }
+                    { nameof(Data.Entities.Animal.SearchScore), new BsonDocument("$meta", "searchScore") },
+                    { "QueryMatchType", queryAnalysis.MatchType.ToString() }
                 }),
 
-                // Apply MUCH stricter threshold
                 new BsonDocument("$match", new BsonDocument
                 {
-                    { nameof(Data.Entities.Animal.SearchScore), new BsonDocument("$gte", this.GetSemanticThreshold(query)) }
+                    { nameof(Data.Entities.Animal.SearchScore),
+                      new BsonDocument("$gte", this.GetDynamicSemanticThreshold(query, queryAnalysis)) }
+                }),
+
+                // Calculate AdjustedScore using nameof for the field name
+                new BsonDocument("$addFields", new BsonDocument
+                {
+                    { nameof(Data.Entities.Animal.AdjustedScore), new BsonDocument
+                        {
+                            { "$multiply", new BsonArray
+                                {
+                                    "$" + nameof(Data.Entities.Animal.SearchScore),
+                                    queryAnalysis.ScoreMultiplier
+                                }
+                            }
+                        }
+                    }
                 })
             };
 
-            // Add base filters if any
             if (baseFilter != null && baseFilter.ElementCount > 0)
             {
                 pipeline.Add(new BsonDocument("$match", baseFilter));
             }
 
-            // Semantic search extra querying stuff
             base.Fields ??= new List<String>();
             base.Fields.Add(nameof(Data.Entities.Animal.SearchScore));
+            base.Fields.Add(nameof(Data.Entities.Animal.AdjustedScore));
 
             base.SortBy ??= new List<String>();
-            base.SortBy.Add(nameof(Data.Entities.Animal.SearchScore));
+            base.SortBy.Clear();
+            base.SortBy.Add(nameof(Data.Entities.Animal.AdjustedScore)); 
             base.SortDescending = true;
 
             pipeline = this.ApplySorting(pipeline);
             pipeline = this.ApplyPagination(pipeline);
             pipeline = this.ApplyProjection(pipeline);
 
-            // Execute aggregation
             SessionScopedMongoCollection<Data.Entities.Animal> scopedCollection = (SessionScopedMongoCollection<Data.Entities.Animal>)_collection;
             List<Data.Entities.Animal> rawResults = await scopedCollection.InternalCollection.Aggregate<Data.Entities.Animal>(pipeline).ToListAsync();
 
             List<AnimalSearchResult> results = rawResults.Select((doc, index) =>
             {
-                Double normalizedScore = this.NormalizeSearchScore(doc.SearchScore ?? 0, query);
+                // Use the AdjustedScore (multiplied score) as the final semantic score
+                Double finalScore = doc.AdjustedScore ?? doc.SearchScore ?? 0;
+                Double normalizedScore = this.NormalizeSemanticScore(finalScore, query, queryAnalysis);
 
                 return new AnimalSearchResult()
                 {
                     Animal = doc,
                     VectorScore = 0,
-                    SemanticScore = normalizedScore,
+                    SemanticScore = normalizedScore, 
                     CombinedScore = normalizedScore,
                     VectorRank = int.MaxValue,
                     SemanticRank = index + 1
@@ -368,20 +393,36 @@ namespace Main_API.Query.Queries
 
             return results;
         }
-        private async Task<List<BsonDocument>> BuildSemanticTextQueries(String query)
+
+        private async Task<List<BsonDocument>> BuildSemanticTextQueries(String query, QueryAnalysis queryAnalysis)
         {
             List<BsonDocument> searchQueries = new List<BsonDocument>();
+            BoostSettings boostSettings = _config.IndexSettings.SearchSettings?.BoostSettings ?? new BoostSettings();
 
-            // PHRASE search - highest priority for exact matches
-           searchQueries.Add(new BsonDocument("phrase", new BsonDocument
+            // More restrictive exact phrase search
+            if (queryAnalysis.HasExactPhraseIntent)
             {
-                { "query", query },
-                { "path", nameof(Data.Entities.Animal.SemanticText) },
-                { "slop", 3 },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 30.0)) }
-            }));
+                searchQueries.Add(new BsonDocument("phrase", new BsonDocument
+                {
+                    { "query", query },
+                    { "path", nameof(Data.Entities.Animal.SemanticText) },
+                    { "slop", 0 },
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.ExactPhraseBoost)) }
+                }));
+            }
+            else
+            {
+                // Reduced phrase slop for better precision
+                searchQueries.Add(new BsonDocument("phrase", new BsonDocument
+                {
+                    { "query", query },
+                    { "path", nameof(Data.Entities.Animal.SemanticText) },
+                    { "slop", Math.Min(queryAnalysis.PhraseSlop, 1) }, // Maximum slop of 1
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.PhraseWithSlopBoost)) }
+                }));
+            }
 
-            // MULTI-LANGUAGE TEXT search - covers all analyzers
+            // Standard text search without synonyms for better precision
             searchQueries.Add(new BsonDocument("text", new BsonDocument
             {
                 { "query", query },
@@ -392,19 +433,22 @@ namespace Main_API.Query.Queries
                         $"{nameof(Data.Entities.Animal.SemanticText)}.greek"
                     }
                 },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 25.0)) }
+                { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.SemanticTextBoost)) }
             }));
 
-            // SYNONYM search - critical for cross-language matching
-            searchQueries.Add(new BsonDocument("text", new BsonDocument
+            // Only add synonyms for longer descriptive queries
+            if (queryAnalysis.MatchType == SearchMatchType.Mixed || queryAnalysis.NeedsSynonymExpansion && queryAnalysis.MatchType == SearchMatchType.Descriptive)
             {
-                { "query", query },
-                { "path", nameof(Data.Entities.Animal.SemanticText) },
-                { "synonyms", "pet_synonyms" },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 22.0)) }
-            }));
+                searchQueries.Add(new BsonDocument("text", new BsonDocument
+                {
+                    { "query", query },
+                    { "path", nameof(Data.Entities.Animal.SemanticText) },
+                    { "synonyms", "pet_synonyms" },
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.SynonymBoost)) }
+                }));
+            }
 
-            // DESCRIPTION search - multi-language
+            // Description search with lower boost
             searchQueries.Add(new BsonDocument("text", new BsonDocument
             {
                 { "query", query },
@@ -415,11 +459,14 @@ namespace Main_API.Query.Queries
                         $"{nameof(Data.Entities.Animal.Description)}.greek"
                     }
                 },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 15.0)) }
+                { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.DescriptionBoost)) }
             }));
 
-            // FUZZY search - for typos (only if query is long enough)
-            if (query.Length > 4)
+            FuzzySettings fuzzySettings = _config.IndexSettings.SearchSettings?.FuzzySettings ?? new FuzzySettings();
+            if (queryAnalysis.MatchType == SearchMatchType.Mixed ||
+                query.Length > fuzzySettings.MinQueryLength &&
+                queryAnalysis.AllowFuzzySearch &&
+                queryAnalysis.MatchType == SearchMatchType.Descriptive) 
             {
                 searchQueries.Add(new BsonDocument("text", new BsonDocument
                 {
@@ -427,214 +474,435 @@ namespace Main_API.Query.Queries
                     { "path", nameof(Data.Entities.Animal.SemanticText) },
                     { "fuzzy", new BsonDocument
                         {
-                            { "maxEdits", 1 },
-                            { "prefixLength", 3 },
-                            { "maxExpansions", 25 }
+                            { "maxEdits", 1 }, 
+                            { "prefixLength", Math.Min(6, query.Length - 1) }, 
+                            { "maxExpansions", 3 } 
                         }
                     },
-                    { "score", new BsonDocument("boost", new BsonDocument("value", 10.0)) }
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.FuzzySearchBoost)) }
                 }));
             }
 
-            // HEALTH STATUS search - multi-language
+            // Health terms search
+            if (queryAnalysis.HasHealthTerms)
+            {
+                searchQueries.Add(new BsonDocument("text", new BsonDocument
+                {
+                    { "query", query },
+                    { "path", new BsonArray
+                        {
+                            nameof(Data.Entities.Animal.HealthStatus),
+                            $"{nameof(Data.Entities.Animal.HealthStatus)}.english",
+                            $"{nameof(Data.Entities.Animal.HealthStatus)}.greek"
+                        }
+                    },
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.HealthTermsBoost)) }
+                }));
+            }
+
+            // Gender-specific searches - ALWAYS add if gender terms detected
+            if (queryAnalysis.HasGenderTerms)
+            {
+                this.AddGenderSearchQueries(searchQueries, query, queryAnalysis, boostSettings);
+            }
+
+            // Numeric searches
+            if (queryAnalysis.HasNumericTerms)
+            {
+                this.AddNumericSearchQueries(searchQueries, query, queryAnalysis, boostSettings);
+            }
+
+            return await Task.FromResult(searchQueries);
+        }
+
+        private QueryAnalysis AnalyzeQuery(String query)
+        {
+            QueryAnalysis analysis = new QueryAnalysis();
+            String[] words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            // Basic analysis
+            analysis.HasExactPhraseIntent = query.Contains("\"") || words.Length <= 2;
+
+            // Content analysis using configuration - FIXED: case insensitive
+            analysis.HasHealthTerms = this.ContainsTermsFromCategory("health_status", query.ToLower());
+            analysis.HasGenderTerms = this.ContainsTermsFromCategory("gender_related", query.ToLower());
+            analysis.HasNumericTerms = Regex.IsMatch(query, @"\d+") ||
+                this.ContainsAgeKeywords(query) ||
+                this.ContainsWeightKeywords(query);
+
+            analysis.IsPartialQuery = words.Length == 1 && query.Length < 4;
+
+            // FIXED: Stricter logic for synonym expansion
+            if (analysis.HasExactPhraseIntent)
+            {
+                analysis.MatchType = SearchMatchType.Exact;
+                analysis.PhraseSlop = 0;
+                analysis.ScoreMultiplier = 1.5;
+                analysis.AllowFuzzySearch = false;
+                analysis.NeedsSynonymExpansion = false; 
+            }
+            else if (words.Length <= 3 && !analysis.HasNumericTerms)
+            {
+                analysis.MatchType = SearchMatchType.Phrase;
+                analysis.PhraseSlop = 1;
+                analysis.ScoreMultiplier = 1.2;
+                analysis.AllowFuzzySearch = false; 
+                analysis.NeedsSynonymExpansion = false; 
+            }
+            else if (words.Length > 5)
+            {
+                analysis.MatchType = SearchMatchType.Descriptive;
+                analysis.PhraseSlop = 3; 
+                analysis.ScoreMultiplier = 0.8;
+                analysis.AllowFuzzySearch = true;
+                analysis.NeedsSynonymExpansion = true;
+            }
+            else
+            {
+                analysis.MatchType = SearchMatchType.Mixed;
+                analysis.PhraseSlop = 2; 
+                analysis.ScoreMultiplier = 1.0;
+                analysis.AllowFuzzySearch = false; 
+                analysis.NeedsSynonymExpansion = false; 
+            }
+
+            // Extract gender if present
+            if (analysis.HasGenderTerms)
+            {
+                analysis.DetectedGender = this.ExtractGenderFromQuery(query);
+            }
+
+            return analysis;
+        }
+
+        private void AddGenderSearchQueries(List<BsonDocument> searchQueries, String query, QueryAnalysis queryAnalysis, BoostSettings boostSettings)
+        {
+            if (!String.IsNullOrEmpty(queryAnalysis.DetectedGender))
+            {
+                // Exact gender match
+                searchQueries.Add(new BsonDocument("text", new BsonDocument
+                {
+                    { "query", queryAnalysis.DetectedGender },
+                    { "path", nameof(Data.Entities.Animal.Gender) },
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.GenderExactBoost)) }
+                }));
+
+                // Phrase gender match
+                searchQueries.Add(new BsonDocument("phrase", new BsonDocument
+                {
+                    { "query", queryAnalysis.DetectedGender },
+                    { "path", nameof(Data.Entities.Animal.Gender) },
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.GenderPhraseBoost)) }
+                }));
+            }
+
+            // Multi-language gender search
+            Double genderBoost = queryAnalysis.DetectedGender != null ? boostSettings.GenderExactBoost * 0.7 : boostSettings.GenderExactBoost * 0.4;
             searchQueries.Add(new BsonDocument("text", new BsonDocument
             {
                 { "query", query },
                 { "path", new BsonArray
                     {
-                        nameof(Data.Entities.Animal.HealthStatus),
-                        $"{nameof(Data.Entities.Animal.HealthStatus)}.english",
-                        $"{nameof(Data.Entities.Animal.HealthStatus)}.greek"
+                        nameof(Data.Entities.Animal.Gender),
+                        $"{nameof(Data.Entities.Animal.Gender)}.english",
+                        $"{nameof(Data.Entities.Animal.Gender)}.greek"
                     }
                 },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 8.0)) }
-            }));
-
-            // AUTOCOMPLETE search - for partial matches
-            searchQueries.Add(new BsonDocument("autocomplete", new BsonDocument
-            {
-                { "query", query },
-                { "path", "semanticTextAutocomplete" },
-                { "score", new BsonDocument("boost", new BsonDocument("value", 5.0)) }
-            }));
-
-
-            // Add gender-specific searches
-            this.AddGenderSearchQueries(searchQueries, query);
-            // Add numeric searches if needed
-            this.AddNumericSearchQueries(searchQueries, query);
-
-            return await Task.FromResult(searchQueries);
+                { "score", new BsonDocument("boost", new BsonDocument("value", genderBoost)) }
+             }));
         }
 
-        private void AddGenderSearchQueries(List<BsonDocument> searchQueries, String query)
+        private void AddNumericSearchQueries(List<BsonDocument> searchQueries, String query, QueryAnalysis queryAnalysis, BoostSettings boostSettings)
         {
-            // Define gender mappings for both languages
-            // These now map to the enum String values that will be stored in MongoDB
-            Dictionary<String, String> genderMappings = new Dictionary<String, String>(StringComparer.OrdinalIgnoreCase)
-            {
-                // English mappings to enum String value
-                { "male", "Male" },
-                { "boy", "Male" },
-                { "he", "Male" },
-                { "him", "Male" },
-                { "masculine", "Male" },
-                { "man", "Male" },
-                { "female", "Female" },
-                { "girl", "Female" },
-                { "she", "Female" },
-                { "her", "Female" },
-                { "feminine", "Female" },
-                { "woman", "Female" },
-                // Greek mappings to enum String value
-                { "αρσενικό", "Male" },
-                { "αρσενικος", "Male" },
-                { "αρσενικός", "Male" },
-                { "αγόρι", "Male" },
-                { "αρρεν", "Male" },
-                { "άντρας", "Male" },
-                { "θηλυκό", "Female" },
-                { "θηλυκη", "Female" },
-                { "θηλυκή", "Female" },
-                { "κορίτσι", "Female" },
-                { "θηλυ", "Female" },
-                { "γυναίκα", "Female" }
-            };
+            NumericPatternSettings numericSettings = _config.IndexSettings.SearchSettings?.NumericPatternSettings ?? new NumericPatternSettings();
 
-            // Check if query contains gender terms
-            Boolean hasGenderTerm = false;
-            String detectedGender = null;
-
-            foreach (KeyValuePair<String, String> mapping in genderMappings)
-            {
-                if (query.Contains(mapping.Key.ToLower()))
-                {
-                    hasGenderTerm = true;
-                    detectedGender = mapping.Value;
-                    break;
-                }
-            }
-
-            if (hasGenderTerm && detectedGender != null)
-            {
-                // EXACT match for Gender field (highest priority)
-                // Since Gender is now stored as String, we can search it directly
-                searchQueries.Add(new BsonDocument("text", new BsonDocument
-                {
-                    { "query", detectedGender },
-                    { "path", nameof(Data.Entities.Animal.Gender) },
-                    { "score", new BsonDocument("boost", new BsonDocument("value", 20.0)) }
-                }));
-
-                // Add phrase search for exact gender match
-                searchQueries.Add(new BsonDocument("phrase", new BsonDocument
-                {
-                    { "query", detectedGender },
-                    { "path", nameof(Data.Entities.Animal.Gender) },
-                    { "score", new BsonDocument("boost", new BsonDocument("value", 18.0)) }
-                }));
-
-                // Multi-language text search on Gender field
-                searchQueries.Add(new BsonDocument("text", new BsonDocument
-                {
-                    { "query", query },
-                    { "path", new BsonArray
-                        {
-                            nameof(Data.Entities.Animal.Gender),
-                            $"{nameof(Data.Entities.Animal.Gender)}.english",
-                            $"{nameof(Data.Entities.Animal.Gender)}.greek"
-                        }
-                    },
-                    { "score", new BsonDocument("boost", new BsonDocument("value", 15.0)) }
-                }));
-            }
-            else
-            {
-                // If no specific gender term detected, still search gender field with lower boost
-                searchQueries.Add(new BsonDocument("text", new BsonDocument
-                {
-                    { "query", query },
-                    { "path", new BsonArray
-                        {
-                            nameof(Data.Entities.Animal.Gender),
-                            $"{nameof(Data.Entities.Animal.Gender)}.english",
-                            $"{nameof(Data.Entities.Animal.Gender)}.greek"
-                        }
-                    },
-                    { "score", new BsonDocument("boost", new BsonDocument("value", 9.0)) }
-                }));
-            }
-        }
-
-        private void AddNumericSearchQueries(List<BsonDocument> searchQueries, String query)
-        {
-            // Age patterns in both languages
-            String[] agePatterns = new[]
-            {
-                @"(\d+)\s*(year|χρον|ετ)", // English/Greek year
-                @"(\d+)\s*(month|μην)", // English/Greek month  
-                @"(\d+)\s*(yr|ετ)", // Abbreviations
-                @"(age|ηλικ)\s*[:=]?\s*(\d+)" // Age indicators
-            };
+            // Age patterns from configuration
+            List<String> agePatterns = numericSettings.AgePatterns;
+            List<String> monthKeywords = numericSettings.MonthKeywords;
+            Double monthToYearConversion = numericSettings.MonthToYearConversion > 0 ? numericSettings.MonthToYearConversion : 0.0833333;
 
             foreach (String pattern in agePatterns)
             {
                 Match match = Regex.Match(query, pattern, RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
-                    if (Double.TryParse(match.Groups[1].Value, out Double age))
+                    String numberGroup = GetNumberFromMatch(match);
+
+                    if (Double.TryParse(numberGroup, out Double age))
                     {
-                        // Convert months to years if needed
-                        if (pattern.Contains("month") || pattern.Contains("μην"))
+                        // Check if this is a month-based pattern
+                        if (IsMonthPattern(match.Value, monthKeywords))
                         {
-                            age = age / 12.0;
+                            age = age * monthToYearConversion;
                         }
 
+                        Double tolerance = this.GetAgeTolerance(age);
                         searchQueries.Add(new BsonDocument("range", new BsonDocument
                         {
                             { "path", nameof(Data.Entities.Animal.Age) },
-                            { "gte", Math.Max(0, age - 0.5) },
-                            { "lte", age + 0.5 },
-                            { "score", new BsonDocument("boost", new BsonDocument("value", 12.0)) }
+                            { "gte", Math.Max(0, age - tolerance) },
+                            { "lte", age + tolerance },
+                            { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.NumericRangeBoost)) }
                         }));
                         break;
                     }
                 }
             }
 
-            // Weight patterns in both languages
-            String[] weightPatterns = new[]
-            {
-                @"(\d+)\s*(kg|kilo|κιλ)", // Kilograms
-                @"(\d+)\s*(lb|pound|λίμπρα)", // Pounds
-                @"(weight|βάρος)\s*[:=]?\s*(\d+)" // Weight indicators
-            };
+            // Weight patterns from configuration
+            List<String> weightPatterns = numericSettings.WeightPatterns;
+            List<String> poundKeywords = numericSettings.PoundKeywords;
+            Double poundToKgConversion = numericSettings.PoundToKgConversion > 0 ? numericSettings.PoundToKgConversion : 0.453592;
 
             foreach (String pattern in weightPatterns)
             {
                 Match match = Regex.Match(query, pattern, RegexOptions.IgnoreCase);
                 if (match.Success)
                 {
-                    if (Double.TryParse(match.Groups[1].Value, out Double weight))
+                    String numberGroup = GetNumberFromMatch(match);
+
+                    if (Double.TryParse(numberGroup, out Double weight))
                     {
-                        // Convert pounds to kg if needed
-                        if (pattern.Contains("lb") || pattern.Contains("pound") || pattern.Contains("λίμπρα"))
+                        // Check if this is a pound-based pattern
+                        if (IsPoundPattern(match.Value, poundKeywords))
                         {
-                            weight = weight * 0.453592;
+                            weight = weight * poundToKgConversion;
                         }
 
+                        Double tolerance = this.GetWeightTolerance(weight);
                         searchQueries.Add(new BsonDocument("range", new BsonDocument
-                        {
-                            { "path", nameof(Data.Entities.Animal.Weight) },
-                            { "gte", Math.Max(0, weight - 1.0) },
-                            { "lte", weight + 1.0 },
-                            { "score", new BsonDocument("boost", new BsonDocument("value", 10.0)) }
-                        }));
+                {
+                    { "path", nameof(Data.Entities.Animal.Weight) },
+                    { "gte", Math.Max(0, weight - tolerance) },
+                    { "lte", weight + tolerance },
+                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.WeightRangeBoost)) }
+                }));
                         break;
                     }
                 }
             }
         }
+        private Boolean ContainsAgeKeywords(String query)
+        {
+            if (_config.IndexSettings.MultilingualSettings?.AgeKeywords != null)
+            {
+                return _config.IndexSettings.MultilingualSettings.AgeKeywords
+                    .Any(k => query.ToLower().Contains(k.Keyword.ToLower()));
+            }
+
+            KeywordSettings keywordSettings = _config.IndexSettings.SearchSettings?.KeywordSettings ?? new KeywordSettings();
+            List<String> ageKeywords = keywordSettings.AgeKeywords;
+
+            String lowerQuery = query.ToLower();
+            return ageKeywords.Any(keyword => lowerQuery.Contains(keyword.ToLower()));
+        }
+
+        private Boolean ContainsWeightKeywords(String query)
+        {
+            KeywordSettings keywordSettings = _config.IndexSettings.SearchSettings?.KeywordSettings ?? new KeywordSettings();
+            List<String> weightKeywords = keywordSettings.WeightKeywords;
+
+            String lowerQuery = query.ToLower();
+            return weightKeywords.Any(keyword => lowerQuery.Contains(keyword.ToLower()));
+        }
+
+        private Boolean ContainsTermsFromCategory(String category, String query)
+        {
+            // Check both English and Greek synonym batches
+            IEnumerable<IndexSynonyms> allBatches = (_config.IndexSettings.SynonymsBatch ?? new List<IndexSynonyms>())
+                .Concat(_config.IndexSettings.GreekSynonymsBatch ?? new List<IndexSynonyms>());
+
+            String[] targetCategories = new[] { category, $"{category}_greek" };
+
+            foreach (IndexSynonyms batch in allBatches)
+            {
+                if (targetCategories.Contains(batch.Category))
+                {
+                    foreach (String synonymGroup in batch.Synonyms)
+                    {
+                        String[] terms = synonymGroup.Split(',');
+                        if (terms.Any(term => query.Contains(term.Trim().ToLower())))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private String ExtractGenderFromQuery(String query)
+        {
+            GenderMappingSettings genderSettings = _config.IndexSettings.SearchSettings?.GenderMappingSettings ?? new GenderMappingSettings();
+
+            String lowerQuery = query.ToLower();
+
+            // Check English mappings
+            Dictionary<String, String> englishMappings = genderSettings.EnglishMappings;
+            foreach (KeyValuePair<String, String> mapping in englishMappings)
+            {
+                if (lowerQuery.Contains(mapping.Key.ToLower()))
+                    return mapping.Value;
+            }
+
+            // Check Greek mappings
+            Dictionary<String, String> greekMappings = genderSettings.GreekMappings;
+            foreach (KeyValuePair<String, String> mapping in greekMappings)
+            {
+                if (lowerQuery.Contains(mapping.Key.ToLower()))
+                    return mapping.Value;
+            }
+
+            return null;
+        }
+
+        private String GetNumberFromMatch(Match match)
+        {
+            // Try to get the numeric group from various possible positions in the regex match
+            for (int i = 1; i < match.Groups.Count; i++)
+            {
+                String group = match.Groups[i].Value;
+                if (!String.IsNullOrEmpty(group) && Regex.IsMatch(group, @"^\d+(?:\.\d+)?$"))
+                {
+                    return group;
+                }
+            }
+            return String.Empty;
+        }
+
+        private Boolean IsMonthPattern(String matchValue, List<String> monthKeywords)
+        {
+            String lowerMatch = matchValue.ToLower();
+            return monthKeywords.Any(keyword => lowerMatch.Contains(keyword.ToLower()));
+        }
+
+        private Boolean IsPoundPattern(String matchValue, List<String> poundKeywords)
+        {
+            String lowerMatch = matchValue.ToLower();
+            return poundKeywords.Any(keyword => lowerMatch.Contains(keyword.ToLower()));
+        }
+
+        private Int32 GetDynamicMinimumShouldMatch(String query, QueryAnalysis queryAnalysis)
+        {
+            Int32 wordCount = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
+
+            if (queryAnalysis.MatchType == SearchMatchType.Exact)
+            {
+                return wordCount; 
+            }
+            else if (queryAnalysis.MatchType == SearchMatchType.Phrase)
+            {
+                return Math.Max(2, wordCount - 1); 
+            }
+            else if (wordCount >= 5)
+            {
+                return Math.Max(3, (Int32)(wordCount * 0.8)); 
+            }
+            else if (wordCount >= 3)
+            {
+                return Math.Max(2, wordCount - 1);
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        private Double GetDynamicSemanticThreshold(String query, QueryAnalysis queryAnalysis)
+        {
+            Double baseThreshold = _config.IndexSettings.TextScoreThreshold;
+            ThresholdSettings thresholdSettings = _config.IndexSettings.SearchSettings?.ThresholdSettings ?? new ThresholdSettings();
+
+            if (!thresholdSettings.DynamicThresholds)
+            {
+                return baseThreshold;
+            }
+
+            Int32 wordCount = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
+
+            Double threshold = queryAnalysis.MatchType switch
+            {
+                SearchMatchType.Exact => baseThreshold * 5.0,
+                SearchMatchType.Phrase => baseThreshold * 4.0,
+                SearchMatchType.Mixed => baseThreshold * 3.0,
+                SearchMatchType.Fuzzy => baseThreshold * 2.0,
+                SearchMatchType.Descriptive => baseThreshold * 1.5,
+                _ => baseThreshold * thresholdSettings.BaseMultiplier
+            };
+
+            if (thresholdSettings.WordCountAdjustment)
+            {
+                if (wordCount == 1)
+                {
+                    threshold *= 1.5;
+                }
+                else if (wordCount > 5)
+                {
+                    threshold *= 0.8;
+                }
+            }
+
+            if (thresholdSettings.ContextualAdjustment && (queryAnalysis.HasGenderTerms || queryAnalysis.HasNumericTerms))
+            {
+                threshold *= 0.9;
+            }
+
+            return threshold;
+        }
+
+        private Double NormalizeSemanticScore(Double rawScore, String query, QueryAnalysis queryAnalysis)
+        {
+            Double maxExpectedScore = queryAnalysis.MatchType switch
+            {
+                SearchMatchType.Exact => 150.0,
+                SearchMatchType.Phrase => 120.0,
+                SearchMatchType.Mixed => 100.0,
+                SearchMatchType.Fuzzy => 80.0,
+                SearchMatchType.Descriptive => 60.0,
+                _ => 100.0
+            };
+
+            Double normalizedScore = rawScore / maxExpectedScore;
+            Double steepness = queryAnalysis.MatchType == SearchMatchType.Exact ? 8.0 : 5.0;
+
+            return 1.0 / (1.0 + Math.Exp(-steepness * (normalizedScore - 0.5)));
+        }
+
+        private Double GetAgeTolerance(Double age)
+        {
+            if (_config.IndexSettings.MultilingualSettings?.NumericSearchMappings == null)
+                return age <= 1 ? 0.25 : age <= 5 ? 0.5 : 1.0;
+
+            NumericSearchMapping ageMapping = _config.IndexSettings.MultilingualSettings.NumericSearchMappings
+                .FirstOrDefault(m => m.FieldName == "age");
+
+            if (ageMapping == null)
+                return 0.5;
+
+            NumericRange range = ageMapping.RangeMappings
+                .FirstOrDefault(r => age >= r.MinValue && age <= r.MaxValue);
+
+            return range?.RangeTolerance ?? 0.5;
+        }
+
+        private Double GetWeightTolerance(Double weight)
+        {
+            if (_config.IndexSettings.MultilingualSettings?.NumericSearchMappings == null)
+                return weight <= 10 ? 2.0 : weight <= 50 ? 5.0 : 10.0;
+
+            NumericSearchMapping weightMapping = _config.IndexSettings.MultilingualSettings.NumericSearchMappings
+                .FirstOrDefault(m => m.FieldName == "weight");
+
+            if (weightMapping == null)
+                return 5.0;
+
+            NumericRange range = weightMapping.RangeMappings
+                .FirstOrDefault(r => weight >= r.MinValue && weight <= r.MaxValue);
+
+            return range?.RangeTolerance ?? 5.0;
+        }
+
         #endregion
 
         #region Combine Results
@@ -665,70 +933,69 @@ namespace Main_API.Query.Queries
                     .ToList();
             }
 
-            SearchCombinationSettings combinationSettings = _config.IndexSettings.SearchSettings?.CombinationSettings;
-            Double vectorWeight = combinationSettings?.VectorWeight ?? 0.45;
-            Double semanticWeight = combinationSettings?.SemanticWeight ?? 0.55;
+            List<Data.Entities.Animal> finalResults = new List<Data.Entities.Animal>();
+            HashSet<String> processedIds = new HashSet<String>();
 
-            // Use Dictionary to combine and avoid duplicates
-            Dictionary<String, AnimalSearchResult> combinedMap = new Dictionary<String, AnimalSearchResult>();
+            List<AnimalSearchResult> dualResults = new List<AnimalSearchResult>();
+            Dictionary<String, AnimalSearchResult> semanticMap = semanticResults.ToDictionary(x => x.Animal.Id, x => x);
 
-            // Process semantic results first (higher priority)
-            foreach (AnimalSearchResult semanticResult in semanticResults)
-            {
-                String id = semanticResult.Animal.Id.ToString();
-
-                combinedMap[id] = new AnimalSearchResult
-                {
-                    Animal = semanticResult.Animal,
-                    VectorScore = 0,
-                    SemanticScore = semanticResult.SemanticScore,
-                    CombinedScore = semanticResult.SemanticScore * semanticWeight,
-                    VectorRank = int.MaxValue,
-                    SemanticRank = semanticResult.SemanticRank
-                };
-            }
-
-            // Process vector results and merge with semantic if exists
             foreach (AnimalSearchResult vectorResult in vectorResults)
             {
-                String id = vectorResult.Animal.Id.ToString();
+                String id = vectorResult.Animal.Id;
 
-                if (combinedMap.ContainsKey(id))
+                if (semanticMap.TryGetValue(id, out AnimalSearchResult semanticResult))
                 {
-                    // Animal found in both searches - enhance existing semantic result
-                    AnimalSearchResult existing = combinedMap[id];
-                    existing.VectorScore = vectorResult.VectorScore;
-                    existing.VectorRank = vectorResult.VectorRank;
+                    Double combinedScore = (vectorResult.VectorScore + semanticResult.SemanticScore) / 2.0; 
 
-                    // Bonus for appearing in both searches with semantic priority boost
-                    Double bonusMultiplier = 1.4; // Higher bonus to prioritize dual matches
-                    existing.CombinedScore = (vectorResult.VectorScore * vectorWeight +
-                                             existing.SemanticScore * semanticWeight) * bonusMultiplier;
-                }
-                else
-                {
-                    // Only add vector-only results if we have space
-                    combinedMap[id] = new AnimalSearchResult
+                    dualResults.Add(new AnimalSearchResult
                     {
-                        Animal = vectorResult.Animal,
+                        Animal = vectorResult.Animal, 
                         VectorScore = vectorResult.VectorScore,
-                        SemanticScore = 0,
-                        CombinedScore = vectorResult.VectorScore * vectorWeight,
+                        SemanticScore = semanticResult.SemanticScore,
+                        CombinedScore = combinedScore,
                         VectorRank = vectorResult.VectorRank,
-                        SemanticRank = int.MaxValue
-                    };
+                        SemanticRank = semanticResult.SemanticRank
+                    });
+
+                    processedIds.Add(id);
                 }
             }
 
-            // Sort results with semantic search priority
-            List<AnimalSearchResult> sortedResults = combinedMap.Values
-                .OrderByDescending(x => x.SemanticScore > 0 ? 1 : 0) // Semantic results first
-                .ThenByDescending(x => x.CombinedScore) // Then by combined score
-                .ThenByDescending(x => Math.Max(x.VectorScore, x.SemanticScore)) // Then by highest individual score
-                .Take(this.PageSize) // Apply page size limit
+            // Add dual results first, ordered by combined score
+            List<AnimalSearchResult> sortedDualResults = dualResults
+                .OrderByDescending(x => x.CombinedScore)
                 .ToList();
 
-            return sortedResults.Select(x => x.Animal).ToList();
+            foreach (AnimalSearchResult result in sortedDualResults)
+            {
+                if (finalResults.Count >= this.PageSize) break;
+                finalResults.Add(result.Animal);
+            }
+
+            List<AnimalSearchResult> remainingSemanticResults = semanticResults
+                .Where(x => !processedIds.Contains(x.Animal.Id))
+                .OrderByDescending(x => x.SemanticScore)
+                .ToList();
+
+            foreach (AnimalSearchResult result in remainingSemanticResults)
+            {
+                if (finalResults.Count >= this.PageSize) break;
+                finalResults.Add(result.Animal);
+                processedIds.Add(result.Animal.Id);
+            }
+
+            List<AnimalSearchResult> remainingVectorResults = vectorResults
+                .Where(x => !processedIds.Contains(x.Animal.Id))
+                .OrderByDescending(x => x.VectorScore)
+                .ToList();
+
+            foreach (AnimalSearchResult result in remainingVectorResults)
+            {
+                if (finalResults.Count >= this.PageSize) break;
+                finalResults.Add(result.Animal);
+            }
+
+            return finalResults;
         }
         #endregion
 
@@ -763,60 +1030,5 @@ namespace Main_API.Query.Queries
 
             return projectionFields.ToList();
         }
-
-        #region Helpers
-        private int GetMinimumShouldMatch(String query)
-        {
-            int wordCount = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
-
-            // For multi-word queries, require more matches
-            if (wordCount >= 4)
-                return 3; // At least 3 clauses must match
-            else if (wordCount >= 2)
-                return 2; // At least 2 clauses must match
-            else
-                return 1; // Single word queries need at least 1 match
-        }
-
-        private Double GetSemanticThreshold(String query)
-        {
-            // MUCH stricter thresholds for accuracy
-            int wordCount = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
-
-            // With base threshold of 0.9
-            if (wordCount <= 1)
-            {
-                // Single word searches - needs strong match
-                return _config.IndexSettings.TextScoreThreshold * 3.0; // 2.7
-            }
-            else if (wordCount <= 2)
-            {
-                // Two word searches - require very strong match
-                return _config.IndexSettings.TextScoreThreshold * 4.0; // 3.6
-            }
-            else if (wordCount <= 4)
-            {
-                // Normal searches - strict
-                return _config.IndexSettings.TextScoreThreshold * 5.0; // 4.5
-            }
-            else
-            {
-                // Long queries - extremely strict
-                return _config.IndexSettings.TextScoreThreshold * 6.0; // 5.4
-            }
-        }
-
-        private Double NormalizeSearchScore(Double rawScore, String query)
-        {
-            // Normalize scores to 0-1 range based on expected ranges
-            // Adjust max expected score based on your testing
-            Double maxExpectedScore = 100.0; // Increased for stricter matching
-            Double normalizedScore = rawScore / maxExpectedScore;
-
-            // Apply sigmoid for better distribution
-            return 1.0 / (1.0 + Math.Exp(-5 * (normalizedScore - 0.5)));
-        }
-
-        #endregion
     }
 }

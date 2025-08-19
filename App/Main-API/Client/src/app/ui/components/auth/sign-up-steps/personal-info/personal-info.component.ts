@@ -400,6 +400,14 @@ export class PersonalInfoComponent {
   validationErrors: ValidationError[] = [];
   showErrorSummary = false;
 
+  hasUnsavedChanges(): boolean {
+    const mainDirty = !!this.form && this.form.dirty;
+    const locationForm = this.getLocationForm();
+    const locationDirty = !!locationForm && locationForm.dirty;
+    const photoDirty = this.profilePhotoPreview !== null;
+    return mainDirty || locationDirty || photoDirty;
+  }
+
   constructor(
     private cdr: ChangeDetectorRef,
     private translationService: TranslationService

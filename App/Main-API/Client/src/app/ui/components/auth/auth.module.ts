@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { NgIconsModule } from '@ng-icons/core';
 import { LoggedInGuard } from 'src/app/common/guards/logged-in.guard';
+import { MatDialogModule } from '@angular/material/dialog';
 import {
   lucideInfo,
   lucideMapPin,
@@ -47,6 +48,8 @@ import { VerifiedComponent } from './sign-up-steps/verified.component';
 import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
 import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-banner.component';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { FormGuard } from 'src/app/common/guards/form.guard';
+import { FormLeaveConfirmationDialogComponent } from 'src/app/common/ui/form-leave-confirmation-dialog.component';
 
 @NgModule({
   declarations: [LoginComponent, SignupComponent, VerifiedComponent],
@@ -54,9 +57,10 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    MatDialogModule,
     RouterModule.forChild([
       { path: 'login', component: LoginComponent, canActivate: [LoggedInGuard] },
-      { path: 'sign-up', component: SignupComponent, canActivate: [LoggedInGuard] },
+      { path: 'sign-up', component: SignupComponent, canActivate: [LoggedInGuard], canDeactivate: [FormGuard] },
       { path: 'verified', component: VerifiedComponent },
       { path: 'google/callback-page', component: GoogleCallbackComponent },
       {
