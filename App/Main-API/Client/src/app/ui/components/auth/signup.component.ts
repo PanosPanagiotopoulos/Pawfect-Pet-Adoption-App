@@ -169,6 +169,7 @@ export class SignupComponent
 
   private hasUnsavedChangesFlag = false;
   private isSubmitting = false;
+  private suppressFormGuard = false;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -211,6 +212,7 @@ export class SignupComponent
       this.secureStorageService.getItem<string>('unverifiedPhone');
     const existingEmail: string | null =
       this.secureStorageService.getItem<string>('unverifiedEmail');
+    const fromGoogleLogin = this.secureStorageService.getItem<string>('fromGoogleLogin') === 'true';
 
     if (existingPhone) {
       this.registrationForm.get('phone')?.setValue(existingPhone);
@@ -231,8 +233,14 @@ export class SignupComponent
       state.fromLogin
     ) {
       this.fromLogin = true;
-      this.currentStep = SignupStep.EmailConfirmation;
-      this.resendEmailVerification();
+      if (!fromGoogleLogin) {
+        this.currentStep = SignupStep.EmailConfirmation;
+        this.resendEmailVerification();
+      } else {
+        // Skip email verification step entirely for Google-origin login
+        this.router.navigate(['/home']);
+        this.secureStorageService.removeItem('fromGoogleLogin');
+      }
     }
 
     // Track form changes for unsaved changes detection
@@ -309,6 +317,9 @@ export class SignupComponent
 
   hasUnsavedChanges(): boolean {
     if (this.isSubmitting) {
+      return false;
+    }
+    if ((this as any).suppressFormGuard) {
       return false;
     }
     const formDirty = !!this.registrationForm && this.registrationForm.dirty;
@@ -880,6 +891,9 @@ export class SignupComponent
   }
 
   onSubmitOtp(): void {
+    if (this.isLoading || this.isSubmitting) {
+      return;
+    }
     this.markFormGroupTouched(this.otpForm);
     this.error = undefined;
 
@@ -901,6 +915,10 @@ export class SignupComponent
             this.isLoading = false;
             this.isSubmitting = false;
             this.hasUnsavedChangesFlag = false;
+            this.suppressFormGuard = true;
+            if (this.otpForm) {
+              this.otpForm.markAsPristine();
+            }
             this.error = undefined;
 
             // Clear phone verification from storage since it's now verified
@@ -908,16 +926,31 @@ export class SignupComponent
 
             // Check if coming from login and if email verification is still needed
             if (this.fromLogin) {
-              const unverifiedEmail =
-                this.secureStorageService.getItem<string>('unverifiedEmail');
-              if (unverifiedEmail) {
-                // Still need email verification
-                this.currentStep = SignupStep.EmailConfirmation;
-                this.resendEmailVerification();
-              } else {
-                // All verifications complete, redirect to home
-                this.router.navigate(['/home']);
-              }
+             const fromGoogleLogin = this.secureStorageService.getItem<string>('fromGoogleLogin') === 'true';
+             if (fromGoogleLogin) {
+               this.secureStorageService.removeItem('fromGoogleLogin');
+               this.router.navigate(['/home']);
+             } else {
+               this.authService.me().subscribe({
+                 next: (account) => {
+                   if (account && account.isEmailVerified) {
+                     this.router.navigate(['/home']);
+                   } else {
+                     this.currentStep = SignupStep.EmailConfirmation;
+                     this.resendEmailVerification();
+                   }
+                 },
+                 error: () => {
+                   const unverifiedEmail = this.secureStorageService.getItem<string>('unverifiedEmail');
+                   if (unverifiedEmail) {
+                     this.currentStep = SignupStep.EmailConfirmation;
+                     this.resendEmailVerification();
+                   } else {
+                     this.router.navigate(['/home']);
+                   }
+                 }
+               });
+             }
             } else {
               // Regular signup flow
               if (!this.registrationForm.get('hasEmailVerified')?.value) {

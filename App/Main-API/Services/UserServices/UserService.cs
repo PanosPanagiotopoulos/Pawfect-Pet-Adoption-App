@@ -100,7 +100,10 @@ namespace Main_API.Services.UserServices
 			if (await _userRepository.ExistsAsync(user => user.Email == registerPersist.User.Email))
 				throw new ArgumentException("This email is already in use");
 
-            // Αποθηκεύστε τα δεδομένα του χρήστη.
+			// Αποθηκεύστε τα δεδομένα του χρήστη.
+			if (registerPersist.User.AuthProvider != AuthProvider.Local)
+				registerPersist.User.HasEmailVerified = true;
+
             Models.User.User newUser = await this.Persist(registerPersist.User, true, buildDto: true, buildFields: fields);
 
 			if (newUser == null)
@@ -553,7 +556,6 @@ namespace Main_API.Services.UserServices
 		public async Task<Models.User.User> Persist(Data.Entities.User user, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
             if (_conventionService.IsValidId(user.Id))
-
                 return await this.Update(
                     new UserUpdate()
                     {
@@ -562,7 +564,10 @@ namespace Main_API.Services.UserServices
                         FullName = user.FullName,
                         Location = user.Location,
                         Phone = user.Phone,
-                        ProfilePhotoId = user.ProfilePhotoId
+                        ProfilePhotoId = user.ProfilePhotoId,
+						HasPhoneVerified = user.HasPhoneVerified,
+						HasEmailVerified = user.HasEmailVerified,
+						IsVerified = user.IsVerified
                     },
                     buildFields,
                     buildDto,

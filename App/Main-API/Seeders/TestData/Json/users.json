@@ -218,5 +218,93 @@
     "HasEmailVerified": true,
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "609f3f99def98de900439041",
+    "Email": "michael.wilson@example.com",
+    "Password": "user123",
+    "FullName": "Michael Wilson",
+    "Roles": [ 1 ],
+    "Phone": "+12345678911",
+    "Location": {
+      "Address": "Harbor St",
+      "Number": "808",
+      "City": "San Diego",
+      "ZipCode": "92101"
+    },
+    "ShelterId": null,
+    "AuthProvider": 1,
+    "AuthProviderId": null,
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "609f3f99def98de900439042",
+    "Email": "sarah.johnson@example.com",
+    "Password": null,
+    "FullName": "Sarah Johnson",
+    "Roles": [ 1 ],
+    "Phone": "+12345678912",
+    "Location": {
+      "Address": "River Ave",
+      "Number": "909",
+      "City": "Portland",
+      "ZipCode": "97201"
+    },
+    "ShelterId": null,
+    "AuthProvider": 2,
+    "AuthProviderId": "google567890",
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "609f3f99def98de900439043",
+    "Email": "david.miller@example.com",
+    "Password": "user456",
+    "FullName": "David Miller",
+    "Roles": [ 1 ],
+    "Phone": "+12345678913",
+    "Location": {
+      "Address": "Mountain Rd",
+      "Number": "1010",
+      "City": "Denver",
+      "ZipCode": "80202"
+    },
+    "ShelterId": null,
+    "AuthProvider": 1,
+    "AuthProviderId": null,
+    "IsVerified": true,
+    "HasPhoneVerified": true,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
+  },
+  {
+    "Id": "609f3f99def98de900439044",
+    "Email": "emily.davis@example.com",
+    "Password": null,
+    "FullName": "Emily Davis",
+    "Roles": [ 1 ],
+    "Phone": "+12345678914",
+    "Location": {
+      "Address": "Valley Dr",
+      "Number": "1111",
+      "City": "Salt Lake City",
+      "ZipCode": "84101"
+    },
+    "ShelterId": null,
+    "AuthProvider": 2,
+    "AuthProviderId": "google123789",
+    "IsVerified": true,
+    "HasPhoneVerified": false,
+    "HasEmailVerified": true,
+    "CreatedAt": "2023-01-01T00:00:00Z",
+    "UpdatedAt": "2023-01-01T00:00:00Z"
   }
 ]

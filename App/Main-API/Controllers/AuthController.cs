@@ -353,9 +353,9 @@
 			verifyPhoneUser.HasPhoneVerified = true;
             Models.User.User persisted = await _userService.Persist(verifyPhoneUser, false, [nameof(Models.User.User.Id)]);
 
-			await _userService.VerifyUserAsync(persisted.Id, null);
+            await _userService.VerifyUserAsync(verifyPhoneUser.Id, null);
 
-			return Ok();
+            return Ok();
 		}
 
 		[HttpPost("send/email-verification")]
@@ -392,7 +392,7 @@
             verifyEmailUser.HasEmailVerified = true;
             Models.User.User persisted = await _userService.Persist(verifyEmailUser, false, [nameof(Models.User.User.Id), nameof(Models.User.User.Roles)]);
 
-			await _userService.VerifyUserAsync(verifyEmailUser.Id, null);
+            await _userService.VerifyUserAsync(verifyEmailUser.Id, null);
 
 			return Ok(persisted);
 		}
@@ -403,8 +403,8 @@
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			if (!(await _userService.VerifyUserAsync(payload.Id, payload.Email)))
-				throw new ForbiddenException("User did not meet the requirements to be verified");
+            if (!(await _userService.VerifyUserAsync(payload.Id, payload.Email)))
+                return BadRequest();
 
 			return Ok();
 		}

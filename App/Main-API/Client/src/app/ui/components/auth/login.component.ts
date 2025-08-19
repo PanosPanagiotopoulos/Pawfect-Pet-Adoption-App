@@ -73,8 +73,11 @@ export class LoginComponent extends BaseComponent implements OnInit {
           (!response.isPhoneVerified || !response.isEmailVerified)
         ) {
           const userEmail = this.authService.getUserEmail() || response.email;
+          // Mark origin as Google for follow-up verification handling
+          this.secureStorageService.setItem('fromGoogleLogin', 'true');
           this.handleUnverifiedUser(response, userEmail);
         } else {
+          this.secureStorageService.removeItem('fromGoogleLogin');
           const returnUrl =
           this.route.snapshot.queryParams['returnUrl'] || '/home';
           this.router.navigateByUrl(returnUrl);
@@ -107,6 +110,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
             response &&
             (!response.isPhoneVerified || !response.isEmailVerified)
           ) {
+            // Ensure Google-origin flag is not set for local login
+            this.secureStorageService.removeItem('fromGoogleLogin');
             this.handleUnverifiedUser(response, email);
           } else {
             // User is fully verified, proceed to home
@@ -118,6 +123,7 @@ export class LoginComponent extends BaseComponent implements OnInit {
                 'APP.AUTH.LOGIN.WELCOME_BACK'
               ),
             });
+            this.secureStorageService.removeItem('fromGoogleLogin');
             const returnUrl =
               this.route.snapshot.queryParams['returnUrl'] || '/home';
             this.router.navigateByUrl(returnUrl);

@@ -311,6 +311,9 @@ namespace Main_API.Query.Queries
 
             QueryAnalysis queryAnalysis = this.AnalyzeQuery(query);
 
+            List<BsonDocument> queries = await BuildSemanticTextQueries(query, queryAnalysis);
+            int minimumShouldMatch = Math.Min(this.GetDynamicMinimumShouldMatch(query, queryAnalysis), queries.Count);
+
             List<BsonDocument> pipeline = new List<BsonDocument>
             {
                 new BsonDocument("$search", new BsonDocument
@@ -318,8 +321,8 @@ namespace Main_API.Query.Queries
                     { "index", _config.IndexSettings.AnimalSchemanticIndexName },
                     { "compound", new BsonDocument
                         {
-                            { "should", new BsonArray(await BuildSemanticTextQueries(query, queryAnalysis)) },
-                            { "minimumShouldMatch", this.GetDynamicMinimumShouldMatch(query, queryAnalysis) }
+                            { "should", new BsonArray(queries) },
+                            { "minimumShouldMatch", minimumShouldMatch }
                         }
                     }
                 }),
