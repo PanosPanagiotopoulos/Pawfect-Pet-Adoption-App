@@ -7,12 +7,16 @@ using Main_API.DevTools;
 using Main_API.Services.AwsServices;
 using Main_API.Services.Convention;
 using Main_API.Services.MongoServices;
-using System.Threading.Tasks;
 using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices;
 using Pawfect_Pet_Adoption_App_API.Models.Animal;
 using Microsoft.Extensions.AI;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
-using Pawfect_Pet_Adoption_App_API.Services.TranslationServices;
+using Microsoft.Extensions.Options;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.AnimalEmbeddingValueExtractors;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Embedding;
+using Amazon.Runtime.Internal.Util;
+using System.IO.Abstractions;
 
 public class Seeder
 {
@@ -20,7 +24,8 @@ public class Seeder
     private readonly IAwsService _awsService;
     private readonly IConventionService _conventionService;
     private readonly IEmbeddingService _embeddingService;
-    private readonly ITranslationService _translationService;
+    private readonly EmbeddingValueExtractorFactory _embeddingValueExtractorFactory;
+    private readonly MongoDbConfig _config;
 
     public Seeder
     (
@@ -28,21 +33,23 @@ public class Seeder
         IAwsService awsService,
         IConventionService conventionService,
         IEmbeddingService embeddingService,
-        ITranslationService translationService
+        EmbeddingValueExtractorFactory embeddingValueExtractorFactory,
+        IOptions<MongoDbConfig> options
     )
 	{
 		this._dbService = dbService;
         this._awsService = awsService;
         this._conventionService = conventionService;
         this._embeddingService = embeddingService;
-        this._translationService = translationService;
+        this._embeddingValueExtractorFactory = embeddingValueExtractorFactory;
+        this._config = options.Value;
     }
 
 	public async Task Seed()
 	{
         // Delete all
         await UnseedFiles();
-        this._dbService.DropAllCollections();
+        await this._dbService.DropAll();
 
         // Re seed
 		SeedAnimalTypes();
@@ -147,6 +154,7 @@ public class Seeder
         Dictionary<String, List<String>> animalPhotoIds = new Dictionary<String, List<String>>();
         Random random = new Random();
 
+        HashSet<String> uploadedFiles = new HashSet<String>();
         foreach (Animal animal in animals)
         {
             if (!shelterUserIds.TryGetValue(animal.ShelterId, out String ownerId))
@@ -163,24 +171,34 @@ public class Seeder
                 String mimeType = _conventionService.ToMimeType(extension);
                 String fileType = _conventionService.ToFileType(extension).ToString();
 
-                // Read the file into a stream and create an IFormFile
-                using FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-                FormFile formFile = new FormFile(stream, 0, stream.Length, null, fileName)
+                // Read file content into memory once
+                byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+                // Create an IFormFile using MemoryStream
+                using MemoryStream memoryStream = new MemoryStream(fileBytes);
+                FormFile formFile = new FormFile(memoryStream, 0, fileBytes.Length, null, fileName)
                 {
                     Headers = new HeaderDictionary(),
                     ContentType = mimeType
                 };
 
                 // Construct the AWS key and upload the file
-                String key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
-                String sourceUrl = await _awsService.UploadAsync(formFile, key);
+                String key = _awsService.ConstructAwsKey(fileName);
+                String sourceUrl = null;
+                if (!uploadedFiles.Contains(fileName))
+                {
+                    sourceUrl = await _awsService.UploadAsync(formFile, key);
+                }
+                else sourceUrl = await _awsService.GetAsync(key);
+
+                    uploadedFiles.Add(fileName);
 
                 // Create the File entity
                 Main_API.Data.Entities.File fileEntity = new Main_API.Data.Entities.File
                 {
                     Id = fileId,
                     Filename = fileName,
-                    Size = (Double)stream.Length,
+                    Size = (Double)fileBytes.Length, // Use fileBytes.Length instead of stream.Length
                     OwnerId = ownerId,
                     MimeType = mimeType,
                     FileType = fileType,
@@ -224,9 +242,13 @@ public class Seeder
             String extension = Path.GetExtension(fileName).ToLowerInvariant();
             String mimeType = _conventionService.ToMimeType(extension);
             String fileType = _conventionService.ToFileType(extension).ToString();
-            // Read the file into a stream and create an IFormFile
-            using FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            FormFile formFile = new FormFile(stream, 0, stream.Length, null, fileName)
+
+            // Read file content into memory once
+            byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+            // Create an IFormFile using MemoryStream
+            using MemoryStream memoryStream = new MemoryStream(fileBytes);
+            FormFile formFile = new FormFile(memoryStream, 0, fileBytes.Length, null, fileName)
             {
                 Headers = new HeaderDictionary(),
                 ContentType = mimeType
@@ -241,7 +263,7 @@ public class Seeder
             {
                 Id = fileId,
                 Filename = fileName,
-                Size = (Double)stream.Length,
+                Size = (Double)fileBytes.Length, // Use fileBytes.Length instead of stream.Length
                 OwnerId = user.Id,
                 MimeType = mimeType,
                 FileType = fileType,
@@ -304,28 +326,37 @@ public class Seeder
                     : new AnimalType { Name = "Unknown", Description = "No animal type information available" };
 
                 // Create enhanced embedding with all information
-                String embeddingVal = await _translationService.TranslateAsync(
-                    new AnimalEmbed()
-                    {
-                        Description = animal.Description ?? "No description available",
-                        HealthStatus = animal.HealthStatus ?? "Health status unknown",
-                        Age = animal.Age.ToString(),
-                        Gender = animal.Gender.ToString(),
-                        Weight = animal.Weight.ToString(),
-                        BreedName = breed.Name ?? "Unknown breed",
-                        BreedDescription = breed.Description ?? "No breed description available",
-                        AnimalTypeName = animalType.Name ?? "Unknown type",
-                        AnimalTypeDescription = animalType.Description ?? "No animal type description available"
-                    }
-                    .ToEmbeddingText(),
-                    null,
-                    SupportedLanguages.English
+                AnimalSearchDataModel animalSearchingModel = new AnimalSearchDataModel(
+                        _config,
+                        animal.Age,
+                        animal.Gender,
+                        animal.Description,
+                        animal.Weight,
+                        animal.HealthStatus,
+                        breed.Name,
+                        breed.Description,
+                        animalType.Name,
+                        animalType.Description
                 );
 
-                // Generate embedding with enhanced information
-                Embedding<Double> animalEmbed = await _embeddingService.GenerateEmbeddingAsyncDouble(embeddingVal);
+                IEmbeddingValueExtractorAbstraction embeddingValueExtractorAbstracted = _embeddingValueExtractorFactory.ExtractorSafe(EmbeddingValueExtractorType.Animal);
+                if (!(embeddingValueExtractorAbstracted is IEmbeddingValueExtractor<AnimalSearchDataModel, String, String> &&
+                    embeddingValueExtractorAbstracted is IAnimalEmbeddingValueExtractor animalEmbeddingValueExtractor))
+                {
+                    throw new InvalidOperationException("Invalid embedding value extractor for Animal type.");
+                }
 
-                animal.Embedding = animalEmbed.Vector.ToArray() ?? [];
+                animal.SemanticText = await animalEmbeddingValueExtractor.ExtractValue(animalSearchingModel);
+
+                // Generate embedding with enhanced information
+                animal.Embedding = (await _embeddingService.GenerateAggregatedEmbeddingAsyncDouble<String>(
+                    new ChunkedEmbeddingInput<String>
+                    {
+                        Content = animal.SemanticText,
+                        SourceId = animal.Id,
+                        SourceType = nameof(Animal)
+                    }
+                )).Vector.ToArray();
             }
 
             animalsCollection.InsertMany(animals);
@@ -399,7 +430,7 @@ public class Seeder
         // Log any failed deletions (optional, for debugging)
         List<KeyValuePair<String, Boolean>> failedDeletions = [.. deletionResults.Where(r => !r.Value)];
         if (failedDeletions.Any())
-            Console.WriteLine($"Failed to delete {failedDeletions.Count} files from AWS: {String.Join(", ", failedDeletions.Select(r => r.Key))}");
+            throw new InvalidOperationException($"Failed to delete {failedDeletions.Count} files from AWS: {String.Join(", ", failedDeletions.Select(r => r.Key))}");
 
         // Delete all files from MongoDB
         await filesCollection.DeleteManyAsync(FilterDefinition<Main_API.Data.Entities.File>.Empty);

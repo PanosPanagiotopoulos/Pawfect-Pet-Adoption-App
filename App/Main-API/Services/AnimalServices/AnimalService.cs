@@ -243,7 +243,7 @@ namespace Main_API.Services.AnimalServices
 
             await _fileService.Value.Delete([..animals.Where(animal => animal.PhotosIds != null).SelectMany(animal => animal.PhotosIds)]);
 
-			await _animalRepository.DeleteAsync(ids);
+			await _animalRepository.DeleteManyAsync(ids);
 		}
 	}
 }

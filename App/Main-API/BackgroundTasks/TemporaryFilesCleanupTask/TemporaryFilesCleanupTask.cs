@@ -101,7 +101,7 @@ namespace Main_API.BackgroundTasks.TemporaryFilesCleanupTask
                                 _logging.LogError("Not all objects where deleted from AWS. Removing them from file deleting pipeline");
 
                             // Delete corresponding files from database
-                            await fileRepository.DeleteAsync(filesToCleanup, session);
+                            await fileRepository.DeleteManyAsync(filesToCleanup, session);
                             
                             await session.CommitTransactionAsync();
                         }

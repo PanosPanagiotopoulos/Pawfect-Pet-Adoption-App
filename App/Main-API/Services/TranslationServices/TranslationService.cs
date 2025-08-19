@@ -13,7 +13,6 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
         private readonly ConcurrentDictionary<String, String> _translationCache;
 
         public TranslationService(
-            HttpClient httpClient,
             ILogger<TranslationService> logger,
             IOptions<TranslationConfig> options)
         {
@@ -24,7 +23,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
 
         public async Task<String> TranslateAsync(String input, String sourceLang, String targetLang)
         {
-            if (String.IsNullOrWhiteSpace(input)) throw new ArgumentException("Null or empty input given to translate");
+            if (String.IsNullOrWhiteSpace(input)) return "";
 
             // Normalize language codes
             String normalizedSourceLang = this.NormalizeLanguageCode(sourceLang);

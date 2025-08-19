@@ -17,14 +17,9 @@ namespace Main_API.Models
 
             RuleFor(location => location.Number)
                 .Cascade(CascadeMode.Stop)
-                // Ο αριθμός διέυθυνσης είναι απαραίτητος.
                 .NotEmpty()
-                .WithMessage("Street number is required")
-                // Λάθος αριθμός διέυθυνσης.
-                .Matches(@"^\Double+$")
-                .WithMessage("Not a valid street number")
-                // Λάθος αριθμός διέυθυνσης.
-                .Length(1, 5)
+                .WithMessage("Street number is required.")
+                .Matches(@"^\d+[A-Za-z]?$")
                 .WithMessage("Not a valid street number");
 
             RuleFor(location => location.City)
@@ -37,13 +32,11 @@ namespace Main_API.Models
                 .WithMessage("Not valid city name");
 
             RuleFor(location => location.ZipCode)
-                .Cascade(CascadeMode.Stop)
-                // Ο ταχυδρομικός κώδικας είναι απαραίτητος.
-                .NotEmpty()
-                .WithMessage("Zip code is required")
-                // Λάθος ταχυδρομικός κώδικας.
-                .Matches(@"^\Double{5}(-\Double{4})?$")
-                .WithMessage("Invalid zip code");
+                 .Cascade(CascadeMode.Stop)
+                 .NotEmpty()
+                 .WithMessage("Zip code is required.")
+                 .Matches(@"^\d{5}$")
+                 .WithMessage("Invalid zip code");
         }
     }
 }

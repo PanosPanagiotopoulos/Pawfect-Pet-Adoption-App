@@ -100,7 +100,7 @@ namespace Main_API.Services.BreedServices
             if (!await _authorizationService.AuthorizeAsync(Permission.DeleteBreeds))
                 throw new ForbiddenException("You are not authorized to delete breeds", typeof(Data.Entities.Breed), Permission.DeleteBreeds);
 
-            await _breedRepository.DeleteAsync(ids);
+            await _breedRepository.DeleteManyAsync(ids);
 		}
 	}
 }

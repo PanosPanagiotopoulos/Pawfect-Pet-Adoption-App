@@ -144,7 +144,7 @@ namespace Main_API.Services.ShelterServices
 			List<Data.Entities.Animal> animals = await aLookup.EnrichLookup(_queryFactory).CollectAsync();
 			await _animalService.Value.Delete([.. animals?.Select(x => x.Id)]);
 
-			await _shelterRepository.DeleteAsync(ids);
+			await _shelterRepository.DeleteManyAsync(ids);
 
 			await _userService.Value.Delete([.. shelters?.Select(x => x.UserId)]);
 		}

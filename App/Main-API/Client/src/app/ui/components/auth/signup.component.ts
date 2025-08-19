@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, OnDestroy, HostListener } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -28,6 +28,9 @@ import { UserRole } from 'src/app/common/enum/user-role.enum';
 import { User } from 'src/app/models/user/user.model';
 import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
 import { TranslationService } from 'src/app/common/services/translation.service';
+import { MatDialog } from '@angular/material/dialog';
+import { FormLeaveConfirmationDialogComponent } from 'src/app/common/ui/form-leave-confirmation-dialog.component';
+import { Observable } from 'rxjs';
 
 interface LocationFormGroup extends FormGroup {
   controls: {
@@ -150,9 +153,13 @@ export class SignupComponent
   showShelterInfo = false;
 
   googlePopulatedFields: string[] = [];
+  hasGoogleData = false;
 
   registrationForm!: RegistrationFormGroup;
   otpForm!: OtpFormGroup;
+
+  private hasUnsavedChanges = false;
+  private isSubmitting = false;
 
   constructor(
     private readonly fb: FormBuilder,
@@ -162,7 +169,8 @@ export class SignupComponent
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     private readonly secureStorageService: SecureStorageService,
-    public readonly translationService: TranslationService
+    public readonly translationService: TranslationService,
+    private readonly dialog: MatDialog
   ) {
     super();
     this.initializeForms();
@@ -173,7 +181,7 @@ export class SignupComponent
       if (params['mode'] === 'google') {
         // Get the Google auth code from session storage
         const googleAuthCode: string | null =
-        this.secureStorageService.getItem<string>('googleAuthCode');
+          this.secureStorageService.getItem<string>('googleAuthCode');
 
         if (googleAuthCode) {
           // Clear the code from session storage to prevent reuse
@@ -191,10 +199,10 @@ export class SignupComponent
 
     // Handle verification flow from login
     const existingPhone: string | null =
-    this.secureStorageService.getItem<string>('unverifiedPhone');
+      this.secureStorageService.getItem<string>('unverifiedPhone');
     const existingEmail: string | null =
-    this.secureStorageService.getItem<string>('unverifiedEmail');
-    
+      this.secureStorageService.getItem<string>('unverifiedEmail');
+
     if (existingPhone) {
       this.registrationForm.get('phone')?.setValue(existingPhone);
     }
@@ -222,12 +230,57 @@ export class SignupComponent
     window.onpopstate = () => {
       history.pushState(null, '', location.href);
     };
+
+    // Track form changes for unsaved changes detection
+    this.setupFormChangeTracking();
   }
 
   override ngOnDestroy(): void {
     super.ngOnDestroy();
     clearInterval(this.resendOtpInterval);
     window.onpopstate = null;
+  }
+
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any): void {
+    if (this.hasUnsavedChanges && !this.isSubmitting) {
+      $event.returnValue = this.translationService.translate('APP.COMMONS.FORM_GUARD.MESSAGE');
+    }
+  }
+
+  private setupFormChangeTracking(): void {
+    // Track changes in registration form
+    this.registrationForm.valueChanges.subscribe(() => {
+      if (!this.isSubmitting) {
+        this.hasUnsavedChanges = true;
+      }
+    });
+
+    // Track changes in OTP form
+    this.otpForm.valueChanges.subscribe(() => {
+      if (!this.isSubmitting) {
+        this.hasUnsavedChanges = true;
+      }
+    });
+  }
+
+  canDeactivate(): Observable<boolean> | boolean {
+    if (!this.hasUnsavedChanges || this.isSubmitting) {
+      return true;
+    }
+
+    const dialogRef = this.dialog.open(FormLeaveConfirmationDialogComponent, {
+      data: {
+        title: this.translationService.translate('APP.COMMONS.FORM_GUARD.TITLE'),
+        message: this.translationService.translate('APP.COMMONS.FORM_GUARD.MESSAGE'),
+        confirmText: this.translationService.translate('APP.COMMONS.FORM_GUARD.LEAVE'),
+        cancelText: this.translationService.translate('APP.COMMONS.FORM_GUARD.STAY')
+      },
+      disableClose: true,
+      width: '400px'
+    });
+
+    return dialogRef.afterClosed();
   }
   private initializeForms(): void {
     // Change this in the initializeForms() method:
@@ -245,7 +298,10 @@ export class SignupComponent
       email: ['', [Validators.required, Validators.email]],
       password: [
         '',
-        [Validators.required, CustomValidators.passwordValidator(this.translationService)],
+        [
+          Validators.required,
+          CustomValidators.passwordValidator(this.translationService),
+        ],
       ],
       confirmPassword: ['', [Validators.required]],
       fullName: ['', [Validators.required, Validators.minLength(5)]],
@@ -314,14 +370,13 @@ export class SignupComponent
       ]);
 
     // Subscribe to password changes to update confirm password validation
-    this.registrationForm
-      .get('password')
-      ?.valueChanges.subscribe(() => {
-        const confirmPasswordControl = this.registrationForm.get('confirmPassword');
-        if (confirmPasswordControl) {
-          confirmPasswordControl.updateValueAndValidity();
-        }
-      });
+    this.registrationForm.get('password')?.valueChanges.subscribe(() => {
+      const confirmPasswordControl =
+        this.registrationForm.get('confirmPassword');
+      if (confirmPasswordControl) {
+        confirmPasswordControl.updateValueAndValidity();
+      }
+    });
 
     // Subscribe to isShelter changes to update validations
     this.registrationForm
@@ -398,12 +453,16 @@ export class SignupComponent
       {
         value: SignupStep.PersonalInfo,
         displayNumber: 1,
-        label: this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO_STEP'),
+        label: this.translationService.translate(
+          'APP.AUTH.SIGNUP.PERSONAL_INFO_STEP'
+        ),
       },
       {
         value: SignupStep.AccountDetails,
         displayNumber: 2,
-        label: this.translationService.translate('APP.AUTH.SIGNUP.ACCOUNT_DETAILS_STEP'),
+        label: this.translationService.translate(
+          'APP.AUTH.SIGNUP.ACCOUNT_DETAILS_STEP'
+        ),
       },
     ];
 
@@ -412,14 +471,18 @@ export class SignupComponent
       steps.push({
         value: SignupStep.ShelterInfo,
         displayNumber: 3,
-        label: this.translationService.translate('APP.AUTH.SIGNUP.SHELTER_INFO_STEP'),
+        label: this.translationService.translate(
+          'APP.AUTH.SIGNUP.SHELTER_INFO_STEP'
+        ),
       });
     }
 
     steps.push({
       value: SignupStep.OtpVerification,
       displayNumber: this.showShelterInfo ? 4 : 3,
-      label: this.translationService.translate('APP.AUTH.SIGNUP.OTP_VERIFICATION'),
+      label: this.translationService.translate(
+        'APP.AUTH.SIGNUP.OTP_VERIFICATION'
+      ),
     });
 
     return steps;
@@ -544,19 +607,27 @@ export class SignupComponent
           googlePopulatedFields.push('phone');
         }
 
-        if (response.authProvider) {
-          this.registrationForm
-            .get('authProvider')
-            ?.setValue(response.authProvider);
+        // Set Google as auth provider
+        this.registrationForm
+          .get('authProvider')
+          ?.setValue(AuthProvider.Google);
+
+        // Set auth provider ID from response
+        if (response.authProviderId) {
+          this.registrationForm.get('authProviderId')?.setValue(response.authProviderId);
         }
 
-        if (response.authProviderId) {
-          this.registrationForm
-            .get('authProviderId')
-            ?.setValue(response.authProviderId);
-        }
+        // Disable password fields for Google authentication
+        this.registrationForm.get('password')?.disable();
+        this.registrationForm.get('confirmPassword')?.disable();
+        this.registrationForm.get('password')?.clearValidators();
+        this.registrationForm.get('confirmPassword')?.clearValidators();
+        this.registrationForm.get('password')?.updateValueAndValidity();
+        this.registrationForm.get('confirmPassword')?.updateValueAndValidity();
 
         this.googlePopulatedFields = googlePopulatedFields;
+        this.hasGoogleData = true;
+        this.hasUnsavedChanges = true; // Mark as having changes since Google data was populated
 
         this.isExternalProviderLoading = false;
         this.error = undefined;
@@ -573,12 +644,15 @@ export class SignupComponent
     return this.googlePopulatedFields.includes(fieldName);
   }
 
+  isGoogleAuthenticated(): boolean {
+    return (
+      this.registrationForm.get('authProvider')?.value === AuthProvider.Google
+    );
+  }
+
   onPersonalInfoNext(): void {
     this.stepDirection = 'next';
-    if (
-      (this.registrationForm.get('authProvider')?.value as AuthProvider) !=
-      AuthProvider.Local
-    ) {
+    if (this.isGoogleAuthenticated()) {
       this.onAccountDetailsNext(true);
       return;
     }
@@ -588,27 +662,35 @@ export class SignupComponent
 
   onAccountDetailsNext(isExternalProvided: boolean = false): void {
     this.stepDirection = 'next';
-    if (isExternalProvided) {
+
+    // Handle Google authentication - no password required
+    if (this.isGoogleAuthenticated() || isExternalProvided) {
       this.registrationForm
         .get('password')
         ?.setValue('AuthenticatedExternally2025!');
       this.registrationForm
         .get('confirmPassword')
         ?.setValue('AuthenticatedExternally2025!');
+    } else {
+      // For local authentication, validate passwords
+      const password = this.registrationForm.get('password')?.value;
+      const confirmPassword =
+        this.registrationForm.get('confirmPassword')?.value;
+
+      if (password !== confirmPassword) {
+        this.registrationForm
+          .get('confirmPassword')
+          ?.setErrors({ mismatch: true });
+        this.registrationForm.get('confirmPassword')?.markAsTouched();
+        return;
+      }
     }
 
-    const password = this.registrationForm.get('password')?.value;
-    const confirmPassword = this.registrationForm.get('confirmPassword')?.value;
+    // For Google auth, skip account details validation since passwords are disabled
+    const isFormValid =
+      this.isGoogleAuthenticated() || this.getAccountDetailsForm().valid;
 
-    if (password !== confirmPassword) {
-      this.registrationForm
-        .get('confirmPassword')
-        ?.setErrors({ mismatch: true });
-      this.registrationForm.get('confirmPassword')?.markAsTouched();
-      return;
-    }
-
-    if (this.getAccountDetailsForm().valid) {
+    if (isFormValid) {
       if (this.showShelterInfo) {
         this.currentStep = SignupStep.ShelterInfo;
       } else {
@@ -627,10 +709,7 @@ export class SignupComponent
 
   onShelterInfoBack(): void {
     this.stepDirection = 'prev';
-    if (
-      (this.registrationForm.value.authProvider as AuthProvider) !==
-      AuthProvider.Local
-    ) {
+    if (this.isGoogleAuthenticated()) {
       this.onAccountDetailsBack();
       return;
     }
@@ -643,6 +722,7 @@ export class SignupComponent
     this.logService.logFormatted(this.registrationForm.getRawValue());
     if (this.registrationForm.valid) {
       this.isLoading = true;
+      this.isSubmitting = true;
       const formValue = this.registrationForm.getRawValue();
 
       const payload: RegisterPayload = {
@@ -650,7 +730,7 @@ export class SignupComponent
           id: '',
           email: formValue.email,
           password:
-            formValue.authProvider == AuthProvider.Local
+            formValue.authProvider === AuthProvider.Local
               ? formValue.password
               : '',
           fullName: formValue.fullName,
@@ -702,11 +782,14 @@ export class SignupComponent
           }
 
           this.isLoading = false;
+          this.isSubmitting = false;
+          this.hasUnsavedChanges = false;
           this.error = undefined;
         },
         error: (error) => {
           console.error('Registration error:', error);
           this.isLoading = false;
+          this.isSubmitting = false;
           this.error = this.errorHandler.handleAuthError(error);
         },
       });
@@ -758,6 +841,7 @@ export class SignupComponent
 
     if (this.otpForm.valid) {
       this.isLoading = true;
+      this.isSubmitting = true;
       const { otp } = this.otpForm.value;
       const { phone, email, role } = this.registrationForm.getRawValue();
 
@@ -771,14 +855,17 @@ export class SignupComponent
         .subscribe({
           next: () => {
             this.isLoading = false;
+            this.isSubmitting = false;
+            this.hasUnsavedChanges = false;
             this.error = undefined;
-            
+
             // Clear phone verification from storage since it's now verified
             this.secureStorageService.removeItem('unverifiedPhone');
-            
+
             // Check if coming from login and if email verification is still needed
             if (this.fromLogin) {
-              const unverifiedEmail = this.secureStorageService.getItem<string>('unverifiedEmail');
+              const unverifiedEmail =
+                this.secureStorageService.getItem<string>('unverifiedEmail');
               if (unverifiedEmail) {
                 // Still need email verification
                 this.currentStep = SignupStep.EmailConfirmation;
@@ -801,9 +888,14 @@ export class SignupComponent
           },
           error: (error: HttpErrorResponse) => {
             this.isLoading = false;
+            this.isSubmitting = false;
             this.error = {
-              title: this.translationService.translate('APP.AUTH.SIGNUP.OTP_ERROR_TITLE'),
-              message: this.translationService.translate('APP.AUTH.SIGNUP.OTP_ERROR_MESSAGE'),
+              title: this.translationService.translate(
+                'APP.AUTH.SIGNUP.OTP_ERROR_TITLE'
+              ),
+              message: this.translationService.translate(
+                'APP.AUTH.SIGNUP.OTP_ERROR_MESSAGE'
+              ),
               type: 'error',
             };
             console.error('OTP verification error:', error);
@@ -828,22 +920,24 @@ export class SignupComponent
       email: email,
     };
 
-    this.authService
-      .sendOtp(otpPayload)
-      .subscribe({
-        next: () => {
-          this.startOtpTimer();
-          this.error = undefined;
-        },
-        error: (error: HttpErrorResponse) => {
-          this.error = {
-            title: this.translationService.translate('APP.AUTH.SIGNUP.RESEND_OTP_ERROR_TITLE'),
-            message: this.translationService.translate('APP.AUTH.SIGNUP.RESEND_OTP_ERROR_MESSAGE'),
-            type: 'error',
-          };
-          console.error('Resend OTP error:', error);
-        },
-      });
+    this.authService.sendOtp(otpPayload).subscribe({
+      next: () => {
+        this.startOtpTimer();
+        this.error = undefined;
+      },
+      error: (error: HttpErrorResponse) => {
+        this.error = {
+          title: this.translationService.translate(
+            'APP.AUTH.SIGNUP.RESEND_OTP_ERROR_TITLE'
+          ),
+          message: this.translationService.translate(
+            'APP.AUTH.SIGNUP.RESEND_OTP_ERROR_MESSAGE'
+          ),
+          type: 'error',
+        };
+        console.error('Resend OTP error:', error);
+      },
+    });
   }
 
   resendEmailVerification(): void {
@@ -855,16 +949,24 @@ export class SignupComponent
       next: () => {
         this.isLoading = false;
         this.error = {
-          title: this.translationService.translate('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_SENT_TITLE'),
-          message: this.translationService.translate('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_SENT_MESSAGE'),
+          title: this.translationService.translate(
+            'APP.AUTH.SIGNUP.EMAIL_VERIFICATION_SENT_TITLE'
+          ),
+          message: this.translationService.translate(
+            'APP.AUTH.SIGNUP.EMAIL_VERIFICATION_SENT_MESSAGE'
+          ),
           type: 'info',
         };
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
         this.error = {
-          title: this.translationService.translate('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_RESEND_ERROR_TITLE'),
-          message: this.translationService.translate('APP.AUTH.SIGNUP.EMAIL_VERIFICATION_RESEND_ERROR_MESSAGE'),
+          title: this.translationService.translate(
+            'APP.AUTH.SIGNUP.EMAIL_VERIFICATION_RESEND_ERROR_TITLE'
+          ),
+          message: this.translationService.translate(
+            'APP.AUTH.SIGNUP.EMAIL_VERIFICATION_RESEND_ERROR_MESSAGE'
+          ),
           type: 'error',
         };
         console.error('Resend email verification error:', error);
@@ -875,7 +977,8 @@ export class SignupComponent
   onEmailVerificationComplete(): void {
     // Clear email verification from storage since it's now complete
     this.secureStorageService.removeItem('unverifiedEmail');
-    
+    this.hasUnsavedChanges = false;
+
     if (this.fromLogin) {
       // Coming from login, redirect to home
       this.router.navigate(['/home']);

@@ -1,8 +1,9 @@
 {
   "Cache": {
-    "TokensCacheTime": 5, // min
-    "ShelterDataCacheTime": 15, // min
+    "TokensCacheTime": 10, // min
+    "ShelterDataCacheTime": 20, // min
     "JWTTokensCacheTime": 30, // min
-    "RequirementResultTime": 5 // min
+    "RequirementResultTime": 10, // min
+    "QueryCacheTime": 10 // min
   }
 }

@@ -304,7 +304,7 @@ namespace Main_API.Services.FileServices
 				ids = [.. ids.Except(failedIds)];
 			}
 
-			await _fileRepository.DeleteAsync(ids);
+			await _fileRepository.DeleteManyAsync(ids);
 		}
 	}
 }

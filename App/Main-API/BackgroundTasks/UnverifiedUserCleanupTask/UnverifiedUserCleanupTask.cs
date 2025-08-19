@@ -96,12 +96,12 @@ namespace Main_API.BackgroundTasks.UnverifiedUserCleanupTask
                             }
 
                             // Cleanup users
-                            await userRepository.DeleteAsync([..usersToCleanup.Select(user => user.Id)], session);
+                            await userRepository.DeleteManyAsync([..usersToCleanup.Select(user => user.Id)], session);
 
                             // Cleanup shelters
                             if (usersToCleanup.Any(user => !String.IsNullOrEmpty(user.ShelterId)))
                             {
-                                await shelterRepository.DeleteAsync([.. usersToCleanup.Where(user => !String.IsNullOrEmpty(user.ShelterId)).Select(user => user.ShelterId)], session);
+                                await shelterRepository.DeleteManyAsync([.. usersToCleanup.Where(user => !String.IsNullOrEmpty(user.ShelterId)).Select(user => user.ShelterId)], session);
                             }
 
                             // Cleanup files
@@ -111,7 +111,7 @@ namespace Main_API.BackgroundTasks.UnverifiedUserCleanupTask
                                 List<Data.Entities.File> profilePhotos = await fileRepository.FindManyAsync(file => fileIds.Contains(file.Id), new List<String>() { nameof(Data.Entities.File.AwsKey) }, session);
 
                                 await awsService.DeleteAsync([..profilePhotos.Select(pf => pf.AwsKey)]);
-                                await fileRepository.DeleteAsync(fileIds, session);
+                                await fileRepository.DeleteManyAsync(fileIds, session);
                             }
 
                             await session.CommitTransactionAsync();

@@ -27,8 +27,8 @@ namespace Main_API.Repositories.Interfaces
 		/// <param name="id">Το αναγνωριστικό του μοντέλου που θα διαγραφεί.</param>
 		Task<Boolean> DeleteAsync(String id, IClientSessionHandle session = null);
 		Task<Boolean> DeleteAsync(T entity, IClientSessionHandle session = null);
-		Task<List<Boolean>> DeleteAsync(List<String> ids, IClientSessionHandle session = null);
-		Task<List<Boolean>> DeleteAsync(List<T> entities, IClientSessionHandle session = null);
+		Task<List<Boolean>> DeleteManyAsync(List<String> ids, IClientSessionHandle session = null);
+		Task<List<Boolean>> DeleteManyAsync(List<T> entities, IClientSessionHandle session = null);
 
 		/// <summary>
 		/// Ελέγχει αν υπάρχει ένα στοιχείο με βάση την δοθείσα συνθήκη. 

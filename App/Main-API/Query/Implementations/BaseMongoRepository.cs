@@ -19,9 +19,26 @@ namespace Main_API.Repositories.Implementations
 
         public async Task<String> AddAsync(T entity, IClientSessionHandle session = null)
         {
-            List<T> entities = new List<T> { entity };
-            List<String> ids = await AddManyAsync(entities, session);
-            return ids.FirstOrDefault() ?? throw new InvalidOperationException("Failed to add entity to collection.");
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            try
+            {
+                if (session != null)
+                {
+                    await _collection.InsertOneAsync(session, entity, cancellationToken: default);
+                }
+                else
+                {
+                    await _collection.InsertOneAsync(entity, cancellationToken: default);
+                }
+            }
+            catch (MongoException ex)
+            {
+                throw new InvalidOperationException($"Failed to insert entity: {ex.Message}", ex);
+            }
+
+            return GetEntityId(entity);
         }
 
         public async Task<List<String>> AddManyAsync(List<T> entities, IClientSessionHandle session = null)
@@ -52,8 +69,33 @@ namespace Main_API.Repositories.Implementations
 
         public async Task<String> UpdateAsync(T entity, IClientSessionHandle session = null)
         {
-            List<String> ids = await UpdateManyAsync(new List<T> { entity }, session);
-            return ids.FirstOrDefault() ?? throw new InvalidOperationException("Failed to update entity.");
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+            String id = GetEntityId(entity);
+            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
+
+            ReplaceOneResult result;
+            try
+            {
+                if (session != null)
+                {
+                    result = await _collection.ReplaceOneAsync(session, filter, entity, cancellationToken: default);
+                }
+                else
+                {
+                    result = await _collection.ReplaceOneAsync(filter, entity, cancellationToken: default);
+                }
+            }
+            catch (MongoException ex)
+            {
+                throw new InvalidOperationException($"Failed to update entity: {ex.Message}", ex);
+            }
+
+            if (!result.IsAcknowledged || result.ModifiedCount == 0)
+                throw new InvalidOperationException("Failed to update entity.");
+
+            return id;
         }
 
         public async Task<List<String>> UpdateManyAsync(List<T> entities, IClientSessionHandle session = null)
@@ -81,17 +123,38 @@ namespace Main_API.Repositories.Implementations
 
         public async Task<Boolean> DeleteAsync(String id, IClientSessionHandle session = null)
         {
-            List<Boolean> results = await DeleteAsync(new List<String> { id }, session);
-            return results.FirstOrDefault();
+            if (String.IsNullOrEmpty(id) || !ObjectId.TryParse(id, out _))
+                throw new InvalidOperationException("Invalid ObjectId provided for deletion.");
+
+            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
+
+            DeleteResult result;
+            try
+            {
+                if (session != null)
+                {
+                    result = await _collection.DeleteOneAsync(session, filter, cancellationToken: default);
+                }
+                else
+                {
+                    result = await _collection.DeleteOneAsync(filter, cancellationToken: default);
+                }
+            }
+            catch (MongoException ex)
+            {
+                throw new InvalidOperationException($"Failed to delete entity: {ex.Message}", ex);
+            }
+
+            return result.DeletedCount > 0;
         }
 
         public async Task<Boolean> DeleteAsync(T entity, IClientSessionHandle session = null)
         {
             String id = GetEntityId(entity);
-            return await DeleteAsync(id, session);
+            return await this.DeleteAsync(id, session);
         }
 
-        public async Task<List<Boolean>> DeleteAsync(List<String> ids, IClientSessionHandle session = null)
+        public async Task<List<Boolean>> DeleteManyAsync(List<String> ids, IClientSessionHandle session = null)
         {
             if (ids == null || !ids.Any())
             {
@@ -113,7 +176,7 @@ namespace Main_API.Repositories.Implementations
             return ids.Select(id => result.DeletedCount > 0).ToList();
         }
 
-        public async Task<List<Boolean>> DeleteAsync(List<T> entities, IClientSessionHandle session = null)
+        public async Task<List<Boolean>> DeleteManyAsync(List<T> entities, IClientSessionHandle session = null)
         {
             if (entities == null || !entities.Any())
             {
@@ -121,7 +184,7 @@ namespace Main_API.Repositories.Implementations
             }
 
             List<String> ids = entities.Select(GetEntityId).ToList();
-            return await DeleteAsync(ids, session);
+            return await DeleteManyAsync(ids, session);
         }
 
         public async Task<Boolean> ExistsAsync(Expression<Func<T, Boolean>> predicate, IClientSessionHandle session = null)

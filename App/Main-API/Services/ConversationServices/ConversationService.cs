@@ -129,7 +129,7 @@ namespace Main_API.Services.ConversationServices
 			List<Data.Entities.Message> messages = await mLookup.EnrichLookup(_queryFactory).CollectAsync();
 			await _messageService.Value.Delete([..messages?.Select(x => x.Id)]);
 
-			await _conversationRepository.DeleteAsync(ids);
+			await _conversationRepository.DeleteManyAsync(ids);
 		}
 	}
 }

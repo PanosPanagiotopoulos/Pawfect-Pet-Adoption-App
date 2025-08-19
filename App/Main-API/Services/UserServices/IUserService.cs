@@ -54,7 +54,7 @@ namespace Main_API.Services.UserServices
 		/// <returns>Το ID του αποθηκευμένου χρήστη.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποθήκευση του χρήστη.</exception>
 		Task<Models.User.User?> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true);
-        Task<Models.User.User?> Update(UserUpdate model, List<String> buildFields = null, Boolean buildDto = true);
+        Task<Models.User.User?> Update(UserUpdate model, List<String> buildFields = null, Boolean buildDto = true, Boolean auth = true);
 
         /// <summary>
         /// Αποθήκευση χρήστη.

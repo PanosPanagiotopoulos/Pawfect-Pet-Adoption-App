@@ -6,10 +6,12 @@
 	using Main_API.Data.Entities.EnumTypes;
 
 	using System;
-	/// <summary>
-	/// Το μοντέλο ενός ζώου στο σύστημα
-	/// </summary>
-	public class Animal
+    using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Embedding;
+
+    /// <summary>
+    /// Το μοντέλο ενός ζώου στο σύστημα
+    /// </summary>
+    public class Animal
 	{
 		[BsonId]
 		[BsonRepresentation(BsonType.ObjectId)]
@@ -21,7 +23,8 @@
 
 		public Double Age { get; set; }
 
-		public Gender Gender { get; set; }
+        [BsonRepresentation(BsonType.String)]
+        public Gender Gender { get; set; }
 
 
 		public String Description { get; set; }
@@ -73,6 +76,11 @@
         [BsonIgnoreIfNull]
         public Double[] Embedding { get; set; }
 
+        [BsonIgnoreIfNull]
+        public String SemanticText { get; set; }
+
+        [BsonIgnoreIfNull]
+        public Double? SearchScore { get; set; }
 
         public DateTime CreatedAt { get; set; }
 

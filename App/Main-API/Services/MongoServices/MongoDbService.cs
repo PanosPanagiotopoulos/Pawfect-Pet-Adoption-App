@@ -3,37 +3,38 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
+using System;
 
 namespace Main_API.Services.MongoServices
 {
-	/// <summary>
-	///   Εισαγωγή της βάσης στο πρόγραμμα
-	///   Γενική μέθοδος για χρήση οποιουδήποτε collection
-	/// </summary>
-	public class MongoDbService
-	{
+    /// <summary>
+    ///   Εισαγωγή της βάσης στο πρόγραμμα
+    ///   Γενική μέθοδος για χρήση οποιουδήποτε collection
+    /// </summary>
+    public class MongoDbService
+    {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<MongoDbService> _logger;
         private readonly MongoDbConfig _config;
 
         public IMongoDatabase _db { get; }
 
-		public MongoDbService
-		(
-			IOptions<MongoDbConfig> settings, 
-			IMongoClient client,
+        public MongoDbService
+        (
+            IOptions<MongoDbConfig> settings,
+            IMongoClient client,
             IHttpContextAccessor httpContextAccessor,
             ILogger<MongoDbService> logger,
             IOptions<MongoDbConfig> options
-		)
-		{
-			_db = client.GetDatabase(settings.Value.DatabaseName);
+        )
+        {
+            _db = client.GetDatabase(settings.Value.DatabaseName);
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
             _config = options.Value;
         }
         public IMongoCollection<T> GetCollection<T>()
-		{
+        {
             IMongoCollection<T> collection = this.FindCollection<T>();
 
             if (collection == null) throw new InvalidOperationException("No collection found");
@@ -64,7 +65,7 @@ namespace Main_API.Services.MongoServices
             await SetupSynonymsCollectionAsync();
 
             // Setup Text Search Index  
-            await SetupTextSearchIndexAsync(animalCollection);
+            await SetupSemanticTextSearchIndexAsync(animalCollection);
 
             // Setup other plain text indexes
             await SetupPlainTextIndexesAsync();
@@ -95,13 +96,13 @@ namespace Main_API.Services.MongoServices
                          {
                              "fields", new BsonArray
                              {
-                                 new BsonDocument
-                                 {
-                                     { "type", "vector" },
-                                     { "path", nameof(Data.Entities.Animal.Embedding) },
-                                     { "numDimensions", _config.IndexSettings.Dims },
-                                     { "similarity", "cosine" }
-                                 },
+                                new BsonDocument
+                                {
+                                    { "type", "vector" },
+                                    { "path", nameof(Data.Entities.Animal.Embedding) },
+                                    { "numDimensions", _config.IndexSettings.Dims },
+                                    { "similarity", "cosine" }
+                                }
                              }
                          }
                      }
@@ -112,17 +113,19 @@ namespace Main_API.Services.MongoServices
             _logger.LogInformation($"Successfully created vector search index: {_config.IndexSettings.AnimalVectorSearchIndexName}");
         }
 
-        private async Task SetupTextSearchIndexAsync(IMongoCollection<BsonDocument> collection)
+        private async Task SetupSemanticTextSearchIndexAsync(IMongoCollection<BsonDocument> collection)
         {
-            if (await this.CheckIndexExistsAsync(_config.IndexSettings.AnimalSchemanticIndexName))
+            String semanticIndexName = _config.IndexSettings.AnimalSchemanticIndexName;
+
+            if (await this.CheckIndexExistsAsync(semanticIndexName))
             {
-                _logger.LogInformation($"Enhanced text search index '{_config.IndexSettings.AnimalSchemanticIndexName}' already exists, skipping creation");
+                _logger.LogInformation($"Semantic text search index '{semanticIndexName}' already exists, skipping creation");
                 return;
             }
 
-            BsonDocument textSearchIndexDefinition = new BsonDocument
+            BsonDocument semanticTextSearchIndexDefinition = new BsonDocument
             {
-                { "name", _config.IndexSettings.AnimalSchemanticIndexName },
+                { "name", semanticIndexName },
                 { "type", "search" },
                 {
                     "definition", new BsonDocument
@@ -134,9 +137,9 @@ namespace Main_API.Services.MongoServices
                                 {
                                     "fields", new BsonDocument
                                     {
-                                        // Enhanced multilingual name field
+                                        // Primary SemanticText field with comprehensive multi-language search capabilities
                                         {
-                                            "name", new BsonDocument
+                                            nameof(Data.Entities.Animal.SemanticText), new BsonDocument
                                             {
                                                 { "type", "string" },
                                                 { "analyzer", "lucene.standard" },
@@ -160,47 +163,100 @@ namespace Main_API.Services.MongoServices
                                                                 { "type", "string" },
                                                                 { "analyzer", "lucene.greek" }
                                                             }
+                                                        },
+                                                        { "fuzzy", new BsonDocument
+                                                            {
+                                                                { "type", "string" },
+                                                                { "analyzer", "lucene.standard" }
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
                                         },
+                                        // Autocomplete for semantic text with multi-language support
                                         {
-                                            "nameAutocomplete", new BsonDocument
+                                            "semanticTextAutocomplete", new BsonDocument
                                             {
                                                 { "type", "autocomplete" },
-                                                // Removed custom analyzer reference
                                                 { "tokenization", "edgeGram" },
                                                 { "minGrams", 2 },
                                                 { "maxGrams", 15 },
-                                                { "foldDiacritics", true }  // Added for multilingual support
+                                                { "foldDiacritics", true }
                                             }
                                         },
-                                        // Enhanced multilingual description field
                                         {
-                                            "description", new BsonDocument
+                                            nameof(Data.Entities.Animal.Description), new BsonDocument
                                             {
                                                 { "type", "string" },
-                                                { "analyzer", "lucene.english" },
-                                                { "searchAnalyzer", "lucene.english" },
+                                                { "analyzer", "lucene.standard" },
                                                 { "multi", new BsonDocument
                                                     {
-                                                        { "standard", new BsonDocument
+                                                        { "english", new BsonDocument
                                                             {
                                                                 { "type", "string" },
-                                                                { "analyzer", "lucene.standard" }
+                                                                { "analyzer", "lucene.english" }
                                                             }
                                                         },
-                                                        { "exact", new BsonDocument
+                                                        { "greek", new BsonDocument
+                                                            {
+                                                                { "type", "string" },
+                                                                { "analyzer", "lucene.greek" }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        {
+                                            nameof(Data.Entities.Animal.HealthStatus), new BsonDocument
+                                            {
+                                                { "type", "string" },
+                                                { "analyzer", "lucene.standard" },
+                                                { "multi", new BsonDocument
+                                                    {
+                                                        { "english", new BsonDocument
+                                                            {
+                                                                { "type", "string" },
+                                                                { "analyzer", "lucene.english" }
+                                                            }
+                                                        },
+                                                        { "greek", new BsonDocument
+                                                            {
+                                                                { "type", "string" },
+                                                                { "analyzer", "lucene.greek" }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        // Numeric fields for range queries (unchanged)
+                                        {
+                                            nameof(Data.Entities.Animal.Age), new BsonDocument
+                                            {
+                                                { "type", "number" },
+                                                { "representation", "double" }
+                                            }
+                                        },
+                                        {
+                                            nameof(Data.Entities.Animal.Weight), new BsonDocument
+                                            {
+                                                { "type", "number" },
+                                                { "representation", "double" }
+                                            }
+                                        },
+                                        {
+                                            nameof(Data.Entities.Animal.Gender), new BsonDocument
+                                            {
+                                                { "type", "string" },
+                                                { "analyzer", "lucene.standard" },
+                                                { "multi", new BsonDocument
+                                                    {
+                                                        { "keyword", new BsonDocument
                                                             {
                                                                 { "type", "string" },
                                                                 { "analyzer", "lucene.keyword" }
-                                                            }
-                                                        },
-                                                        { "stemmed", new BsonDocument
-                                                            {
-                                                                { "type", "string" },
-                                                                { "analyzer", "lucene.simple" }
                                                             }
                                                         },
                                                         { "english", new BsonDocument
@@ -220,106 +276,24 @@ namespace Main_API.Services.MongoServices
                                             }
                                         },
                                         {
-                                            "descriptionAutocomplete", new BsonDocument
-                                            {
-                                                { "type", "autocomplete" },
-                                                // Removed custom analyzer reference
-                                                { "tokenization", "edgeGram" },
-                                                { "minGrams", 3 },
-                                                { "maxGrams", 20 },
-                                                { "foldDiacritics", true }  // Added for multilingual support
-                                            }
-                                        },
-                                        // Enhanced multilingual health status field
-                                        {
-                                            "healthStatus", new BsonDocument
-                                            {
-                                                { "type", "string" },
-                                                { "analyzer", "lucene.english" },
-                                                { "searchAnalyzer", "lucene.english" },
-                                                { "multi", new BsonDocument
-                                                    {
-                                                        { "exact", new BsonDocument
-                                                            {
-                                                                { "type", "string" },
-                                                                { "analyzer", "lucene.keyword" }
-                                                            }
-                                                        },
-                                                        { "standard", new BsonDocument
-                                                            {
-                                                                { "type", "string" },
-                                                                { "analyzer", "lucene.standard" }
-                                                            }
-                                                        },
-                                                        { "english", new BsonDocument
-                                                            {
-                                                                { "type", "string" },
-                                                                { "analyzer", "lucene.english" }
-                                                            }
-                                                        },
-                                                        { "greek", new BsonDocument
-                                                            {
-                                                                { "type", "string" },
-                                                                { "analyzer", "lucene.greek" }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        // Keep existing numeric and other fields
-                                        {
-                                            "age", new BsonDocument
-                                            {
-                                                { "type", "number" },
-                                                { "representation", "double" }
-                                            }
-                                        },
-                                        {
-                                            "weight", new BsonDocument
-                                            {
-                                                { "type", "number" },
-                                                { "representation", "double" }
-                                            }
-                                        },
-                                        {
-                                            "gender", new BsonDocument
+                                            nameof(Data.Entities.Animal.AdoptionStatus), new BsonDocument
                                             {
                                                 { "type", "string" },
                                                 { "analyzer", "lucene.keyword" }
-                                            }
-                                        },
-                                        {
-                                            "adoptionStatus", new BsonDocument
-                                            {
-                                                { "type", "string" },
-                                                { "analyzer", "lucene.keyword" }
-                                            }
-                                        },
-                                        {
-                                            "createdAt", new BsonDocument
-                                            {
-                                                { "type", "date" }
-                                            }
-                                        },
-                                        {
-                                            "updatedAt", new BsonDocument
-                                            {
-                                                { "type", "date" }
                                             }
                                         }
                                     }
                                 }
                             }
                         },
-                        // Enhanced synonyms configuration
+                        // Enhanced synonyms configuration using pet_synonyms collection
                         {
                             "synonyms", new BsonArray
                             {
                                 new BsonDocument
                                 {
                                     { "name", "pet_synonyms" },
-                                    { "analyzer", "lucene.standard" },
+                                    { "analyzer", "lucene.standard" }, // Use standard analyzer for multi-language support
                                     { "source", new BsonDocument
                                         {
                                             { "collection", "pet_synonyms" }
@@ -332,30 +306,31 @@ namespace Main_API.Services.MongoServices
                 }
             };
 
-            await CreateSearchIndexAsync(collection, textSearchIndexDefinition);
-            _logger.LogInformation($"Successfully created enhanced multilingual semantic search index: {_config.IndexSettings.AnimalSchemanticIndexName}");
+            await this.CreateSearchIndexAsync(collection, semanticTextSearchIndexDefinition);
+            _logger.LogInformation($"Successfully created comprehensive multi-language semantic text search index: {semanticIndexName}");
         }
+
         public async Task SetupPlainTextIndexesAsync()
         {
-            _logger.LogInformation("Starting plain text indexes setup for regex queries...");
+            _logger.LogInformation("Starting multi-language plain text indexes setup for regex queries...");
 
             // Setup User indexes
             IMongoCollection<BsonDocument> userCollection = this.FindCollection(typeof(Data.Entities.User));
 
-            // Check and create User text index
+            // Check and create User multi-language text index (ONLY ONE text index per collection)
             if (!await CheckRegularIndexExistsAsync(userCollection, _config.IndexSettings.PlainTextIndexNames.UserFullNameTextIndex))
             {
                 IndexKeysDefinition<BsonDocument> userTextIndexKeys = Builders<BsonDocument>.IndexKeys.Text(nameof(Data.Entities.User.FullName));
                 CreateIndexOptions userTextIndexOptions = new CreateIndexOptions
                 {
                     Name = _config.IndexSettings.PlainTextIndexNames.UserFullNameTextIndex,
-                    DefaultLanguage = "english",
+                    DefaultLanguage = "none", // Use "none" to support both Greek and English
                     LanguageOverride = "language",
                     TextIndexVersion = 3,
                     Weights = new BsonDocument(nameof(Data.Entities.User.FullName), 10)
                 };
                 await userCollection.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(userTextIndexKeys, userTextIndexOptions));
-                _logger.LogInformation($"Created User text index: {_config.IndexSettings.PlainTextIndexNames.UserFullNameTextIndex}");
+                _logger.LogInformation($"Created User multi-language text index: {_config.IndexSettings.PlainTextIndexNames.UserFullNameTextIndex}");
             }
 
             // Check and create User regex index
@@ -374,20 +349,20 @@ namespace Main_API.Services.MongoServices
             // Setup Shelter indexes
             IMongoCollection<BsonDocument> shelterCollection = this.FindCollection(typeof(Data.Entities.Shelter));
 
-            // Check and create Shelter text index
+            // Check and create Shelter multi-language text index (ONLY ONE text index per collection)
             if (!await CheckRegularIndexExistsAsync(shelterCollection, _config.IndexSettings.PlainTextIndexNames.ShelterNameTextIndex))
             {
                 IndexKeysDefinition<BsonDocument> shelterTextIndexKeys = Builders<BsonDocument>.IndexKeys.Text(nameof(Data.Entities.Shelter.ShelterName));
                 CreateIndexOptions shelterTextIndexOptions = new CreateIndexOptions
                 {
                     Name = _config.IndexSettings.PlainTextIndexNames.ShelterNameTextIndex,
-                    DefaultLanguage = "english",
+                    DefaultLanguage = "none", // Use "none" to support both Greek and English
                     LanguageOverride = "language",
                     TextIndexVersion = 3,
                     Weights = new BsonDocument(nameof(Data.Entities.Shelter.ShelterName), 10)
                 };
                 await shelterCollection.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(shelterTextIndexKeys, shelterTextIndexOptions));
-                _logger.LogInformation($"Created Shelter text index: {_config.IndexSettings.PlainTextIndexNames.ShelterNameTextIndex}");
+                _logger.LogInformation($"Created Shelter multi-language text index: {_config.IndexSettings.PlainTextIndexNames.ShelterNameTextIndex}");
             }
 
             // Check and create Shelter regex index
@@ -406,20 +381,20 @@ namespace Main_API.Services.MongoServices
             // Setup File indexes
             IMongoCollection<BsonDocument> fileCollection = this.FindCollection(typeof(Data.Entities.File));
 
-            // Check and create File text index
+            // Check and create File multi-language text index (ONLY ONE text index per collection)
             if (!await CheckRegularIndexExistsAsync(fileCollection, _config.IndexSettings.PlainTextIndexNames.FileNameTextIndex))
             {
                 IndexKeysDefinition<BsonDocument> fileTextIndexKeys = Builders<BsonDocument>.IndexKeys.Text(nameof(Data.Entities.File.Filename));
                 CreateIndexOptions fileTextIndexOptions = new CreateIndexOptions
                 {
                     Name = _config.IndexSettings.PlainTextIndexNames.FileNameTextIndex,
-                    DefaultLanguage = "english",
+                    DefaultLanguage = "none", // Use "none" to support both Greek and English
                     LanguageOverride = "language",
                     TextIndexVersion = 3,
                     Weights = new BsonDocument(nameof(Data.Entities.File.Filename), 10)
                 };
                 await fileCollection.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(fileTextIndexKeys, fileTextIndexOptions));
-                _logger.LogInformation($"Created File text index: {_config.IndexSettings.PlainTextIndexNames.FileNameTextIndex}");
+                _logger.LogInformation($"Created File multi-language text index: {_config.IndexSettings.PlainTextIndexNames.FileNameTextIndex}");
             }
 
             // Check and create File regex index
@@ -438,20 +413,20 @@ namespace Main_API.Services.MongoServices
             // Setup AnimalType indexes
             IMongoCollection<BsonDocument> animalTypeCollection = this.FindCollection(typeof(Data.Entities.AnimalType));
 
-            // Check and create AnimalType text index
+            // Check and create AnimalType multi-language text index (ONLY ONE text index per collection)
             if (!await CheckRegularIndexExistsAsync(animalTypeCollection, _config.IndexSettings.PlainTextIndexNames.AnimalTypeNameTextIndex))
             {
                 IndexKeysDefinition<BsonDocument> animalTypeTextIndexKeys = Builders<BsonDocument>.IndexKeys.Text(nameof(Data.Entities.AnimalType.Name));
                 CreateIndexOptions animalTypeTextIndexOptions = new CreateIndexOptions
                 {
                     Name = _config.IndexSettings.PlainTextIndexNames.AnimalTypeNameTextIndex,
-                    DefaultLanguage = "english",
+                    DefaultLanguage = "none", // Use "none" to support both Greek and English
                     LanguageOverride = "language",
                     TextIndexVersion = 3,
                     Weights = new BsonDocument(nameof(Data.Entities.AnimalType.Name), 10)
                 };
                 await animalTypeCollection.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(animalTypeTextIndexKeys, animalTypeTextIndexOptions));
-                _logger.LogInformation($"Created AnimalType text index: {_config.IndexSettings.PlainTextIndexNames.AnimalTypeNameTextIndex}");
+                _logger.LogInformation($"Created AnimalType multi-language text index: {_config.IndexSettings.PlainTextIndexNames.AnimalTypeNameTextIndex}");
             }
 
             // Check and create AnimalType regex index
@@ -470,20 +445,20 @@ namespace Main_API.Services.MongoServices
             // Setup Breed indexes
             IMongoCollection<BsonDocument> breedCollection = this.FindCollection(typeof(Data.Entities.Breed));
 
-            // Check and create Breed text index
+            // Check and create Breed multi-language text index (ONLY ONE text index per collection)
             if (!await CheckRegularIndexExistsAsync(breedCollection, _config.IndexSettings.PlainTextIndexNames.BreedNameTextIndex))
             {
                 IndexKeysDefinition<BsonDocument> breedTextIndexKeys = Builders<BsonDocument>.IndexKeys.Text(nameof(Data.Entities.Breed.Name));
                 CreateIndexOptions breedTextIndexOptions = new CreateIndexOptions
                 {
                     Name = _config.IndexSettings.PlainTextIndexNames.BreedNameTextIndex,
-                    DefaultLanguage = "english",
+                    DefaultLanguage = "none", // Use "none" to support both Greek and English
                     LanguageOverride = "language",
                     TextIndexVersion = 3,
                     Weights = new BsonDocument(nameof(Data.Entities.Breed.Name), 10)
                 };
                 await breedCollection.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(breedTextIndexKeys, breedTextIndexOptions));
-                _logger.LogInformation($"Created Breed text index: {_config.IndexSettings.PlainTextIndexNames.BreedNameTextIndex}");
+                _logger.LogInformation($"Created Breed multi-language text index: {_config.IndexSettings.PlainTextIndexNames.BreedNameTextIndex}");
             }
 
             // Check and create Breed regex index
@@ -499,7 +474,7 @@ namespace Main_API.Services.MongoServices
                 _logger.LogInformation($"Created Breed regex index: {_config.IndexSettings.PlainTextIndexNames.BreedNameRegexIndex}");
             }
 
-            _logger.LogInformation("Plain text indexes setup completed successfully!");
+            _logger.LogInformation("Multi-language plain text indexes setup completed successfully!");
         }
 
         private async Task<bool> CheckRegularIndexExistsAsync(IMongoCollection<BsonDocument> collection, string indexName)
@@ -519,42 +494,59 @@ namespace Main_API.Services.MongoServices
 
             List<BsonDocument> synonymDocuments = new List<BsonDocument>();
 
-            // Process synonyms from config - Atlas Search expects specific format
+            // Process English synonyms from config
             foreach (IndexSynonyms category in _config.IndexSettings.SynonymsBatch)
             {
-                string categoryName = category.Category;
-                List<string> synonymGroups = category.Synonyms;
+                String categoryName = category.Category;
+                List<String> synonymGroups = category.Synonyms;
 
-                foreach (string synonymGroup in synonymGroups)
+                foreach (String synonymGroup in synonymGroups)
                 {
-                    string[] synonyms = synonymGroup.Split(',').Select(s => s.Trim()).ToArray();
+                    String[] synonyms = synonymGroup.Split(',').Select(s => s.Trim()).ToArray();
 
                     synonymDocuments.Add(new BsonDocument
+                    {
+                        { "synonyms", new BsonArray(synonyms) },
+                        { "mappingType", "equivalent" },
+                        { "category", categoryName },
+                        { "language", "en" }
+                    });
+                }
+            }
+
+            // Process Greek synonyms from config
+            if (_config.IndexSettings.GreekSynonymsBatch != null)
             {
-                { "synonyms", new BsonArray(synonyms) },  
-                { "mappingType", "equivalent" }
-            });
+                foreach (IndexSynonyms greekCategory in _config.IndexSettings.GreekSynonymsBatch)
+                {
+                    String categoryName = greekCategory.Category;
+                    List<String> synonymGroups = greekCategory.Synonyms;
+
+                    foreach (String synonymGroup in synonymGroups)
+                    {
+                        String[] synonyms = synonymGroup.Split(',').Select(s => s.Trim()).ToArray();
+
+                        synonymDocuments.Add(new BsonDocument
+                        {
+                            { "synonyms", new BsonArray(synonyms) },
+                            { "mappingType", "equivalent" },
+                            { "category", categoryName },
+                            { "language", "el" }
+                        });
+                     }
                 }
             }
 
             if (synonymDocuments.Any())
             {
                 await synonymsCollection.InsertManyAsync(synonymDocuments);
-                _logger.LogInformation($"Created synonyms collection with {synonymDocuments.Count} synonym groups");
+                _logger.LogInformation($"Created multi-language synonyms collection with {synonymDocuments.Count} synonym groups");
 
-                // Verify the collection was created properly
-                long docCount = await synonymsCollection.CountDocumentsAsync(new BsonDocument());
+                // Verify insertion
+                Int64 docCount = await synonymsCollection.CountDocumentsAsync(new BsonDocument());
                 _logger.LogInformation($"Verified: pet_synonyms collection contains {docCount} documents");
-
-                // Log a sample document for debugging
-                BsonDocument sampleDoc = await synonymsCollection.Find(new BsonDocument()).FirstOrDefaultAsync();
-                if (sampleDoc != null)
-                {
-                    _logger.LogInformation($"Sample synonym document: {sampleDoc.ToJson()}");
-                }
             }
         }
-
         private async Task CreateSearchIndexAsync(IMongoCollection<BsonDocument> collection, BsonDocument indexDefinition)
         {
             try
@@ -645,25 +637,6 @@ namespace Main_API.Services.MongoServices
             _logger.LogInformation($"Deleted search index: {indexName}");
         }
 
-        public async Task<Boolean> ValidateSearchIndexesAsync()
-        {
-            Boolean vectorIndexExists = await CheckIndexExistsAsync("animals_vector_search_index");
-            Boolean textIndexExists = await CheckIndexExistsAsync("animals_text_search_index");
-
-            if (vectorIndexExists && textIndexExists)
-            {
-                _logger.LogInformation("All search indexes are available and ready");
-                return true;
-            }
-
-            if (!vectorIndexExists)
-                _logger.LogWarning("Vector search index not found or not ready yet");
-
-            if (!textIndexExists)
-                _logger.LogWarning("Text search index not found or not ready yet");
-
-            return false;
-        }
         #endregion
 
         #region Helpers
@@ -684,19 +657,30 @@ namespace Main_API.Services.MongoServices
         /// <summary>
         /// Διαγράφει όλη τη βάση. ** TESTING **
         /// </summary>
-        public void DropAllCollections()
-		{
-			// Get the list of collections in the database
-            List<string> collectionNames = _db.ListCollectionNames().ToList();
+        public async Task DropAll()
+        {
+            List<String> collectionNames = _db.ListCollectionNames().ToList();
 
-            foreach (string collectionName in collectionNames)
-			{
-				IMongoCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>(collectionName);
-				collection.DeleteMany(FilterDefinition<BsonDocument>.Empty);
-			}
-		}
+            foreach (String collectionName in collectionNames)
+            {
+                IMongoCollection<BsonDocument> collection = _db.GetCollection<BsonDocument>(collectionName);
 
-        #endregion
+                // Drop all regular indexes
+                List<BsonDocument> indexes = collection.Indexes.List().ToList();
+                foreach (BsonDocument index in indexes)
+                {
+                    String indexName = index["name"].AsString;
+                    if (indexName != "_id_")
+                    {
+                        collection.Indexes.DropOne(indexName);
+                    }
+                }
+
+                // Delete all documents
+                collection.DeleteMany(FilterDefinition<BsonDocument>.Empty);
+            }
+
+            #endregion
+        }
     }
-
 }

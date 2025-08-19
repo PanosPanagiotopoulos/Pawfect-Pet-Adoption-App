@@ -108,7 +108,7 @@ namespace Main_API.Services.ReportServices
             if (!await _authorizationService.AuthorizeAsync(Permission.DeleteReports))
                 throw new ForbiddenException("Unauthorised access deleting reports", typeof(Data.Entities.Report), Permission.DeleteReports);
 
-            await _reportRepository.DeleteAsync(ids);
+            await _reportRepository.DeleteManyAsync(ids);
 		}
 	}
 }

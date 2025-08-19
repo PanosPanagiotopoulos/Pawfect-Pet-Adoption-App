@@ -1,6 +1,6 @@
 {
   "MongoDbConfig": {
-    "MongoDb": "%{MongoDb}%",
+    "ConnectionString": "%{MongoDb}%",
     "DatabaseName": "%{DatabaseName}%",
     "IndexSettings": {
       "PlainTextIndexNames": {
@@ -18,10 +18,10 @@
       "AnimalVectorSearchIndexName": "animals_vector_search_index",
       "AnimalSchemanticIndexName": "animals_text_search_index",
       "Dims": 1024,
-      "NumCandidates": 5000,
-      "Topk": 15,
-      "VectorScoreThreshold": 0.802,
-      "TextScoreThreshold": 0.45,
+      "NumCandidates": 1000,
+      "Topk": 100,
+      "VectorScoreThreshold": 0.876,
+      "TextScoreThreshold": 2.0,
       "SynonymsBatch": [
         {
           "Category": "dog_breeds",
@@ -244,527 +244,330 @@
           ]
         }
       ],
+      "GreekSynonymsBatch": [
+        {
+          "Category": "dog_breeds_greek",
+          "Synonyms": [
+            "λαμπραντόρ,λαμπ,λαμπραντόρ ρετρίβερ,χρυσός λαμπ,labrador,lab,labrador retriever",
+            "γερμανικός ποιμενικός,γερμανικός,ποιμενικός,german shepherd,gsd,alsatian",
+            "χρυσός ρετρίβερ,χρυσός,ρετρίβερ,golden retriever,golden,retriever",
+            "μπουλντόγκ,αγγλικός μπουλντόγκ,βρετανικός μπουλντόγκ,bulldog,english bulldog",
+            "γαλλικός μπουλντόγκ,φρέντσι,γαλλικός μπουλ,french bulldog,frenchie",
+            "πούντελ,στάνταρ πούντελ,μίνι πούντελ,poodle,standard poodle,toy poodle",
+            "μπίγκλ,μπίγκλς,beagle,beagles",
+            "ροτβάιλερ,ρότι,ροτ,rottweiler,rottie,rott",
+            "σιβηριανό χάσκι,χάσκι,σίμπε,siberian husky,husky,sibe",
+            "τσιουάουα,τσι,τσιουάουας,chihuahua,chi,chihuahuas",
+            "ντάξχουντ,λουκανικόσκυλο,ντόξι,dachshund,wiener dog,sausage dog",
+            "μπόξερ,μπόξερς,boxer,boxers",
+            "μπόρντερ κόλι,κόλι,μπίσι,border collie,collie,bc",
+            "αυστραλιανός ποιμενικός,όσι,αυστραλιανός,australian shepherd,aussie",
+            "κόκερ σπάνιελ,σπάνιελ,κόκερ,cocker spaniel,spaniel,cocker"
+          ]
+        },
+        {
+          "Category": "cat_breeds_greek",
+          "Synonyms": [
+            "περσική,περσική γάτα,μακρύτριχη,persian,persian cat,long hair",
+            "σιαμέζικη,σιαμέζικη γάτα,σιλ πόιντ,siamese,siamese cat,seal point",
+            "μέιν κουν,κουν,μέιν,maine coon,coon,maine",
+            "βρετανική κοντότριχη,βρετανική,κοντότριχη,british shorthair,british",
+            "ραγκντόλ,ραγκντόλς,ragdoll,ragdolls",
+            "μπενγκάλ,μπενγκάλ γάτα,μπενγκάλς,bengal,bengal cat,bengals",
+            "αβησσυνιακή,άμπι,άμπις,abyssinian,aby,abys",
+            "ρωσική μπλε,ρωσική,μπλε γάτα,russian blue,russian,blue cat",
+            "σκωτσέζικη φολντ,φολντ,σκωτσέζικη,scottish fold,fold,scottish",
+            "σφιγξ,άτριχη,γυμνή γάτα,sphynx,hairless,naked cat"
+          ]
+        },
+        {
+          "Category": "animal_types_greek",
+          "Synonyms": [
+            "σκύλος,σκυλί,κουτάβι,σκυλάκι,κανίδα,κυνίδιο,dog,canine,pup,puppy,hound",
+            "γάτα,γατί,γατάκι,γατούλα,αιλουρίδα,γατέλα,cat,feline,kitty,kitten,tabby",
+            "κουνέλι,κουνελάκι,λαγός,λαγουδάκι,rabbit,bunny,hare,cottontail",
+            "πουλί,πουλάκι,πτηνό,φτερωτό,πουλούδι,bird,avian,feathered,winged",
+            "χάμστερ,χάμστερ,χάμι,hamster,hammy,gerbil",
+            "πειραματόγοινο,γουρουνάκι,πιγκ,καβί,guinea pig,pig,piggy,cavy",
+            "κουνούπι,κουνούπια,νυφίτσα,ferret,ferrets,weasel",
+            "ερπετό,φίδι,σαύρα,χελώνα,γκέκο,reptile,snake,lizard,turtle",
+            "ψάρι,ψαράκι,υδρόβιο,χρυσόψαρο,fish,aquatic,goldfish,tropical fish",
+            "άλογο,αλογάκι,πόνι,επίβαλος,φοράδα,horse,equine,pony,stallion,mare"
+          ]
+        },
+        {
+          "Category": "sizes_greek",
+          "Synonyms": [
+            "μικροσκοπικό,μίνι,μικρότατο,τσεπούλα,tiny,teacup,micro,miniature,mini",
+            "μικρό,μικρούλικο,κομπάκτ,παιχνιδάκι,small,little,compact,toy,dwarf",
+            "μεσαίο,μέτριο,κανονικό,στάνταρ,medium,average,moderate,standard,regular",
+            "μεγάλο,τεράστιο,γιγάντιο,κολοσσιαίο,large,big,giant,huge,massive,enormous",
+            "πολύ μικρό,εξαιρετικά μικρό,μικροσκοπικό,extra small,xs,very small,itty bitty",
+            "πολύ μεγάλο,εξαιρετικά μεγάλο,γιγαντιαίο,extra large,xxl,jumbo,super large"
+          ]
+        },
+        {
+          "Category": "ages_greek",
+          "Synonyms": [
+            "μωρό,νεογέννητο,βρέφος,πολύ μικρό,baby,infant,newborn,very young",
+            "νέο,νεανικό,εφηβικό,νεολαία,young,juvenile,adolescent,teen,teenager",
+            "κουτάβι,κουτάβια,σκυλάκι,νεαρό σκυλί,puppy,pup,puppies,young dog",
+            "γατάκι,γατούλα,νεαρή γάτα,μωρό γάτα,kitten,kitty,young cat,baby cat",
+            "ενήλικο,ώριμο,μεγαλωμένο,πλήρως ανεπτυγμένο,adult,grown,mature,full grown",
+            "ηλικιωμένο,γερασμένο,παλιό,γηραιό,senior,elderly,old,aged,geriatric",
+            "μεσήλικα,μέσης ηλικίας,ώριμο ενήλικο,middle aged,mid life,mature adult"
+          ]
+        },
+        {
+          "Category": "personalities_greek",
+          "Synonyms": [
+            "φιλικό,κοινωνικό,εξωστρεφές,κοινωνιστικό,friendly,social,outgoing,sociable",
+            "παιχνιδιάρικο,ενεργητικό,ζωηρό,σφριγηλό,playful,energetic,active,lively,spirited",
+            "ήρεμο,ήσυχο,απαλό,ειρηνικό,γαλήνιο,calm,quiet,gentle,peaceful,serene",
+            "ντροπαλό,συνεσταλμένο,εσωστρεφές,νευρικό,shy,timid,reserved,introverted,nervous",
+            "επιθετικό,εχθρικό,κακό,βίαιο,επικίνδυνο,aggressive,hostile,mean,violent,dangerous",
+            "πιστό,αφοσιωμένο,αληθινό,σταθερό,loyal,faithful,devoted,dedicated,steadfast",
+            "ανεξάρτητο,απόμακρο,μοναχικό,αυτάρκες,independent,aloof,solitary,self sufficient",
+            "στοργικό,αγαπησιάρικο,χαδιάρικο,γλυκό,affectionate,loving,cuddly,sweet,tender",
+            "έξυπνο,ευφυές,οξυδερκές,φωτεινό,intelligent,smart,clever,bright,wise",
+            "πεισματάρικο,ισχυρογνώμον,αποφασιστικό,επίμονο,stubborn,headstrong,determined,persistent",
+            "τεμπέλικο,νυσταλέο,ληθαργικό,αδρανές,lazy,sleepy,lethargic,inactive,sedentary",
+            "περίεργο,αναζητητικό,εξερευνητικό,περιπετειώδες,curious,inquisitive,investigative,adventurous",
+            "προστατευτικό,φύλακας,επαγρυπνητικό,άγρυπνο,protective,guard,watchful,alert,vigilant",
+            "υπάκουο,καλοπεριφερόμενο,πειθαρχημένο,εκπαιδευμένο,obedient,well behaved,disciplined,trained"
+          ]
+        },
+        {
+          "Category": "health_status_greek",
+          "Synonyms": [
+            "υγιές,δυνατό,καλά,ρωμαλέο,σε καλή υγεία,healthy,fit,well,strong,robust",
+            "άρρωστο,ασθενές,άρρωστο,νοσούντος,sick,ill,unwell,diseased,unhealthy",
+            "τραυματισμένο,πληγωμένο,βλαμμένο,ατύχημα,injured,hurt,wounded,trauma,accident",
+            "ανάπηρο,με ειδικές ανάγκες,προκληθείς,disabled,handicapped,special needs,challenged",
+            "τυφλό,με προβλήματα όρασης,δεν βλέπει,blind,vision impaired,cannot see,sightless",
+            "κουφό,με προβλήματα ακοής,δεν ακούει,deaf,hearing impaired,cannot hear,hard of hearing",
+            "κουτσαίνει,χωλό,προβλήματα κίνησης,προβλήματα ποδιών,limping,lame,mobility issues,walking problems",
+            "αναρρώνει,θεραπεύεται,βελτιώνεται,αποκατάσταση,recovering,healing,getting better,rehabilitation",
+            "χρόνιο,μακροχρόνιο,συνεχές,επίμονο,chronic,long term,ongoing,persistent,permanent",
+            "εμβολιασμένο,εμβόλια,ανοσοποιημένο,προστατευμένο,vaccinated,shots,immunized,protected",
+            "στειρωμένο,ευνουχισμένο,διορθωμένο,αποστειρωμένο,spayed,neutered,fixed,sterilized,altered",
+            "έγκυο,περιμένει,με μωρά,κυοφορεί,pregnant,expecting,with babies,carrying young"
+          ]
+        },
+        {
+          "Category": "training_behavior_greek",
+          "Synonyms": [
+            "εκπαιδευμένο σπίτι,καθαρό,τουαλέτα εκπαιδευμένο,house trained,potty trained,housebroken,clean",
+            "εκπαιδευμένο λουρί,περπατά καλά,καλό με λουρί,leash trained,walks well,good on leash,heels",
+            "εκπαιδευμένο κλουβί,άνετο σε κλουβί,crate trained,kennel trained,comfortable in crate",
+            "κοινωνικοποιημένο,καλό με ανθρώπους,φιλικό προς ανθρώπους,socialized,good with people,people friendly",
+            "καλό με παιδιά,φιλικό προς παιδιά,ασφαλές για παιδιά,good with kids,child friendly,kid safe",
+            "καλό με σκύλους,φιλικό προς σκύλους,παίζει καλά με σκύλους,good with dogs,dog friendly,plays well",
+            "καλό με γάτες,φιλικό προς γάτες,τα πάει καλά με γάτες,good with cats,cat friendly,gets along",
+            "επιθετικό με σκύλους,δεν αρέσουν σκύλοι,aggressive with dogs,dog aggressive,doesn't like dogs",
+            "επιθετικό με φαγητό,προστατεύει φαγητό,food aggressive,resource guarding,protective of food",
+            "άγχος αποχωρισμού,κολλητικό,δεν αρέσει μόνο,separation anxiety,clingy,doesn't like being alone",
+            "καταστροφικό,μασάει,σκάβει,χαλάει πράγματα,destructive,chews,digs,damages things",
+            "καλλιτέχνης διαφυγής,φεύγει,κίνδυνος φυγής,escape artist,runs away,bolts,flight risk"
+          ]
+        },
+        {
+          "Category": "colors_patterns_greek",
+          "Synonyms": [
+            "μαύρο,σκούρο,έβενος,μεσάνυχτα,κάρβουνο,black,dark,ebony,midnight,charcoal",
+            "άσπρο,ανοιχτό,χλωμό,ελεφαντόδοντο,χιόνι,white,light,pale,ivory,snow,cream",
+            "καφέ,σοκολατί,καφές,μόκα,κάστανο,brown,chocolate,coffee,mocha,tan,chestnut",
+            "χρυσό,κίτρινο,ξανθό,μέλι,κεχριμπάρι,golden,yellow,blonde,honey,amber,wheat",
+            "κόκκινο,σκουριά,χαλκός,καστανόξανθο,τζίντζερ,red,rust,copper,auburn,ginger,flame",
+            "γκρι,ασημί,στάχτη,σλέιτ,ατσάλι,gray,grey,silver,ash,slate,steel,pewter",
+            "πορτοκαλί,βερίκοκο,ροδάκινο,κοράλλι,σολομός,orange,apricot,peach,coral,salmon",
+            "ραβδωτό,γραμμωτό,τίγρης γραμμωτό,brindle,striped,tiger striped,zebra striped",
+            "κηλιδωτό,στιγματιώδες,παρδαλό,φακιδιασμένο,spotted,speckled,dappled,freckled,mottled",
+            "μονόχρωμο,ένα χρώμα,ενιαίο,απλό,solid,single color,one color,uniform,plain",
+            "μικτό,πολύχρωμο,παρτί χρωματισμένο,καλίκο,mixed,multi colored,parti colored,calico",
+            "μερλ,μπλε μερλ,κόκκινο μερλ,μαρμαρωμένο,merle,blue merle,red merle,marbled"
+          ]
+        },
+        {
+          "Category": "coat_types_greek",
+          "Synonyms": [
+            "κοντή τρίχα,κοντό παλτό,λείο,κοντότριχο,short hair,short coat,smooth,sleek",
+            "μακριά τρίχα,μακρύ παλτό,αφράτο,μαλλιαρό,long hair,long coat,fluffy,furry",
+            "μεσαία τρίχα,μεσαίο παλτό,μέτριο μήκος,medium hair,medium coat,moderate length",
+            "σγουρό,κυματιστό,σπιράλ,πούντελ παλτό,curly,wavy,kinky,coiled,poodle coat",
+            "ίσιο,επίπεδο,λείο,λευκό παλτό,straight,flat,smooth,sleek coat",
+            "παχύ,πυκνό,διπλό παλτό,βαρύ παλτό,thick,dense,double coat,heavy coat",
+            "λεπτό,αραιό,ελαφρύ παλτό,καλοκαιρινό παλτό,thin,sparse,light coat,summer coat",
+            "ανθεκτικό,τραχύ,αδρό,βουρτσισμένο,wiry,rough,coarse,bristly,harsh texture",
+            "μαλακό,μεταξένιο,λείο,βελούδινο,soft,silky,smooth,velvety,plush",
+            "χάνει τρίχες,πελεκά,αλλάζει,τρίχες παντού,shedding,sheds,molting,loses hair",
+            "δεν χάνει τρίχες,υποαλλεργικό,φιλικό αλλεργίας,non shedding,hypoallergenic,allergy friendly"
+          ]
+        },
+        {
+          "Category": "gender_related_greek",
+          "Synonyms": [
+            "αρσενικό,αγόρι,αρσενικό,τομ,μπακ,male,boy,masculine,tom,buck,stallion",
+            "θηλυκό,κορίτσι,θηλυκό,κυρία,ντόε,female,girl,feminine,lady,doe,mare",
+            "ευνουχισμένο αρσενικό,διορθωμένο αρσενικό,αλλοιωμένο αρσενικό,neutered male,fixed male,altered male",
+            "στειρωμένο θηλυκό,διορθωμένο θηλυκό,αλλοιωμένο θηλυκό,spayed female,fixed female,altered female"
+          ]
+        },
+        {
+          "Category": "adoption_status_greek",
+          "Synonyms": [
+            "διαθέσιμο,έτοιμο,για υιοθεσία,υιοθετήσιμο,ελεύθερο,available,ready,up for adoption,adoptable",
+            "εκκρεμεί,κρατημένο,δεσμευμένο,αίτηση εκκρεμεί,pending,hold,reserved,spoken for",
+            "υιοθετήθηκε,πάρθηκε,βρήκε σπίτι,τοποθετήθηκε,adopted,taken,found home,placed",
+            "ανάδοχος,αναδοχή,προσωρινό σπίτι,ανάδοχη οικογένεια,foster,fostering,temporary home,foster care",
+            "διάσωση,σωθέντα,διασωμένο,καταφύγιο,ζώο καταφυγίου,rescue,saved,rescued,sanctuary,shelter animal",
+            "αδέσποτο,βρεθέντα,περιπλανώμενο,άστεγο,stray,found,wandering,homeless,lost,abandoned",
+            "παράδοση,παράδοση ιδιοκτήτη,εγκαταλείφθηκε,παραιτήθηκε,surrender,owner surrender,given up,relinquished"
+          ]
+        },
+        {
+          "Category": "special_needs_greek",
+          "Synonyms": [
+            "ειδικές ανάγκες,ιατρικές ανάγκες,χρειάζεται φάρμακα,συνεχής φροντίδα,special needs,medical needs,requires medication",
+            "φροντίδα ηλικιωμένων,γηριατρική φροντίδα,φροντίδα τρίτης ηλικίας,senior care,elderly care,geriatric care",
+            "προβλήματα συμπεριφοράς,χρειάζεται εκπαίδευση,προβληματική συμπεριφορά,behavioral issues,needs training,problem behavior",
+            "κοινωνικοποίηση απαραίτητη,χρειάζεται δουλειά με ανθρώπους,ντροπαλό διάσωση,socialization needed,needs work with people,shy rescue",
+            "ιατρικά έξοδα,λογαριασμοί κτηνιάτρου,κόστος θεραπείας,συνεχή ιατρικά,medical expenses,vet bills,treatment costs",
+            "αμαξίδιο,βοήθημα κίνησης,καρότσι,ειδικός εξοπλισμός,wheelchair,mobility aid,cart,special equipment",
+            "φροντίδα τυφλού,υποστήριξη όρασης,φροντίδα σκύλου οδηγού,blind care,vision support,sight dog care",
+            "φροντίδα κουφού,υποστήριξη ακοής,νοηματική γλώσσα,οπτικά σήματα,deaf care,hearing support,sign language,visual cues"
+          ]
+        },
+        {
+          "Category": "living_situations_greek",
+          "Synonyms": [
+            "φιλικό διαμερίσματος,μικρός χώρος,διαμέρισμα,αστική διαβίωση,apartment friendly,small space,condo,urban living",
+            "σπίτι με αυλή,περιφραγμένη αυλή,μεγάλη αυλή,εξωτερικός χώρος,house with yard,fenced yard,big yard,outdoor space",
+            "ζωή φάρμας,αγροτικό,εξοχή,εκτάριο,ανοιχτός χώρος,farm life,rural,country,acreage,open space",
+            "ενεργή οικογένεια,ενεργητική οικογένεια,εξωτερικές δραστηριότητες,πεζοπόρους,active family,energetic family,outdoorsy,hikers,runners",
+            "ήσυχο σπίτι,ήρεμο περιβάλλον,ειρηνικό,χαμηλού τόνου,quiet home,calm environment,peaceful,low key",
+            "έμπειρος ιδιοκτήτης,γνώστης,έμπειρος φυλής,experienced owner,knowledgeable,breed experienced",
+            "πρώτη φορά ιδιοκτήτης,αρχάριος,νέος σε κατοικίδια,αρχαίος,first time owner,beginner,new to pets,novice",
+            "μόνο άτομο,ατομικό,ένα άτομο νοικοκυριό,single person,individual,one person household",
+            "οικογένεια με παιδιά,παιδιά,νεαρούς,μικρούς,family with kids,children,youngsters,little ones",
+            "ηλικιωμένος ιδιοκτήτης,πολίτης τρίτης ηλικίας,συνταξιούχος,μεγαλύτερο άτομο,elderly owner,senior citizen,retired,older person",
+            "χωρίς άλλα κατοικίδια,μόνο κατοικίδιο,μόνο κατοικίδιο νοικοκυριό,no other pets,only pet,single pet household",
+            "πολλαπλά κατοικίδια,άλλα ζώα,πακέτο,ομάδα,πολλαπλά κατοικίδια,multi pet,other animals,pack,group,multiple pets"
+          ]
+        }
+      ],
       "MultilingualSettings": {
-        "DefaultLanguage": "english",
-        "DefaultAnalyzer": "lucene.standard",
-        "LanguageMappings": [
-          {
-            "Language": "english",
-            "Analyzer": "lucene.english",
-            "UnicodeRanges": [ "U+0020-U+007F" ],
-            "SearchPaths": [ "english", "standard", "exact" ]
-          },
-          {
-            "Language": "greek",
-            "Analyzer": "lucene.greek",
-            "UnicodeRanges": [ "U+0370-U+03FF", "U+1F00-U+1FFF" ],
-            "SearchPaths": [ "greek", "standard", "exact" ]
-          }
-        ],
-        "MultilingualSynonyms": [
-          {
-            "Category": "animal_types",
-            "Language": "greek",
-            "Terms": [ "σκύλος", "σκυλάκι", "κουτάβι", "σκυλί" ],
-            "EnglishEquivalents": [ "dog", "canine", "puppy", "hound", "mutt", "pooch" ]
-          },
-          {
-            "Category": "animal_types",
-            "Language": "greek",
-            "Terms": [ "γάτα", "γατάκι", "γατούλα", "γάτος" ],
-            "EnglishEquivalents": [ "cat", "feline", "kitty", "kitten", "tabby" ]
-          },
-          {
-            "Category": "animal_types",
-            "Language": "greek",
-            "Terms": [ "κουνέλι", "λαγός" ],
-            "EnglishEquivalents": [ "rabbit", "bunny", "hare" ]
-          },
-          {
-            "Category": "animal_types",
-            "Language": "greek",
-            "Terms": [ "πουλί", "πτηνό" ],
-            "EnglishEquivalents": [ "bird", "avian", "feathered" ]
-          }
-        ],
         "AgeKeywords": [
           {
-            "Language": "english",
-            "Keyword": "baby",
-            "MinAge": 0,
-            "MaxAge": 0.5
-          },
-          {
-            "Language": "english",
-            "Keyword": "infant",
-            "MinAge": 0,
-            "MaxAge": 0.3
-          },
-          {
-            "Language": "english",
-            "Keyword": "newborn",
-            "MinAge": 0,
-            "MaxAge": 0.2
-          },
-          {
-            "Language": "english",
+            "Language": "en",
             "Keyword": "puppy",
-            "MinAge": 0,
-            "MaxAge": 1.5
-          },
-          {
-            "Language": "english",
-            "Keyword": "kitten",
-            "MinAge": 0,
+            "MinAge": 0.0,
             "MaxAge": 1.0
           },
           {
-            "Language": "english",
+            "Language": "en",
+            "Keyword": "kitten",
+            "MinAge": 0.0,
+            "MaxAge": 1.0
+          },
+          {
+            "Language": "en",
             "Keyword": "young",
-            "MinAge": 0.5,
+            "MinAge": 1.0,
             "MaxAge": 3.0
           },
           {
-            "Language": "english",
-            "Keyword": "juvenile",
-            "MinAge": 1.0,
-            "MaxAge": 2.5
-          },
-          {
-            "Language": "english",
+            "Language": "en",
             "Keyword": "adult",
-            "MinAge": 2.0,
+            "MinAge": 3.0,
             "MaxAge": 7.0
           },
           {
-            "Language": "english",
-            "Keyword": "mature",
-            "MinAge": 4.0,
-            "MaxAge": 8.0
-          },
-          {
-            "Language": "english",
+            "Language": "en",
             "Keyword": "senior",
             "MinAge": 7.0,
-            "MaxAge": 15.0
+            "MaxAge": 20.0
           },
           {
-            "Language": "english",
-            "Keyword": "elderly",
-            "MinAge": 8.0,
-            "MaxAge": 15.0
-          },
-          {
-            "Language": "english",
-            "Keyword": "old",
-            "MinAge": 15.0,
-            "MaxAge": 40.0
-          },
-          {
-            "Language": "greek",
-            "Keyword": "μωρό",
-            "MinAge": 0,
-            "MaxAge": 0.5
-          },
-          {
-            "Language": "greek",
-            "Keyword": "νεογέννητο",
-            "MinAge": 0,
-            "MaxAge": 0.2
-          },
-          {
-            "Language": "greek",
+            "Language": "el",
             "Keyword": "κουτάβι",
-            "MinAge": 0,
-            "MaxAge": 1.5
-          },
-          {
-            "Language": "greek",
-            "Keyword": "γατάκι",
-            "MinAge": 0,
+            "MinAge": 0.0,
             "MaxAge": 1.0
           },
           {
-            "Language": "greek",
-            "Keyword": "νεαρός",
-            "MinAge": 0.5,
+            "Language": "el",
+            "Keyword": "γατάκι",
+            "MinAge": 0.0,
+            "MaxAge": 1.0
+          },
+          {
+            "Language": "el",
+            "Keyword": "νέο",
+            "MinAge": 1.0,
             "MaxAge": 3.0
           },
           {
-            "Language": "greek",
-            "Keyword": "μικρός",
-            "MinAge": 0.5,
-            "MaxAge": 2.0
-          },
-          {
-            "Language": "greek",
-            "Keyword": "ενήλικος",
-            "MinAge": 2.0,
+            "Language": "el",
+            "Keyword": "ενήλικο",
+            "MinAge": 3.0,
             "MaxAge": 7.0
           },
           {
-            "Language": "greek",
-            "Keyword": "ώριμος",
-            "MinAge": 4.0,
-            "MaxAge": 8.0
-          },
-          {
-            "Language": "greek",
-            "Keyword": "ηλικιωμένος",
+            "Language": "el",
+            "Keyword": "ηλικιωμένο",
             "MinAge": 7.0,
-            "MaxAge": 15.0
-          },
-          {
-            "Language": "greek",
-            "Keyword": "γέρος",
-            "MinAge": 15.0,
-            "MaxAge": 40.0
-          }
-        ],
-        "GenderMappings": [
-          {
-            "Language": "english",
-            "Term": "male",
-            "Gender": "Male"
-          },
-          {
-            "Language": "english",
-            "Term": "female",
-            "Gender": "Female"
-          },
-          {
-            "Language": "english",
-            "Term": "boy",
-            "Gender": "Male"
-          },
-          {
-            "Language": "english",
-            "Term": "girl",
-            "Gender": "Female"
-          },
-          {
-            "Language": "english",
-            "Term": "tom",
-            "Gender": "Male"
-          },
-          {
-            "Language": "english",
-            "Term": "queen",
-            "Gender": "Female"
-          },
-          {
-            "Language": "english",
-            "Term": "buck",
-            "Gender": "Male"
-          },
-          {
-            "Language": "english",
-            "Term": "doe",
-            "Gender": "Female"
-          },
-          {
-            "Language": "english",
-            "Term": "stallion",
-            "Gender": "Male"
-          },
-          {
-            "Language": "english",
-            "Term": "mare",
-            "Gender": "Female"
-          },
-          {
-            "Language": "english",
-            "Term": "cock",
-            "Gender": "Male"
-          },
-          {
-            "Language": "english",
-            "Term": "hen",
-            "Gender": "Female"
-          },
-          {
-            "Language": "english",
-            "Term": "masculine",
-            "Gender": "Male"
-          },
-          {
-            "Language": "english",
-            "Term": "feminine",
-            "Gender": "Female"
-          },
-          {
-            "Language": "greek",
-            "Term": "αρσενικό",
-            "Gender": "Male"
-          },
-          {
-            "Language": "greek",
-            "Term": "θηλυκό",
-            "Gender": "Female"
-          },
-          {
-            "Language": "greek",
-            "Term": "αγόρι",
-            "Gender": "Male"
-          },
-          {
-            "Language": "greek",
-            "Term": "κορίτσι",
-            "Gender": "Female"
-          },
-          {
-            "Language": "greek",
-            "Term": "αρσενικός",
-            "Gender": "Male"
-          },
-          {
-            "Language": "greek",
-            "Term": "θηλυκή",
-            "Gender": "Female"
-          },
-          {
-            "Language": "greek",
-            "Term": "αρσενική",
-            "Gender": "Female"
-          }
-        ],
-        "HealthStatusMappings": [
-          {
-            "Language": "greek",
-            "Term": "υγιής",
-            "EnglishEquivalents": [ "healthy", "fit", "well", "strong" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "άρρωστος",
-            "EnglishEquivalents": [ "sick", "ill", "unwell", "diseased" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "άρρωστη",
-            "EnglishEquivalents": [ "sick", "ill", "unwell", "diseased" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "τραυματισμένος",
-            "EnglishEquivalents": [ "injured", "hurt", "wounded", "damaged" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "τραυματισμένη",
-            "EnglishEquivalents": [ "injured", "hurt", "wounded", "damaged" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "τυφλός",
-            "EnglishEquivalents": [ "blind", "vision impaired", "sight impaired" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "τυφλή",
-            "EnglishEquivalents": [ "blind", "vision impaired", "sight impaired" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "κωφός",
-            "EnglishEquivalents": [ "deaf", "hearing impaired" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "κωφή",
-            "EnglishEquivalents": [ "deaf", "hearing impaired" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "εμβολιασμένος",
-            "EnglishEquivalents": [ "vaccinated", "immunized", "shots" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "εμβολιασμένη",
-            "EnglishEquivalents": [ "vaccinated", "immunized", "shots" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "στειρωμένος",
-            "EnglishEquivalents": [ "neutered", "spayed", "fixed", "sterilized" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "στειρωμένη",
-            "EnglishEquivalents": [ "neutered", "spayed", "fixed", "sterilized" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "έγκυος",
-            "EnglishEquivalents": [ "pregnant", "expecting", "with babies" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "αναρρώνων",
-            "EnglishEquivalents": [ "recovering", "healing", "getting better" ]
-          },
-          {
-            "Language": "greek",
-            "Term": "αναρρώνουσα",
-            "EnglishEquivalents": [ "recovering", "healing", "getting better" ]
+            "MaxAge": 20.0
           }
         ],
         "NumericSearchMappings": [
           {
             "FieldName": "age",
-            "BoostValue": 2.5,
             "RangeMappings": [
               {
-                "MinValue": 0,
-                "MaxValue": 1,
+                "MinValue": 0.0,
+                "MaxValue": 1.0,
+                "RangeTolerance": 0.25
+              },
+              {
+                "MinValue": 1.0,
+                "MaxValue": 5.0,
                 "RangeTolerance": 0.5
               },
               {
-                "MinValue": 1,
-                "MaxValue": 5,
+                "MinValue": 5.0,
+                "MaxValue": 15.0,
                 "RangeTolerance": 1.0
-              },
-              {
-                "MinValue": 5,
-                "MaxValue": 10,
-                "RangeTolerance": 2.0
-              },
-              {
-                "MinValue": 10,
-                "MaxValue": 999999,
-                "RangeTolerance": 3.0
               }
             ]
           },
           {
             "FieldName": "weight",
-            "BoostValue": 2.0,
             "RangeMappings": [
               {
-                "MinValue": 0,
-                "MaxValue": 5,
+                "MinValue": 0.0,
+                "MaxValue": 10.0,
                 "RangeTolerance": 2.0
               },
               {
-                "MinValue": 5,
-                "MaxValue": 20,
+                "MinValue": 10.0,
+                "MaxValue": 50.0,
                 "RangeTolerance": 5.0
               },
               {
-                "MinValue": 20,
-                "MaxValue": 50,
+                "MinValue": 50.0,
+                "MaxValue": 200.0,
                 "RangeTolerance": 10.0
-              },
-              {
-                "MinValue": 50,
-                "MaxValue": 999999,
-                "RangeTolerance": 20.0
               }
             ]
           }
-        ]
+        ],
+        "DefaultLanguage": "en",
+        "DefaultAnalyzer": "lucene.standard"
       },
       "SearchSettings": {
-        "FuzzySettings": {
-          "DefaultMaxEdits": 2,
-          "DefaultPrefixLength": 1,
-          "DefaultMaxExpansions": 50,
-          "FieldSpecificSettings": {
-            "description": {
-              "MaxEdits": 2,
-              "PrefixLength": 1,
-              "MaxExpansions": 50
-            },
-            "name": {
-              "MaxEdits": 1,
-              "PrefixLength": 0,
-              "MaxExpansions": 30
-            },
-            "healthStatus": {
-              "MaxEdits": 2,
-              "PrefixLength": 1,
-              "MaxExpansions": 50
-            },
-            "synonym": {
-              "MaxEdits": 1,
-              "PrefixLength": 0,
-              "MaxExpansions": 25
-            },
-            "multilingualSynonym": {
-              "MaxEdits": 1,
-              "PrefixLength": 0,
-              "MaxExpansions": 30
-            },
-            "healthMapping": {
-              "MaxEdits": 1,
-              "PrefixLength": 1,
-              "MaxExpansions": 25
-            }
-          }
-        },
-        "BoostSettings": {
-          "CategoryBoosts": {
-            "dog_breeds": 3.2,
-            "cat_breeds": 3.2,
-            "animal_types": 3.8,
-            "personalities": 2.5,
-            "health_status": 2.8,
-            "training_behavior": 2.3,
-            "colors_patterns": 1.5,
-            "coat_types": 1.4,
-            "sizes": 1.8,
-            "ages": 2.2,
-            "adoption_status": 2.9,
-            "special_needs": 2.6,
-            "living_situations": 1.9,
-            "gender_related": 3.5
-          },
-          "FieldBoosts": {
-            "description": 4.0,
-            "name": 3.0,
-            "healthStatus": 2.5,
-            "gender": 3.5
-          },
-          "OperatorBoosts": {
-            "nameAutocomplete": 2.8,
-            "descriptionAutocomplete": 2.5,
-            "phrase": 1.2,
-            "exact": 1.5
-          }
-        },
-        "FieldMappings": {
-          "DescriptionFields": [ "description" ],
-          "NameFields": [ "name" ],
-          "HealthStatusFields": [ "healthStatus" ],
-          "CategoryFieldMappings": {
-            "dog_breeds": [ "description", "name" ],
-            "cat_breeds": [ "description", "name" ],
-            "animal_types": [ "description", "name" ],
-            "personalities": [ "description", "healthStatus" ],
-            "health_status": [ "healthStatus", "description" ],
-            "training_behavior": [ "description", "healthStatus" ],
-            "colors_patterns": [ "description", "name" ],
-            "coat_types": [ "description" ],
-            "sizes": [ "description", "name" ],
-            "ages": [ "description", "name" ],
-            "adoption_status": [ "adoptionStatus", "description" ],
-            "special_needs": [ "description", "healthStatus" ],
-            "living_situations": [ "description" ],
-            "gender_related": [ "gender", "description" ],
-            "dog_breeds_highvalue": [ "labrador", "german shepherd", "golden retriever", "bulldog", "poodle" ],
-            "cat_breeds_highvalue": [ "persian", "siamese", "maine coon", "british shorthair", "ragdoll" ],
-            "animal_types_highvalue": [ "dog", "cat", "rabbit", "bird" ],
-            "health_status_highvalue": [ "healthy", "vaccinated", "spayed", "neutered", "injured", "disabled" ],
-            "adoption_status_highvalue": [ "available", "adopted", "rescue", "foster" ]
-          }
-        },
         "CombinationSettings": {
-          "VectorWeight": 0.65,
-          "SemanticWeight": 0.35,
-          "MinimumShouldMatch": 1,
-          "EnablePhraseBoosting": true,
-          "PhraseBoosting": 1.2
+          "VectorWeight": 0.45,
+          "SemanticWeight": 0.55
         }
       }
     }

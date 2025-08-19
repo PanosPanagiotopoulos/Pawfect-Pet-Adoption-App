@@ -117,7 +117,7 @@ namespace Main_API.Services.AnimalTypeServices
             List<Data.Entities.Breed> breeds = await breedsLookup.EnrichLookup(_queryFactory).CollectAsync();
             await _breedService.Value.Delete([.. breeds?.Select(x => x.Id)]);
 
-            await _animalTypeRepository.DeleteAsync(ids);
+            await _animalTypeRepository.DeleteManyAsync(ids);
 		}
 	}
 }

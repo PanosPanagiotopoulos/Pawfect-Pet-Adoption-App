@@ -85,7 +85,7 @@ namespace Main_API.Services.NotificationServices
 			if (!await _authorizationService.AuthorizeAsync(Permission.DeleteNotifications))
                 throw new ForbiddenException("Unauthorised access when deleting notifications", typeof(Data.Entities.Notification), Permission.DeleteNotifications);
 
-            await _notificationRepository.DeleteAsync(ids);
+            await _notificationRepository.DeleteManyAsync(ids);
 		}
 	}
 }

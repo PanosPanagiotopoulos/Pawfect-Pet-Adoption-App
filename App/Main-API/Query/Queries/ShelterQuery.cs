@@ -1,14 +1,10 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
 
-using Main_API.Data.Entities;
 using Main_API.Data.Entities.EnumTypes;
 using Main_API.Data.Entities.Types.Authorization;
-using Main_API.DevTools;
 using Main_API.Exceptions;
-using Main_API.Models.Shelter;
 using Main_API.Services.AuthenticationServices;
-using Main_API.Services.FilterServices;
 using Main_API.Services.MongoServices;
 using System.Text.RegularExpressions;
 

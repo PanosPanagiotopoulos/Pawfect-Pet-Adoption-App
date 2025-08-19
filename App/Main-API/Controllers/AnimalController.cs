@@ -15,6 +15,12 @@ using Main_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 using Microsoft.Extensions.Options;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Microsoft.Extensions.Caching.Memory;
+using Main_API.Services.AuthenticationServices;
+using System.Security.Claims;
+using Main_API.Data.Entities.Types.Cache;
+using Main_API.Services.ConversationServices;
+using Main_API.Services.Convention;
 
 namespace Main_API.Controllers
 {
@@ -28,7 +34,12 @@ namespace Main_API.Controllers
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
         private readonly Lazy<IFileDataExtractor> _excelExtractor;
+        private readonly IMemoryCache _memoryCache;
         private readonly IQueryFactory _queryFactory;
+        private readonly CacheConfig _cacheConfig;
+        private readonly IAuthorizationContentResolver _authorizationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IConventionService _conventionService;
         private readonly AnimalsConfig _animalsConfig;
 
         public AnimalController
@@ -39,7 +50,12 @@ namespace Main_API.Controllers
 			ICensorFactory censorFactory,
             AuthContextBuilder contextBuilder,
             Lazy<IFileDataExtractor> excelExtractor,
+            IMemoryCache memoryCache,
             IQueryFactory queryFactory,
+            IOptions<CacheConfig> cacheOptions, 
+            IAuthorizationContentResolver authorizationContentResolver,
+            ClaimsExtractor claimsExtractor,
+            IConventionService conventionService,
             IOptions<AnimalsConfig> options
         )
         {
@@ -49,7 +65,12 @@ namespace Main_API.Controllers
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
             _excelExtractor = excelExtractor;
+            _memoryCache = memoryCache;
             _queryFactory = queryFactory;
+            _cacheConfig = cacheOptions.Value;
+            _authorizationContentResolver = authorizationContentResolver;
+            _claimsExtractor = claimsExtractor;
+            _conventionService = conventionService;
             _animalsConfig = options.Value;
         }
 
@@ -59,6 +80,24 @@ namespace Main_API.Controllers
         public async Task<IActionResult> QueryAnimals([FromBody] AnimalLookup animalLookup)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException();
+
+            String cacheKey = $"{userId}_{animalLookup.GetHashCode()}";
+            QueryResult<Animal> queryResult = null;
+            if (_memoryCache.TryGetValue(cacheKey, out String queryResultValue))
+            {
+                queryResult = JsonHelper.DeserializeObjectFormattedSafe<QueryResult<Animal>>(queryResultValue);
+                if (queryResult != null)
+                {
+                    if (animalLookup?.ExcludedIds?.Any() == true)
+                        queryResult.Items = queryResult.Items.Where(animal => !animalLookup.ExcludedIds.Contains(animal.Id)).ToList();
+
+                    return Ok(queryResult);
+                }
+            }
 
             AuthContext context = _contextBuilder.OwnedFrom(animalLookup).AffiliatedWith(animalLookup).Build();
             List<String> censoredFields = await _censorFactory.Censor<AnimalCensor>().Censor([.. animalLookup.Fields], context);
@@ -75,12 +114,15 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Animals not found", JsonHelper.SerializeObjectFormatted(animalLookup), typeof(Data.Entities.Animal));
 
-
-            return Ok(new QueryResult<Animal>()
+            queryResult = new QueryResult<Animal>()
             {
                 Items = models,
                 Count = await q.CountAsync()
-            });
+            };
+
+            _memoryCache.Set(cacheKey, JsonHelper.SerializeObjectFormatted(queryResult), TimeSpan.FromMinutes(_cacheConfig.QueryCacheTime));
+
+            return Ok(queryResult);
         }
 
         [HttpPost("query/free-view")]
@@ -91,6 +133,20 @@ namespace Main_API.Controllers
 
             animalLookup.Fields = _animalsConfig.FreeFields;
 
+            String cacheKey = $"{animalLookup.GetHashCode()}";
+            QueryResult<Animal> queryResult = null;
+            if (_memoryCache.TryGetValue(cacheKey, out String queryResultValue))
+            {
+                queryResult = JsonHelper.DeserializeObjectFormattedSafe<QueryResult<Animal>>(queryResultValue);
+                if (queryResult != null)
+                {
+                    if (animalLookup?.ExcludedIds?.Any() == true)
+                        queryResult.Items = queryResult.Items.Where(animal => !animalLookup.ExcludedIds.Contains(animal.Id)).ToList();
+                    
+                    return Ok(queryResult);
+                }
+            }
+
             AnimalQuery q = animalLookup.EnrichLookup(_queryFactory);
 
             List<Data.Entities.Animal> datas = await q.CollectAsync();
@@ -100,11 +156,15 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Animals not found", JsonHelper.SerializeObjectFormatted(animalLookup), typeof(Data.Entities.Animal));
 
-            return Ok(new QueryResult<Animal>()
+            queryResult = new QueryResult<Animal>()
             {
                 Items = models,
                 Count = await q.CountAsync()
-            });
+            };
+
+            _memoryCache.Set(cacheKey, JsonHelper.SerializeObjectFormatted(queryResult), TimeSpan.FromMinutes(_cacheConfig.QueryCacheTime));
+
+            return Ok(queryResult);
         }
 
         [HttpGet("{id}")]

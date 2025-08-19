@@ -70,8 +70,9 @@ export class SearchComponent
 
   showInstructionsModal = true;
 
-  // Track all animals that have been seen (saved + non-saved)
-  private allSeenAnimalIds: Set<string> = new Set();
+  // Track animals that have been explicitly saved or declined by user
+  private savedAnimalIds: Set<string> = new Set();
+  private declinedAnimalIds: Set<string> = new Set();
   private currentSearchQuery = '';
   private currentFilters: Partial<AnimalLookup> = {};
 
@@ -155,6 +156,10 @@ export class SearchComponent
       });
   }
 
+  override ngOnDestroy(): void {
+    this.clearSavedAnimals();
+  }
+
   private loadSavedAnimals() {
     const savedData = this.secureStorage.getItem<{
       savedAnimals: Animal[];
@@ -166,10 +171,10 @@ export class SearchComponent
       if (now - savedData.timestamp < expirationTime) {
         this.savedAnimals = savedData.savedAnimals || [];
 
-        // Add saved animals to seen list
+        // Add saved animals to saved IDs set
         this.savedAnimals.forEach((animal) => {
           if (animal.id) {
-            this.allSeenAnimalIds.add(animal.id);
+            this.savedAnimalIds.add(animal.id);
           }
         });
 
@@ -195,6 +200,9 @@ export class SearchComponent
       this.animals = [];
       this.currentAnimalKey = null;
       this.hasMoreToLoad = true;
+
+      // Clear declined animals for new search (allow previously declined animals to appear again)
+      this.declinedAnimalIds.clear();
 
       // Store current filters for pagination
       this.currentFilters = {
@@ -231,7 +239,10 @@ export class SearchComponent
       this.isLoadingMore = true;
     }
 
-    const excludedIds = Array.from(this.allSeenAnimalIds);
+    // Only exclude animals that have been explicitly saved or declined
+    const excludedIds = Array.from(
+      new Set([...this.savedAnimalIds, ...this.declinedAnimalIds])
+    );
 
     const lookup: AnimalLookup = {
       offset: this.currentOffset,
@@ -297,12 +308,6 @@ export class SearchComponent
           );
         } else {
           this.animals = response.items;
-          // Add initial animals to seen list
-          response.items.forEach((animal) => {
-            if (animal.id) {
-              this.allSeenAnimalIds.add(animal.id);
-            }
-          });
 
           if (this.animals.length > 0) {
             this.updateCurrentAnimalKey();
@@ -318,15 +323,6 @@ export class SearchComponent
               }
             }, 100);
           }
-        }
-
-        // Add new animals to seen list
-        if (append) {
-          response.items.forEach((animal) => {
-            if (animal.id) {
-              this.allSeenAnimalIds.add(animal.id);
-            }
-          });
         }
 
         this.currentOffset++;
@@ -359,9 +355,9 @@ export class SearchComponent
       animal,
     ]);
 
-    // Add to seen animals list
+    // Add to saved animals IDs set
     if (animal.id) {
-      this.allSeenAnimalIds.add(animal.id);
+      this.savedAnimalIds.add(animal.id);
     }
 
     this.currentIndex++;
@@ -374,9 +370,9 @@ export class SearchComponent
   onSwipeLeft() {
     const currentAnimal = this.getCurrentAnimal();
 
-    // Add to seen animals list (non-saved)
+    // Add to declined animals list
     if (currentAnimal?.id) {
-      this.allSeenAnimalIds.add(currentAnimal.id);
+      this.declinedAnimalIds.add(currentAnimal.id);
     }
 
     if (this.hasMoreAnimals()) {
@@ -399,7 +395,7 @@ export class SearchComponent
     this.currentOffset = 0;
     this.currentSearchQuery = '';
     this.currentFilters = {};
-    this.allSeenAnimalIds.clear();
+    this.declinedAnimalIds.clear(); // Only clear declined animals, keep saved ones
     this.totalAnimalsCount = 0;
     this.error = null;
     this.currentIndex = 0;
@@ -414,7 +410,8 @@ export class SearchComponent
 
   clearSavedAnimals() {
     this.savedAnimals = [];
-    this.allSeenAnimalIds.clear();
+    this.savedAnimalIds.clear();
+    this.declinedAnimalIds.clear();
     this.secureStorage.removeItem(this.STORAGE_KEY);
     this.cdr.markForCheck();
   }
@@ -424,9 +421,9 @@ export class SearchComponent
       (animal) => animal.id !== animalToRemove.id
     );
 
-    // Remove from seen animals list so it can appear again in search
+    // Remove from saved animals IDs set so it can appear again in search
     if (animalToRemove.id) {
-      this.allSeenAnimalIds.delete(animalToRemove.id);
+      this.savedAnimalIds.delete(animalToRemove.id);
     }
 
     this.saveSavedAnimals();

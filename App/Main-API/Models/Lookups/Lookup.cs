@@ -5,6 +5,8 @@ using Main_API.Query;
 using Main_API.Query.Queries;
 using System.Collections;
 using System.Reflection;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 
 namespace Main_API.Models.Lookups
 {
@@ -108,83 +110,129 @@ namespace Main_API.Models.Lookups
 			}
 		}
 
-        // Hash methods
+        private static readonly ConcurrentDictionary<Type, PropertyInfo[]> _propertyCache = new();
 
-        protected virtual int GetDerivedHashCode()
-        {
-            int hash = 23;
-            var derivedType = this.GetType();
-            var derivedProperties = derivedType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(p => p.DeclaringType == derivedType)
-                .OrderBy(p => p.Name);
-
-            foreach (var property in derivedProperties)
-            {
-                object value = property.GetValue(this);
-                int propertyHash = this.GetPropertyHashCode(value);
-                hash = this.CombineHash(hash, propertyHash);
-            }
-
-            return hash;
-        }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetHashCode()
         {
-            int hash = 17; // Initial prime number
+            // Get cached properties (this lookup is very fast after first call per type)
+            var properties = _propertyCache.GetOrAdd(GetType(), static type =>
+                type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                    .Concat(type.BaseType != typeof(object) && type.BaseType != null ?
+                        GetAllProperties(type.BaseType) : Enumerable.Empty<PropertyInfo>())
+                    .Where(static p => p.CanRead)
+                    .OrderBy(static p => p.Name)
+                    .ToArray());
 
-            // Get all public instance properties of the base class
-            IOrderedEnumerable<PropertyInfo> baseProperties = typeof(Lookup).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .OrderBy(p => p.Name);
-
-            // Process each base property
-            foreach (PropertyInfo property in baseProperties)
+            // Manual hash calculation - fastest approach
+            unchecked
             {
-                object value = property.GetValue(this);
-                int propertyHash = GetPropertyHashCode(value);
-                hash = CombineHash(hash, propertyHash);
+                int hash = 17; // Prime seed
+
+                // Unroll the loop for better performance on small property sets
+                int len = properties.Length;
+                int i = 0;
+
+                // Process properties in groups of 4 for better CPU utilization
+                for (; i < len - 3; i += 4)
+                {
+                    var val0 = properties[i].GetValue(this);
+                    var val1 = properties[i + 1].GetValue(this);
+                    var val2 = properties[i + 2].GetValue(this);
+                    var val3 = properties[i + 3].GetValue(this);
+
+                    hash = hash * 31 + GetValueHashFast(val0);
+                    hash = hash * 31 + GetValueHashFast(val1);
+                    hash = hash * 31 + GetValueHashFast(val2);
+                    hash = hash * 31 + GetValueHashFast(val3);
+                }
+
+                // Handle remaining properties
+                for (; i < len; i++)
+                {
+                    var value = properties[i].GetValue(this);
+                    hash = hash * 31 + GetValueHashFast(value);
+                }
+
+                return hash;
+            }
+        }
+
+        // Recursive helper to get all properties including from base classes
+        private static IEnumerable<PropertyInfo> GetAllProperties(Type type)
+        {
+            IEnumerable<PropertyInfo> properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                                .Where(p => p.CanRead);
+
+            if (type.BaseType != null && type.BaseType != typeof(object))
+            {
+                properties = properties.Concat(GetAllProperties(type.BaseType));
             }
 
-            // Combine with the derived class's hash code
-            int derivedHash = this.GetDerivedHashCode();
-            hash = this.CombineHash(hash, derivedHash);
-
-            return hash;
+            return properties;
         }
 
-        protected int GetPropertyHashCode(object value)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetValueHashFast(object? value)
         {
-            if (value == null)
-                return 0;
+            if (value == null) return 0;
 
-            if (value is IEnumerable enumerable && !(value is String))
-                return this.GetCollectionHashCode(enumerable);
-
-            return value.GetHashCode();
-        }
-
-        // Compute hash code for collections, ensuring order independence
-        protected int GetCollectionHashCode(IEnumerable collection)
-        {
-            int hash = 19; // Different initial prime for collections
-
-            var sortedItems = collection.Cast<object>()
-                .OrderBy(item => item?.GetHashCode() ?? 0);
-
-            foreach (object item in sortedItems)
+            // Fast path for common types
+            switch (value)
             {
-                int itemHash = item?.GetHashCode() ?? 0;
-                hash = CombineHash(hash, itemHash);
+                case int i: return i;
+                case string s: return s.GetHashCode();
+                case bool b: return b ? 1 : 0;
+                case DateTime dt: return dt.GetHashCode();
+                case ICollection<string> stringColl:
+                    return GetStringCollectionHashFast(stringColl);
+                case IEnumerable enumerable when value is not string:
+                    return GetEnumerableHashFast(enumerable);
+                default:
+                    return value.GetHashCode();
             }
-
-            return hash;
         }
 
-        // Combine two hash codes using bit manipulation to avoid overflow
-        protected int CombineHash(int h1, int h2)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetStringCollectionHashFast(ICollection<string> collection)
         {
-            // Rotate left by 5 bits and XOR with h2
-            int rol5 = (h1 << 5) | (h1 >> 27);
-            return rol5 ^ h2;
+            if (collection == null || collection.Count == 0) return 0;
+
+            unchecked
+            {
+                int hash = 17;
+
+                if (collection.Count <= 5)
+                {
+                    foreach (String item in collection)
+                    {
+                        hash = hash * 31 + (item?.GetHashCode() ?? 0);
+                    }
+                }
+                else
+                {
+                    foreach (String item in collection.OrderBy(x => x))
+                    {
+                        hash = hash * 31 + (item?.GetHashCode() ?? 0);
+                    }
+                }
+
+                return hash;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetEnumerableHashFast(IEnumerable enumerable)
+        {
+            unchecked
+            {
+                int hash = 17;
+                foreach (var item in enumerable)
+                {
+                    hash = hash * 31 + (item?.GetHashCode() ?? 0);
+                }
+                return hash;
+            }
         }
     }
 }

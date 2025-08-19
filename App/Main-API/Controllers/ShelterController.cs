@@ -5,19 +5,19 @@ using Main_API.Censors;
 using Main_API.Data.Entities.Types.Authorization;
 using Main_API.DevTools;
 using Main_API.Exceptions;
-using Main_API.Models.AdoptionApplication;
 using Main_API.Models.Lookups;
 using Main_API.Models.Shelter;
 using Main_API.Query;
 using Main_API.Services.ShelterServices;
 using Main_API.Transactions;
-using System.Linq;
-using System.Reflection;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Main_API.Query.Queries;
 using Main_API.Services.AuthenticationServices;
-using System.Security.Claims;
 using Main_API.Services.Convention;
+using Microsoft.Extensions.Options;
+using Main_API.Data.Entities.Types.Cache;
+using System.Security.Claims;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Main_API.Controllers
 {
@@ -33,6 +33,8 @@ namespace Main_API.Controllers
         private readonly AuthContextBuilder _contextBuilder;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IMemoryCache _memoryCache;
+        private readonly CacheConfig _cacheConfig;
         private readonly IConventionService _conventionService;
 
         public ShelterController
@@ -45,6 +47,8 @@ namespace Main_API.Controllers
             AuthContextBuilder contextBuilder,
             IAuthorizationContentResolver authorizationContentResolver,
             ClaimsExtractor claimsExtractor,
+            IMemoryCache memoryCache,
+            IOptions<CacheConfig> cacheOptions,
             IConventionService conventionService
         )
 		{
@@ -56,6 +60,8 @@ namespace Main_API.Controllers
             _contextBuilder = contextBuilder;
             _authorizationContentResolver = authorizationContentResolver;
             _claimsExtractor = claimsExtractor;
+            _memoryCache = memoryCache;
+            _cacheConfig = cacheOptions.Value;
             _conventionService = conventionService;
         }
 
@@ -71,7 +77,20 @@ namespace Main_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying shelters");
 
             shelterLookup.Fields = censoredFields;
-			ShelterQuery q = shelterLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
+
+            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException();
+
+            String cacheKey = $"{userId}_{shelterLookup.GetHashCode()}";
+            QueryResult<Shelter> queryResult = null;
+            if (_memoryCache.TryGetValue(cacheKey, out String queryResultValue))
+            {
+                queryResult = JsonHelper.DeserializeObjectFormattedSafe<QueryResult<Shelter>>(queryResultValue);
+                if (queryResult != null) return Ok(queryResult);
+            }
+
+            ShelterQuery q = shelterLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
 
             List<Data.Entities.Shelter> datas = await q.CollectAsync();
 
@@ -81,12 +100,16 @@ namespace Main_API.Controllers
 
             if (models == null) throw new NotFoundException("Shelters not found", JsonHelper.SerializeObjectFormatted(shelterLookup), typeof(Data.Entities.Shelter));
 
-			return Ok(new QueryResult<Shelter>()
-			{
-				Items = models,
-				Count = await q.CountAsync()
-			});
-		}
+            queryResult = new QueryResult<Shelter>()
+            {
+                Items = models,
+                Count = await q.CountAsync()
+            };
+
+            _memoryCache.Set(cacheKey, JsonHelper.SerializeObjectFormatted(queryResult), TimeSpan.FromMinutes(_cacheConfig.QueryCacheTime));
+
+            return Ok(queryResult);
+        }
 
 		[HttpGet("{id}")]
 		[Authorize]

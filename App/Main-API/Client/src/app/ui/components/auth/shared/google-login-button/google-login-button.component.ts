@@ -17,12 +17,12 @@ import { GoogleAuthService } from 'src/app/services/google-auth.service';
     <button
       type="button"
       (click)="onClick()"
-      [disabled]="isLoading"
+      [disabled]="isLoading || disabled"
       [attr.aria-busy]="isLoading"
       class="w-full flex items-center justify-center px-4 py-2.5 border border-gray-300 rounded-md
              shadow-sm bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 
              focus:ring-gray-500 transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-md 
-             active:bg-gray-100 group disabled:opacity-70 disabled:hover:transform-none"
+             active:bg-gray-100 group disabled:opacity-70 disabled:hover:transform-none disabled:cursor-not-allowed"
     >
       <div *ngIf="isLoading" class="mr-2">
         <svg
@@ -60,11 +60,12 @@ export class GoogleLoginButtonComponent {
   @Input() text: string = 'Συνέχεια με Google';
   @Input() isLoading: boolean = false;
   @Input() isSignup: boolean = false;
+  @Input() disabled: boolean = false;
 
   constructor(private readonly googleAuthService: GoogleAuthService) {}
 
   onClick(): void {
-    if (!this.isLoading) {
+    if (!this.isLoading && !this.disabled) {
       const authUrl = this.googleAuthService.getAuthUrl(this.isSignup);
       window.location.href = authUrl;
     }

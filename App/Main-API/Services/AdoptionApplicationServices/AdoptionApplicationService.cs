@@ -79,7 +79,6 @@ namespace Main_API.Services.AdoptionApplicationServices
                     if (data.Status != persist.Status) throw new ForbiddenException("Not allowed action");
                     if (data.AnimalId != persist.AnimalId) throw new ForbiddenException("Not allowed action");
                     if (data.ShelterId != persist.ShelterId) throw new ForbiddenException("Not allowed action");
-                    if (data.AnimalId != persist.AnimalId) throw new ForbiddenException("Not allowed action");
                 }
 
 
@@ -234,7 +233,7 @@ namespace Main_API.Services.AdoptionApplicationServices
 
             await _fileService.Value.Delete([.. datas.Where(data => data.AttachedFilesIds != null).SelectMany(data => data.AttachedFilesIds)]);
 
-            await _adoptionApplicationRepository.DeleteAsync(ids);
+            await _adoptionApplicationRepository.DeleteManyAsync(ids);
         }
 
         public async Task DeleteFromAnimal(String animalId) => await this.DeleteFromAnimals(new List<String> { animalId });

@@ -138,7 +138,7 @@ namespace Main_API.Services.MessageServices
                 throw new ForbiddenException("You do not have permission to delete messages.", typeof(Data.Entities.Message), Permission.DeleteMessages);
 
 
-            await _messageRepository.DeleteAsync(ids);
+            await _messageRepository.DeleteManyAsync(ids);
 		}
 	}
 }

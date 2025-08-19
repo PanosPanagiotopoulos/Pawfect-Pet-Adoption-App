@@ -119,31 +119,21 @@ namespace Main_API.Query.Queries
         {
             BsonDocument sortStage = new BsonDocument();
 
-            if (this.SortBy == null || this.SortBy.Count == 0)
-            {
-                // Default sort: CreatedAt ascending, then _id ascending
-                sortStage["CreatedAt"] = 1;
-                sortStage["_id"] = 1;
-            }
-            else
-            {
-                Boolean descending = this.SortDescending.GetValueOrDefault(false);
-                int sortDirection = descending ? -1 : 1;
+            this.SortBy ??= new List<String>();
+            this.SortBy.Add("CreatedAt");
+            this.SortBy.Add("_id");
 
-                // Add all sort fields with the same direction
-                foreach (String sortField in this.SortBy)
-                {
-                    sortStage[sortField] = sortDirection;
-                }
+            
+            Boolean descending = this.SortDescending.GetValueOrDefault(false);
+            int sortDirection = descending ? -1 : 1;
 
-                // Always add _id as final tie-breaker (ascending)
-                if (!sortStage.Contains("_id"))
-                {
-                    sortStage["_id"] = 1;
-                }
+            // Add all sort fields with the same direction
+            foreach (String sortField in this.SortBy)
+            {
+                sortStage[sortField] = sortDirection;
             }
 
-            // Add the $sort stage to pipeline
+             // Add the $sort stage to pipeline
             pipeline.Add(new BsonDocument("$sort", sortStage));
 
             return pipeline;

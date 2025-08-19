@@ -159,7 +159,7 @@
             if (String.IsNullOrEmpty(refreshTokenString))
                 return BadRequest("Refresh token is missing");
 
-            RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString && rt.ExpiresAt < DateTime.UtcNow);
+            RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString && rt.ExpiresAt > DateTime.UtcNow);
             if (refreshToken == null)
                 return BadRequest("Invalid or expired refresh token");
 

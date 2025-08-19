@@ -28,9 +28,9 @@ namespace Main_API.Models.User
 
             // The phone number is required and must be valid
             RuleFor(user => user.Phone)
-                .Cascade(CascadeMode.Stop)
-                .Matches(@"^\+?[1-9]\Double{1,14}$")
-                .WithMessage("Please enter a valid phone number.");
+                 .Cascade(CascadeMode.Stop)
+                 .Matches(@"^\+?[1-9]\d{1,14}$")
+                 .WithMessage("Please enter a valid phone number.");
 
             // If a location is provided, it must be valid according to creation rules
             RuleFor(user => user.Location)
@@ -64,14 +64,13 @@ namespace Main_API.Models.User
                     .WithMessage("Do not send a password if authenticated via an external service.");
             });
 
-            // If the authentication provider is Local, a password is required and must meet specific requirements
             When(user => user.AuthProvider == AuthProvider.Local, () =>
             {
                 RuleFor(user => user.Password)
                     .Cascade(CascadeMode.Stop)
                     .MinimumLength(7)
                     .WithMessage("The user's password must have at least 7 characters.")
-                    .Matches(@"^(?=.*[A-Z])(?=.*\Double)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{7,}$")
+                    .Matches(@"^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]).{7,}$")
                     .WithMessage("The user's password must have at least 7 characters, including at least one uppercase letter, one number, and one special character.");
 
                 RuleFor(user => user.AuthProviderId)

@@ -82,7 +82,7 @@ namespace Main_API.BackgroundTasks.RefreshTokensCleanupTask
                             }
 
                             // Delete tokens
-                            await refreshTokenRepository.DeleteAsync([..tokensToCleanup.Select(token => token.Id)], session);
+                            await refreshTokenRepository.DeleteManyAsync([..tokensToCleanup.Select(token => token.Id)], session);
 
                             await session.CommitTransactionAsync();
                         }

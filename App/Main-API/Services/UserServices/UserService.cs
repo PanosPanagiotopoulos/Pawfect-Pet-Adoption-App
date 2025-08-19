@@ -165,7 +165,8 @@ namespace Main_API.Services.UserServices
 			await _fileService.Value.Persist
 			(
 				_mapper.Map<FilePersist>(profilePhotoFile),
-				new List<String>() { nameof(Models.File.File.Id) }
+				new List<String>() { nameof(Models.File.File.Id) },
+				false
 			);
 		}
 
@@ -272,7 +273,7 @@ namespace Main_API.Services.UserServices
 			if (user.IsVerified) return true;	
 
 			// Επαληθεύστε τον χρήστη με βάση την κατάσταση επιβεβαίωσης τηλεφώνου και email.
-			user.IsVerified = user.HasPhoneVerified && user.HasEmailVerified;
+			user.IsVerified = user.HasPhoneVerified && (user.HasEmailVerified || user.AuthProvider != AuthProvider.Local);
 
 			// Αν ο χρήστης δεν είναι επιβεβαιωμένος, καταγράψτε το σφάλμα και επιστρέψτε false.
 			if (!user.IsVerified)
@@ -288,6 +289,8 @@ namespace Main_API.Services.UserServices
 			if (user.Roles.Any(role => role != UserRole.User))
 			{
 				// TODO: Στείλτε ειδοποίηση στον admin για να επιβεβαιώσει τον χρήστη
+				user.IsVerified = false;
+
 			}
 
 			await Persist(user, false, buildDto: false);
@@ -433,18 +436,21 @@ namespace Main_API.Services.UserServices
 			}
 		}
 
-		public async Task<Models.User.User?> Update(UserUpdate model, List<String> buildFields = null, Boolean buildDto = true)
+		public async Task<Models.User.User?> Update(UserUpdate model, List<String> buildFields = null, Boolean buildDto = true, Boolean auth = true)
 		{
             Data.Entities.User? workingUser = await this.RetrieveUserAsync(model.Id, null);
 			if (workingUser == null) throw new NotFoundException();
 
-            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
-            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-			if (String.IsNullOrEmpty(userId)) throw new UnAuthenticatedException();
+			if (auth)
+			{
+                ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+                String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+                if (String.IsNullOrEmpty(userId)) throw new UnAuthenticatedException();
 
-			OwnedResource ownedResource = new OwnedResource(userId, new OwnedFilterParams(new UserLookup()));
-			if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.EditUsers))
-				throw new ForbiddenException();
+                OwnedResource ownedResource = new OwnedResource(userId, new OwnedFilterParams(new UserLookup()));
+                if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.EditUsers))
+                    throw new ForbiddenException();
+            }
 
             String oldProfilePhoto = workingUser?.ProfilePhotoId;
 
@@ -455,7 +461,7 @@ namespace Main_API.Services.UserServices
 			if (String.IsNullOrEmpty(await _userRepository.UpdateAsync(workingUser)))
                 throw new InvalidOperationException("Failed to update user");
 
-            await this.PersistProfilePhoto(model.ProfilePhotoId, oldProfilePhoto, workingUser.Id, justCreated: false);
+            await this.PersistProfilePhoto(model.ProfilePhotoId, oldProfilePhoto, workingUser.Id, justCreated: !auth);
 
             Models.User.User persisted = null;
             if (buildDto)
@@ -467,10 +473,13 @@ namespace Main_API.Services.UserServices
                 lookup.Offset = 1;
                 lookup.PageSize = 1;
 
-                AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-                List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. lookup.Fields], context);
-                if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
-                lookup.Fields = censoredFields;
+				if (auth)
+				{
+                    AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+                    List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. lookup.Fields], context);
+                    if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
+                    lookup.Fields = censoredFields;
+                }
 
                 persisted = (await _builderFactory.Builder<UserBuilder>()
                     .Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [.. lookup.Fields]))
@@ -483,7 +492,7 @@ namespace Main_API.Services.UserServices
 
         public async Task<Models.User.User> Persist(UserPersist userPersist, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
-			if (_conventionService.IsValidId(userPersist.Id) || !String.IsNullOrWhiteSpace(userPersist.Email))
+			if (_conventionService.IsValidId(userPersist.Id))
 				return await this.Update(
 					new UserUpdate()
 					{
@@ -495,7 +504,8 @@ namespace Main_API.Services.UserServices
 						ProfilePhotoId = userPersist.ProfilePhotoId
 					},
 					buildFields,
-					buildDto
+					buildDto,
+					false
 				);
 
 
@@ -542,6 +552,23 @@ namespace Main_API.Services.UserServices
 		}
 		public async Task<Models.User.User> Persist(Data.Entities.User user, Boolean allowCreation = true, List<String> buildFields = null, Boolean buildDto = true)
 		{
+            if (_conventionService.IsValidId(user.Id))
+
+                return await this.Update(
+                    new UserUpdate()
+                    {
+                        Id = user.Id,
+                        Email = user.Email,
+                        FullName = user.FullName,
+                        Location = user.Location,
+                        Phone = user.Phone,
+                        ProfilePhotoId = user.ProfilePhotoId
+                    },
+                    buildFields,
+                    buildDto,
+					false
+                );
+
             Data.Entities.User workingUser = _mapper.Map<Data.Entities.User>(user);
 			// Hash τα credentials συνθηματικών του χρήστη
 			this.HashLoginCredentials(ref workingUser);
@@ -657,7 +684,7 @@ namespace Main_API.Services.UserServices
             
 			await _fileService.Value.Delete([.. users.Where(user => !String.IsNullOrEmpty(user.ProfilePhotoId)).Select(user => user.ProfilePhotoId)]);
 
-            await _userRepository.DeleteAsync(ids);
+            await _userRepository.DeleteManyAsync(ids);
 		}
 	}
 }

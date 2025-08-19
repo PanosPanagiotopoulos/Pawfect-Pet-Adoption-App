@@ -99,7 +99,14 @@
         [isLoading]="isExternalProviderLoading"
         [isSignup]="true"
         [text]="'APP.COMMONS.GOOGLE-BUTTON-TEXT' | translate"
+        [disabled]="hasGoogleData"
       ></app-google-login-button>
+
+      <!-- Google data fetched message -->
+      <div *ngIf="hasGoogleData" class="text-center text-sm text-green-400 mt-2">
+        <ng-icon name="lucideCheck" [size]="'16'" class="inline mr-1"></ng-icon>
+        {{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.GOOGLE_LINKED' | translate }}
+      </div>
 
       <div class="text-center text-sm">
         <span class="text-gray-400">{{ 'APP.AUTH.SIGNUP.ALREADY_HAVE_ACCOUNT' | translate }}</span>
@@ -120,6 +127,7 @@
     >
       <app-account-details
         [form]="getAccountDetailsForm()"
+        [isGoogleAuthenticated]="isGoogleAuthenticated()"
         (next)="onAccountDetailsNext()"
         (back)="onAccountDetailsBack()"
       ></app-account-details>

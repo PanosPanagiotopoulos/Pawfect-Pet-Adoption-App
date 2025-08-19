@@ -29,7 +29,6 @@ using Main_API.Services.MongoServices.Extentions;
 using Main_API.Services.NotificationServices.Extention;
 using Main_API.Services.QueryServices.Extentions;
 using Main_API.Services.ReportServices.Extentions;
-using Main_API.Services.SearchServices.Extentions;
 using Main_API.Services.ShelterServices.Extentions;
 using Main_API.Services.SmsServices.Extentions;
 using Main_API.Services.UserServices.Extentions;
@@ -67,11 +66,12 @@ public class Program
 
         WebApplication app = builder.Build();
 
-        // Bootsrap MongoDB
+        // Bootsrap MongoDB Database Data & Index
         using (IServiceScope scope = app.Services.CreateScope())
 		{
-			if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
-			{
+            if (args.Length == 0 || args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
+			//if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
+            {
                 try
                 {
                     Seeder seeder = scope.ServiceProvider.GetRequiredService<Seeder>();
@@ -84,6 +84,7 @@ public class Program
                 }
             }
 
+			await Task.Delay(1000);
             MongoDbService mongoDbService = scope.ServiceProvider.GetRequiredService<MongoDbService>();
 			await mongoDbService.SetupSearchIndexesAsync();
 		}
@@ -165,12 +166,16 @@ public class Program
 		// Logger configuration
 		builder.Services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
 
-		// MongoDB configuration
-		builder.Services.Configure<MongoDbConfig>(builder.Configuration.GetSection("MongoDbConfig"));
-		builder.Services.AddSingleton<IMongoClient>(s =>
-			new MongoClient(builder.Configuration.GetValue<String>("MongoDbConfig:MongoDb")));
+        // MongoDB configuration
+        builder.Services.Configure<MongoDbConfig>(builder.Configuration.GetSection("MongoDbConfig"));
+
+        MongoDbConfig mongoConfig = builder.Configuration.GetSection("MongoDbConfig").Get<MongoDbConfig>();
+
+        builder.Services.AddSingleton<IMongoClient>(s =>
+			new MongoClient(mongoConfig.ConnectionString));
+
 		builder.Services.AddScoped(s =>
-			s.GetRequiredService<IMongoClient>().GetDatabase(builder.Configuration.GetValue<String>("MongoDbConfig:DatabaseName")));
+			s.GetRequiredService<IMongoClient>().GetDatabase(mongoConfig.DatabaseName));
 
 		// Cache Configuration
 		builder.Services.Configure<CacheConfig>(builder.Configuration.GetSection("Cache"));
@@ -198,7 +203,6 @@ public class Program
 		.AddMongoServices()
 		.AddNotificationServices()
 		.AddReportServices()
-		.AddSearchServices()
 		.AddShelterServices()
 		.AddSmsServices(builder.Configuration.GetSection("SmsService"))
 		.AddUserServices(builder.Configuration.GetSection("UserFields"))

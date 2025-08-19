@@ -22,7 +22,8 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
     <div [formGroup]="form" class="space-y-6" #formContainer>
       <h2 class="text-2xl font-bold text-white mb-6">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.TITLE' | translate }}</h2>
 
-      <ng-container>
+      <!-- Password fields for local authentication -->
+      <ng-container *ngIf="!isGoogleAuthenticated">
         <app-password-input
           [form]="form"
           controlName="password"
@@ -99,13 +100,16 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         </div>
       </ng-container>
 
-      <ng-template #externalProvider>
-        <div class="text-center text-gray-400 py-8">
-          <p>{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.GOOGLE_LINKED_TITLE' | translate }}</p>
-          <p>{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.GOOGLE_LINKED_DESC' | translate }}</p>
-          <p>{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.NO_PASSWORD_REQUIRED' | translate }}</p>
+      <!-- Google authentication message -->
+      <div *ngIf="isGoogleAuthenticated" class="text-center py-8">
+        <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 space-y-3">
+          <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center">
+            <ng-icon name="lucideCheck" [size]="'32'" class="text-white"></ng-icon>
+          </div>
+          <h3 class="text-lg font-semibold text-white">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.GOOGLE_LINKED' | translate }}</h3>
+          <p class="text-gray-300">{{ 'APP.AUTH.SIGNUP.ACCOUNT_DETAILS.NO_PASSWORD_REQUIRED' | translate }}</p>
         </div>
-      </ng-template>
+      </div>
 
       <!-- Navigation buttons -->
       <div class="flex justify-between pt-6">
@@ -121,7 +125,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         <button
           type="button"
           (click)="onNext()"
-          [disabled]="!form.valid"
+          [disabled]="!isGoogleAuthenticated && !form.valid"
           class="px-6 py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg
                  hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 
                  transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed
@@ -135,6 +139,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 })
 export class AccountDetailsComponent {
   @Input() form!: FormGroup;
+  @Input() isGoogleAuthenticated = false;
   @Output() next = new EventEmitter<void>();
   @Output() back = new EventEmitter<void>();
   @ViewChild('formContainer') formContainer!: ElementRef;
@@ -166,7 +171,8 @@ export class AccountDetailsComponent {
   }
 
   onNext(): void {
-    if (this.form.valid) {
+    // For Google authentication, skip form validation since password fields are disabled
+    if (this.isGoogleAuthenticated || this.form.valid) {
       this.next.emit();
     }
   }
