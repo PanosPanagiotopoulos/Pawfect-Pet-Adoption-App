@@ -1,0 +1,45 @@
+{
+  "Notification": {
+    "MaxRetries": 3
+  },
+  "NotificationProcessor": {
+    "Enable": true,
+    "IntervalSeconds": 10,
+    "BatchSize": 10,
+    "DefaultOptions": {
+      "RetryDelayStepSeconds": 60,
+      "MaxRetryDelaySeconds": 3600,
+      "TooOldToProcessSeconds": 86400,
+      "EnableProcessing": true
+    }
+  },
+  "NotificationTemplates": {
+    "Templates": [
+      {
+        "TemplateId": "4E84F930-A93A-470F-9CFA-58AD31240DCF",
+        "TitlePath": "Templates/Emails/Verification/Verification.Title.html",
+        "ContentPath": "Templates/Emails/Verification/Verification.Content.html"
+      },
+      {
+        "TemplateId": "529FADA1-9C2F-4F3B-A870-7337D2D154F4",
+        "TitlePath": "Templates/Emails/Reset_Password/Reset_Password.Title.html",
+        "ContentPath": "Templates/Emails/Reset_Password/Reset_Password.Content.html"
+      },
+      {
+        "TemplateId": "321BEF42-3FA6-402B-8D28-4F1435273DD7",
+        "TitlePath": "Templates/SMS/OTP/Otp.Title.html",
+        "ContentPath": "Templates/SMS/OTP/Otp.Content.html"
+      },
+      {
+        "TemplateId": "53CA00F9-F819-425A-A7DE-FE5153C2E743",
+        "TitlePath": "Templates/InApp/AdoptionApplicationReceived/Adoption_Application_Received.Title.html",
+        "ContentPath": "Templates/InApp/AdoptionApplicationReceived/Adoption_Application_Received.Content.html"
+      },
+      {
+        "TemplateId": "60816EB1-B8B6-446C-A7AE-9EB27EDCD6F6",
+        "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed.Title.html",
+        "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed.Content.html"
+      }
+    ]
+  }
+}

@@ -1,21 +1,18 @@
 # Node Modules
-App/Main-API/Client/node_modules/
-App/Main-API/Client/.vscode/
-App/Main-API/Client/.angular/
+App/Pawfect-API/Client/node_modules/
+App/Pawfect-API/Client/.vscode/
+App/Pawfect-API/Client/.angular/
 
 # Angular Build Output
-App/Main-API/Client/dist/
-App/Main-API/Client/out-tsc/
+App/Pawfect-API/Client/dist/
+App/Pawfect-API/Client/out-tsc/
 
 # Environment and Configuration Files
-App/Main-API/Client/.env
-App/Main-API/Client/src/environments
-App/Main-API/Client/prompt.MD
+App/Pawfect-API/Client/.env
+App/Pawfect-API/Client/src/environments
+App/Pawfect-API/Client/prompt.MD
 
-App/Main-API/Client/package-lock.json
-
-App/Main-API/Configuration/environment.json
-App/Main-API/.env
+App/Pawfect-API/Client/package-lock.json
 
 # Logs and Reports
 npm-debug.log*
@@ -27,8 +24,8 @@ pnpm-debug.log*
 # IDE-specific (VS Code, Visual Studio, JetBrains)
 .vs/
 .vscode/
-App/Main-API/Client/.vscode/
-App/Main-API/.vscode/
+App/Pawfect-API/Client/.vscode/
+App/Pawfect-API/.vscode/
 .idea/
 *.suo
 *.ntvs*
@@ -38,40 +35,47 @@ App/Main-API/.vscode/
 *.user
 
 # Bootstrap and Tailwind Build Files
-App/Main-API/Client/bootstrap/
-App/Main-API/Client/tailwind/
-
-# Python Search Service
-App/Main-API/Pawfect-Search-Server/
+App/Pawfect-API/Client/bootstrap/
+App/Pawfect-API/Client/tailwind/
 
 # C# Build Outputs
-App/Main-API/bin/
-App/Main-API/obj/
-App/Main-API/*.dll
-App/Main-API/*.exe
-App/Main-API/*.pdb
-App/Main-API/*.cache
-App/Main-API/*.pyo
-App/Main-API/*.pyc
-App/Main-API/*.pid
-App/Main-API/*.manifest
-App/Main-API/*.nupkg
-App/Main-API/*.local
-App/Main-API/*.config
-App/Main-API/wwwroot/
-App/Main-API/Configuration/Development/environment.Development.json
-App/Main-API/Configuration/Production/environment.json
-App/Main-API/logs/
-App/Main-API/PawfectUser_accessKeys.csv
+App/Pawfect-API/bin/
+App/Pawfect-API/obj/
+App/Pawfect-API/*.dll
+App/Pawfect-API/*.exe
+App/Pawfect-API/*.pdb
+App/Pawfect-API/*.cache
+App/Pawfect-API/*.pyo
+App/Pawfect-API/*.pyc
+App/Pawfect-API/*.pid
+App/Pawfect-API/*.manifest
+App/Pawfect-API/*.nupkg
+App/Pawfect-API/*.local
+App/Pawfect-API/*.config
+App/Pawfect-API/wwwroot/
+App/Pawfect-API/Configuration/Development/environment.Development.json
+App/Pawfect-API/Configuration/Production/environment.json
+App/Pawfect-API/logs/
+App/Pawfect-API/PawfectUser_accessKeys.csv
+
+App/Pawfect-Notifications/bin/
+App/Pawfect-Notifications/obj/
+App/Pawfect-Notifications/*.dll
+App/Pawfect-Notifications/*.exe
+App/Pawfect-Notifications/*.pdb
+App/Pawfect-Notifications/*.cache
+App/Pawfect-Notifications/*.pyo
+App/Pawfect-Notifications/*.pyc
+App/Pawfect-Notifications/*.pid
+App/Pawfect-Notifications/*.manifest
+App/Pawfect-Notifications/*.nupkg
+App/Pawfect-Notifications/*.local
+App/Pawfect-Notifications/*.config
+App/Pawfect-Notifications/Configuration/Development/environment.Development.json
+App/Pawfect-Notifications/Configuration/Production/environment.json
+App/Pawfect-Notifications/logs/
 
     
-# Entity Framework Migrations
-App/Main-API/Migrations/
-
-# .NET User Secrets and App Settings
-App/Main-API/appsettings.*.json
-App/Main-API/appsettings.json
-
 # Windows & OS Specific Files
 Thumbs.db
 ehthumbs.db
@@ -95,6 +99,7 @@ dump/
 # Temporary and Miscellaneous Files
 *.temp
 *.tmp
-App/Main-API/Client/*.txt
-App/Main-API/*.txt
+App/Pawfect-API/Client/*.txt
+App/Pawfect-API/*.txt
+App/Pawfect-Notifications/*.txt
 ~$*

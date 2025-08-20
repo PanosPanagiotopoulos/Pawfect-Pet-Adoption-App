@@ -1,0 +1,14 @@
+{
+	"Authentication": {
+		"Jwt": {
+			"Key": "%{JwtKey}%",
+			"Issuer": "%{JwtIssuer}%",
+			"Audiences": [ "%{FrontendUrl}%", "%{BackendUrl}%", "%{BackendUrlSecure}%" ],
+			"RefreshTokenExpiration": 24 // 24 hours
+		},
+		"InternalApi": {
+			"SharedSecret": "%{SharedInternalApiSecret}%",
+			"AllowedServices": [ "Pawfect-API" ]
+		}
+	}
+}

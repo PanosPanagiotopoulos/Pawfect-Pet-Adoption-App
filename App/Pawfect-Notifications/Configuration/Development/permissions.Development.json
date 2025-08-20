@@ -1,0 +1,52 @@
+{
+  "PermissionConfig": {
+    "Policies": [
+      {
+        "Permission": "CanViewUsers",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseUsers",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "EditUsers",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteUsers",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "CanViewShelters",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+     
+      {
+        "Permission": "CanViewNotifications",
+        "Roles": [ "User", "Shelter", "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "BrowseNotifications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "EditNotifications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      },
+      {
+        "Permission": "DeleteNotifications",
+        "Roles": [ "Admin" ],
+        "AffiliatedRoles": []
+      }
+    ]
+  }
+}

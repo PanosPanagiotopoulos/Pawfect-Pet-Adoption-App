@@ -1,0 +1,10 @@
+{
+  "ApiKeys": {
+    "KeyRecords": [
+      {
+        "ClientName": "Main Client",
+        "ApiKey": "%{MainClientKey}%"
+      }
+    ]
+  }
+}

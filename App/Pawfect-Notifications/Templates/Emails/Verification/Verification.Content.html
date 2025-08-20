@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Email Verification</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif; background: linear-gradient(135deg, #f5f0ff 0%, #fff0f6 50%, #f0efff 100%); line-height: 1.5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: linear-gradient(135deg, #f5f0ff 0%, #fff0f6 50%, #f0efff 100%);">
+        <tr>
+            <td align="center" style="padding: 20px 0;">
+                <!-- Main Container -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: rgba(255, 255, 255, 0.95); border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); overflow: hidden;" class="main-container">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 40px 30px; text-align: center; background: linear-gradient(90deg, #7C3AED 0%, #DB2777 50%, #4F46E5 100%); background-size: 200% 200%; animation: gradient 8s linear infinite; color: #ffffff;" class="header">
+                            <img src="https://via.placeholder.com/150x50?text=Pawfect+Logo" alt="Pawfect Logo" style="max-width: 150px; height: auto; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;" class="logo">
+                            <h1 style="font-size: 28px; font-weight: 700; margin: 0; letter-spacing: 0.5px; color: #ffffff;">
+                                <span>Welcome to </span>
+                                <span style="background: linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1); -webkit-background-clip: text; background-clip: text; color: #ffffff; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); font-weight: 800; letter-spacing: 0.5px; background-size: 200% auto; animation: shine 3s linear infinite;">Pawfect</span>
+                                <span>, {Firstname}!</span>
+                            </h1>
+                            <p style="font-size: 16px; margin: 10px 0 0; opacity: 0.9;">Start your journey with us!</p>
+                        </td>
+                    </tr>
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 40px 30px; font-size: 16px; line-height: 1.6; color: #333333; background-color: rgba(255, 255, 255, 0.95);" class="body">
+                            <p style="margin: 0 0 20px; font-weight: 400;">Dear {Firstname},</p>
+                            <p style="margin: 0 0 20px;">We're thrilled to welcome you to the Pawfect family! To secure access to your account and unlock all the features of our platform, please verify your email address by clicking the button below:</p>
+                            <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td style="background: linear-gradient(90deg, #7C3AED 0%, #4F46E5 100%); padding: 16px 32px; border-radius: 8px; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3); transition: transform 0.3s;" class="button">
+                                        <a href="{VerificationLink}" style="color: #ffffff; text-decoration: none; font-size: 18px; font-weight: 600; display: inline-block;">Verify Email</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="margin: 20px 0 0;">If you encounter any issues, our support team is here for you.</p>
+                        </td>
+                    </tr>
+                    <!-- Divider -->
+                    <tr>
+                        <td style="padding: 0 30px;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td style="border-top: 1px solid rgba(0, 0, 0, 0.1);"></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px; text-align: center; font-size: 14px; color: #666666; background-color: rgba(255, 255, 255, 0.9);">
+                            <p style="margin: 0 0 10px;">If you didn't create an account with Pawfect, please ignore this email or <a href="mailto:support@pawfect.com" style="color: #7C3AED; text-decoration: none;">contact us</a>.</p>
+                            <p style="margin: 0 0 20px;">Best regards,<br><strong>The Pawfect Team</strong></p>
+                            <table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="margin-top: 20px;">
+                                <tr>
+                                    <td style="padding: 0 10px;">
+                                        <a href="https://pawfect.com" style="color: #666666; text-decoration: none; font-size: 13px;">Website</a>
+                                    </td>
+                                    <td style="padding: 0 10px;">
+                                        <a href="https://pawfect.com/privacy" style="color: #666666; text-decoration: none; font-size: 13px;">Privacy Policy</a>
+                                    </td>
+                                    <td style="padding: 0 10px;">
+                                        <a href="https://pawfect.com/terms" style="color: #666666; text-decoration: none; font-size: 13px;">Terms of Use</a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="margin: 20px 0 0; font-size: 12px; color: #999999;">© 2025 Pawfect Inc. All rights reserved.<br>1234 Pawfect Avenue, Athens, Greece</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Media Queries for Responsiveness -->
+    <style type="text/css">
+        @media only screen and (max-width: 600px) {
+            .main-container {
+                width: 100% !important;
+                border-radius: 0 !important;
+            }
+            .header {
+                padding: 20px !important;
+            }
+            .header h1Pastor {
+                font-size: 24px !important;
+            }
+            .body {
+                padding: 20px !important;
+            }
+            .button {
+                padding: 12px 24px !important;
+            }
+            .button a {
+                font-size: 16px !important;
+            }
+            .logo {
+                max-width: 120px !important;
+            }
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+    </style>
+</body>
+</html>

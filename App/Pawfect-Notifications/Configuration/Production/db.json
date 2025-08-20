@@ -1,0 +1,6 @@
+{
+  "MongoDbConfig": {
+    "ConnectionString": "%{MongoDb}%",
+    "DatabaseName": "%{DatabaseName}%"
+  }
+}
