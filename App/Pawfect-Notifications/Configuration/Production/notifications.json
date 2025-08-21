@@ -37,8 +37,13 @@
       },
       {
         "TemplateId": "60816EB1-B8B6-446C-A7AE-9EB27EDCD6F6",
-        "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed.Title.html",
-        "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed.Content.html"
+        "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_User.Title.html",
+        "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_User.Content.html"
+      },
+      {
+        "TemplateId": "912BC173-1342-4568-9D64-E26850AF47ED",
+        "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Title.html",
+        "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Content.html"
       }
     ]
   }

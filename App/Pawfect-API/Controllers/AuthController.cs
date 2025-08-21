@@ -324,7 +324,7 @@
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-			await _userService.GenerateNewOtpAsync(payload.Phone);
+			await _userService.SendOtpAsync(payload.Phone, payload.Id);
 			return Ok();
 		}
 

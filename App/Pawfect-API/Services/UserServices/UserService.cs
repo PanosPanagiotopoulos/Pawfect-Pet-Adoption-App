@@ -28,6 +28,10 @@ using Pawfect_API.Services.SmsServices;
 using System.Security.Claims;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_API.Services.Convention;
+using Pawfect_API.Models.Notification;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Pawfect_API.Services.NotificationServices;
+using Pawfect_Pet_Adoption_App_API.DevTools;
 
 namespace Pawfect_API.Services.UserServices
 {
@@ -52,6 +56,8 @@ namespace Pawfect_API.Services.UserServices
         private readonly IAuthorizationService _authorizationService;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly IConventionService _conventionService;
+        private readonly INotificationApiClient _notificationApiClient;
+        private readonly NotificationApiConfig _notificationConfig;
 
         public UserService
 		(
@@ -70,7 +76,9 @@ namespace Pawfect_API.Services.UserServices
 			ClaimsExtractor claimsExtractor,
 			IAuthorizationService AuthorizationService,
 			IAuthorizationContentResolver authorizationContentResolver,
-            IConventionService conventionService
+            IConventionService conventionService,
+			IOptions<NotificationApiConfig> notificationOptions,
+			INotificationApiClient notificationApiClient
         )
 		{
             _queryFactory = queryFactory;
@@ -92,6 +100,8 @@ namespace Pawfect_API.Services.UserServices
             _authorizationService = AuthorizationService;
             _authorizationContentResolver = authorizationContentResolver;
             _conventionService = conventionService;
+            this._notificationApiClient = notificationApiClient;
+            _notificationConfig = notificationOptions.Value;
         }
 
 		public async Task<Models.User.User?> RegisterUserUnverifiedAsync(RegisterPersist registerPersist, List<String> fields)
@@ -173,7 +183,7 @@ namespace Pawfect_API.Services.UserServices
 			);
 		}
 
-		public async Task GenerateNewOtpAsync(String phonenumber)
+		public async Task SendOtpAsync(String phonenumber , String userId)
 		{
 			if (String.IsNullOrEmpty(phonenumber))
 				throw new ArgumentException("No phone number found");
@@ -183,12 +193,29 @@ namespace Pawfect_API.Services.UserServices
 				_memoryCache.Remove(phonenumber);
 
 			// Δημιουργήστε ένα νέο OTP και αποθηκεύστε το στην cache.
-			int newOtp = ISmsService.GenerateOtp();
+			int newOtp = new Random().Next(100000, 999999);
 
-			_memoryCache.Set(phonenumber, newOtp, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
+            Dictionary<String, String> titleMappings = new Dictionary<String, String>();
+            Dictionary<String, String> contentMappings = new Dictionary<String, String>()
+            {
+                {
+                    _notificationConfig.OtpPasswordPlaceholders.OtpPassword,
+					newOtp.ToString()
+                },
+            };
 
-			// Στείλτε το OTP μέσω SMS.
-			await _smsService.SendSmsAsync(phonenumber, String.Format(ISmsService.SmsTemplates[SmsType.OTP], newOtp));
+            NotificationEvent sendOtpEvent = new NotificationEvent()
+            {
+                UserId = userId,
+                Type = NotificationType.Sms,
+                TitleMappings = titleMappings,
+                ContentMappings = contentMappings,
+                TeplateId = _notificationConfig.OtpPasswordPlaceholders.TemplateId
+            };
+
+            await _notificationApiClient.NotificationEvent(sendOtpEvent);
+
+            _memoryCache.Set(phonenumber, newOtp, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
 		}
 
 		public Boolean VerifyOtp(String phonenumber, int? OTP)
@@ -218,32 +245,39 @@ namespace Pawfect_API.Services.UserServices
 
 		public async Task SendVerficationEmailAsync(String email)
 		{
-			if (String.IsNullOrEmpty(email))
-				throw new ArgumentException("No email found to send verification email");
+			if (String.IsNullOrEmpty(email)) throw new ArgumentException("No email found to send verification email");
 
 			// Δημιουργήστε ένα νέο token επιβεβαίωσης email.
-			String token = IEmailService.GenerateRefreshToken();
+			String token = Guid.NewGuid().ToString();
 
-			// Αποθηκεύστε το νέο token στην cache.
-			_memoryCache.Set(token, email, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
+			Data.Entities.User user = await _userRepository.FindAsync(user => user.Email == email, [nameof(Data.Entities.User.Id), nameof(Data.Entities.User.FullName)]);
 
-			// Δημιουργήστε το URL επιβεβαίωσης.
-			String verificationUrl = Path.Join(_requestService.GetFrontendBaseURI(), $"auth/verified?token={token}");
-
-			String firstname = (await _userRepository.FindAsync(user => user.Email == email, [nameof(Data.Entities.User.FullName)]))?.FullName?.Split(" ")[0];
-			if (String.IsNullOrEmpty(firstname)) throw new NotFoundException("User was not found to send email");
-
-            // Create the template with the appropriate parameters
-            Dictionary<String, String> parameters = new Dictionary<String, String>
-            {
-                { "Firstname", firstname },
-                { "VerificationLink", verificationUrl }
+			Dictionary<String, String> titleMappings = new Dictionary<String, String>();
+            Dictionary<String, String> contentMappings = new Dictionary<String, String>()
+			{
+				{
+					_notificationConfig.VerificationEmailPlaceholders.FirstName,
+                    UserDataHelper.GetFirstNameFormatted(user.FullName)
+                },
+                {
+                    _notificationConfig.VerificationEmailPlaceholders.VerificationToken,
+                    token
+                }
             };
 
-            String message = await _emailService.GetEmailTemplateAsync(EmailType.Verification, parameters);
+			NotificationEvent sendEmailEvent = new NotificationEvent()
+			{
+				UserId = user.Id,
+				Type = NotificationType.Email,
+				TitleMappings = titleMappings,
+				ContentMappings = contentMappings,
+				TeplateId = _notificationConfig.VerificationEmailPlaceholders.TemplateId
+            };
 
-            // Send email
-            await _emailService.SendEmailAsync(email, EmailType.Verification.ToString(), message);
+			await _notificationApiClient.NotificationEvent(sendEmailEvent);	
+
+            // Αποθηκεύστε το νέο token στην cache.
+            _memoryCache.Set(token, email, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
 		}
 
 		public String VerifyEmail(String token)
@@ -306,31 +340,45 @@ namespace Pawfect_API.Services.UserServices
 			if (String.IsNullOrEmpty(email))
 				throw new ArgumentException("No email found to send reset password email");
 
-			// Κατασκευή καινούριο token
-			String token = IEmailService.GenerateRefreshToken();
+            // Δημιουργήστε ένα νέο token επιβεβαίωσης email.
+            String token = Guid.NewGuid().ToString();
 
-			// Store the new token in cache
-			_memoryCache.Set(token, email, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
+            Data.Entities.User user = await _userRepository.FindAsync(user => user.Email == email, [nameof(Data.Entities.User.Id), nameof(Data.Entities.User.FullName)]);
 
-			// Δημιουργία reset password URL
-			String resetPasswordUrl = Path.Join(_requestService.GetFrontendBaseURI(), $"auth/reset-password?token={token}");
-
-			// Κατασκευή θέματος URL. Το σπάμε με κενό για καλύτερο projection στον χρήστη
-			String subject = String.Join(' ', EmailType.Reset_Password.ToString().Split('_'));
-
-            String firstname = (await _userRepository.FindAsync(user => user.Email == email, [nameof(Data.Entities.User.FullName)]))?.FullName?.Split(" ")[0];
-            if (String.IsNullOrEmpty(firstname)) throw new NotFoundException("User was not found to send email");
-
-            Dictionary<String, String> parameters = new Dictionary<String, String>
+			String firstName = UserDataHelper.GetFirstNameFormatted(user.FullName);
+            Dictionary<String, String> titleMappings = new Dictionary<String, String>()
+			{
+				{
+                    _notificationConfig.ResetPasswordEmailPlaceholders.FirstName,
+                    firstName
+                }
+				
+            };
+            Dictionary<String, String> contentMappings = new Dictionary<String, String>()
             {
-                { "Firstname", firstname },
-                { "ResetLink", resetPasswordUrl }
+                {
+                    _notificationConfig.VerificationEmailPlaceholders.FirstName,
+                    firstName
+                },
+                {
+                    _notificationConfig.VerificationEmailPlaceholders.VerificationToken,
+                    token
+                }
             };
 
-            String message = await _emailService.GetEmailTemplateAsync(EmailType.Reset_Password, parameters);
+            NotificationEvent sendEmailEvent = new NotificationEvent()
+            {
+                UserId = user.Id,
+                Type = NotificationType.Email,
+                TitleMappings = titleMappings,
+                ContentMappings = contentMappings,
+                TeplateId = _notificationConfig.ResetPasswordEmailPlaceholders.TemplateId
+            };
 
-            // Αποστολή reset password email
-            await _emailService.SendEmailAsync(email, subject, message);
+            await _notificationApiClient.NotificationEvent(sendEmailEvent);
+
+            // Store the new token in cache
+            _memoryCache.Set(token, email, TimeSpan.FromMinutes(_cacheConfig.TokensCacheTime));
         }
 
         public async Task<String> VerifyResetPasswordToken(String token)

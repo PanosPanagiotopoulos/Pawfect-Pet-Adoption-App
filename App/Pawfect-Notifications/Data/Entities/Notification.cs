@@ -24,6 +24,8 @@
         public String Title { get; set; }
         [BsonIgnoreIfNull]
         public String Content { get; set; }
+
+        [BsonGuidRepresentation(GuidRepresentation.Standard)]
         public Guid TeplateId { get; set; }
         public Dictionary<String, String> TitleMappings { get; set; }
         public Dictionary<String, String> ContentMappings { get; set; }

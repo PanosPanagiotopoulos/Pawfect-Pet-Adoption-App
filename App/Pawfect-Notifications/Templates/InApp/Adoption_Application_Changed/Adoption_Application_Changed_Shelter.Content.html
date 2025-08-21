@@ -1,0 +1,64 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Updated - Shelter Notification</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">
+    <!-- Clickable Content Section -->
+    <a href="http://localhost:4200/adopt/edit/{ApplicationId}" style="text-decoration: none; display: block; cursor: pointer;">
+        <div style="max-width: 400px; margin: 0 auto; background: linear-gradient(135deg, #f0efff 0%, #f5f0ff 100%); border-radius: 8px; padding: 16px; font-size: 14px; color: #333; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+            <!-- Status Indicator -->
+            <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 6px;">
+                <span style="font-size: 16px;">📝</span>
+                <span style="font-size: 13px; color: #666; font-weight: 500;">Application Updated</span>
+            </div>
+
+            <!-- Main Content -->
+            <p style="margin: 0 0 12px; line-height: 1.4; color: #444;">
+                <span style="color: #4F46E5; font-weight: 600;">{UserFullName}</span> has updated their adoption application for
+                <span style="background: linear-gradient(90deg, #4F46E5, #7C3AED); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 700; font-size: 15px;">{AnimalName}</span>.
+            </p>
+
+            <!-- Update Info Box -->
+            <div style="background: rgba(79, 70, 229, 0.1); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 14px;">⏰</span>
+                    <span style="font-size: 13px; color: #4F46E5; font-weight: 600;">
+                        Requires your review
+                    </span>
+                </div>
+            </div>
+
+            <!-- Action Area -->
+            <div style="padding-top: 12px; border-top: 1px solid rgba(79, 70, 229, 0.15);">
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 12px; color: #4F46E5; font-weight: 500;">
+                        Tap to review updated application →
+                    </span>
+                </div>
+            </div>
+        </div>
+    </a>
+    <style>
+        @media (max-width: 480px) {
+            div {
+                margin: 0 10px;
+                max-width: none;
+            }
+        }
+        /* Hover effects for clickable notification */
+        a:hover div {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
+        }
+        /* Focus styles for accessibility */
+        a:focus {
+            outline: 2px solid #4F46E5;
+            outline-offset: 2px;
+            border-radius: 8px;
+        }
+    </style>
+</body>
+</html>

@@ -22,6 +22,7 @@ using Pawfect_Notifications.Services.AuthenticationServices;
 using Pawfect_Notifications.Services.FilterServices.Extensions;
 using Pawfect_Notifications.Data.Entities.Types.Authorization;
 using Pawfect_Notifications.BackgroundTasks.Extentions;
+using Pawfect_Notifications.Attributes;
 
 public class Program
 {
@@ -138,6 +139,7 @@ public class Program
 
         // Services
         builder.Services
+         .AddScoped<InternalApiAttribute>()
          .AddQueryAndBuilderServices()
          .AddValidationServices()
          .AddAuthenticationServices(builder.Configuration.GetSection("Authentication"), builder.Configuration.GetSection("PermissionConfig"))

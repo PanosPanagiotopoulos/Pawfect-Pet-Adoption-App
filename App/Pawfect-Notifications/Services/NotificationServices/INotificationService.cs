@@ -5,7 +5,8 @@ namespace Pawfect_Notifications.Services.NotificationServices
 {
 	public interface INotificationService
 	{
-		Task<Notification?> Persist(NotificationEvent persist, List<String> fields);
+		Task HandleEvent(NotificationEvent @event);
+        Task HandleEvents(List<NotificationEvent> events);
 		Task Delete(String id);
 		Task Delete(List<String> ids);
 

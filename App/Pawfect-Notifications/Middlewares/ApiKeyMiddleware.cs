@@ -11,6 +11,7 @@ namespace Pawfect_Notifications.Middlewares
         private readonly ApiKeyConfig _config;
 
         private const String ApiKeyHeaderName = "ApiKey";
+        private const String ExcludedPath = "/api/notifications/persist/batch";
 
         public ApiKeyMiddleware
         (
@@ -24,6 +25,12 @@ namespace Pawfect_Notifications.Middlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
+            if (context.Request.Path.StartsWithSegments(ExcludedPath, StringComparison.OrdinalIgnoreCase))
+            {
+                await _next(context);
+                return;
+            }
+
             // Only check API key for routes starting with /api
             if (context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
             {

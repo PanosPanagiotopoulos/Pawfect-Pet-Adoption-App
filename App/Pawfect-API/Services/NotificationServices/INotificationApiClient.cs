@@ -6,5 +6,6 @@ namespace Pawfect_API.Services.NotificationServices
 	public interface INotificationApiClient
 	{
 		Task NotificationEvent(NotificationEvent notificationEvent);
-	}
+        Task NotificationEvent(List<NotificationEvent> notificationEvents);
+    }
 }

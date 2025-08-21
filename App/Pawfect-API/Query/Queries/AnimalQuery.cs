@@ -910,8 +910,8 @@ namespace Pawfect_API.Query.Queries
 
         #region Combine Results
         private List<Data.Entities.Animal> CombineSearchResults(
-             List<AnimalSearchResult> vectorResults,
-             List<AnimalSearchResult> semanticResults)
+            List<AnimalSearchResult> vectorResults,
+            List<AnimalSearchResult> semanticResults)
         {
             if (!vectorResults.Any() && !semanticResults.Any())
             {
@@ -939,32 +939,30 @@ namespace Pawfect_API.Query.Queries
             List<Data.Entities.Animal> finalResults = new List<Data.Entities.Animal>();
             HashSet<String> processedIds = new HashSet<String>();
 
+            // Find animals that appear in both results (dual results)
             List<AnimalSearchResult> dualResults = new List<AnimalSearchResult>();
             Dictionary<String, AnimalSearchResult> semanticMap = semanticResults.ToDictionary(x => x.Animal.Id, x => x);
 
             foreach (AnimalSearchResult vectorResult in vectorResults)
             {
                 String id = vectorResult.Animal.Id;
-
                 if (semanticMap.TryGetValue(id, out AnimalSearchResult semanticResult))
                 {
-                    Double combinedScore = (vectorResult.VectorScore + semanticResult.SemanticScore) / 2.0; 
-
+                    Double combinedScore = (vectorResult.VectorScore + semanticResult.SemanticScore) / 2.0;
                     dualResults.Add(new AnimalSearchResult
                     {
-                        Animal = vectorResult.Animal, 
+                        Animal = vectorResult.Animal,
                         VectorScore = vectorResult.VectorScore,
                         SemanticScore = semanticResult.SemanticScore,
                         CombinedScore = combinedScore,
                         VectorRank = vectorResult.VectorRank,
                         SemanticRank = semanticResult.SemanticRank
                     });
-
                     processedIds.Add(id);
                 }
             }
 
-            // Add dual results first, ordered by combined score
+            // Add dual results first (these count toward both vector and semantic quotas)
             List<AnimalSearchResult> sortedDualResults = dualResults
                 .OrderByDescending(x => x.CombinedScore)
                 .ToList();
@@ -975,27 +973,62 @@ namespace Pawfect_API.Query.Queries
                 finalResults.Add(result.Animal);
             }
 
-            List<AnimalSearchResult> remainingSemanticResults = semanticResults
-                .Where(x => !processedIds.Contains(x.Animal.Id))
-                .OrderByDescending(x => x.SemanticScore)
-                .ToList();
+            // Calculate 50-50 distribution for remaining slots
+            Int32 remainingSlots = this.PageSize - finalResults.Count;
+            Int32 vectorQuota = remainingSlots / 2;
+            Int32 semanticQuota = remainingSlots - vectorQuota; 
 
-            foreach (AnimalSearchResult result in remainingSemanticResults)
-            {
-                if (finalResults.Count >= this.PageSize) break;
-                finalResults.Add(result.Animal);
-                processedIds.Add(result.Animal.Id);
-            }
-
+            // Add remaining vector-only results (50% of remaining slots)
             List<AnimalSearchResult> remainingVectorResults = vectorResults
                 .Where(x => !processedIds.Contains(x.Animal.Id))
                 .OrderByDescending(x => x.VectorScore)
                 .ToList();
 
+            Int32 vectorAdded = 0;
             foreach (AnimalSearchResult result in remainingVectorResults)
             {
-                if (finalResults.Count >= this.PageSize) break;
+                if (vectorAdded >= vectorQuota || finalResults.Count >= this.PageSize) break;
                 finalResults.Add(result.Animal);
+                processedIds.Add(result.Animal.Id);
+                vectorAdded++;
+            }
+
+            // Add remaining semantic-only results (50% of remaining slots)
+            List<AnimalSearchResult> remainingSemanticResults = semanticResults
+                .Where(x => !processedIds.Contains(x.Animal.Id))
+                .OrderByDescending(x => x.SemanticScore)
+                .ToList();
+
+            Int32 semanticAdded = 0;
+            foreach (AnimalSearchResult result in remainingSemanticResults)
+            {
+                if (semanticAdded >= semanticQuota || finalResults.Count >= this.PageSize) break;
+                finalResults.Add(result.Animal);
+                processedIds.Add(result.Animal.Id);
+                semanticAdded++;
+            }
+
+            // Fill any remaining slots if one type has more results available
+            // First try to fill with remaining vector results
+            foreach (AnimalSearchResult result in remainingVectorResults.Skip(vectorAdded))
+            {
+                if (finalResults.Count >= this.PageSize) break;
+                if (!processedIds.Contains(result.Animal.Id))
+                {
+                    finalResults.Add(result.Animal);
+                    processedIds.Add(result.Animal.Id);
+                }
+            }
+
+            // Then try to fill with remaining semantic results
+            foreach (AnimalSearchResult result in remainingSemanticResults.Skip(semanticAdded))
+            {
+                if (finalResults.Count >= this.PageSize) break;
+                if (!processedIds.Contains(result.Animal.Id))
+                {
+                    finalResults.Add(result.Animal);
+                    processedIds.Add(result.Animal.Id);
+                }
             }
 
             return finalResults;

@@ -46,7 +46,7 @@ namespace Pawfect_Notifications.Attributes
 
             // Validate timestamp (prevent replay attacks)
             if (!DateTime.TryParse(timestamp, out DateTime requestTime) ||
-                Math.Abs((DateTime.UtcNow - requestTime).TotalMinutes) > 5)
+                Math.Abs((DateTime.UtcNow - requestTime).TotalMinutes) > 2)
             {
                 _logger.LogWarning("Invalid or expired timestamp from service '{ServiceName}'", serviceName);
                 context.Result = new UnauthorizedResult();

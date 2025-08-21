@@ -2,25 +2,38 @@
   "Notifications": {
     "SharedSecret": "%{SharedNotificationApiSecret}%",
     "FromServiceName": "Pawfect-API",
-    "NotificationEventUrl": "http:localhost:7201/api/notifications/persist",
+    "NotificationEventUrl": "http://localhost:7201/api/notifications/persist/batch",
 
     "VerificationEmailPlaceholders": {
+      "TemplateId": "4E84F930-A93A-470F-9CFA-58AD31240DCF",
       "FirstName": "{FirstName}",
       "VerificationToken": "{VerificationToken}"
     },
     "ResetPasswordEmailPlaceholders": {
+      "TemplateId": "529FADA1-9C2F-4F3B-A870-7337D2D154F4",
       "FirstName": "{FirstName}",
       "ResetToken": "{ResetToken}"
     },
     "OtpPasswordPlaceholders": {
+      "TemplateId": "321BEF42-3FA6-402B-8D28-4F1435273DD7",
       "OtpPassword": "{otp-password}"
     },
-    "AdoptionApplicationChanged": {
+    "AdoptionApplicationChangedUserPlaceholders": {
+      "TemplateId": "60816EB1-B8B6-446C-A7AE-9EB27EDCD6F6",
       "AnimalName": "{AnimalName}",
+      "UserFirstName": "{UserFirstName}",
+      "ShelterName": "{ShelterName}",
       "ApplicationStatus": "{ApplicationStatus}",
       "ApplicationId": "{ApplicationId}"
     },
-    "AdoptionApplicationReceived": {
+    "AdoptionApplicationChangedShelterPlaceholders": {
+      "TemplateId": "912BC173-1342-4568-9D64-E26850AF47ED",
+      "AnimalName": "{AnimalName}",
+      "ApplicationId": "{ApplicationId}",
+      "UserFullName": "{UserFullName}"
+    },
+    "AdoptionApplicationReceivedPlaceholders": {
+      "TemplateId": "53CA00F9-F819-425A-A7DE-FE5153C2E743",
       "AnimalName": "{AnimalName}",
       "UserName": "{UserName}",
       "ApplicationId": "{ApplicationId}"

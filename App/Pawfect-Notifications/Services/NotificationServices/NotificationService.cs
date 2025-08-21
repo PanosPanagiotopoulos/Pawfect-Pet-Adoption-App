@@ -1,15 +1,9 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Options;
-using Pawfect_Notifications.Builders;
-using Pawfect_Notifications.Censors;
+﻿using Microsoft.Extensions.Options;
 using Pawfect_Notifications.Data.Entities.Types.Authorization;
 using Pawfect_Notifications.Exceptions;
-using Pawfect_Notifications.Models.Lookups;
 using Pawfect_Notifications.Models.Notification;
-using Pawfect_Notifications.Query;
 using Pawfect_Notifications.Repositories.Interfaces;
 using Pawfect_Notifications.Services.AuthenticationServices;
-using Pawfect_Notifications.Services.Convention;
 using Pawfect_Notifications.Data.Entities.EnumTypes;
 using Pawfect_Notifications.Data.Entities.Types.Notifications;
 
@@ -17,74 +11,56 @@ namespace Pawfect_Notifications.Services.NotificationServices
 {
 	public class NotificationService : INotificationService
 	{
-        private readonly IQueryFactory _queryFactory;
-        private readonly IBuilderFactory _builderFactory;
+        private readonly ILogger<NotificationService> _logger;
         private readonly INotificationRepository _notificationRepository;
-        private readonly ICensorFactory _censorFactory;
         private readonly IAuthorizationService _authorizationService;
-        private readonly IConventionService _conventionService;
         private readonly NotificationConfig _config;
 
         public NotificationService
-		(
-			IQueryFactory queryFactory,
-            IBuilderFactory builderFactory,
+        (
+            ILogger<NotificationService> logger,
             INotificationRepository notificationRepository,
-			ICensorFactory censorFactory,
 			IAuthorizationService authorizationService,
-            IConventionService conventionService,
 			IOptions<NotificationConfig> options
 		)
 		{
-            _queryFactory = queryFactory;
-            _builderFactory = builderFactory;
+            _logger = logger;
             _notificationRepository = notificationRepository;
-            _censorFactory = censorFactory;
             _authorizationService = authorizationService;
-            _conventionService = conventionService;
             _config = options.Value;
         }
 
-		public async Task<Models.Notification.Notification> Persist(NotificationEvent persist, List<String> fields)
-		{
-            Data.Entities.Notification data = new Data.Entities.Notification()
-			{
-				Id = null,
-				UserId = persist.UserId,
-				Type = persist.Type,
-				Status = NotificationStatus.Pending,
-				Title = null,
-				Content = null,
-                TitleMappings = persist.TitleMappings,
-                ContentMappings = persist.ContentMappings,
-				TeplateId = persist.TeplateId.Value,
-				IsRead = false,
-				RetryCount = 0,
-				MaxRetries = _config.MaxRetries,
-				ProcessedAt = null,
-				CreatedAt = DateTime.UtcNow,
-			};
+        public async Task HandleEvent(NotificationEvent @event) => await this.HandleEvents([@event]);
+
+        public async Task HandleEvents(List<NotificationEvent> events)
+        {
+            if (events == null || !events.Any()) throw new ArgumentException("Events list cannot be null or empty");
+
+            List<Data.Entities.Notification> handledNotifications = events.Select(@event => new Data.Entities.Notification()
+            {
+                Id = null,
+                UserId = @event.UserId,
+                Type = @event.Type,
+                Status = NotificationStatus.Pending,
+                Title = null,
+                Content = null,
+                TitleMappings = @event.TitleMappings,
+                ContentMappings = @event.ContentMappings,
+                TeplateId = @event.TeplateId.Value,
+                IsRead = false,
+                RetryCount = 0,
+                MaxRetries = _config.MaxRetries,
+                ProcessedAt = null,
+                CreatedAt = DateTime.UtcNow,
+            }).ToList();
 
 
-			String dataId = await _notificationRepository.AddAsync(data);
-
-			if (String.IsNullOrEmpty(dataId))
-				throw new InvalidOperationException("Failed to persist notification");
-
-			// Return dto model
-			NotificationLookup lookup = new NotificationLookup();
-			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = fields;
-			lookup.Offset = 0;
-			lookup.PageSize = 1;
-            
-
-            return (await _builderFactory.Builder<NotificationBuilder>().Authorise(AuthorizationFlags.OwnerOrPermission)
-					.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermission).CollectAsync(), fields))
-					.FirstOrDefault();
+            List<String> dataIds = await _notificationRepository.AddManyAsync(handledNotifications);
+            if (dataIds == null || dataIds.Count != events.Count)
+                _logger.LogError("Failed to persist all notification events. Expected {ExpectedCount}, but got {ActualCount}", events.Count, dataIds?.Count ?? 0);
         }
 
-		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+        public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 
 		public async Task Delete(List<String> ids)
 		{

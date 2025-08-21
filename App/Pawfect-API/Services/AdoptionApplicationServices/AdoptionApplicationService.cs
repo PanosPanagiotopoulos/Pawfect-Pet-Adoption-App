@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Options;
 using Pawfect_API.Builders;
 using Pawfect_API.Censors;
 using Pawfect_API.Data.Entities.EnumTypes;
@@ -7,11 +8,16 @@ using Pawfect_API.Exceptions;
 using Pawfect_API.Models.AdoptionApplication;
 using Pawfect_API.Models.File;
 using Pawfect_API.Models.Lookups;
+using Pawfect_API.Models.Notification;
 using Pawfect_API.Query;
+using Pawfect_API.Repositories.Implementations;
 using Pawfect_API.Repositories.Interfaces;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.Convention;
 using Pawfect_API.Services.FileServices;
+using Pawfect_API.Services.NotificationServices;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Pawfect_Pet_Adoption_App_API.DevTools;
 using System.Security.Claims;
 
 namespace Pawfect_API.Services.AdoptionApplicationServices
@@ -29,6 +35,11 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
         private readonly Lazy<IFileService> _fileService;
         private readonly IAuthorizationService _authorizationService;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
+        private readonly INotificationApiClient _notificationApiClient;
+        private readonly IUserRepository _userRepository;
+        private readonly IAnimalRepository _animalRepository;
+        private readonly IShelterRepository _shelterRepository;
+        private readonly NotificationApiConfig _notificationConfig;
         private readonly ClaimsExtractor _claimsExtractor;
 
         public AdoptionApplicationService(
@@ -42,7 +53,12 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             IConventionService conventionService,
             Lazy<IFileService> fileService,
             IAuthorizationService AuthorizationServce,
-            IAuthorizationContentResolver AuthorizationContentResolver,
+            IAuthorizationContentResolver authorizationContentResolver,
+            INotificationApiClient notificationApiClient,
+            IUserRepository userRepository,
+            IAnimalRepository animalRepository,
+            IOptions<NotificationApiConfig> notificationOptions, 
+            IShelterRepository shelterRepository,
             ClaimsExtractor claimsExtractor)
         {
             _logger = logger;
@@ -55,7 +71,12 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             _conventionService = conventionService;
             _fileService = fileService;
             _authorizationService = AuthorizationServce;
-            _authorizationContentResolver = AuthorizationContentResolver;
+            _authorizationContentResolver = authorizationContentResolver;
+            _notificationApiClient = notificationApiClient;
+            _userRepository = userRepository;
+            _animalRepository = animalRepository;
+            _shelterRepository = shelterRepository;
+            _notificationConfig = notificationOptions.Value;
             _claimsExtractor = claimsExtractor;
         }
         public async Task<Models.AdoptionApplication.AdoptionApplication> Persist(AdoptionApplicationPersist persist, List<String> fields)
@@ -112,9 +133,12 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             if (isUpdate) dataId = await _adoptionApplicationRepository.UpdateAsync(data);
             else dataId = await _adoptionApplicationRepository.AddAsync(data);
 
-
             if (String.IsNullOrEmpty(dataId))
                 throw new InvalidOperationException("Failed to persist Adoption Application");
+
+            data.Id = dataId;
+
+            await this.NotifyAffiated(data, data.Status != persist.Status, isUpdate);
 
             // Return dto model
             AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
@@ -205,6 +229,89 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                 persistModels,
                 new List<String>() { nameof(Models.File.File.Id) }
             );
+        }
+
+        private async Task NotifyAffiated(Data.Entities.AdoptionApplication data, Boolean statusChanged, Boolean isUpdate)
+        {
+            if (String.IsNullOrEmpty(data.Id)) throw new InvalidOperationException("No adoption application id found");
+
+            List<NotificationEvent> generatedEvents = new List<NotificationEvent>();
+
+            Data.Entities.User user = await _userRepository.FindAsync(user => user.Id == data.UserId, [nameof(Models.User.User.FullName)]);
+            String userFirstName = UserDataHelper.GetFirstNameFormatted(user.FullName);
+
+            Data.Entities.Shelter receivingShelter = await _shelterRepository.FindAsync(shelter => shelter.Id == data.ShelterId, [nameof(Data.Entities.Shelter.UserId)]);
+
+            Data.Entities.Animal referedAnimal = await _animalRepository.FindAsync(animal => animal.Id == data.AnimalId, [nameof(Data.Entities.Animal.Name)]);
+
+            Boolean changeMadeByUser = String.IsNullOrEmpty(await _authorizationContentResolver.CurrentPrincipalShelter());
+
+            if (!isUpdate)
+            {
+                // Send only adoption application received notification on shelter
+                NotificationEvent applicationReceivedEvent = new NotificationEvent()
+                {
+                    UserId = receivingShelter.UserId,
+                    TeplateId = _notificationConfig.AdoptionApplicationReceivedPlaceholders.TemplateId,
+                    Type = NotificationType.InApp,
+                    TitleMappings = new Dictionary<String, String>(),
+                    ContentMappings = new Dictionary<String, String>
+                    {
+                        { _notificationConfig.AdoptionApplicationReceivedPlaceholders.UserName, user.FullName },
+                        { _notificationConfig.AdoptionApplicationReceivedPlaceholders.ApplicationId, data.Id },
+                        { _notificationConfig.AdoptionApplicationReceivedPlaceholders.AnimalName, referedAnimal.Name },
+                    },
+                };
+
+                generatedEvents.Add(applicationReceivedEvent);
+            }
+            else
+            {
+                if (statusChanged)
+                {
+                    // Inform user that their application has been changed
+                    NotificationEvent applicationUpdatedUserEvent = new NotificationEvent()
+                    {
+                        UserId = data.UserId,
+                        TeplateId = _notificationConfig.AdoptionApplicationChangedUserPlaceholders.TemplateId,
+                        Type = NotificationType.InApp,
+                        TitleMappings = new Dictionary<String, String>(),
+                        ContentMappings = new Dictionary<String, String>
+                        {
+                            { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ShelterName, receivingShelter.ShelterName },
+                            { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ApplicationId, data.Id },
+                            { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.AnimalName, referedAnimal.Name },
+                            { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ApplicationStatus, data.Status.ToString() },
+                        },
+                    };
+
+                    generatedEvents.Add(applicationUpdatedUserEvent);
+                }
+
+                // Inform shelter that their received application has been changed
+                if (changeMadeByUser)
+                {
+                    // Inform user that their application has been changed
+                    NotificationEvent applicationUpdateShelterEvent = new NotificationEvent()
+                    {
+                        UserId = receivingShelter.UserId,
+                        TeplateId = _notificationConfig.AdoptionApplicationChangedShelterPlaceholders.TemplateId,
+                        Type = NotificationType.InApp,
+                        TitleMappings = new Dictionary<String, String>(),
+                        ContentMappings = new Dictionary<String, String>
+                        {
+                            { _notificationConfig.AdoptionApplicationChangedShelterPlaceholders.ApplicationId, data.Id },
+                            { _notificationConfig.AdoptionApplicationChangedShelterPlaceholders.AnimalName, referedAnimal.Name },
+                            { _notificationConfig.AdoptionApplicationChangedShelterPlaceholders.UserFullName, user.FullName },
+                        },
+                    };
+
+                    generatedEvents.Add(applicationUpdateShelterEvent);
+                }
+            }
+
+            // Send all these generated event notifications to the notification service
+            if (generatedEvents.Count > 0) await _notificationApiClient.NotificationEvent(generatedEvents);
         }
 
         public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }

@@ -29,14 +29,14 @@ namespace Pawfect_API.Services.UserServices
 		/// </summary>
 		/// <param name="phonenumber">Ο αριθμός τηλεφώνου του χρήστη.</param>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η δημιουργία ή αποστολή του OTP.</exception>
-		Task GenerateNewOtpAsync(String phonenumber);
+		Task SendOtpAsync(String phonenumber, String userId);
 
-		/// <summary>
-		/// Αποστολή email επιβεβαίωσης στον χρήστη.
-		/// </summary>
-		/// <param name="email">Η διεύθυνση email του χρήστη.</param>
-		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποστολή του email επιβεβαίωσης.</exception>
-		Task SendVerficationEmailAsync(String email);
+        /// <summary>
+        /// Αποστολή email επιβεβαίωσης στον χρήστη.
+        /// </summary>
+        /// <param name="email">Η διεύθυνση email του χρήστη.</param>
+        /// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η αποστολή του email επιβεβαίωσης.</exception>
+        Task SendVerficationEmailAsync(String email);
 
 		/// <summary>
 		/// Επαλήθευση email χρήστη.

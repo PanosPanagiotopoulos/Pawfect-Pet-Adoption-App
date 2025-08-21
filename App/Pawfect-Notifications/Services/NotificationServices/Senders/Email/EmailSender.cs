@@ -40,13 +40,10 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
             NotificationTemplate notificationTemplate = _templates.Templates.Find(template => template.TemplateId == notification.TeplateId);
             if (notificationTemplate == null) throw new ArgumentException("Invalid Notification Template Id");
 
-            String titleFullPath = Path.Combine(AppContext.BaseDirectory, notificationTemplate.TitlePath);
-            String contentFullPath = Path.Combine(AppContext.BaseDirectory, notificationTemplate.ContentPath);
-
             // Title on [0] , Content on [1]
             String[] templates = await Task.WhenAll(
-                System.IO.File.ReadAllTextAsync(titleFullPath),
-                System.IO.File.ReadAllTextAsync(contentFullPath)
+                System.IO.File.ReadAllTextAsync(notificationTemplate.TitlePath),
+                System.IO.File.ReadAllTextAsync(notificationTemplate.ContentPath)
             );
 
             // Replace placeholders
@@ -57,7 +54,7 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
                 templates[1] = templates[1].Replace(kv.Key, kv.Value);
 
             // Fetch users email
-            UserQuery userQuery = serviceScope.ServiceProvider.GetRequiredService<QueryFactory>().Query<UserQuery>();
+            UserQuery userQuery = serviceScope.ServiceProvider.GetRequiredService<IQueryFactory>().Query<UserQuery>();
             userQuery.Ids = [notification.UserId];
             userQuery.Fields = userQuery.FieldNamesOf([nameof(Models.User.User.Email)]);
             userQuery.Offset = 0;

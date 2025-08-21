@@ -15,6 +15,7 @@ using Pawfect_Notifications.Services.AuthenticationServices;
 using System.Security.Claims;
 using Pawfect_Notifications.Services.Convention;
 using Pawfect_Notifications.Attributes;
+using Pawfect_Notifications.Data.Entities.EnumTypes;
 
 namespace Pawfect_Notifications.Controllers
 {
@@ -67,6 +68,7 @@ namespace Pawfect_Notifications.Controllers
 
             notificationLookup.UserIds = [userId];
             notificationLookup.IsRead = false;
+            notificationLookup.NotificationTypes = [NotificationType.InApp];
 
             AuthContext context = _contextBuilder.OwnedFrom(notificationLookup).Build();
             List<String> censoredFields = await _censorFactory.Censor<NotificationCensor>().Censor([.. notificationLookup.Fields], context);
@@ -90,19 +92,19 @@ namespace Pawfect_Notifications.Controllers
             });
 		}
 
-		[HttpPost("persist")]
+		[HttpPost("persist/batch")]
         [ServiceFilter(typeof(InternalApiAttribute))]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-        public async Task<IActionResult> Persist([FromBody] NotificationEvent model, [FromQuery] List<String> fields)
-		{
-			if (!ModelState.IsValid) return BadRequest(ModelState);
+        public async Task<IActionResult> Persist([FromBody] List<NotificationEvent> models)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            fields = BaseCensor.PrepareFieldsList(fields);
+            if (models == null || !models.Any()) return BadRequest("At least one notification event is required");
 
-            Notification notification = await _notificationService.Persist(model, fields);
+            await _notificationService.HandleEvents(models);
 
-			return Ok(notification);
-		}
+            return Ok();
+        }
 
         [HttpPost("delete/{id}")]
         [Authorize]

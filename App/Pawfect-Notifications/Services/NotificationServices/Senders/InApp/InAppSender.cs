@@ -24,13 +24,10 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.InApp
             NotificationTemplate notificationTemplate = _templates.Templates.Find(template => template.TemplateId == notification.TeplateId);
             if (notificationTemplate == null) throw new ArgumentException("Invalid Notification Template Id");
 
-            String titleFullPath = Path.Combine(AppContext.BaseDirectory, notificationTemplate.TitlePath);
-            String contentFullPath = Path.Combine(AppContext.BaseDirectory, notificationTemplate.ContentPath);
-
             // Title on [0] , Content on [1]
             String[] templates = await Task.WhenAll(
-                System.IO.File.ReadAllTextAsync(titleFullPath),
-                System.IO.File.ReadAllTextAsync(contentFullPath)
+                System.IO.File.ReadAllTextAsync(notificationTemplate.TitlePath),
+                System.IO.File.ReadAllTextAsync(notificationTemplate.ContentPath)
             );
 
             // Replace placeholders

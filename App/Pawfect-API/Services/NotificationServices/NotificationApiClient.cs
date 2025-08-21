@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Pawfect_API.DevTools;
 using Pawfect_API.Models.Notification;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 using System.Security.Cryptography;
@@ -20,31 +21,38 @@ namespace Pawfect_API.Services.NotificationServices
             this._config = options.Value;
             this._logger = logger;
         }
-        public async Task NotificationEvent(NotificationEvent notificationEvent)
+        public async Task NotificationEvent(NotificationEvent notificationEvent) => await this.NotificationEvent([notificationEvent]);
+        public async Task NotificationEvent(List<NotificationEvent> notificationEvents)
         {
-            String timestamp = DateTime.UtcNow.ToString("O");
+            String timestamp = DateTime.UtcNow.ToString();
 
             String signature = GenerateSignature(_config.FromServiceName, timestamp, _config.SharedSecret);
 
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, _config.NotificationEventUrl);
-
-            // Add internal API headers
-            request.Headers.Add("X-Internal-Service", _config.FromServiceName);
-            request.Headers.Add("X-Internal-Signature", signature);
-            request.Headers.Add("X-Internal-Timestamp", timestamp);
-
-            // Add content
-            request.Content = JsonContent.Create(notificationEvent);
-
-            using (HttpClient client = new HttpClient())
+            try
             {
-                HttpResponseMessage response = await client.SendAsync(request);
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, _config.NotificationEventUrl);
 
-                if (!response.IsSuccessStatusCode)
+                // Add internal API headers
+                request.Headers.Add("X-Internal-Service", _config.FromServiceName);
+                request.Headers.Add("X-Internal-Signature", signature);
+                request.Headers.Add("X-Internal-Timestamp", timestamp);
+
+                // Add content
+                request.Content = JsonContent.Create(notificationEvents);
+
+                using (HttpClient client = new HttpClient())
                 {
-                    _logger.LogError("Failed to send notification: {StatusCode} - {Content}",
-                    response.StatusCode, await response.Content.ReadAsStringAsync());
+                    using HttpResponseMessage response = await client.SendAsync(request);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogError("Failed to send notification: {StatusCode} - {Content}",
+                        response.StatusCode, await response.Content.ReadAsStringAsync());
+                    }
                 }
+            } catch (Exception ex)
+            {
+                _logger.LogError($"Failed to send notifications request with data\n{JsonHelper.SerializeObjectFormattedSafe(notificationEvents)}");
             }
         }
 
