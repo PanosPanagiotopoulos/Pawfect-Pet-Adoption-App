@@ -6,33 +6,32 @@
     <title>Notification Content</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: 'Helvetica Neue', Arial, sans-serif;">
-    <!-- Content Section Only -->
-    <div style="max-width: 400px; margin: 0 auto; background: linear-gradient(135deg, #f5f0ff 0%, #fff0f6 100%); border-radius: 8px; padding: 16px; font-size: 14px; color: #333; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1);">
+    <!-- Clickable Content Section -->
+    <a href="http://localhost:4200/adopt/edit/{ApplicationId}" style="text-decoration: none; display: block; cursor: pointer;">
+        <div style="max-width: 400px; margin: 0 auto; background: linear-gradient(135deg, #f5f0ff 0%, #fff0f6 100%); border-radius: 8px; padding: 16px; font-size: 14px; color: #333; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.1); transition: transform 0.2s ease, box-shadow 0.2s ease;">
 
-        <!-- Status Indicator -->
-        <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 6px;">
-            <span style="font-size: 16px;">🏠</span>
-            <span style="font-size: 13px; color: #666; font-weight: 500;">Application Received</span>
-        </div>
+            <!-- Status Indicator -->
+            <div style="display: flex; align-items: center; margin-bottom: 12px; gap: 6px;">
+                <span style="font-size: 16px;">🏠</span>
+                <span style="font-size: 13px; color: #666; font-weight: 500;">Application Received</span>
+            </div>
 
-        <!-- Main Content -->
-        <p style="margin: 0 0 14px; line-height: 1.4; color: #444;">
-            <strong style="color: #333; font-weight: 600;">{UserName}</strong> has submitted an adoption application for
-            <span style="background: linear-gradient(90deg, #7C3AED, #4F46E5); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 700; font-size: 15px;">{AnimalName}</span>.
-        </p>
+            <!-- Main Content -->
+            <p style="margin: 0 0 14px; line-height: 1.4; color: #444;">
+                <strong style="color: #333; font-weight: 600;">{UserName}</strong> has submitted an adoption application for
+                <span style="background: linear-gradient(90deg, #7C3AED, #4F46E5); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 700; font-size: 15px;">{AnimalName}</span>.
+            </p>
 
-        <!-- Action Area -->
-        <div style="padding-top: 12px; border-top: 1px solid rgba(124, 58, 237, 0.15);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 12px; color: #7C3AED; font-weight: 500;">
-                    Tap to review details →
-                </span>
-                <span style="font-size: 11px; color: #888; font-style: italic;">
-                    Just now
-                </span>
+            <!-- Action Area -->
+            <div style="padding-top: 12px; border-top: 1px solid rgba(124, 58, 237, 0.15);">
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 12px; color: #7C3AED; font-weight: 500;">
+                        Tap to review details →
+                    </span>
+                </div>
             </div>
         </div>
-    </div>
+    </a>
 
     <style>
         @media (max-width: 480px) {
@@ -42,10 +41,17 @@
             }
         }
 
-        /* Hover effect */
-        div:hover {
-            transform: translateY(-1px);
-            transition: transform 0.2s ease;
+        /* Hover effects for clickable notification */
+        a:hover div {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.2);
+        }
+
+        /* Focus styles for accessibility */
+        a:focus {
+            outline: 2px solid #7C3AED;
+            outline-offset: 2px;
+            border-radius: 8px;
         }
     </style>
 </body>

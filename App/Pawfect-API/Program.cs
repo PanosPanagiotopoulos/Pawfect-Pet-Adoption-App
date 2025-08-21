@@ -44,6 +44,7 @@ using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.Extentions;
 using Pawfect_API.Services.MongoServices;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
 using Pawfect_Pet_Adoption_App_API.Services.TranslationServices.Extentions;
+using Vonage.Voice.EventWebhooks;
 
 public class Program
 {
@@ -123,6 +124,7 @@ public class Program
         AddConfigurationFiles(configBuilder, configurationPaths, "api-keys", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "embedding", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "translation", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "notification", env);
 
 
         // Load environment variables
@@ -201,7 +203,7 @@ public class Program
 		.AddHttpServices()
 		.AddMessageServices()
 		.AddMongoServices()
-		.AddNotificationServices()
+		.AddNotificationServices(builder.Configuration.GetSection("Notifications"))
 		.AddReportServices()
 		.AddShelterServices()
 		.AddSmsServices(builder.Configuration.GetSection("SmsService"))

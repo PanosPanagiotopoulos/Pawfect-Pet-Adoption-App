@@ -1,0 +1,29 @@
+{
+  "Notifications": {
+    "SharedSecret": "%{SharedNotificationApiSecret}%",
+    "FromServiceName": "Pawfect-API",
+    "NotificationEventUrl": "http:localhost:7201/api/notifications/persist",
+
+    "VerificationEmailPlaceholders": {
+      "FirstName": "{FirstName}",
+      "VerificationToken": "{VerificationToken}"
+    },
+    "ResetPasswordEmailPlaceholders": {
+      "FirstName": "{FirstName}",
+      "ResetToken": "{ResetToken}"
+    },
+    "OtpPasswordPlaceholders": {
+      "OtpPassword": "{otp-password}"
+    },
+    "AdoptionApplicationChanged": {
+      "AnimalName": "{AnimalName}",
+      "ApplicationStatus": "{ApplicationStatus}",
+      "ApplicationId": "{ApplicationId}"
+    },
+    "AdoptionApplicationReceived": {
+      "AnimalName": "{AnimalName}",
+      "UserName": "{UserName}",
+      "ApplicationId": "{ApplicationId}"
+    }
+  }
+}
