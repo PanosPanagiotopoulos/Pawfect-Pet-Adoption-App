@@ -16,7 +16,7 @@ export class UserAvailabilityService {
   ) {}
 
   private get apiBase(): string {
-    return `${this.installationConfiguration.appServiceAddress}api/auth`;
+    return `${this.installationConfiguration.appServiceAddress}auth`;
   }
 
   checkAvailability(input: UserVailabilityCheck): Observable<UserAvailabilityResult> {

@@ -234,7 +234,15 @@
             "INVALID_FILE_SIZE": "Το μέγεθος της εικόνας δεν πρέπει να υπερβαίνει τα 10MB."
           },
           "SHOW_MAP": "Εμφάνιση στον Χάρτη",
-          "HIDE_MAP": "Απόκρυψη Χάρτη"
+          "HIDE_MAP": "Απόκρυψη Χάρτη",
+          "CHECKING_EMAIL": "Έλεγχος διαθεσιμότητας email...",
+          "EMAIL_AVAILABLE": "Το email είναι διαθέσιμο",
+          "EMAIL_UNAVAILABLE": "Το email χρησιμοποιείται ήδη",
+          "CHECKING_PHONE": "Έλεγχος διαθεσιμότητας τηλεφώνου...",
+          "PHONE_AVAILABLE": "Ο αριθμός τηλεφώνου είναι διαθέσιμος",
+          "PHONE_UNAVAILABLE": "Ο αριθμός τηλεφώνου χρησιμοποιείται ήδη",
+          "CHECKING_AVAILABILITY": "Έλεγχος διαθεσιμότητας...",
+          "GOOGLE_CONFLICT_DESC": "Το email και ο αριθμός τηλεφώνου σας χρησιμοποιούνται ήδη από έναν άλλο λογαριασμό. Παρακαλούμε επιλέξτε ένα διαφορετικό email και αριθμό τηλεφώνου."
         },
         "ACCOUNT_DETAILS": {
           "TITLE": "Στοιχεία Λογαριασμού",
@@ -635,7 +643,9 @@
       }
     },
     "GOOGLE_SIGNUP": {
-      "LOADING_MESSAGE": "Ανάκτηση δεδομένων από το Google..."
+      "LOADING_MESSAGE": "Ανάκτηση δεδομένων από το Google...",
+      "CHECKING_AVAILABILITY": "Έλεγχος διαθεσιμότητας...",
+      "REVERTING_PROCESS": "Ανάκτηση προηγούμενης κατάστασης..."
     },
     "PROFILE": {
       "ADOPTION_STATUS": {

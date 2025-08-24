@@ -234,7 +234,15 @@
             "INVALID_FILE_SIZE": "Image size must not exceed 10MB."
           },
           "SHOW_MAP": "Show on Map",
-          "HIDE_MAP": "Hide Map"
+          "HIDE_MAP": "Hide Map",
+          "CHECKING_EMAIL": "Checking email availability...",
+          "EMAIL_AVAILABLE": "Email is available",
+          "EMAIL_UNAVAILABLE": "Email is already taken",
+          "CHECKING_PHONE": "Checking phone availability...",
+          "PHONE_AVAILABLE": "Phone number is available",
+          "PHONE_UNAVAILABLE": "Phone number is already taken",
+          "CHECKING_AVAILABILITY": "Checking availability...",
+          "GOOGLE_CONFLICT_DESC": "Your email and phone number are already in use by another account. Please choose a different email and phone number."
         },
         "ACCOUNT_DETAILS": {
           "TITLE": "Account Details",
@@ -635,7 +643,9 @@
       }
     },
     "GOOGLE_SIGNUP": {
-      "LOADING_MESSAGE": "Fetching data from Google..."
+      "LOADING_MESSAGE": "Fetching data from Google...",
+      "CHECKING_AVAILABILITY": "Checking availability...",
+      "REVERTING_PROCESS": "Reverting process..."
     },
     "PROFILE": {
       "ADOPTION_STATUS": {

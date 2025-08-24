@@ -7,9 +7,11 @@ import {
   ElementRef,
   ViewChild,
   ChangeDetectorRef,
+  OnInit,
+  OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormInputComponent } from 'src/app/common/ui/form-input.component';
 import { PhoneInputComponent } from 'src/app/common/ui/phone-input.component';
 import { FileDropAreaComponent } from 'src/app/common/ui/file-drop-area.component';
@@ -20,11 +22,23 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
 import { FileItem } from 'src/app/models/file/file.model';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from 'src/app/common/services/translation.service';
+import { UserAvailabilityService } from 'src/app/services/user-availability.service';
+import { UserVailabilityCheck } from 'src/app/models/user-availability/user-vailability-check.model';
+import { UserAvailabilityResult } from 'src/app/models/user-availability/user-availability-result.model';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
+import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
+import { CustomValidators } from '../../validators/custom.validators';
 
 interface ValidationError {
   field: string;
   message: string;
   element?: HTMLElement;
+}
+
+interface AvailabilityStatus {
+  isChecking: boolean;
+  isAvailable?: boolean;
+  message?: string;
 }
 
 @Component({
@@ -41,7 +55,6 @@ interface ValidationError {
     ErrorMessageBannerComponent,
     TranslatePipe,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       [formGroup]="form"
@@ -52,9 +65,9 @@ interface ValidationError {
         [isLoading]="isExternalProviderLoading"
       ></app-google-signup-loading>
 
-      <!-- Google Data Banner -->
+      <!-- Google Data Banner - Only show if still in Google mode -->
       <div
-        *ngIf="hasGooglePopulatedFields()"
+        *ngIf="hasGooglePopulatedFields() && isGoogleAuthenticated()"
         class="mb-6 p-4 rounded-lg bg-primary-900/30 border border-primary-500/30 animate-fadeIn"
       >
         <div
@@ -84,43 +97,60 @@ interface ValidationError {
 
       <!-- Form Fields -->
       <div class="space-y-6">
-        <!-- Each form field is wrapped in a relative container -->
+        <!-- Full Name Field -->
         <div class="form-field-container">
           <app-form-input
             [form]="form"
             controlName="fullName"
             type="text"
             [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.FULL_NAME_PLACEHOLDER' | translate"
-            [readonly]="form.get('fullName')?.disabled"
+            [readonly]="form.get('fullName')?.disabled && isGoogleAuthenticated()"
           ></app-form-input>
-          <div *ngIf="form.get('fullName')?.disabled" class="google-hint">
-            <div
-              class="h-4 w-4 rounded-full bg-white flex items-center justify-center mr-1"
-            >
+          <!-- Only show Google hint if field is ACTUALLY disabled AND we're in Google mode -->
+          <div *ngIf="form.get('fullName')?.disabled && isGoogleAuthenticated()" class="google-hint">
+            <div class="h-4 w-4 rounded-full bg-white flex items-center justify-center mr-1">
               <span class="text-primary-600 text-xs font-bold">G</span>
             </div>
             <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
           </div>
         </div>
 
+        <!-- Email Field -->
         <div class="form-field-container">
           <app-form-input
             [form]="form"
             controlName="email"
             type="email"
             [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.EMAIL_PLACEHOLDER' | translate"
-            [readonly]="form.get('email')?.disabled"
+            [readonly]="form.get('email')?.disabled && isGoogleAuthenticated()"
           ></app-form-input>
-          <div *ngIf="form.get('email')?.disabled" class="google-hint">
-            <div
-              class="h-4 w-4 rounded-full bg-white flex items-center justify-center mr-1"
-            >
+          
+          <!-- Show Google hint ONLY if field is ACTUALLY disabled AND we're still in Google mode -->
+          <div *ngIf="form.get('email')?.disabled && isGoogleAuthenticated()" class="google-hint">
+            <div class="h-4 w-4 rounded-full bg-white flex items-center justify-center mr-1">
               <span class="text-primary-600 text-xs font-bold">G</span>
             </div>
             <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
           </div>
+          
+          <!-- Show availability status ONLY if field is NOT disabled OR we're not in Google mode -->
+          <div *ngIf="!form.get('email')?.disabled || !isGoogleAuthenticated()">
+            <div *ngIf="emailAvailability.isChecking" class="availability-status checking">
+              <div class="availability-spinner"></div>
+              <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.CHECKING_EMAIL' | translate }}</span>
+            </div>
+            <div *ngIf="!emailAvailability.isChecking && emailAvailability.isAvailable === true" class="availability-status available">
+              <ng-icon name="lucideCheck" [size]="'16'"></ng-icon>
+              <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.EMAIL_AVAILABLE' | translate }}</span>
+            </div>
+            <div *ngIf="!emailAvailability.isChecking && emailAvailability.isAvailable === false" class="availability-status unavailable">
+              <ng-icon name="lucideX" [size]="'16'"></ng-icon>
+              <span>{{ emailAvailability.message || ('APP.AUTH.SIGNUP.PERSONAL_INFO.EMAIL_UNAVAILABLE' | translate) }}</span>
+            </div>
+          </div>
         </div>
 
+        <!-- Phone Field -->
         <div class="form-field-container">
           <app-phone-input
             [form]="form"
@@ -129,15 +159,17 @@ interface ValidationError {
             [phonePlaceholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHONE_PLACEHOLDER' | translate"
             [phoneFieldLabel]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHONE_PLACEHOLDER' | translate"
             [readonly]="
-              form.get('phoneNumber')?.disabled ||
-              form.get('countryCode')?.disabled
+              (form.get('phoneNumber')?.disabled ||
+              form.get('countryCode')?.disabled) && isGoogleAuthenticated()
             "
             (phoneChange)="onPhoneChange($event)"
           ></app-phone-input>
+          
+          <!-- Show Google hint ONLY if fields are disabled AND we're still in Google mode -->
           <div
             *ngIf="
-              form.get('phoneNumber')?.disabled ||
-              form.get('countryCode')?.disabled
+              (form.get('phoneNumber')?.disabled ||
+              form.get('countryCode')?.disabled) && isGoogleAuthenticated()
             "
             class="google-hint"
           >
@@ -147,6 +179,22 @@ interface ValidationError {
               <span class="text-primary-600 text-xs font-bold">G</span>
             </div>
             <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.FROM_GOOGLE' | translate }}</span>
+          </div>
+          
+          <!-- Show availability status ONLY if fields are NOT disabled OR we're not in Google mode -->
+          <div *ngIf="(!form.get('phoneNumber')?.disabled && !form.get('countryCode')?.disabled) || !isGoogleAuthenticated()">
+            <div *ngIf="phoneAvailability.isChecking" class="availability-status checking">
+              <div class="availability-spinner"></div>
+              <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.CHECKING_PHONE' | translate }}</span>
+            </div>
+            <div *ngIf="!phoneAvailability.isChecking && phoneAvailability.isAvailable === true" class="availability-status available">
+              <ng-icon name="lucideCheck" [size]="'16'"></ng-icon>
+              <span>{{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.PHONE_AVAILABLE' | translate }}</span>
+            </div>
+            <div *ngIf="!phoneAvailability.isChecking && phoneAvailability.isAvailable === false" class="availability-status unavailable">
+              <ng-icon name="lucideX" [size]="'16'"></ng-icon>
+              <span>{{ phoneAvailability.message || ('APP.AUTH.SIGNUP.PERSONAL_INFO.PHONE_UNAVAILABLE' | translate) }}</span>
+            </div>
           </div>
         </div>
 
@@ -165,10 +213,10 @@ interface ValidationError {
                 controlName="city"
                 type="text"
                 [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.CITY_PLACEHOLDER' | translate"
-                [readonly]="getLocationForm().get('city')?.disabled"
+                [readonly]="getLocationForm().get('city')?.disabled && isGoogleAuthenticated()"
               ></app-form-input>
               <div
-                *ngIf="getLocationForm().get('city')?.disabled"
+                *ngIf="getLocationForm().get('city')?.disabled && isGoogleAuthenticated()"
                 class="google-hint"
               >
                 <div
@@ -186,10 +234,10 @@ interface ValidationError {
                 controlName="zipCode"
                 type="text"
                 [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.ZIP_PLACEHOLDER' | translate"
-                [readonly]="getLocationForm().get('zipCode')?.disabled"
+                [readonly]="getLocationForm().get('zipCode')?.disabled && isGoogleAuthenticated()"
               ></app-form-input>
               <div
-                *ngIf="getLocationForm().get('zipCode')?.disabled"
+                *ngIf="getLocationForm().get('zipCode')?.disabled && isGoogleAuthenticated()"
                 class="google-hint"
               >
                 <div
@@ -211,10 +259,10 @@ interface ValidationError {
                 controlName="address"
                 type="text"
                 [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.ADDRESS_PLACEHOLDER' | translate"
-                [readonly]="getLocationForm().get('address')?.disabled"
+                [readonly]="getLocationForm().get('address')?.disabled && isGoogleAuthenticated()"
               ></app-form-input>
               <div
-                *ngIf="getLocationForm().get('address')?.disabled"
+                *ngIf="getLocationForm().get('address')?.disabled && isGoogleAuthenticated()"
                 class="google-hint"
               >
                 <div
@@ -232,10 +280,10 @@ interface ValidationError {
                 controlName="number"
                 type="text"
                 [placeholder]="'APP.AUTH.SIGNUP.PERSONAL_INFO.ADDRESS_NUMBER' | translate"
-                [readonly]="getLocationForm().get('number')?.disabled"
+                [readonly]="getLocationForm().get('number')?.disabled && isGoogleAuthenticated()"
               ></app-form-input>
               <div
-                *ngIf="getLocationForm().get('number')?.disabled"
+                *ngIf="getLocationForm().get('number')?.disabled && isGoogleAuthenticated()"
                 class="google-hint"
               >
                 <div
@@ -322,13 +370,16 @@ interface ValidationError {
         <button
           type="button"
           (click)="onNext()"
+          [disabled]="!form.valid || hasAvailabilityErrors()"
           class="w-full sm:w-auto px-6 py-3 sm:py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg
                  hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 
-                 transform hover:-translate-y-1"
+                 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.NEXT' | translate }}
         </button>
       </div>
+      
+      <!-- Error Summary -->
       <div
         *ngIf="showErrorSummary"
         class="bg-red-500/10 border border-red-500/30 rounded-lg p-4 my-4 animate-fadeIn"
@@ -361,6 +412,26 @@ interface ValidationError {
         @apply absolute top-full left-0 flex items-center text-xs text-white mt-1 px-2 py-1 rounded-md bg-primary-900/10 border border-primary-500/20 animate-slideIn;
       }
 
+      .availability-status {
+        @apply absolute top-full left-0 flex items-center text-xs mt-1 px-2 py-1 rounded-md animate-slideIn;
+      }
+
+      .availability-status.checking {
+        @apply text-blue-400 bg-blue-900/10 border border-blue-500/20;
+      }
+
+      .availability-status.available {
+        @apply text-green-400 bg-green-900/10 border border-green-500/20;
+      }
+
+      .availability-status.unavailable {
+        @apply text-red-400 bg-red-900/10 border border-red-500/20;
+      }
+
+      .availability-spinner {
+        @apply w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-1;
+      }
+
       @keyframes slideIn {
         from {
           @apply opacity-0 -translate-y-1;
@@ -385,11 +456,12 @@ interface ValidationError {
     `,
   ],
 })
-export class PersonalInfoComponent {
+export class PersonalInfoComponent implements OnInit, OnDestroy {
   @Input() form!: FormGroup;
   @Input() isLoading = false;
   @Input() isExternalProviderLoading = false;
   @Output() next = new EventEmitter<void>();
+  @Output() googleModeDisabled = new EventEmitter<void>();
   @ViewChild('formContainer') formContainer!: ElementRef;
 
   profilePhotoPreview: string | null = null;
@@ -400,6 +472,40 @@ export class PersonalInfoComponent {
   validationErrors: ValidationError[] = [];
   showErrorSummary = false;
 
+  // Availability check properties
+  emailAvailability: AvailabilityStatus = { isChecking: false };
+  phoneAvailability: AvailabilityStatus = { isChecking: false };
+  
+  private destroy$ = new Subject<void>();
+  private emailSubject = new Subject<string>();
+  private phoneSubject = new Subject<string>();
+  private lastEmailValue: string | null = null;
+  private lastPhoneValue: string | null = null;
+
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private translationService: TranslationService,
+    private userAvailabilityService: UserAvailabilityService
+  ) {}
+
+  ngOnInit(): void {
+    debugger;
+    // Initialize last values
+    this.lastEmailValue = this.form.get('email')?.value || null;
+    this.lastPhoneValue = this.form.get('phoneNumber')?.value || null;
+    
+    this.setupAvailabilityChecks();
+    this.checkGoogleDataAvailability();
+    
+    // Check initial values for availability
+    this.checkInitialValuesAvailability();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   hasUnsavedChanges(): boolean {
     const mainDirty = !!this.form && this.form.dirty;
     const locationForm = this.getLocationForm();
@@ -408,10 +514,12 @@ export class PersonalInfoComponent {
     return mainDirty || locationDirty || photoDirty;
   }
 
-  constructor(
-    private cdr: ChangeDetectorRef,
-    private translationService: TranslationService
-  ) {}
+  hasAvailabilityErrors(): boolean {
+    return (
+      (this.emailAvailability.isAvailable === false && !this.form.get('email')?.disabled) ||
+      (this.phoneAvailability.isAvailable === false && !this.form.get('phoneNumber')?.disabled)
+    );
+  }
 
   getLocationForm(): FormGroup {
     return this.form.get('location') as FormGroup;
@@ -421,7 +529,7 @@ export class PersonalInfoComponent {
     this.validationErrors = [];
     this.showErrorSummary = false;
 
-    if (this.form.valid) {
+    if (this.form.valid && !this.hasAvailabilityErrors()) {
       this.next.emit();
     } else {
       this.markFormGroupTouched(this.form);
@@ -433,7 +541,28 @@ export class PersonalInfoComponent {
   }
 
   onPhoneChange(phone: string): void {
-    // Handle phone number change if needed
+    // Trigger phone availability check when phone changes
+    if (!this.form.get('phoneNumber')?.disabled) {
+      // Only trigger if the value actually changed
+      if (phone !== this.lastPhoneValue) {
+        this.lastPhoneValue = phone;
+        this.phoneAvailability = { isChecking: false }; // Reset status first
+        
+        if (phone && phone.trim().length > 0) {
+          const countryCode = this.form.get('countryCode')?.value || '+30';
+          const fullPhone = `${countryCode}${phone.replace(/\s+/g, '')}`; // Remove spaces
+          
+          // Only check if it's a valid phone format
+          if (this.isValidPhoneForAvailabilityCheck(fullPhone)) {
+            this.phoneSubject.next(fullPhone);
+          }
+        } else {
+          // Reset availability status if phone is empty
+          this.phoneAvailability = { isChecking: false };
+          this.cdr.markForCheck();
+        }
+      }
+    }
   }
 
   onProfilePhotoChange(files: FileItem[]): void {
@@ -494,6 +623,16 @@ export class PersonalInfoComponent {
     this.photoUploadError = null;
     this.form.patchValue({ profilePhoto: null });
     this.cdr.markForCheck();
+  }
+
+  isGoogleAuthenticated(): boolean {
+    const authProvider = this.form.get('authProvider')?.value;
+    const isGoogleProvider = authProvider === AuthProvider.Google;
+    
+    // Also check if we still have Google-populated fields as a backup
+    const hasGoogleFields = this.hasGooglePopulatedFields();
+    
+    return isGoogleProvider;
   }
 
   private createImagePreview(file: File): void {
@@ -701,6 +840,343 @@ export class PersonalInfoComponent {
         if (firstError.element) {
           this.scrollToErrorField(firstError);
         }
+      }
+    }
+  }
+
+  private setupAvailabilityChecks(): void {
+    // Setup email availability check with debounce
+    this.emailSubject
+      .pipe(
+        debounceTime(800),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((email) => {
+        if (email && this.isValidEmail(email)) {
+          this.checkEmailAvailability(email);
+        } else {
+          // Reset availability status if email is invalid or empty
+          this.emailAvailability = { isChecking: false };
+          this.cdr.markForCheck();
+        }
+      });
+
+    // Setup phone availability check with debounce
+    this.phoneSubject
+      .pipe(
+        debounceTime(800),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe((phone) => {
+        if (phone && this.isValidPhoneForAvailabilityCheck(phone)) {
+          this.checkPhoneAvailability(phone);
+        } else {
+          // Reset availability status if phone is invalid or empty
+          this.phoneAvailability = { isChecking: false };
+          this.cdr.markForCheck();
+        }
+      });
+
+    // Listen to email changes
+    this.form.get('email')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((email) => {
+        if (!this.form.get('email')?.disabled) {
+          if (email !== this.lastEmailValue) {
+            this.lastEmailValue = email;
+            this.emailAvailability = { isChecking: false };
+            if (email && email.trim().length > 0) {
+              this.emailSubject.next(email.trim());
+            }
+          }
+        }
+        this.cdr.markForCheck();
+      });
+
+    // Listen to phone number changes
+    this.form.get('phoneNumber')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((phoneNumber) => {
+        if (!this.form.get('phoneNumber')?.disabled) {
+          if (phoneNumber !== this.lastPhoneValue) {
+            this.lastPhoneValue = phoneNumber;
+            this.phoneAvailability = { isChecking: false };
+            
+            if (phoneNumber && phoneNumber.trim().length > 0) {
+              const countryCode = this.form.get('countryCode')?.value || '+30';
+              const fullPhone = `${countryCode}${phoneNumber.replace(/\s+/g, '')}`;
+              
+              if (this.isValidPhoneForAvailabilityCheck(fullPhone)) {
+                this.phoneSubject.next(fullPhone);
+              }
+            }
+          }
+        }
+        this.cdr.markForCheck();
+      });
+
+    // Listen to country code changes
+    this.form.get('countryCode')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((countryCode) => {
+        const phoneNumber = this.form.get('phoneNumber')?.value;
+        if (phoneNumber && countryCode && !this.form.get('phoneNumber')?.disabled) {
+          const fullPhone = `${countryCode}${phoneNumber.replace(/\s+/g, '')}`;
+          
+          if (this.isValidPhoneForAvailabilityCheck(fullPhone)) {
+            // Reset last phone value to trigger new check
+            this.lastPhoneValue = phoneNumber;
+            this.phoneAvailability = { isChecking: false };
+            this.phoneSubject.next(fullPhone);
+          }
+        }
+      });
+  }
+
+  private checkGoogleDataAvailability(): void {
+    if (this.isGoogleAuthenticated() && this.hasGooglePopulatedFields()) {
+      const email = this.form.get('email')?.value;
+      const phoneNumber = this.form.get('phoneNumber')?.value;
+      const countryCode = this.form.get('countryCode')?.value;
+
+      const checkData: UserVailabilityCheck = {};
+      
+      if (email) {
+        checkData.email = email.trim();
+      }
+      
+      if (phoneNumber && countryCode) {
+        // Format phone consistently
+        checkData.phone = `${countryCode}${phoneNumber.replace(/\s+/g, '')}`;
+      }
+
+      if (checkData.email || checkData.phone) {
+        // Show loading state while checking Google data
+        this.emailAvailability = checkData.email ? { isChecking: true } : { isChecking: false };
+        this.phoneAvailability = checkData.phone ? { isChecking: true } : { isChecking: false };
+        this.cdr.markForCheck();
+
+        this.userAvailabilityService.checkAvailability(checkData).subscribe({
+          next: (result: UserAvailabilityResult) => {
+            let shouldDisableGoogleMode = false;
+
+            // Update availability status for email
+            if (checkData.email) {
+              this.emailAvailability = {
+                isChecking: false,
+                isAvailable: result.isEmailAvailable,
+                message: result.emailMessage
+              };
+              if (result.isEmailAvailable === false) {
+                shouldDisableGoogleMode = true;
+              }
+            }
+
+            // Update availability status for phone
+            if (checkData.phone) {
+              this.phoneAvailability = {
+                isChecking: false,
+                isAvailable: result.isPhoneAvailable,
+                message: result.phoneMessage
+              };
+              if (result.isPhoneAvailable === false) {
+                shouldDisableGoogleMode = true;
+              }
+            }
+
+            if (shouldDisableGoogleMode) {
+              this.revertGoogleSignupProcess();
+            }
+
+            this.cdr.markForCheck();
+          },
+          error: (error) => {
+            console.error('Error checking Google data availability:', error);
+            
+            // On error, revert Google signup process to prevent issues
+            this.revertGoogleSignupProcess();
+            
+            this.cdr.markForCheck();
+          }
+        });
+      }
+    }
+  }
+
+  private revertGoogleSignupProcess(): void {
+    // Store current values before clearing
+    const currentValues = {
+      fullName: this.form.get('fullName')?.value || '',
+      email: this.form.get('email')?.value || '',
+      phoneNumber: this.form.get('phoneNumber')?.value || '',
+      countryCode: this.form.get('countryCode')?.value || '+30',
+      city: this.getLocationForm().get('city')?.value || '',
+      zipCode: this.getLocationForm().get('zipCode')?.value || '',
+      address: this.getLocationForm().get('address')?.value || '',
+      number: this.getLocationForm().get('number')?.value || ''
+    };
+
+    // Reset auth provider to local FIRST
+    this.form.get('authProvider')?.setValue(AuthProvider.Local);
+    this.form.get('authProviderId')?.setValue(null);
+
+    // Enable all form controls BEFORE clearing values
+    this.form.get('email')?.enable();
+    this.form.get('fullName')?.enable();
+    this.form.get('phoneNumber')?.enable();
+    this.form.get('countryCode')?.enable();
+
+    const locationForm = this.getLocationForm();
+    locationForm.get('city')?.enable();
+    locationForm.get('zipCode')?.enable();
+    locationForm.get('address')?.enable();
+    locationForm.get('number')?.enable();
+
+    // Enable password fields in parent form
+    this.form.get('password')?.enable();
+    this.form.get('confirmPassword')?.enable();
+
+    // Force change detection to update UI immediately
+    this.cdr.detectChanges();
+
+    // Clear values to trigger change detection
+    this.form.patchValue({
+      fullName: '',
+      email: '',
+      phoneNumber: '',
+      countryCode: '+30'
+    });
+
+    locationForm.patchValue({
+      city: '',
+      zipCode: '',
+      address: '',
+      number: ''
+    });
+
+    // Force another change detection cycle
+    this.cdr.detectChanges();
+
+    // Use setTimeout to ensure DOM updates are complete
+    setTimeout(() => {
+      // Now set the actual values
+      this.form.patchValue({
+        fullName: currentValues.fullName,
+        email: currentValues.email,
+        phoneNumber: currentValues.phoneNumber,
+        countryCode: currentValues.countryCode
+      });
+
+      locationForm.patchValue({
+        city: currentValues.city,
+        zipCode: currentValues.zipCode,
+        address: currentValues.address,
+        number: currentValues.number
+      });
+
+      // Reset availability status completely
+      this.emailAvailability = { isChecking: false };
+      this.phoneAvailability = { isChecking: false };
+      
+      // Reset tracking variables to force new checks
+      this.lastEmailValue = null;
+      this.lastPhoneValue = null;
+
+      // Mark form as dirty since we've made changes
+      this.form.markAsDirty();
+      locationForm.markAsDirty();
+
+      // Final change detection
+      this.cdr.markForCheck();
+
+      // Emit event to parent component
+      this.googleModeDisabled.emit();
+    }, 150);
+  }
+
+  private checkEmailAvailability(email: string): void {
+    // Don't check if we're in Google mode and field is disabled
+    if (this.isGoogleAuthenticated() && this.form.get('email')?.disabled) {
+      return;
+    }
+
+    this.emailAvailability = { isChecking: true };
+    this.cdr.markForCheck();
+
+    this.userAvailabilityService.checkAvailability({ email }).subscribe({
+      next: (result: UserAvailabilityResult) => {
+        this.emailAvailability = {
+          isChecking: false,
+          isAvailable: result.isEmailAvailable,
+          message: result.emailMessage
+        };
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.emailAvailability = { isChecking: false };
+        console.error('Error checking email availability:', error);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private checkPhoneAvailability(phone: string): void {
+    // Don't check if we're in Google mode and field is disabled
+    if (this.isGoogleAuthenticated() && this.form.get('phoneNumber')?.disabled) {
+      return;
+    }
+
+    this.phoneAvailability = { isChecking: true };
+    this.cdr.markForCheck();
+
+    this.userAvailabilityService.checkAvailability({ phone }).subscribe({
+      next: (result: UserAvailabilityResult) => {
+        this.phoneAvailability = {
+          isChecking: false,
+          isAvailable: result.isPhoneAvailable,
+          message: result.phoneMessage
+        };
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.phoneAvailability = { isChecking: false };
+        console.error('Error checking phone availability:', error);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private isValidPhoneForAvailabilityCheck(phone: string): boolean {
+    // Remove any spaces and check if it's a valid international phone format
+    const cleanPhone = phone.replace(/\s+/g, '');
+    // Should start with + followed by country code (1-4 digits) and then at least 8 more digits
+    const phoneRegex = /^\+\d{1,4}\d{8,15}$/;
+    return phoneRegex.test(cleanPhone);
+  }
+
+  private isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  private checkInitialValuesAvailability(): void {
+    // Check initial email value
+    const initialEmail = this.form.get('email')?.value;
+    if (initialEmail && !this.form.get('email')?.disabled && this.isValidEmail(initialEmail)) {
+      this.lastEmailValue = initialEmail;
+      this.emailSubject.next(initialEmail.trim());
+    }
+
+    // Check initial phone value
+    const initialPhone = this.form.get('phoneNumber')?.value;
+    const initialCountryCode = this.form.get('countryCode')?.value;
+    if (initialPhone && initialCountryCode && !this.form.get('phoneNumber')?.disabled) {
+      const fullPhone = `${initialCountryCode}${initialPhone.replace(/\s+/g, '')}`;
+      if (this.isValidPhoneForAvailabilityCheck(fullPhone)) {
+        this.lastPhoneValue = initialPhone;
+        this.phoneSubject.next(fullPhone);
       }
     }
   }

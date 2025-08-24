@@ -88,7 +88,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
 
             try
             {
-                Boolean isAvailable = await _userRepository.ExistsAsync(user => user.Email.Equals(email));
+                Boolean isAvailable = !await _userRepository.ExistsAsync(user => user.Email.Equals(email));
                 result.IsEmailAvailable = isAvailable;
 
                 if (!isAvailable)
@@ -116,7 +116,7 @@ namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
             String cacheKey = $"phone_available_{phone}";
             try
             {
-                Boolean isAvailable = await _userRepository.ExistsAsync(user => user.Phone.Equals(phone));
+                Boolean isAvailable = !await _userRepository.ExistsAsync(user => user.Phone.Equals(phone));
                 result.IsPhoneAvailable = isAvailable;
 
                 if (!isAvailable)

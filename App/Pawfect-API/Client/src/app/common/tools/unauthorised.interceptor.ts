@@ -18,9 +18,17 @@ import { SecureStorageService } from '../services/secure-storage.service';
 })
 export class UnauthorizedInterceptor implements HttpInterceptor {
   private readonly excludedRoutes = [
+    '/',
+    '/home',
+    '/404',
+    '',
     '/auth/login',
     '/auth/sign-up',
     '/auth/google/callback',
+    '/auth/google/callback-page',
+    '/auth/verified',
+    '/auth/reset-password-request',
+    '/auth/reset-password',
   ];
   private readonly LANG_STORAGE_KEY = 'pawfect-language';
 
@@ -50,7 +58,6 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
       catchError((error: HttpErrorResponse) => {
         const failedRequestUrl = request.url.split('?')[0];
         const currentRoute = window.location.pathname;
-        
         // Handle 403 Forbidden errors - redirect to unauthorized page
         if (error.status === 403 && !this.excludedRoutes.includes(currentRoute)) {
           const attemptedUrl = window.location.pathname + window.location.search + window.location.hash;

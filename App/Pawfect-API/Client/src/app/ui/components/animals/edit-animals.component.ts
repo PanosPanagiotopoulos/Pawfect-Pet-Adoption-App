@@ -338,9 +338,6 @@ export class EditAnimalsComponent
       adoptionStatus: animal.adoptionStatus || AdoptionStatus.Available,
     };
 
-    console.log('Populating form with data:', formData);
-    console.log('Original animal data:', animal);
-
     this.animalForm.patchValue(formData);
 
     // Convert existing photos to FileItem format for preview
@@ -357,18 +354,9 @@ export class EditAnimalsComponent
       this.animalForm.markAsPristine();
       this.animalForm.markAsUntouched();
 
-      // Log form state after population
-      console.log('Form state after population:');
-      console.log('Form valid:', this.animalForm.valid);
-      console.log('Form errors:', this.animalForm.errors);
-      console.log('Form values:', this.animalForm.value);
-
       // Check individual controls
       Object.keys(this.animalForm.controls).forEach((key) => {
         const control = this.animalForm.get(key);
-        if (control?.invalid) {
-          console.log(`${key} is invalid:`, control.errors);
-        }
       });
     }, 0);
   }
@@ -653,18 +641,9 @@ export class EditAnimalsComponent
 
     // Check validity first without marking as touched
     if (this.animalForm.invalid) {
-      // Log validation errors for debugging
-      console.log('Form validation errors:', this.getFormValidationErrors());
-      console.log('Form values:', this.animalForm.value);
-      console.log('Form errors:', this.animalForm.errors);
-
       // Log individual control errors
       Object.keys(this.animalForm.controls).forEach((key) => {
         const control = this.animalForm.get(key);
-        if (control?.invalid) {
-          console.log(`${key} errors:`, control.errors);
-          console.log(`${key} value:`, control.value);
-        }
       });
 
       // Only mark as touched if there are validation errors to show them

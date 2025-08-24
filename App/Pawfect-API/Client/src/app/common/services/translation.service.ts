@@ -56,9 +56,7 @@ export class TranslationService {
 
   private getInitialLanguage(): SupportedLanguage {
     const stored = this.secureStorageService.getItem(this.LANG_STORAGE_KEY);
-    console.log('[i18n] getInitialLanguage - stored:', stored);
     const found = this.supportedLanguages.find(l => l.code === stored);
-    console.log('[i18n] getInitialLanguage - found:', found);
     return found ? found.code : this.supportedLanguages[0].code;
   }
 
@@ -71,13 +69,11 @@ export class TranslationService {
     const currentLang = this.getLanguage();
     const path = `assets/${currentLang}.json`;
     
-    console.log(`[TranslationService] Initializing with language: ${currentLang}, path: ${path}`);
     
     return this.http.get<Record<string, any>>(path).pipe(
       map(translations => {
         this.translations = translations;
         this.isInitialized = true;
-        console.log(`[TranslationService] Initialized successfully with ${Object.keys(translations).length} translation keys`);
         return true;
       }),
       catchError((error) => {
@@ -91,7 +87,6 @@ export class TranslationService {
 
   setLanguage(lang: SupportedLanguage): void {
     if (lang !== this.language$.value) {
-      console.log('[i18n] setLanguage - setting:', lang);
       this.secureStorageService.setItem(this.LANG_STORAGE_KEY, lang);
       this.translationsLoadedSubject.next(false);
       this.language$.next(lang);

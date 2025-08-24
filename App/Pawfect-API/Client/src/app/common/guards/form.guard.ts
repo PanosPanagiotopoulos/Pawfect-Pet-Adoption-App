@@ -62,8 +62,6 @@ export class FormGuard implements CanDeactivate<CanComponentDeactivate> {
     // Debug: Log to verify backdrop class
     setTimeout(() => {
       const backdrop = document.querySelector('.cdk-overlay-backdrop.form-guard-backdrop');
-      console.log('Backdrop element:', backdrop);
-      console.log('Backdrop classes:', backdrop?.classList);
     }, 0);
 
     // Add no-scroll class to body

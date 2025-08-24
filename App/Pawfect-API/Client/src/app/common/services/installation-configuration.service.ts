@@ -69,7 +69,6 @@ export class InstallationConfigurationService {
       return appConfig;
     }),
     catchError((error) => {
-      console.log('Failed to load config.json, using dev environment\n', JSON.stringify(error, null, 2));
       const fallback: AppConfig = { production: false };
       this.applyRuntimeConfig(fallback);
       return of(fallback);

@@ -84,43 +84,86 @@ export class GoogleCallbackComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    const queryParams = new URLSearchParams(window.location.search);
-
-    console.log(JSON.stringify(queryParams, null, 2));
-    // Check for error parameter from Google
-    const errorCode = queryParams.get('error');
-    if (errorCode) {
-      this.handleError(errorCode);
-      return;
-    }
-
-    // Check for required parameters
-    const code = queryParams.get('code');
-    const state = queryParams.get('state');
-
-    if (!code || !state) {
-      this.error = this.translationService.translate('APP.AUTH.GOOGLE.INVALID_RESPONSE');
-      return;
-    }
-
-    try {
-      // Attempt to decode state
-      const decodedState = JSON.parse(atob(state));
-
-      // Store the auth code temporarily
-      this.secureStorageService.setItem('googleAuthCode', code);
-
-      // Store original path for potential return
-      if (decodedState.origin) {
-        this.secureStorageService.setItem('googleAuthOrigin', decodedState.origin);
+    // Add a small delay to ensure page is fully loaded
+    setTimeout(() => {
+      const queryParams = new URLSearchParams(window.location.search);
+  
+      // Fix for TypeScript error - convert URLSearchParams to plain object
+      const paramsObject: { [key: string]: string } = {};
+      queryParams.forEach((value, key) => {
+        paramsObject[key] = value;
+      });
+      
+      // Check for error parameter from Google
+      const errorCode = queryParams.get('error');
+      if (errorCode) {
+        this.handleError(errorCode);
+        return;
       }
-
-      // Handle the callback
-      this.googleAuthService.handleAuthCallback(queryParams);
-    } catch (e) {
-      console.error('Error processing callback:', e);
-      this.error = this.translationService.translate('APP.AUTH.GOOGLE.PROCESSING_ERROR');
-    }
+  
+      // Check for required parameters
+      const code = queryParams.get('code');
+      const state = queryParams.get('state');
+  
+      if (!code || !state) {
+        console.error('Missing required parameters:', { code: !!code, state: !!state });
+        this.error = this.translationService.translate('APP.AUTH.GOOGLE.INVALID_RESPONSE');
+        return;
+      }
+  
+      try {
+        // Attempt to decode state
+        const decodedState = JSON.parse(atob(state));
+  
+        // Store the auth code with a timestamp to prevent reuse
+        const authData = {
+          code: code,
+          timestamp: Date.now(),
+          state: decodedState
+        };
+        
+        this.secureStorageService.setItem('googleAuthData', authData);
+  
+        // Store original path for potential return
+        if (decodedState.origin) {
+          this.secureStorageService.setItem('googleAuthOrigin', decodedState.origin);
+        }
+  
+        // Clear any existing auth data to prevent conflicts
+        this.secureStorageService.removeItem('googleAuthCode');
+  
+        // Handle the callback with proper error handling
+        try {
+          // Only call handleAuthCallback if it exists and is needed
+          if (this.googleAuthService.handleAuthCallback) {
+            this.googleAuthService.handleAuthCallback(queryParams);
+          }
+          
+          // Use replace instead of navigate to avoid back button issues
+          this.router.navigateByUrl('/auth/sign-up?mode=google&t=' + Date.now(), { 
+            replaceUrl: true 
+          }).then(
+            (success) => {
+              if (!success) {
+                console.error('Navigation to signup failed');
+                this.error = 'Navigation failed. Please try again.';
+              }
+            }
+          ).catch((error) => {
+            console.error('Navigation error:', error);
+            this.error = 'Navigation error. Please try again.';
+          });
+            
+        } catch (callbackError) {
+          console.error('Error in handleAuthCallback:', callbackError);
+          this.error = this.translationService.translate('APP.AUTH.GOOGLE.PROCESSING_ERROR');
+        }
+          
+      } catch (e) {
+        console.error('Error processing callback:', e);
+        this.error = this.translationService.translate('APP.AUTH.GOOGLE.PROCESSING_ERROR');
+      }
+    }, 200); // Increased delay to ensure everything is ready
   }
 
   private handleError(errorCode: string): void {

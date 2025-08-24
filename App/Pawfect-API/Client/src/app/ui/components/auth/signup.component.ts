@@ -35,6 +35,7 @@ import { CanComponentDeactivate } from 'src/app/common/guards/form.guard';
 import { PersonalInfoComponent } from './sign-up-steps/personal-info/personal-info.component';
 import { AccountDetailsComponent } from './sign-up-steps/account-details/account-details.component';
 import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
+import { UserAvailabilityService } from 'src/app/services/user-availability.service';
 
 interface LocationFormGroup extends FormGroup {
   controls: {
@@ -187,64 +188,127 @@ export class SignupComponent
   }
 
   ngOnInit(): void {
+    // Handle Google mode first to prevent race conditions
     this.route.queryParams.subscribe((params: any) => {
       if (params['mode'] === 'google') {
-        // Get the Google auth code from session storage
-        const googleAuthCode: string | null =
-          this.secureStorageService.getItem<string>('googleAuthCode');
-
-        if (googleAuthCode) {
-          // Clear the code from session storage to prevent reuse
-          this.secureStorageService.removeItem('googleAuthCode');
-          this.secureStorageService.removeItem('googleAuthOrigin');
-
-          // Call the login with Google method
-          this.isExternalProviderLoading = true;
-          this.processGoogleSignUp(googleAuthCode);
+        
+        // Get the Google auth data from session storage
+        const googleAuthData = this.secureStorageService.getItem<any>('googleAuthData');
+  
+        if (googleAuthData && googleAuthData.code) {
+          // Check if the data is not too old (5 minutes max)
+          const dataAge = Date.now() - googleAuthData.timestamp;
+          const maxAge = 5 * 60 * 1000; // 5 minutes
+  
+          if (dataAge > maxAge) {
+            console.error('Google auth data is too old');
+            this.error = {
+              title: 'Authentication Expired',
+              message: 'The Google authentication session has expired. Please try again.',
+              type: 'error'
+            };
+            this.secureStorageService.removeItem('googleAuthData');
+            // Don't return here, let the normal flow continue
+          } else {
+            // Clear the data from session storage to prevent reuse
+            this.secureStorageService.removeItem('googleAuthData');
+            this.secureStorageService.removeItem('googleAuthOrigin');
+  
+            // Call the login with Google method
+            this.isExternalProviderLoading = true;
+            this.error = undefined;
+            
+            // Add a small delay to ensure UI updates
+            setTimeout(() => {
+              this.processGoogleSignUp(googleAuthData.code);
+            }, 100);
+          }
+        } else {
+          console.error('No Google auth data found or invalid data');
+          this.error = {
+            title: 'Authentication Error',
+            message: 'Google authentication data not found. Please try signing up with Google again.',
+            type: 'error'
+          };
         }
       }
     });
-
-    const state = history.state;
-
-    // Handle verification flow from login
-    const existingPhone: string | null =
-      this.secureStorageService.getItem<string>('unverifiedPhone');
-    const existingEmail: string | null =
-      this.secureStorageService.getItem<string>('unverifiedEmail');
-    const fromGoogleLogin = this.secureStorageService.getItem<string>('fromGoogleLogin') === 'true';
-
-    if (existingPhone) {
-      this.registrationForm.get('phone')?.setValue(existingPhone);
-    }
-    if (existingEmail) {
-      this.registrationForm.get('email')?.setValue(existingEmail);
-    }
-
-    if (state && state.step === SignupStep.OtpVerification && state.fromLogin) {
-      this.fromLogin = true;
-      this.currentStep = SignupStep.OtpVerification;
-      this.resendOtp();
-    }
-
-    if (
-      state &&
-      state.step === SignupStep.EmailConfirmation &&
-      state.fromLogin
-    ) {
-      this.fromLogin = true;
-      if (!fromGoogleLogin) {
-        this.currentStep = SignupStep.EmailConfirmation;
-        this.resendEmailVerification();
-      } else {
-        // Skip email verification step entirely for Google-origin login
-        this.router.navigate(['/home']);
-        this.secureStorageService.removeItem('fromGoogleLogin');
+  
+    // Handle other initialization after a delay to prevent conflicts
+    setTimeout(() => {
+      const state = history.state;
+  
+      // Handle verification flow from login
+      const existingPhone: string | null =
+        this.secureStorageService.getItem<string>('unverifiedPhone');
+      const existingEmail: string | null =
+        this.secureStorageService.getItem<string>('unverifiedEmail');
+      const fromGoogleLogin = this.secureStorageService.getItem<string>('fromGoogleLogin') === 'true';
+  
+      if (existingPhone) {
+        this.registrationForm.get('phone')?.setValue(existingPhone);
       }
-    }
-
-    // Track form changes for unsaved changes detection
-    this.setupFormChangeTracking();
+      if (existingEmail) {
+        this.registrationForm.get('email')?.setValue(existingEmail);
+      }
+  
+      if (state && state.step === SignupStep.OtpVerification && state.fromLogin) {
+        this.fromLogin = true;
+        this.currentStep = SignupStep.OtpVerification;
+        this.resendOtp();
+      }
+  
+      if (
+        state &&
+        state.step === SignupStep.EmailConfirmation &&
+        state.fromLogin
+      ) {
+        this.fromLogin = true;
+        if (!fromGoogleLogin) {
+          this.currentStep = SignupStep.EmailConfirmation;
+          this.resendEmailVerification();
+        } else {
+          // Skip email verification step entirely for Google-origin login
+          this.router.navigate(['/home']);
+          this.secureStorageService.removeItem('fromGoogleLogin');
+        }
+      }
+  
+      // Track form changes for unsaved changes detection
+      this.setupFormChangeTracking();
+    }, 50);
+  }
+  
+  // Add this method to handle Google mode disable from child component
+  onGoogleModeDisabled(): void {
+    // Reset auth provider in main form
+    this.registrationForm.get('authProvider')?.setValue(AuthProvider.Local);
+    this.registrationForm.get('authProviderId')?.setValue(null);
+    
+    // Re-enable password fields
+    this.registrationForm.get('password')?.enable();
+    this.registrationForm.get('confirmPassword')?.enable();
+    
+    // Reset password validators
+    const passwordControl = this.registrationForm.get('password');
+    const confirmPasswordControl = this.registrationForm.get('confirmPassword');
+    
+    passwordControl?.setValidators([
+      Validators.required,
+      CustomValidators.passwordValidator(this.translationService),
+    ]);
+    
+    confirmPasswordControl?.setValidators([
+      Validators.required,
+      CustomValidators.matchValidator('password', this.translationService),
+    ]);
+    
+    passwordControl?.updateValueAndValidity();
+    confirmPasswordControl?.updateValueAndValidity();
+    
+    // Clear Google data flags
+    this.hasGoogleData = false;
+    this.googlePopulatedFields = [];
   }
 
   override ngOnDestroy(): void {
@@ -601,49 +665,49 @@ export class SignupComponent
     this.authService.registerWithGoogle(authCode).subscribe({
       next: (response: User) => {
         const googlePopulatedFields: string[] = [];
-
+  
         if (response.email) {
           this.registrationForm.get('email')?.setValue(response.email);
           this.registrationForm.get('email')?.disable();
           this.registrationForm.get('hasEmailVerified')?.setValue(true);
           googlePopulatedFields.push('email');
         }
-
+  
         if (response.fullName) {
           this.registrationForm.get('fullName')?.setValue(response.fullName);
           this.registrationForm.get('fullName')?.disable();
           googlePopulatedFields.push('fullName');
         }
-
+  
         if (response.location) {
           const locationForm = this.getLocationForm();
-
+  
           // Handle each location field individually
           if (response.location.city) {
             locationForm.get('city')?.setValue(response.location.city);
             locationForm.get('city')?.disable();
             googlePopulatedFields.push('location.city');
           }
-
+  
           if (response.location.zipCode) {
             locationForm.get('zipCode')?.setValue(response.location.zipCode);
             locationForm.get('zipCode')?.disable();
             googlePopulatedFields.push('location.zipCode');
           }
-
+  
           if (response.location.address) {
             locationForm.get('address')?.setValue(response.location.address);
             locationForm.get('address')?.disable();
             googlePopulatedFields.push('location.address');
           }
-
+  
           if (response.location.number) {
             locationForm.get('number')?.setValue(response.location.number);
             locationForm.get('number')?.disable();
             googlePopulatedFields.push('location.number');
           }
         }
-
+  
         if (response.phone) {
           const phoneNumbers = response.phone.split(' ');
           if (phoneNumbers.length > 1) {
@@ -655,23 +719,23 @@ export class SignupComponent
             this.registrationForm.get('phoneNumber')?.setValue(response.phone);
             this.registrationForm.get('phoneNumber')?.disable();
           }
-
+  
           this.registrationForm.get('phone')?.setValue(response.phone);
           this.registrationForm.get('phone')?.disable();
           this.registrationForm.get('hasPhoneVerified')?.setValue(true);
           googlePopulatedFields.push('phone');
         }
-
+  
         // Set Google as auth provider
         this.registrationForm
           .get('authProvider')
           ?.setValue(AuthProvider.Google);
-
+  
         // Set auth provider ID from response
         if (response.authProviderId) {
           this.registrationForm.get('authProviderId')?.setValue(response.authProviderId);
         }
-
+  
         // Disable password fields for Google authentication
         this.registrationForm.get('password')?.disable();
         this.registrationForm.get('confirmPassword')?.disable();
@@ -679,18 +743,18 @@ export class SignupComponent
         this.registrationForm.get('confirmPassword')?.clearValidators();
         this.registrationForm.get('password')?.updateValueAndValidity();
         this.registrationForm.get('confirmPassword')?.updateValueAndValidity();
-
+  
         this.googlePopulatedFields = googlePopulatedFields;
         this.hasGoogleData = true;
-        this.hasUnsavedChangesFlag = true; // Mark as having changes since Google data was populated
-
+        this.hasUnsavedChangesFlag = true; 
+  
         this.isExternalProviderLoading = false;
         this.error = undefined;
       },
       error: (error: HttpErrorResponse) => {
+        console.error('Google signup error:', error);
         this.isExternalProviderLoading = false;
         this.error = this.errorHandler.handleAuthError(error);
-        console.error(error);
       },
     });
   }
