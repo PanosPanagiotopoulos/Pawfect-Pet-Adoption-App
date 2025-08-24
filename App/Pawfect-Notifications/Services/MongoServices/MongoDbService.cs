@@ -117,14 +117,7 @@ namespace Pawfect_Notifications.Services.MongoServices
             }
         }
 
-        public async Task<Boolean> CheckIndexExistsAsync(string indexName)
-        {
-            return false;
-        }
-        public async Task DeleteIndexIfExistsAsync(string indexName)
-        {
-           
-        }
+  
 
         #endregion
 

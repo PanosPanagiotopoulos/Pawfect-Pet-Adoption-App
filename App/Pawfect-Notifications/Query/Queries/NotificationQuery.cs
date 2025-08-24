@@ -151,10 +151,12 @@ namespace Pawfect_Notifications.Query.Queries
 				// Αντιστοιχίζει τα ονόματα πεδίων NotificationDto στα ονόματα πεδίων Notification
 				projectionFields.Add(nameof(Data.Entities.Notification.Id));
 				if (item.Equals(nameof(Models.Notification.Notification.Type))) projectionFields.Add(nameof(Data.Entities.Notification.Type));
-				if (item.Equals(nameof(Models.Notification.Notification.Content))) projectionFields.Add(nameof(Data.Entities.Notification.Content));
+                if (item.Equals(nameof(Models.Notification.Notification.Title))) projectionFields.Add(nameof(Data.Entities.Notification.Title));
+                if (item.Equals(nameof(Models.Notification.Notification.Content))) projectionFields.Add(nameof(Data.Entities.Notification.Content));
 				if (item.Equals(nameof(Models.Notification.Notification.IsRead))) projectionFields.Add(nameof(Data.Entities.Notification.IsRead));
 				if (item.Equals(nameof(Models.Notification.Notification.CreatedAt))) projectionFields.Add(nameof(Data.Entities.Notification.CreatedAt));
-				if (item.StartsWith(nameof(Models.Notification.Notification.User))) projectionFields.Add(nameof(Data.Entities.Notification.UserId));
+                if (item.Equals(nameof(Models.Notification.Notification.ReadAt))) projectionFields.Add(nameof(Data.Entities.Notification.ReadAt));
+                if (item.StartsWith(nameof(Models.Notification.Notification.User))) projectionFields.Add(nameof(Data.Entities.Notification.UserId));
 			}
 			return projectionFields.ToList();
 		}

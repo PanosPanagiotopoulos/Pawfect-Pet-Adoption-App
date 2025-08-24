@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError, shareReplay } from 'rxjs/operators';
-import { environment as envDev } from 'src/environments/environment';
-import { environment as envProd } from 'src/environments/environment.production';
+import { environment as envDev } from 'src/environments/environment.Development';
+import { environment as envProd } from 'src/environments/environment.Production';
 
 interface AppConfig {
   production: boolean;
@@ -21,6 +21,11 @@ export class InstallationConfigurationService {
   private _appServiceAddress: string = './';
   get appServiceAddress(): string {
     return this._appServiceAddress || './';
+  }
+
+  private _notificationsServiceAddress: string = './';
+  get notificationsServiceAddress(): string {
+    return this._notificationsServiceAddress || './';
   }
 
   private _disableAuth: boolean = true;
@@ -89,6 +94,7 @@ export class InstallationConfigurationService {
 
     this.config = envConfig;
     this._appServiceAddress = envConfig.appServiceAddress;
+    this._notificationsServiceAddress = envConfig.notificationsServiceAddress;
     this._disableAuth = envConfig.disableAuth;
     this._googleClientId = envConfig.googleClientId;
     this._baseGoogleEndpoint = envConfig.baseGoogleEndpoint;

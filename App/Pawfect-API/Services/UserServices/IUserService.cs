@@ -3,6 +3,7 @@ using Pawfect_API.Models;
 using Pawfect_API.Models.Lookups;
 using Pawfect_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
 
 namespace Pawfect_API.Services.UserServices
 {
@@ -111,7 +112,8 @@ namespace Pawfect_API.Services.UserServices
         Task<Data.Entities.User?> GetGoogleUser(String authorizationCode);
 
 		Task<(String, String)> RetrieveGoogleCredentials(String AuthorizationCode);
-		Task Delete(String id);
+
+        Task Delete(String id);
 		Task Delete(List<String> ids);
 	}
 }

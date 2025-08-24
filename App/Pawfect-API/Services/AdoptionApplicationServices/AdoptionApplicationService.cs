@@ -82,6 +82,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
         public async Task<Models.AdoptionApplication.AdoptionApplication> Persist(AdoptionApplicationPersist persist, List<String> fields)
         {
             Boolean isUpdate = _conventionService.IsValidId(persist.Id);
+            Boolean statusChanged = false;
             Data.Entities.AdoptionApplication data = new Data.Entities.AdoptionApplication();
             String dataId = String.Empty;
             if (isUpdate)
@@ -128,6 +129,8 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             // Set files to permanent
             await this.PersistFiles(persist.AttachedFilesIds, data.AttachedFilesIds);
 
+            statusChanged = isUpdate && persist.Status != data.Status;
+
             _mapper.Map(persist, data);
 
             if (isUpdate) dataId = await _adoptionApplicationRepository.UpdateAsync(data);
@@ -138,7 +141,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
             data.Id = dataId;
 
-            await this.NotifyAffiated(data, data.Status != persist.Status, isUpdate);
+            await this.NotifyAffiated(data, statusChanged, isUpdate);
 
             // Return dto model
             AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
@@ -240,7 +243,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             Data.Entities.User user = await _userRepository.FindAsync(user => user.Id == data.UserId, [nameof(Models.User.User.FullName)]);
             String userFirstName = UserDataHelper.GetFirstNameFormatted(user.FullName);
 
-            Data.Entities.Shelter receivingShelter = await _shelterRepository.FindAsync(shelter => shelter.Id == data.ShelterId, [nameof(Data.Entities.Shelter.UserId)]);
+            Data.Entities.Shelter receivingShelter = await _shelterRepository.FindAsync(shelter => shelter.Id == data.ShelterId, [nameof(Data.Entities.Shelter.ShelterName), nameof(Data.Entities.Shelter.UserId)]);
 
             Data.Entities.Animal referedAnimal = await _animalRepository.FindAsync(animal => animal.Id == data.AnimalId, [nameof(Data.Entities.Animal.Name)]);
 
@@ -278,6 +281,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                         TitleMappings = new Dictionary<String, String>(),
                         ContentMappings = new Dictionary<String, String>
                         {
+                            { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.UserFirstName, userFirstName },
                             { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ShelterName, receivingShelter.ShelterName },
                             { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ApplicationId, data.Id },
                             { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.AnimalName, referedAnimal.Name },

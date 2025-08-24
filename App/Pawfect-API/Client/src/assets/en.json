@@ -95,6 +95,32 @@
         "SUNDAY": "Sunday"
       }
     },
+    "NOTIFICATIONS": {
+      "DROPDOWN": {
+        "TITLE": "Notifications",
+        "MARK_ALL_READ": "Mark all as read",
+        "MARKING_READ": "Marking as read...",
+        "LOADING": "Loading notifications...",
+        "LOADING_SUBTITLE": "Fetching your latest updates...",
+        "NO_NOTIFICATIONS": "No notifications",
+        "NO_NOTIFICATIONS_MESSAGE": "You're all caught up! No new notifications at the moment.",
+        "ERROR_MESSAGE": "Unable to load notifications. Please check your connection and try again.",
+        "RETRY": "Try Again",
+        "MARK_READ": "Mark as read",
+        "NOTIFICATION_CONTENT": "Notification content",
+        "ERROR_LOADING": "Failed to load notifications",
+        "ERROR_LOADING_SUBTITLE": "Please try again later",
+        "ERROR_MARK_READ": "Failed to mark notification as read",
+        "ERROR_MARK_READ_SUBTITLE": "Please try again later",
+        "ERROR_MARK_ALL_READ": "Failed to mark all notifications as read",
+        "ERROR_MARK_ALL_READ_SUBTITLE": "Please try again later"
+      },
+      "COUNT": {
+        "ZERO": "No notifications",
+        "ONE": "1 notification",
+        "OTHER": "{count} notifications"
+      }
+    },
     "COMMONS": {
       "SUBMIT": "Submit",
       "CANCEL": "Cancel",
@@ -149,7 +175,8 @@
       "CLEAR": "Clear",
       "TRY_AGAIN": "Try Again",
       "LOADING": "Loading...",
-      "CHECK_FORM_ERRORS": "Please check the form for errors"
+      "CHECK_FORM_ERRORS": "Please check the form for errors",
+      "NOTIFICATIONS": "Notifications"
     },
     "AUTH": {
       "LOGIN": {

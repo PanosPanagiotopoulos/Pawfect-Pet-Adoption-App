@@ -1,6 +1,4 @@
-﻿using Pawfect_API.Data.Entities.Types.Apis;
-using Pawfect_API.Services.SmsServices;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
+﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
 
 namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices.Extentions
 {

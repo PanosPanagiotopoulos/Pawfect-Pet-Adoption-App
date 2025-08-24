@@ -20,11 +20,9 @@ using Pawfect_API.Models.User;
 using Pawfect_API.Query;
 using Pawfect_API.Repositories.Interfaces;
 using Pawfect_API.Services.AuthenticationServices;
-using Pawfect_API.Services.EmailServices;
 using Pawfect_API.Services.FileServices;
 using Pawfect_API.Services.HttpServices;
 using Pawfect_API.Services.ShelterServices;
-using Pawfect_API.Services.SmsServices;
 using System.Security.Claims;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_API.Services.Convention;
@@ -43,8 +41,6 @@ namespace Pawfect_API.Services.UserServices
 		private readonly IMapper _mapper;
 		private readonly ILogger<UserService> _logger;
 		private readonly IMemoryCache _memoryCache;
-		private readonly ISmsService _smsService;
-		private readonly IEmailService _emailService;
 		private readonly RequestService _requestService;
 		private readonly CacheConfig _cacheConfig;
 		private readonly Lazy<IShelterService> _shelterService;
@@ -65,7 +61,6 @@ namespace Pawfect_API.Services.UserServices
             IBuilderFactory builderFactory,
             IUserRepository userRepository, IMapper mapper,
 			ILogger<UserService> logger, IMemoryCache memoryCache,
-			ISmsService smsService, IEmailService emailService,
 			RequestService requestService,
 			IOptions<CacheConfig> configuration,
 			Lazy<IShelterService> shelterService,
@@ -87,8 +82,6 @@ namespace Pawfect_API.Services.UserServices
 			_mapper = mapper;
 			_logger = logger;
 			_memoryCache = memoryCache;
-			_smsService = smsService;
-			_emailService = emailService;
 			_requestService = requestService;
 			_cacheConfig = configuration.Value;
 			_shelterService = shelterService;
@@ -100,7 +93,7 @@ namespace Pawfect_API.Services.UserServices
             _authorizationService = AuthorizationService;
             _authorizationContentResolver = authorizationContentResolver;
             _conventionService = conventionService;
-            this._notificationApiClient = notificationApiClient;
+            _notificationApiClient = notificationApiClient;
             _notificationConfig = notificationOptions.Value;
         }
 

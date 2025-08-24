@@ -52,10 +52,12 @@ namespace Pawfect_Notifications.Builders
 			{
                 Models.Notification.Notification dto = new Models.Notification.Notification();
 				dto.Id = e.Id;
-				if (nativeFields.Contains(nameof(Models.Notification.Notification.Content))) dto.Content = e.Content;
-				if (nativeFields.Contains(nameof(Models.Notification.Notification.IsRead))) dto.IsRead = e.IsRead;
+				if (nativeFields.Contains(nameof(Models.Notification.Notification.Title))) dto.Title = e.Title;
+                if (nativeFields.Contains(nameof(Models.Notification.Notification.Content))) dto.Content = e.Content;
+                if (nativeFields.Contains(nameof(Models.Notification.Notification.IsRead))) dto.IsRead = e.IsRead;
 				if (nativeFields.Contains(nameof(Models.Notification.Notification.CreatedAt))) dto.CreatedAt = e.CreatedAt;
-				if (userMap != null && userMap.ContainsKey(e.Id)) dto.User = userMap[e.Id];
+                if (nativeFields.Contains(nameof(Models.Notification.Notification.ReadAt))) dto.ReadAt = e.ReadAt;
+                if (userMap != null && userMap.ContainsKey(e.Id)) dto.User = userMap[e.Id];
 
 				result.Add(dto);
 			}

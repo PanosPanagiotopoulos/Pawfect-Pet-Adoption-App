@@ -16,6 +16,7 @@ using System.Security.Claims;
 using Pawfect_Notifications.Services.Convention;
 using Pawfect_Notifications.Attributes;
 using Pawfect_Notifications.Data.Entities.EnumTypes;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Pawfect_Notifications.Controllers
 {
@@ -70,12 +71,6 @@ namespace Pawfect_Notifications.Controllers
             notificationLookup.IsRead = false;
             notificationLookup.NotificationTypes = [NotificationType.InApp];
 
-            AuthContext context = _contextBuilder.OwnedFrom(notificationLookup).Build();
-            List<String> censoredFields = await _censorFactory.Censor<NotificationCensor>().Censor([.. notificationLookup.Fields], context);
-            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying notifications");
-
-            notificationLookup.Fields = censoredFields;
-
             NotificationQuery q = notificationLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermission);
             List<Data.Entities.Notification> datas = await q.CollectAsync();
 
@@ -92,7 +87,30 @@ namespace Pawfect_Notifications.Controllers
             });
 		}
 
-		[HttpPost("persist/batch")]
+        [HttpPost("read")]
+        [Authorize]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> ReadNotifications([FromBody] List<String> notificationIds, [FromQuery] List<String> fields)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (notificationIds == null || !notificationIds.Any()) return BadRequest("At least one notification ID is required");
+
+            fields = BaseCensor.PrepareFieldsList(fields);
+
+            List<Models.Notification.Notification> readNotifications = await _notificationService.ReadNotificationsAsync(notificationIds, fields);
+
+            if (readNotifications.Count != notificationIds.Count)
+            {
+                _logger.LogError("Not all notifications were read successfully. Expected: {ExpectedCount}, Actual: {ActualCount}", notificationIds.Count, readNotifications.Count);
+                return StatusCode(500, "Not all notifications were read successfully. Please try again later.");
+            }
+
+            return Ok(readNotifications);
+        }
+
+
+        [HttpPost("persist/batch")]
         [ServiceFilter(typeof(InternalApiAttribute))]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] List<NotificationEvent> models)

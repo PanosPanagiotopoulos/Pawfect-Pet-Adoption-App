@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { NgIconsModule } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
@@ -26,6 +26,9 @@ import { Shelter } from 'src/app/models/shelter/shelter.model';
 import { debounceTime, distinctUntilChanged, of } from 'rxjs';
 import { FormControl } from '@angular/forms';
 import { Location } from 'src/app/models/user/user.model';
+import { NotificationsDropdownComponent } from '../../../notifications-dropdown/notifications-dropdown.component';
+import { NotificationService } from 'src/app/services/notification.service';
+import { NotificationLookup } from 'src/app/lookup/notification-lookup';
 
 @Component({
   selector: 'app-header',
@@ -40,7 +43,8 @@ import { Location } from 'src/app/models/user/user.model';
     UserAvatarComponent,
     DropdownComponent,
     DropdownItemComponent,
-    TranslatePipe
+    TranslatePipe,
+    NotificationsDropdownComponent
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
@@ -56,6 +60,12 @@ export class HeaderComponent extends BaseComponent {
   showLangDropdown = false;
   private hasFetchedUser = false;
   private isLoggingOut = false;
+
+  // Notifications dropdown properties
+  showNotificationsDropdown = false;
+  notificationCount = 0;
+  
+  @ViewChild(NotificationsDropdownComponent) notificationsDropdown?: NotificationsDropdownComponent;
 
   // Shelter search properties
   shelterSearchControl = new FormControl('');
@@ -75,7 +85,8 @@ export class HeaderComponent extends BaseComponent {
     private snackbarService: SnackbarService,
     private translationService: TranslationService,
     private shelterService: ShelterService,
-    private searchCacheService: SearchCacheService
+    private searchCacheService: SearchCacheService,
+    private notificationService: NotificationService
   ) {
     super();
     this.currentLanguage = this.translationService.getLanguage();
@@ -84,6 +95,7 @@ export class HeaderComponent extends BaseComponent {
       this.currentLanguage = lang;
     });
     document.addEventListener('click', this.handleOutsideClick.bind(this));
+    window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.authService.isLoggedIn().pipe(
       takeUntil(this._destroyed),
@@ -112,9 +124,17 @@ export class HeaderComponent extends BaseComponent {
       if (!isLoggedIn) {
         this.currentUser = undefined;
         this.hasFetchedUser = false;
+        this.notificationCount = 0;
       }
       this.isLoggedIn = isLoggedIn;
     });
+
+    // Subscribe to centralized notification count
+    this.notificationService.notificationCount$
+      .pipe(takeUntil(this._destroyed))
+      .subscribe(count => {
+        this.notificationCount = count;
+      });
 
     // Setup shelter search
     this.setupShelterSearch();
@@ -139,6 +159,12 @@ export class HeaderComponent extends BaseComponent {
         this.showMobileSearch = false;
         this.showShelterDropdown = false;
       }
+    }
+
+    // Only handle desktop notifications outside click - mobile uses overlay
+    const notificationsContainer = document.querySelector('.notifications-container');
+    if (this.showNotificationsDropdown && !this.isMobileDevice() && notificationsContainer && !notificationsContainer.contains(event.target as Node)) {
+      this.showNotificationsDropdown = false;
     }
   }
 
@@ -336,6 +362,11 @@ export class HeaderComponent extends BaseComponent {
       this.shelterSearchControl.setValue('');
       this.currentSearchQuery = ''; // Clear current search query
     } else {
+      // Close other dropdowns when opening search
+      this.showNotificationsDropdown = false;
+      this.showLangDropdown = false;
+      this.isUserMenuOpen = false;
+      
       // Load recent queries when opening search
       this.recentQueries = this.searchCacheService.getRecentQueries(5);
       // Focus the input after animation
@@ -372,8 +403,9 @@ export class HeaderComponent extends BaseComponent {
     
     this.showMobileSearch = !this.showMobileSearch;
     if (this.showMobileSearch) {
-      // Close mobile menu if open
+      // Close mobile menu and other dropdowns if open
       this.isMobileMenuOpen = false;
+      this.showNotificationsDropdown = false;
       document.body.style.overflow = '';
       // Load recent queries when opening search
       this.recentQueries = this.searchCacheService.getRecentQueries(5);
@@ -395,9 +427,10 @@ export class HeaderComponent extends BaseComponent {
     this.isMobileMenuOpen = !this.isMobileMenuOpen;
     document.body.style.overflow = this.isMobileMenuOpen ? 'hidden' : '';
     if (this.isMobileMenuOpen) {
-      // Close mobile search if open
+      // Close mobile search and notifications if open
       this.showMobileSearch = false;
       this.showShelterDropdown = false;
+      this.showNotificationsDropdown = false;
     }
   }
 
@@ -406,9 +439,51 @@ export class HeaderComponent extends BaseComponent {
     this.showMobileSearch = false;
     this.showDesktopSearch = false;
     this.showShelterDropdown = false;
+    this.showNotificationsDropdown = false;
     this.currentSearchQuery = ''; // Clear current search query
     document.body.style.overflow = '';
   }
+
+  toggleNotificationsDropdown(): void {
+    this.showNotificationsDropdown = !this.showNotificationsDropdown;
+    
+    // Close other dropdowns when opening notifications
+    if (this.showNotificationsDropdown) {
+      this.showLangDropdown = false;
+      this.isUserMenuOpen = false;
+      this.showDesktopSearch = false;
+      this.showShelterDropdown = false;
+      this.showMobileSearch = false;
+      this.isMobileMenuOpen = false;
+      
+      // Prevent body scroll on mobile when notifications are open
+      if (this.isMobileDevice()) {
+        document.body.style.overflow = 'hidden';
+      }
+      
+      // Refresh notifications when opening dropdown
+      setTimeout(() => {
+        if (this.notificationsDropdown) {
+          this.notificationsDropdown.refreshNotifications();
+        }
+      });
+    } else {
+      // Restore body scroll when closing
+      document.body.style.overflow = '';
+    }
+  }
+
+  closeNotificationsDropdown(): void {
+    this.showNotificationsDropdown = false;
+    // Restore body scroll when closing
+    document.body.style.overflow = '';
+  }
+
+  onNotificationCountChange(count: number): void {
+    this.notificationCount = count;
+  }
+
+  // Notification count is now managed centrally by NotificationService
 
   logout(): void {
     if (this.isLoggingOut) {
@@ -465,6 +540,30 @@ export class HeaderComponent extends BaseComponent {
     this.translationService.setLanguage(lang);
   }
 
+  toggleLanguageDropdown(): void {
+    this.showLangDropdown = !this.showLangDropdown;
+    
+    // Close other dropdowns when opening language dropdown
+    if (this.showLangDropdown) {
+      this.showNotificationsDropdown = false;
+      this.isUserMenuOpen = false;
+      this.showDesktopSearch = false;
+      this.showShelterDropdown = false;
+    }
+  }
+
+  onUserMenuToggle(isOpen: boolean): void {
+    this.isUserMenuOpen = isOpen;
+    
+    // Close other dropdowns when opening user menu
+    if (isOpen) {
+      this.showNotificationsDropdown = false;
+      this.showLangDropdown = false;
+      this.showDesktopSearch = false;
+      this.showShelterDropdown = false;
+    }
+  }
+
   selectLanguageDropdown(lang: SupportedLanguage): void {
     this.setLanguage(lang);
     this.showLangDropdown = false;
@@ -474,8 +573,29 @@ export class HeaderComponent extends BaseComponent {
     return this.supportedLanguages.find(l => l.code === this.currentLanguage);
   }
 
+  private isMobileDevice(): boolean {
+    return window.innerWidth < 768;
+  }
+
+  private handleWindowResize(): void {
+    // Close notifications dropdown when switching between mobile and desktop
+    if (this.showNotificationsDropdown) {
+      const wasMobile = !this.isMobileDevice();
+      setTimeout(() => {
+        const isMobile = this.isMobileDevice();
+        if (wasMobile !== isMobile) {
+          this.showNotificationsDropdown = false;
+          document.body.style.overflow = '';
+        }
+      }, 100);
+    }
+  }
+
   override ngOnDestroy() {
     super.ngOnDestroy();
     document.removeEventListener('click', this.handleOutsideClick.bind(this));
+    window.removeEventListener('resize', this.handleWindowResize.bind(this));
+    // Ensure body scroll is restored
+    document.body.style.overflow = '';
   }
 }

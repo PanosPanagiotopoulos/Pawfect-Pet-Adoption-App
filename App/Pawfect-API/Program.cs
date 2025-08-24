@@ -20,7 +20,6 @@ using Pawfect_API.Services.BreedServices.Extention;
 using Pawfect_API.Services.Convention.Extention;
 using Pawfect_API.Services.ConversationServices.Extention;
 using Pawfect_API.Services.CookiesServices.Extensions;
-using Pawfect_API.Services.EmailServices.Extention;
 using Pawfect_API.Services.FileServices.Extention;
 using Pawfect_API.Services.FilterServices.Extensions;
 using Pawfect_API.Services.HttpServices.Extentions;
@@ -30,7 +29,6 @@ using Pawfect_API.Services.NotificationServices.Extention;
 using Pawfect_API.Services.QueryServices.Extentions;
 using Pawfect_API.Services.ReportServices.Extentions;
 using Pawfect_API.Services.ShelterServices.Extentions;
-using Pawfect_API.Services.SmsServices.Extentions;
 using Pawfect_API.Services.UserServices.Extentions;
 using Pawfect_API.Services.ValidationServices.Extentions;
 
@@ -109,7 +107,6 @@ public class Program
 		};
 
 		// Add configuration files for each section
-		AddConfigurationFiles(configBuilder, configurationPaths, "apis", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "auth", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "cors", env);
 		AddConfigurationFiles(configBuilder, configurationPaths, "db", env);
@@ -199,14 +196,12 @@ public class Program
 		.AddBreedServices()
 		.AddAuthenticationServices(builder.Configuration.GetSection("Authentication"), builder.Configuration.GetSection("PermissionConfig"))
 		.AddConversationServices()
-		.AddEmailServices(builder.Configuration.GetSection("SendGrid"))
 		.AddHttpServices()
 		.AddMessageServices()
 		.AddMongoServices()
 		.AddNotificationServices(builder.Configuration.GetSection("Notifications"))
 		.AddReportServices()
 		.AddShelterServices()
-		.AddSmsServices(builder.Configuration.GetSection("SmsService"))
 		.AddUserServices(builder.Configuration.GetSection("UserFields"))
 		.AddConventionServices()
 		.AddAwsServices(builder.Configuration.GetSection("Aws"))

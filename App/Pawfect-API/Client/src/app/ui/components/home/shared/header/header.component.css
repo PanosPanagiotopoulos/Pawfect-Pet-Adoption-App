@@ -338,6 +338,13 @@
   animation: slideDownSmoothFade 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
+/* Mobile notifications overlay */
+.mobile-notifications-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+}
+
 @keyframes slideDownSmoothFade {
   0% {
     opacity: 0;

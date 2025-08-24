@@ -26,7 +26,6 @@ import { TimezoneService } from 'src/app/common/services/time-zone.service';
     AdoptComponent,
     AdoptionFormComponent,
     ShelterInfoComponent,
-    DateTimeFormatPipe,
   ],
   imports: [
     CommonModule,
@@ -39,6 +38,7 @@ import { TimezoneService } from 'src/app/common/services/time-zone.service';
     FormErrorSummaryComponent,
     PetDetailsDialogComponent,
     TranslatePipe,
+    DateTimeFormatPipe,
     RouterModule.forChild([
       {
         path: 'edit/:applicationId',

@@ -1,0 +1,242 @@
+<!-- Notifications Dropdown -->
+<div
+  class="notifications-dropdown w-112 bg-white rounded-md shadow-lg border border-gray-200"
+  [class.max-h-100]="notifications.length > 0 || isLoading"
+  [class.animate-enter]="isAnimatingIn"
+  [class.animate-exit]="isAnimatingOut"
+  (animationend)="onAnimationEnd($event)"
+  role="dialog"
+  aria-label="Notifications"
+>
+  <!-- Header with Mark All as Read button -->
+  <div class="dropdown-header px-4 py-3 border-b border-gray-200 bg-gray-50">
+    <div class="flex justify-between items-center">
+      <h3 class="text-sm font-medium text-gray-900 truncate pr-3">
+        {{ "APP.NOTIFICATIONS.DROPDOWN.TITLE" | translate }}
+      </h3>
+      <button
+        *ngIf="notifications.length > 0"
+        (click)="markAllAsRead()"
+        [disabled]="isMarkingAsRead"
+        class="mark-all-read-btn text-xs text-primary-600 hover:text-primary-800 hover:bg-primary-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 px-2 py-1 rounded focus:outline-none"
+      >
+        <span *ngIf="!isMarkingAsRead">
+          {{ "APP.NOTIFICATIONS.DROPDOWN.MARK_ALL_READ" | translate }}
+        </span>
+        <span *ngIf="isMarkingAsRead" class="flex items-center">
+          <svg
+            class="animate-spin -ml-1 mr-1 h-2.5 w-2.5 text-primary-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          {{ "APP.NOTIFICATIONS.DROPDOWN.MARKING_READ" | translate }}
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Notifications List -->
+  <div
+    class="notifications-scroll"
+    [style]="
+      notifications.length > 0 || isLoading
+        ? 'flex: 1; overflow-y: auto !important; overflow-x: hidden !important; min-height: 0; max-height: none !important; contain: layout style paint;'
+        : 'overflow-y: auto !important; overflow-x: hidden !important;'
+    "
+  >
+    <!-- Loading State -->
+    <div
+      *ngIf="isLoading && notifications.length === 0"
+      class="flex flex-col items-center justify-center h-full min-h-[300px] px-8 py-12 state-container loading-gradient"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="relative mb-8">
+        <!-- Animated background circle -->
+        <div
+          class="absolute inset-0 bg-gradient-to-r from-primary-100 to-secondary-100 rounded-full animate-pulse"
+        ></div>
+        <!-- Main loading spinner -->
+        <div class="relative bg-white rounded-full p-6 shadow-lg">
+          <svg
+            class="animate-spin h-12 w-12 text-primary-500"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+      </div>
+
+      <div class="text-center space-y-3">
+        <h3 class="text-lg font-semibold text-gray-700 loading-text">
+          {{ "APP.NOTIFICATIONS.DROPDOWN.LOADING" | translate }}
+        </h3>
+        <p class="text-sm text-gray-500 max-w-xs leading-relaxed">
+          {{ "APP.NOTIFICATIONS.DROPDOWN.LOADING_SUBTITLE" | translate }}
+        </p>
+      </div>
+
+      <!-- Loading dots animation -->
+      <div class="loading-dots flex space-x-2 mt-6">
+        <div class="dot w-2 h-2 bg-primary-400 rounded-full"></div>
+        <div class="dot w-2 h-2 bg-primary-400 rounded-full"></div>
+        <div class="dot w-2 h-2 bg-primary-400 rounded-full"></div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div
+      *ngIf="!isLoading && !hasError && notifications.length === 0"
+      class="flex flex-col items-center justify-center px-6 py-8"
+      role="status"
+    >
+      <div class="text-center">
+        <!-- Simple incoming notification icon -->
+        <div class="mb-3">
+          <ng-icon
+            name="lucideBellPlus"
+            class="h-8 w-8 text-gray-400 mx-auto animate-pulse"
+            [size]="'32'"
+          ></ng-icon>
+        </div>
+
+        <!-- Simple message -->
+        <p class="text-sm text-gray-600 font-medium">
+          {{
+            "APP.NOTIFICATIONS.DROPDOWN.NO_NOTIFICATIONS_MESSAGE" | translate
+          }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div
+      *ngIf="!isLoading && hasError"
+      class="flex flex-col items-center justify-center px-6 py-8"
+      role="alert"
+    >
+      <div class="text-center">
+        <!-- Simple error notification icon -->
+        <div class="mb-3">
+          <ng-icon
+            name="lucideBellOff"
+            class="h-8 w-8 text-gray-400 mx-auto"
+            [size]="'32'"
+          ></ng-icon>
+        </div>
+
+        <!-- Simple error message -->
+        <p class="text-sm text-gray-600 font-medium mb-4">
+          {{ "APP.NOTIFICATIONS.DROPDOWN.ERROR_MESSAGE" | translate }}
+        </p>
+
+        <!-- Simple retry button -->
+        <button
+          (click)="retryLoadNotifications()"
+          class="inline-flex items-center px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+        >
+          <ng-icon name="lucideRefreshCw" class="h-4 w-4 mr-2"></ng-icon>
+          {{ "APP.NOTIFICATIONS.DROPDOWN.RETRY" | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Notification Items -->
+    <div
+      *ngFor="
+        let notification of notifications;
+        trackBy: trackByNotificationId;
+        let last = last
+      "
+      class="notification-item group hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200 relative"
+      [class.border-b]="!last"
+      [class.border-gray-200]="!last"
+      [attr.data-notification-id]="notification.id"
+    >
+      <div class="px-6 py-5 relative">
+        <!-- Professional Notification Card -->
+        <div
+          class="notification-card bg-white rounded-lg shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow duration-200 relative overflow-hidden cursor-pointer"
+          (click)="handleNotificationClick(notification.id!, $event)"
+        >
+          <!-- Accent Line -->
+          <div
+            class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-600"
+          ></div>
+
+          <!-- Content Wrapper with proper spacing for button -->
+          <div class="ml-3 pr-12">
+            <!-- Title Section -->
+            <div
+              class="notification-title-section"
+              [innerHTML]="getTitleHtml(notification)"
+              (click)="handleContentClick(notification.id!, $event)"
+            ></div>
+
+            <!-- Content Section -->
+            <div
+              class="notification-content-section"
+              [innerHTML]="getContentHtml(notification)"
+              (click)="handleContentClick(notification.id!, $event)"
+            ></div>
+
+            <!-- Date -->
+            <div class="text-xs text-gray-500 font-medium">
+              {{
+                notification.createdAt
+                  | dateTimeFormatter : "dd/MM/yyyy : HH:mm"
+              }}
+            </div>
+          </div>
+
+          <!-- Mark as Read Button - Transparent Background -->
+          <button
+            (click)="handleMarkReadClick(notification.id!, $event)"
+            [disabled]="isMarkingAsRead"
+            class="mark-read-btn absolute top-3 right-3 p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 group-hover:opacity-100 opacity-70"
+            [title]="'APP.NOTIFICATIONS.DROPDOWN.MARK_READ' | translate"
+          >
+            <ng-icon
+              name="lucideEye"
+              class="h-4 w-4"
+              [attr.aria-hidden]="true"
+            ></ng-icon>
+            <span class="sr-only">{{
+              "APP.NOTIFICATIONS.DROPDOWN.MARK_READ" | translate
+            }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

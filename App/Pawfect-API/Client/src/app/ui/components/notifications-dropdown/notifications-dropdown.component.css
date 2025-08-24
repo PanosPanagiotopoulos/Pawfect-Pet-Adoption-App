@@ -1,0 +1,661 @@
+/* Notifications Dropdown Component Styles - Iframe Isolation */
+
+/* Enhanced dropdown animations */
+@keyframes dropdown-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dropdown-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+}
+
+/* Mobile-specific animations */
+@keyframes mobile-dropdown-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes mobile-dropdown-exit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}
+
+/* Animation classes */
+.notifications-dropdown {
+  transform-origin: top center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  /* Default positioning - will be overridden on mobile */
+  position: relative;
+}
+
+.notifications-dropdown.max-h-100 {
+  height: 400px;
+}
+
+.notifications-dropdown.animate-enter {
+  animation: dropdown-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.notifications-dropdown.animate-exit {
+  animation: dropdown-exit 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+/* Custom width and height classes - 25% wider than original */
+.w-112 {
+  width: 28rem !important; /* 448px - 25% increase from w-90 (360px) */
+}
+
+.max-h-100 {
+  max-height: 25rem !important; /* 400px - 25% increase from max-h-80 (320px) */
+}
+
+.max-h-80 {
+  max-height: 20rem !important; /* 320px - 25% increase from max-h-64 (256px) */
+}
+
+/* Remove unified content container - using clean layout */
+
+/* Professional notification card styling */
+.notification-card {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+/* Add subtle visual hint that card is clickable */
+.notification-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.02) 0%,
+    rgba(147, 51, 234, 0.02) 100%
+  );
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.notification-card:hover::before {
+  opacity: 1;
+}
+
+.notification-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-color: rgba(59, 130, 246, 0.2);
+  background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+}
+
+.notification-card:active {
+  transform: translateY(0px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Clean content sections - simple and readable */
+.notification-title-section {
+  display: block;
+  width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-height: none;
+  overflow: visible;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.4;
+  cursor: pointer;
+  position: relative;
+}
+
+.notification-content-section {
+  display: block;
+  width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-height: none;
+  overflow: visible;
+  margin-bottom: 12px;
+  color: #374151;
+  line-height: 1.5;
+  cursor: pointer;
+  position: relative;
+}
+
+/* Style HTML content within notifications */
+.notification-title-section p,
+.notification-content-section p {
+  margin: 0 0 8px 0;
+}
+
+.notification-title-section p:last-child,
+.notification-content-section p:last-child {
+  margin-bottom: 0;
+}
+
+.notification-title-section a,
+.notification-content-section a {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+}
+
+.notification-title-section a:hover,
+.notification-content-section a:hover {
+  color: #1d4ed8;
+  background-color: rgba(37, 99, 235, 0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin: -2px -4px;
+}
+
+.notification-title-section button,
+.notification-content-section button {
+  cursor: pointer;
+  position: relative;
+  z-index: 10;
+}
+
+/* Ensure clickable elements in content don't interfere with card hover */
+.notification-title-section *,
+.notification-content-section * {
+  pointer-events: auto;
+}
+
+/* Legacy support for old selectors */
+.notification-title,
+.notification-content {
+  display: block;
+  width: 100%;
+  position: relative;
+  overflow: visible;
+}
+
+/* Professional notification item styling */
+.notification-item {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification-item:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(249, 250, 251, 0.8) 0%,
+    rgba(239, 246, 255, 0.6) 100%
+  );
+}
+
+/* Elegant separating line between notifications */
+.notification-item.border-b {
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+  position: relative;
+}
+
+.notification-item.border-b::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(59, 130, 246, 0.2) 50%,
+    transparent 100%
+  );
+}
+
+/* Simple content styling - no iframes needed */
+
+/* Enhanced scrollbar styling with strict overflow control */
+.notifications-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+  scroll-behavior: smooth;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  max-height: 100% !important;
+  contain: layout style paint !important;
+}
+
+.notifications-scroll::-webkit-scrollbar {
+  width: 8px;
+  background: transparent;
+}
+
+.notifications-scroll::-webkit-scrollbar-track {
+  background: #f9fafb;
+  border-radius: 4px;
+  margin: 2px;
+}
+
+.notifications-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-height: 20px;
+}
+
+.notifications-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.notifications-scroll::-webkit-scrollbar-thumb:active {
+  background: #6b7280;
+}
+
+.notifications-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Professional transparent mark read button */
+.mark-read-btn {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 20;
+}
+
+.mark-read-btn:hover {
+  background: rgba(59, 130, 246, 0.1) !important;
+  transform: scale(1.1);
+  color: #2563eb !important;
+}
+
+.mark-read-btn:active {
+  transform: scale(0.95);
+  background: rgba(59, 130, 246, 0.2) !important;
+}
+
+.mark-read-btn:focus {
+  background: rgba(59, 130, 246, 0.1) !important;
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Remove duplicate button styles - handled above */
+
+/* Loading spinner animation */
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.loading-text {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Minimal notification item entrance animations */
+@keyframes notification-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.notification-item {
+  animation: notification-fade-in 0.15s ease-out;
+}
+
+.notification-item .flex-1 {
+  min-width: 0;
+  flex: 1;
+}
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+  .notifications-dropdown {
+    /* Full width on tablets and mobile */
+    width: 100% !important;
+    max-width: none !important;
+    /* Adjust height for mobile */
+    height: calc(100vh - 8rem) !important;
+    max-height: calc(100vh - 8rem) !important;
+    /* Reset positioning - parent handles it */
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    /* Reset transform from parent */
+    transform: none !important;
+    margin: 0 !important;
+    /* Enhanced mobile shadow */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  }
+
+  /* Adjust header for mobile */
+  .dropdown-header {
+    padding: 1rem 1.25rem !important;
+    border-bottom: 2px solid #e5e7eb !important;
+  }
+
+  .dropdown-header h3 {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+  }
+
+  /* Mobile notification items */
+  .notification-item > div {
+    padding: 1rem 1.25rem !important;
+  }
+
+  .notification-card {
+    padding: 1rem !important;
+    border-radius: 8px !important;
+  }
+
+  /* Adjust content wrapper for mobile */
+  .notification-card .ml-3 {
+    margin-left: 0.75rem !important;
+    padding-right: 3rem !important;
+  }
+
+  /* Mobile mark read button */
+  .mark-read-btn {
+    padding: 0.75rem !important;
+    top: 0.75rem !important;
+    right: 0.75rem !important;
+  }
+
+  .mark-read-btn ng-icon {
+    height: 1.25rem !important;
+    width: 1.25rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .notifications-dropdown {
+    /* Nearly full screen on small mobile */
+    width: 100% !important;
+    height: calc(100vh - 6rem) !important;
+    max-height: calc(100vh - 6rem) !important;
+    /* Reset any parent transforms */
+    transform: none !important;
+    margin: 0 !important;
+  }
+
+  /* Compact header for small screens */
+  .dropdown-header {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .dropdown-header h3 {
+    font-size: 0.875rem !important;
+  }
+
+  /* Compact notification items */
+  .notification-item > div {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .notification-card {
+    padding: 0.75rem !important;
+  }
+
+  /* Adjust content for small screens */
+  .notification-card .ml-3 {
+    margin-left: 0.5rem !important;
+    padding-right: 2.5rem !important;
+  }
+
+  /* Smaller mark read button */
+  .mark-read-btn {
+    padding: 0.5rem !important;
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+  }
+
+  .mark-read-btn ng-icon {
+    height: 1rem !important;
+    width: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .notifications-dropdown {
+    /* Full screen on very small devices */
+    width: 100% !important;
+    height: calc(100vh - 4rem) !important;
+    max-height: calc(100vh - 4rem) !important;
+    border-radius: 8px !important;
+    /* Reset any parent transforms and margins */
+    transform: none !important;
+    margin: 0 !important;
+  }
+
+  /* Full screen header */
+  .dropdown-header {
+    padding: 1rem !important;
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  /* Full screen content */
+  .notification-item > div {
+    padding: 1rem !important;
+  }
+
+  .notification-card {
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+
+  /* Mobile animations for very small screens */
+  .notifications-dropdown.animate-enter {
+    animation: mobile-dropdown-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .notifications-dropdown.animate-exit {
+    animation: mobile-dropdown-exit 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices */
+  .notification-item:hover {
+    background: none !important;
+  }
+
+  .notification-card:hover {
+    transform: none !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+    background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%) !important;
+  }
+
+  .mark-read-btn:hover {
+    background: transparent !important;
+    transform: none !important;
+  }
+
+  /* Add touch feedback */
+  .mark-read-btn:active {
+    background: rgba(59, 130, 246, 0.2) !important;
+    transform: scale(0.95) !important;
+  }
+
+  .notification-card:active {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+    transform: scale(0.98) !important;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15) !important;
+  }
+}
+
+/* Mobile overlay backdrop */
+.mobile-notifications-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Ensure mobile dropdown appears above everything */
+@media (max-width: 768px) {
+  .notifications-dropdown {
+    z-index: 9999 !important;
+  }
+
+  /* Use mobile animations on smaller screens */
+  .notifications-dropdown.animate-enter {
+    animation: mobile-dropdown-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .notifications-dropdown.animate-exit {
+    animation: mobile-dropdown-exit 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .notifications-dropdown.animate-enter,
+  .notifications-dropdown.animate-exit,
+  .notification-item,
+  .mark-read-btn,
+  .loading-text {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Enhanced loading and state animations */
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes float-gentle {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes glow-soft {
+  0%,
+  100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+}
+
+@keyframes bounce-delayed {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.loading-text {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Simple state styling - removed complex animations */
+
+/* Loading dots enhancement */
+.loading-dots .dot {
+  animation: bounce-delayed 1.4s infinite ease-in-out both;
+}
+
+.loading-dots .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.loading-dots .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.loading-dots .dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+/* Removed complex gradient backgrounds for simpler design */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .notifications-dropdown {
+    border: 2px solid #000;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  }
+
+  .notification-item:hover {
+    background-color: #f3f4f6;
+    border-left: 4px solid #000;
+  }
+
+  .mark-read-btn:hover {
+    background-color: #e5e7eb;
+    color: #000;
+  }
+
+  /* Simplified high contrast state styling */
+  .retry-button {
+    border: 2px solid #000;
+    background: #fff;
+    color: #000;
+  }
+}

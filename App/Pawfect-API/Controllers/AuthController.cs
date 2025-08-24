@@ -20,6 +20,8 @@
     using System.Security.Claims;
     using Microsoft.Extensions.Caching.Memory;
     using Pawfect_API.Data.Entities.Types.Cache;
+    using Pawfect_Pet_Adoption_App_API.Services.UserServices;
+    using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
 
     [ApiController]
 	[Route("auth")]
@@ -33,6 +35,7 @@
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly ClaimsExtractor _claimsExtractor;
         private readonly IMemoryCache _memoryCache;
+        private readonly IUserAvailabilityService _userAvailabilityService;
         private readonly IConventionService _conventionService;
         private readonly IRefreshTokenRepository _refreshTokenRepository;
         private readonly ICookiesService _cookiesService;
@@ -47,6 +50,7 @@
 			IAuthorizationContentResolver AuthorizationContentResolver, 
 			ClaimsExtractor claimsExtractor,
             IMemoryCache memoryCache,
+            IUserAvailabilityService userAvailabilityService,
 			IConventionService conventionService, 
 			IRefreshTokenRepository refreshTokenRepository,
 			ICookiesService cookiesService
@@ -60,6 +64,7 @@
             _authorizationContentResolver = AuthorizationContentResolver;
             _claimsExtractor = claimsExtractor;
             _memoryCache = memoryCache;
+            _userAvailabilityService = userAvailabilityService;
             _conventionService = conventionService;
             _refreshTokenRepository = refreshTokenRepository;
             _cookiesService = cookiesService;
@@ -305,7 +310,12 @@
 
 			fields = BaseCensor.PrepareFieldsList(fields);
 
-            return Ok(await _userService.RegisterUserUnverifiedAsync(toRegisterUser, fields));
+            Models.User.User user = await _userService.RegisterUserUnverifiedAsync(toRegisterUser, fields);
+            if (user == null) throw new InvalidOperationException("Failed to save user . Please try again later.");
+
+            _userAvailabilityService.InvalidateAvailabilityCache(toRegisterUser.User.Email, toRegisterUser.User.Phone);
+
+            return Ok(user);
 		}
 
 		[HttpPost("register/unverified/google")]
@@ -319,7 +329,17 @@
 			return Ok(model);
 		}
 
-		[HttpPost("send/otp")]
+        [HttpPost("check-availability")]
+        public async Task<IActionResult> CheckUserAvailability([FromBody] UserAvailabilityCheck payload)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            UserAvailabilityResult result = await _userAvailabilityService.CheckUserAvailabilityAsync(payload);
+
+            return Ok(result);
+        }
+
+        [HttpPost("send/otp")]
 		public async Task<IActionResult> SendOtp([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);

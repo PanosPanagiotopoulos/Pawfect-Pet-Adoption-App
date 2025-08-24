@@ -270,10 +270,41 @@
           </div>
         </div>
 
+        <!-- Notifications Button - Desktop -->
+        <div *ngIf="isLoggedIn" class="notifications-container relative z-50">
+          <button
+            type="button"
+            (click)="toggleNotificationsDropdown()"
+            class="relative flex items-center justify-center w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-lg backdrop-blur-sm border border-white/20 transition-all duration-300 hover:scale-105 group"
+            [attr.aria-label]="'APP.COMMONS.NOTIFICATIONS' | translate"
+          >
+            <ng-icon
+              name="lucideBell"
+              class="text-white group-hover:rotate-12 transition-all duration-300"
+              [size]="'20'"
+            ></ng-icon>
+            
+            <!-- Notification Count Badge -->
+            <span
+              *ngIf="notificationCount > 0"
+              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center min-w-[20px] animate-pulse"
+            >
+              {{ notificationCount > 99 ? '99+' : notificationCount }}
+            </span>
+          </button>
+
+          <!-- Notifications Dropdown - Desktop -->
+          <app-notifications-dropdown
+            *ngIf="showNotificationsDropdown"
+            class="hidden md:block absolute top-full left-1/2 transform -translate-x-1/2 mt-8 z-50"
+            (notificationCountChange)="onNotificationCountChange($event)"
+          ></app-notifications-dropdown>
+        </div>
+
         <!-- Language Switcher Dropdown -->
         <div class="relative" role="group" aria-label="Language switcher">
           <button
-            (click)="showLangDropdown = !showLangDropdown"
+            (click)="toggleLanguageDropdown()"
             class="flex items-center gap-1 px-3 py-1 rounded-md bg-primary-700 text-white font-medium text-sm hover:bg-primary-800 transition-colors outline-none focus:ring-0"
             aria-haspopup="listbox"
             [attr.aria-expanded]="showLangDropdown"
@@ -355,7 +386,7 @@
         </ng-container>
 
         <ng-template #userMenu>
-          <app-dropdown [(isOpen)]="isUserMenuOpen">
+          <app-dropdown [(isOpen)]="isUserMenuOpen" (isOpenChange)="onUserMenuToggle($event)">
             <div trigger class="flex items-center space-x-2 cursor-pointer">
               <app-user-avatar
                 [imageUrl]="currentUser?.profilePhoto?.sourceUrl"
@@ -378,6 +409,30 @@
 
       <!-- Mobile Search and Menu Button -->
       <div class="md:hidden flex items-center space-x-2">
+        <!-- Mobile Notifications Button - Only visible when logged in -->
+        <div *ngIf="isLoggedIn" class="notifications-container relative z-50">
+          <button
+            type="button"
+            (click)="toggleNotificationsDropdown()"
+            class="relative text-white/90 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/10"
+            [attr.aria-label]="'APP.COMMONS.NOTIFICATIONS' | translate"
+          >
+            <ng-icon
+              name="lucideBell"
+              class="transition-all duration-300"
+              [size]="'20'"
+            ></ng-icon>
+            
+            <!-- Notification Count Badge -->
+            <span
+              *ngIf="notificationCount > 0"
+              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center min-w-[20px] animate-pulse"
+            >
+              {{ notificationCount > 99 ? '99+' : notificationCount }}
+            </span>
+          </button>
+        </div>
+
         <!-- Mobile Search Button - Only visible when logged in -->
         <button
           *ngIf="isLoggedIn"
@@ -607,6 +662,22 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Mobile Notifications Dropdown -->
+  <div
+    *ngIf="showNotificationsDropdown && isLoggedIn"
+    class="md:hidden fixed inset-0 bg-black/50 mobile-notifications-overlay"
+    (click)="closeNotificationsDropdown()"
+  >
+    <div
+      class="absolute top-20 left-4 right-4 max-h-[calc(100vh-6rem)]"
+      (click)="$event.stopPropagation()"
+    >
+      <app-notifications-dropdown
+        (notificationCountChange)="onNotificationCountChange($event)"
+      ></app-notifications-dropdown>
     </div>
   </div>
 

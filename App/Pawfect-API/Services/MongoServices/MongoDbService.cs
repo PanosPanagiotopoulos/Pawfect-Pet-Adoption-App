@@ -70,6 +70,9 @@ namespace Pawfect_API.Services.MongoServices
             // Setup other plain text indexes
             await SetupPlainTextIndexesAsync();
 
+            // Setup field indexes for latency improvements
+            await IndexSpecificFields();
+
 
             _logger.LogInformation("MongoDB Atlas Search Index setup completed successfully!");
         }
@@ -475,6 +478,74 @@ namespace Pawfect_API.Services.MongoServices
             }
 
             _logger.LogInformation("Multi-language plain text indexes setup completed successfully!");
+        }
+
+        private async Task IndexSpecificFields()
+        {
+            try
+            {
+                IMongoCollection<BsonDocument> usersCollection = this.FindCollection(typeof(Data.Entities.User));
+
+                _logger.LogInformation("Creating indexes for User collection...");
+
+                // Create email index
+                if (!await CheckRegularIndexExistsAsync(usersCollection, "email_unique_idx"))
+                {
+                    IndexKeysDefinition<BsonDocument> emailIndexDefinition = Builders<BsonDocument>.IndexKeys.Ascending(nameof(Data.Entities.User.Email));
+                    CreateIndexOptions emailIndexOptions = new CreateIndexOptions
+                    {
+                        Name = "email_unique_idx",
+                        Unique = true,
+                        Sparse = true,
+                        Background = true
+                    };
+
+                    await usersCollection.Indexes.CreateOneAsync(
+                        new CreateIndexModel<BsonDocument>(emailIndexDefinition, emailIndexOptions)
+                    );
+
+                    _logger.LogInformation("Created email index successfully");
+                }
+                else
+                {
+                    _logger.LogInformation("Email index already exists");
+                }
+
+                // Create phone index
+                if (!await CheckRegularIndexExistsAsync(usersCollection, "phone_unique_idx"))
+                {
+                    IndexKeysDefinition<BsonDocument> phoneIndexDefinition = Builders<BsonDocument>.IndexKeys.Ascending(nameof(Data.Entities.User.Phone));
+                    CreateIndexOptions phoneIndexOptions = new CreateIndexOptions
+                    {
+                        Name = "phone_unique_idx",
+                        Unique = true,
+                        Sparse = true,
+                        Background = true
+                    };
+
+                    await usersCollection.Indexes.CreateOneAsync(
+                        new CreateIndexModel<BsonDocument>(phoneIndexDefinition, phoneIndexOptions)
+                    );
+
+                    _logger.LogInformation("Created phone index successfully");
+                }
+                else
+                {
+                    _logger.LogInformation("Phone index already exists");
+                }
+
+                _logger.LogInformation("User collection indexing completed");
+            }
+            catch (MongoWriteException ex) when (ex.WriteError.Code == 11000)
+            {
+                _logger.LogWarning("Index creation failed due to duplicate values in existing data");
+                throw new InvalidOperationException("Cannot create unique indexes due to duplicate values in database", ex);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create User collection indexes");
+                throw;
+            }
         }
 
         private async Task<bool> CheckRegularIndexExistsAsync(IMongoCollection<BsonDocument> collection, string indexName)

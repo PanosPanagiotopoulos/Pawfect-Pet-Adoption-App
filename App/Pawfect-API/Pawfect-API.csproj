@@ -25,10 +25,6 @@
     <None Include="Seeders\TestData\Json\animal-types.json" />
   </ItemGroup>
 
-	<ItemGroup>
-		<Content Include="Templates\Emails\*.html" CopyToOutputDirectory="PreserveNewest" />
-	</ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="AWSSDK.S3" Version="3.7.416.13" />

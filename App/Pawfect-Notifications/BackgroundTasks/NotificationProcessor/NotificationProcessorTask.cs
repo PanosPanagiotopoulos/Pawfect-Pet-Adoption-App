@@ -249,12 +249,13 @@ namespace Pawfect_Notifications.BackgroundTasks.NotificationProcessor
 
         private async Task<Boolean> SendNotification(String notificationId, IServiceScope serviceScope, IClientSessionHandle session)
         {
+            Notification notification = null;
             try
             {
                 INotificationRepository notificationRepo = serviceScope.ServiceProvider.GetRequiredService<INotificationRepository>();
                 NotificationSenderFactory notificationSenderFactory = serviceScope.ServiceProvider.GetRequiredService<NotificationSenderFactory>();
 
-                Notification notification = await notificationRepo.FindAsync(notification => notification.Id == notificationId, session);
+                notification = await notificationRepo.FindAsync(notification => notification.Id == notificationId, session);
 
                 if (notification == null)
                 {
@@ -265,32 +266,32 @@ namespace Pawfect_Notifications.BackgroundTasks.NotificationProcessor
                 INotificationSender sender = notificationSenderFactory.SenderSafe(notification.Type);
                 if (sender == null)
                 {
-                    await UpdateNotificationStatus(notificationId, false, 0, serviceScope, session);
+                    await UpdateNotificationStatus(notification, false, 0, serviceScope, session);
                     return false;
                 }
 
                 Boolean success = await sender.SendAsync(notification, serviceScope, session);
                 
                 // Update notification status based on processing result
-                await this.UpdateNotificationStatus(notificationId, success, notification.RetryCount, serviceScope, session);
+                await this.UpdateNotificationStatus(notification, success, notification.RetryCount, serviceScope, session);
 
                 return success;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing notification {NotificationId}", notificationId);
-                await UpdateNotificationStatus(notificationId, false, 0, serviceScope, session);
+                await UpdateNotificationStatus(notification, false, 0, serviceScope, session);
                 return false;
             }
         }
 
-        private async Task UpdateNotificationStatus(String notificationId, Boolean success, Int32 currentRetryCount, IServiceScope serviceScope, IClientSessionHandle session)
+        private async Task UpdateNotificationStatus(Notification notification, Boolean success, Int32 currentRetryCount, IServiceScope serviceScope, IClientSessionHandle session)
         {
+            if (notification == null) return;
+
             try
             {
                 INotificationRepository notificationRepo = serviceScope.ServiceProvider.GetRequiredService<INotificationRepository>();
-
-                Notification notification = await notificationRepo.FindAsync(notification => notification.Id == notificationId, session);
 
                 if (success)
                 {
@@ -319,7 +320,7 @@ namespace Pawfect_Notifications.BackgroundTasks.NotificationProcessor
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating notification {NotificationId} status", notificationId);
+                _logger.LogError(ex, "Error updating notification {NotificationId} status", notification.Id);
             }
         }
     }

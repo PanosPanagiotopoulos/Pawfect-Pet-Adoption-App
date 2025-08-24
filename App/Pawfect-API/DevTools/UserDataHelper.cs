@@ -16,9 +16,8 @@
             String firstName = nameParts[0];
 
             if (firstName.Length > 1 &&
-                (firstName.EndsWith("s", StringComparison.OrdinalIgnoreCase) ||
-                 firstName.EndsWith("ς")) ||
-                 firstName.EndsWith("σ"))
+                 firstName.EndsWith("ς", StringComparison.OrdinalIgnoreCase) ||
+                 firstName.EndsWith("σ", StringComparison.OrdinalIgnoreCase))
             {
                 firstName = firstName.Substring(0, firstName.Length - 1);
             }

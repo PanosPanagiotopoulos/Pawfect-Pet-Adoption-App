@@ -8,8 +8,10 @@ namespace Pawfect_Notifications.Models.Notification
 		public String? Id { get; set; }
 		public User.User? User { get; set; }
 		public NotificationType? Type { get; set; }
-		public String? Content { get; set; }
+        public String Title { get; set; }
+        public String Content { get; set; }
 		public Boolean? IsRead { get; set; }
 		public DateTime? CreatedAt { get; set; }
-	}
+        public DateTime? ReadAt { get; set; }
+    }
 }

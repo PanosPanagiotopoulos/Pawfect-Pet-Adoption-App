@@ -1,17 +1,16 @@
 import { DatePipe } from '@angular/common';
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, inject } from '@angular/core';
 import * as moment from 'moment';
 import * as momentTimezone from 'moment-timezone';
 import { TimezoneService } from '../services/time-zone.service';
 
 @Pipe({
   name: 'dateTimeFormatter',
+  standalone: true
 })
 export class DateTimeFormatPipe implements PipeTransform {
-  constructor(
-    private datePipe: DatePipe,
-    private timezoneService: TimezoneService
-  ) {}
+  private datePipe = inject(DatePipe);
+  private timezoneService = inject(TimezoneService);
 
   transform(
     value: any,
@@ -66,6 +65,7 @@ export class DateTimeFormatPipe implements PipeTransform {
 
 @Pipe({
   name: 'dataTableDateTimeFormatter',
+  standalone: true
 })
 // This is only used for the DataTable Column definition.
 // It's a hacky way to apply format to the pipe because it only supports passing a pipe instance and calls transform in it without params.
@@ -76,11 +76,11 @@ export class DataTableDateTimeFormatPipe
   format: string = '';
   timezone: string = '';
 
-  constructor(
-    private _datePipe: DatePipe,
-    private _timezoneService: TimezoneService
-  ) {
-    super(_datePipe, _timezoneService);
+  private _datePipe = inject(DatePipe);
+  private _timezoneService = inject(TimezoneService);
+
+  constructor() {
+    super();
   }
 
   public withTimezone(timezone: string): DataTableDateTimeFormatPipe {

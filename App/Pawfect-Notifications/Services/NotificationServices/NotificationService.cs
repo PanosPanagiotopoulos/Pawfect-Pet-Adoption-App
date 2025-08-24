@@ -6,6 +6,15 @@ using Pawfect_Notifications.Repositories.Interfaces;
 using Pawfect_Notifications.Services.AuthenticationServices;
 using Pawfect_Notifications.Data.Entities.EnumTypes;
 using Pawfect_Notifications.Data.Entities.Types.Notifications;
+using Pawfect_Notifications.Models.Lookups;
+using System.Security.Claims;
+using MongoDB.Bson.Serialization.Conventions;
+using Pawfect_Notifications.Services.Convention;
+using Pawfect_Notifications.DevTools;
+using Pawfect_Notifications.Censors;
+using Pawfect_Notifications.Builders;
+using Pawfect_Notifications.Query;
+using SendGrid.Helpers.Mail;
 
 namespace Pawfect_Notifications.Services.NotificationServices
 {
@@ -14,6 +23,13 @@ namespace Pawfect_Notifications.Services.NotificationServices
         private readonly ILogger<NotificationService> _logger;
         private readonly INotificationRepository _notificationRepository;
         private readonly IAuthorizationService _authorizationService;
+        private readonly IAuthorizationContentResolver _authorizationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IConventionService _conventionService;
+        private readonly IQueryFactory _queryFactory;
+        private readonly IBuilderFactory _builderFactory;
+        private readonly ICensorFactory _censorFactory;
+        private readonly AuthContextBuilder _contextBuilder;
         private readonly NotificationConfig _config;
 
         public NotificationService
@@ -21,12 +37,26 @@ namespace Pawfect_Notifications.Services.NotificationServices
             ILogger<NotificationService> logger,
             INotificationRepository notificationRepository,
 			IAuthorizationService authorizationService,
-			IOptions<NotificationConfig> options
+            IAuthorizationContentResolver authorizationContentResolver,
+            ClaimsExtractor claimsExtractor,
+            IConventionService conventionService,
+            IQueryFactory queryFactory,
+            IBuilderFactory builderFactory,
+            ICensorFactory censorFactory,
+            AuthContextBuilder contextBuilder,
+            IOptions<NotificationConfig> options
 		)
 		{
             _logger = logger;
             _notificationRepository = notificationRepository;
             _authorizationService = authorizationService;
+            _authorizationContentResolver = authorizationContentResolver;
+            _claimsExtractor = claimsExtractor;
+            _conventionService = conventionService;
+            _queryFactory = queryFactory;
+            _builderFactory = builderFactory;
+            _censorFactory = censorFactory;
+            _contextBuilder = contextBuilder;
             _config = options.Value;
         }
 
@@ -58,6 +88,53 @@ namespace Pawfect_Notifications.Services.NotificationServices
             List<String> dataIds = await _notificationRepository.AddManyAsync(handledNotifications);
             if (dataIds == null || dataIds.Count != events.Count)
                 _logger.LogError("Failed to persist all notification events. Expected {ExpectedCount}, but got {ActualCount}", events.Count, dataIds?.Count ?? 0);
+        }
+
+        public async Task<Models.Notification.Notification> ReadNotificationsAsync(String id, List<String> fields = null) => (await this.ReadNotificationsAsync([id], fields))?.FirstOrDefault();
+        public async Task<List<Models.Notification.Notification>> ReadNotificationsAsync(List<String> ids, List<String> fields = null)
+        {
+            if (ids == null || !ids.Any())
+                throw new ArgumentException("Notification IDs cannot be null or empty", nameof(ids));
+
+            ClaimsPrincipal currentUser = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(currentUser);
+            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+
+            NotificationLookup authFilter = new NotificationLookup();
+            authFilter.UserIds = [userId];
+            OwnedResource ownedResource = new OwnedResource(userId, new OwnedFilterParams(authFilter));
+
+            if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.EditNotifications))
+                throw new ForbiddenException();
+
+            List<Data.Entities.Notification> notifications = await _notificationRepository.FindManyAsync(notf => ids.Contains(notf.Id));
+            if (notifications == null || !notifications.Any())
+                throw new NotFoundException("Notifications not found", JsonHelper.SerializeObjectFormatted(ids), typeof(Data.Entities.Notification));
+
+            notifications.ForEach(notf => { notf.IsRead = true; notf.ReadAt = DateTime.UtcNow; });
+
+            List<String> updatedNotifications = await _notificationRepository.UpdateManyAsync(notifications);
+
+            if (updatedNotifications == null || updatedNotifications.Count != notifications.Count)
+                throw new Exception("Failed to update all notifications");
+
+            // Return dto model
+            NotificationLookup lookup = new NotificationLookup();
+            lookup.Ids = updatedNotifications;
+            lookup.Fields = fields;
+            lookup.Offset = 1;
+            lookup.PageSize = updatedNotifications.Count;
+
+            AuthContext censorContext = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<NotificationCensor>().Censor([.. lookup.Fields], censorContext);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying adoption applications");
+
+            lookup.Fields = censoredFields;
+
+            return await _builderFactory.Builder<NotificationBuilder>().Authorise(AuthorizationFlags.OwnerOrPermission).Build(
+                await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermission).CollectAsync(),
+                censoredFields
+            );
         }
 
         public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }

@@ -1,4 +1,5 @@
 ﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_Pet_Adoption_App_API.Services.UserServices;
 
 namespace Pawfect_API.Services.UserServices.Extentions
 {
@@ -9,7 +10,10 @@ namespace Pawfect_API.Services.UserServices.Extentions
 			services.AddScoped<IUserService, UserService>();
 			services.AddScoped(provider => new Lazy<IUserService>(() => provider.GetRequiredService<IUserService>()));
 
-			services.Configure<UserFields>(userFields);
+            services.AddScoped<IUserAvailabilityService, UserAvailabilityService>();
+            services.AddScoped(provider => new Lazy<IUserAvailabilityService>(() => provider.GetRequiredService<IUserAvailabilityService>()));
+
+            services.Configure<UserFields>(userFields);
 
             return services;
 		}

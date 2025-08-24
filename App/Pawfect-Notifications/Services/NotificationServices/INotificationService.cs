@@ -7,7 +7,9 @@ namespace Pawfect_Notifications.Services.NotificationServices
 	{
 		Task HandleEvent(NotificationEvent @event);
         Task HandleEvents(List<NotificationEvent> events);
-		Task Delete(String id);
+		Task<Models.Notification.Notification> ReadNotificationsAsync(String id, List<String> fields = null);
+		Task<List<Models.Notification.Notification>> ReadNotificationsAsync(List<String> ids, List<String> fields = null);
+        Task Delete(String id);
 		Task Delete(List<String> ids);
 
 	}
