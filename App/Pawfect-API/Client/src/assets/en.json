@@ -667,8 +667,15 @@
     },
     "PROFILE": {
       "ADOPTION_STATUS": {
-        "PENDING": "Pending"
-      }
+        "AVAILABLE": "Available",
+        "PENDING": "Pending",
+        "ADOPTED": "Adopted"
+      },
+      "ROLE": {
+        "SHELTER": "Shelter",
+        "ADOPTER": "Adopter"
+      },
+      "UNKNOWN_USER": "Unknown User"
     },
     "ANIMALS": {
         "EDIT": {
@@ -853,25 +860,19 @@
         "HIDE_MAP": "Hide Map"
       },
       "ADOPTION_APPLICATIONS": {
-        "STATUS": "Status",
+        "NO_APPLICATIONS_TITLE": "No Applications Yet",
+        "NO_APPLICATIONS_SUBTEXT": "You haven't submitted any adoption applications yet. Start by searching for pets you'd like to adopt!",
+        "NO_APPLICATIONS_CTA": "Search for Pets",
+        "NO_RECEIVED_APPLICATIONS_TITLE": "No Received Applications",
+        "NO_RECEIVED_APPLICATIONS_SUBTEXT": "No one has submitted adoption applications to your shelter yet.",
+        "LOAD_ERROR": "Failed to load applications",
+        "EDIT_APPLICATION": "Edit Application",
         "ANIMAL": "Animal",
-        "ITEMS_PER_PAGE": "Items per page",
-        "TITLE": "Adoption Applications",
         "BREED": "Breed",
         "APPLICANT": "Applicant",
-        "EDIT_APPLICATION": "Edit Application",
-        "NO_APPLICATIONS": "No adoption applications found.",
-        "START_SEARCHING": "Go search for animals",
-        "EMPTY_STATE_TITLE": "You haven’t applied for any adoptions yet.",
-        "EMPTY_STATE_DESC": "Start your journey by searching for animals available for adoption.",
-        "EMPTY_STATE_CTA": "Go search for animals",
-        "NO_RECEIVED_APPLICATIONS_SUBTEXT": "You haven't received any adoption applications yet. When someone applies to adopt your animals, you'll see them here.",
-        "NO_RECEIVED_APPLICATIONS_TITLE": "No received applications",
-        "NO_APPLICATIONS_TITLE": "No adoption applications yet",
-        "NO_APPLICATIONS_SUBTEXT": "You haven't applied to adopt any pets yet. Start your journey by searching for your perfect companion!",
-        "NO_APPLICATIONS_CTA": "Search for animals",
-        "LOAD_ERROR": "Failed to load adoption applications. Please try again.",
-        "FORBIDDEN": "Shelters cannot create adoption applications. You can only view and manage existing applications."
+        "STATUS": "Status",
+        "SEARCH_LABEL": "Search",
+        "SEARCH_PLACEHOLDER": "Search by applicant name, animal name, etc."
       },
       "SHELTER_INFO": {
         "TITLE": "Shelter Information",
@@ -948,8 +949,9 @@
       },
       "ADOPTION_STATUS": {
         "AVAILABLE": "Available",
-        "IN_PROGRESS": "In Progress",
-        "ADOPTED": "Adopted"
+        "PENDING": "Pending",
+        "ADOPTED": "Adopted",
+        "UNKNOWN": "Unknown"
       },
       "SHELTER": {
         "BADGE": "Shelter",
@@ -1002,8 +1004,8 @@
           "SHELTER_NAME_MINLENGTH": "Shelter name must be at least 3 characters long",
           "INVALID_FILE_TYPE": "Please select a valid image file (JPG, PNG, GIF)",
           "FILE_TOO_LARGE": "File size must be less than 10MB",
-        "SHELTER_NAME_REQUIRED": "Shelter name is required",
-        "DESCRIPTION_MINLENGTH": "Description must be at least 10 characters long"
+          "SHELTER_NAME_REQUIRED": "Shelter name is required",
+          "DESCRIPTION_MINLENGTH": "Description must be at least 10 characters long"
         }
       },
       "ERRORS": {
@@ -1022,9 +1024,18 @@
         "SEARCH_PLACEHOLDER": "Search by name, breed, etc.",
         "ADOPTION_STATUS_LABEL": "Adoption Status",
         "GENDER_LABEL": "Gender",
+        "ANIMAL_TYPE_LABEL": "Animal Type",
+        "BREED_LABEL": "Breed",
         "AGE_LABEL": "Age",
         "AGE_FROM": "From (years)",
-        "AGE_TO": "To (years)"
+        "AGE_TO": "To (years)",
+        "LOADING_ANIMAL_TYPES": "Loading animal types...",
+        "LOADING_BREEDS": "Loading breeds...",
+        "SELECT_ANIMAL_TYPE_FIRST": "Select animal type first",
+        "NO_BREEDS_FOUND": "No breeds found",
+        "FILTERS_SECTION_LABEL": "Filters and sorting options",
+        "SHOW_FILTERS": "Show filters",
+        "HIDE_FILTERS": "Hide filters"
       },
       "SORT": {
         "CREATED_AT": "Created At",
@@ -1032,7 +1043,12 @@
         "STATUS": "Status"
       },
       "NO_PROFILE_TABS": "No profile information available",
-      "NO_PROFILE_TABS_SUBTEXT": "Unable to load profile tabs"
+      "NO_PROFILE_TABS_SUBTEXT": "Unable to load profile tabs",
+      "ROLE": {
+        "SHELTER": "Shelter",
+        "ADOPTER": "Adopter"
+      },
+      "UNKNOWN_USER": "Unknown User"
     }
   }
 } 

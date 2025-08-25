@@ -14,7 +14,11 @@ import { Router } from '@angular/router';
 import { Animal, AdoptionStatus } from 'src/app/models/animal/animal.model';
 import { Gender } from 'src/app/common/enum/gender';
 import { AnimalService } from 'src/app/services/animal.service';
+import { AnimalTypeService } from 'src/app/services/animal-type.service';
+import { BreedService } from 'src/app/services/breed.service';
 import { AnimalLookup } from 'src/app/lookup/animal-lookup';
+import { AnimalTypeLookup } from 'src/app/lookup/animal-type-lookup';
+import { BreedLookup } from 'src/app/lookup/breed-lookup';
 import { PageEvent } from '@angular/material/paginator';
 import { LogService } from 'src/app/common/services/log.service';
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
@@ -25,6 +29,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { nameof } from 'ts-simple-nameof';
 import { Breed } from 'src/app/models/breed/breed.model';
+import { AnimalType } from 'src/app/models/animal-type/animal-type.model';
 import { File } from 'src/app/models/file/file.model';
 import { Shelter } from 'src/app/models/shelter/shelter.model';
 
@@ -66,6 +71,14 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   filterPanelVisible = false;
   adoptionStatusDropdownOpen = false;
   genderDropdownOpen = false;
+  animalTypeDropdownOpen = false;
+  breedDropdownOpen = false;
+
+  // Filter data
+  animalTypes: AnimalType[] = [];
+  filteredBreeds: Breed[] = [];
+  isLoadingAnimalTypes = false;
+  isLoadingBreeds = false;
 
   lookup: AnimalLookup = {
     offset: 0,
@@ -79,11 +92,15 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
       nameof<Animal>(x => x.age),
       nameof<Animal>(x => x.gender),
       [nameof<Animal>(x => x.shelter), nameof<Shelter>(x => x.id)].join('.'),
+      [nameof<Animal>(x => x.animalType), nameof<AnimalType>(x => x.id)].join('.'),
+      [nameof<Animal>(x => x.animalType), nameof<AnimalType>(x => x.name)].join('.'),
     ],
     sortBy: [],
     sortDescending: true,
     adoptionStatuses: [],
     genders: [],
+    animalTypeIds: [],
+    breedIds: [],
     ageFrom: undefined,
     ageTo: undefined,
     query: '',
@@ -123,6 +140,14 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     return this.lookup.genders ?? [];
   }
 
+  get animalTypeFilter(): string[] {
+    return this.lookup.animalTypeIds ?? [];
+  }
+
+  get breedFilter(): string[] {
+    return this.lookup.breedIds ?? [];
+  }
+
   get ageFrom(): number | undefined {
     return this.lookup.ageFrom;
   }
@@ -149,6 +174,8 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     private animalService: AnimalService,
+    private animalTypeService: AnimalTypeService,
+    private breedService: BreedService,
     private log: LogService,
     private errorHandler: ErrorHandlerService,
     private cdr: ChangeDetectorRef,
@@ -161,6 +188,7 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     if (this.viewingAnimalsShelterId) {
       this.currentUserShelterId = this.authService.getUserShelterId();
       this.lookup.shelterIds = [this.viewingAnimalsShelterId];
+      this.loadInitialData();
       this.loadAnimals();
     }
     this.translationSub = this.translationService.languageChanged$.subscribe(
@@ -184,6 +212,87 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy() {
     this.translationSub?.unsubscribe();
     this.dataSub?.unsubscribe();
+  }
+
+  loadInitialData(): void {
+    this.isLoadingAnimalTypes = true;
+    this.isLoadingBreeds = true;
+    this.cdr.markForCheck();
+
+    const animalTypesQuery: AnimalTypeLookup = {
+      ids: undefined,
+      name: undefined,
+      sortBy: [],
+      offset: 0,
+      pageSize: 1000,
+      fields: [
+        nameof<AnimalType>((x) => x.id),
+        nameof<AnimalType>((x) => x.name),
+      ],
+    };
+
+    const breedsQuery: BreedLookup = {
+      ids: undefined,
+      typeIds: undefined, // Load all breeds regardless of animal type
+      createdFrom: undefined,
+      createdTill: undefined,
+      offset: 0,
+      pageSize: 1000,
+      fields: [nameof<Breed>((x) => x.id), nameof<Breed>((x) => x.name)],
+      sortBy: [],
+    };
+
+    const loadSub = this.animalTypeService.query(animalTypesQuery).subscribe({
+      next: (data) => {
+        this.animalTypes = data.items;
+        this.isLoadingAnimalTypes = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isLoadingAnimalTypes = false;
+        this.errorHandler.handleError(err);
+        this.log.logFormatted({
+          message: 'Failed to load animal types',
+          error: err,
+        });
+        this.cdr.markForCheck();
+      },
+    });
+
+    const breedsSub = this.breedService.query(breedsQuery).subscribe({
+      next: (breedsResult) => {
+        this.filteredBreeds = breedsResult.items;
+        this.isLoadingBreeds = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.isLoadingBreeds = false;
+        this.errorHandler.handleError(err);
+        this.log.logFormatted({
+          message: 'Failed to load breeds',
+          error: err,
+        });
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  loadBreedsForAnimalTypes(animalTypeIds: string[]): void {
+    // This method is no longer needed since we load all breeds upfront
+    // But keeping it for backward compatibility
+    if (!animalTypeIds || animalTypeIds.length === 0) {
+      // Don't clear breeds - keep all available
+      return;
+    }
+
+    // Filter breeds based on selected animal types if any are selected
+    if (animalTypeIds.length > 0) {
+      this.filteredBreeds = this.filteredBreeds.filter(breed => 
+        breed.animalType?.id && animalTypeIds.includes(breed.animalType.id)
+      );
+    }
+    
+    this.cdr.markForCheck();
   }
 
   loadAnimals(event?: PageEvent) {
@@ -324,11 +433,22 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  getAnimalTypeLabel(value: string): string {
+    const animalType = this.animalTypes.find((type) => type.id === value);
+    return animalType?.name || '';
+  }
+
+  getBreedLabel(value: string): string {
+    const breed = this.filteredBreeds.find((b) => b.id === value);
+    return breed?.name || '';
+  }
+
   // Filter panel methods
   toggleFilterPanel() {
     this.filterPanelVisible = !this.filterPanelVisible;
     this.cdr.markForCheck();
   }
+
   toggleAdoptionStatus(status: AdoptionStatus) {
     if (!this.lookup.adoptionStatuses) this.lookup.adoptionStatuses = [];
     if (this.lookup.adoptionStatuses.includes(status)) {
@@ -348,6 +468,39 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
       this.lookup.genders = this.lookup.genders.filter((g) => g !== gender);
     } else {
       this.lookup.genders = [...this.lookup.genders, gender];
+    }
+    this.resetPagination();
+    this.loadAnimals();
+  }
+
+  toggleAnimalType(animalTypeId: string) {
+    if (!this.lookup.animalTypeIds) this.lookup.animalTypeIds = [];
+    if (this.lookup.animalTypeIds.includes(animalTypeId)) {
+      this.lookup.animalTypeIds = this.lookup.animalTypeIds.filter(
+        (id) => id !== animalTypeId
+      );
+    } else {
+      this.lookup.animalTypeIds = [...this.lookup.animalTypeIds, animalTypeId];
+    }
+    
+    // No need to update breeds when animal types change since all breeds are loaded
+    // But we can optionally filter breeds based on selected animal types
+    if (this.lookup.animalTypeIds.length > 0) {
+      this.loadBreedsForAnimalTypes(this.lookup.animalTypeIds);
+    }
+    
+    this.resetPagination();
+    this.loadAnimals();
+  }
+
+  toggleBreed(breedId: string) {
+    if (!this.lookup.breedIds) this.lookup.breedIds = [];
+    if (this.lookup.breedIds.includes(breedId)) {
+      this.lookup.breedIds = this.lookup.breedIds.filter(
+        (id) => id !== breedId
+      );
+    } else {
+      this.lookup.breedIds = [...this.lookup.breedIds, breedId];
     }
     this.resetPagination();
     this.loadAnimals();
@@ -374,9 +527,12 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
   clearFilters() {
     this.lookup.adoptionStatuses = [];
     this.lookup.genders = [];
+    this.lookup.animalTypeIds = [];
+    this.lookup.breedIds = [];
     this.lookup.ageFrom = undefined;
     this.lookup.ageTo = undefined;
     this.lookup.query = '';
+    this.filteredBreeds = [];
     this.resetPagination();
     this.loadAnimals();
   }

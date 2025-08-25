@@ -23,7 +23,7 @@
         public List<String>? BreedIds { get; set; }
 
         // Λίστα από IDs τύπων για φιλτράρισμα
-        public List<String>? TypeIds { get; set; }
+        public List<String>? AnimalTypeIds { get; set; }
 
         // Λίστα από καταστάσεις υιοθεσίας για φιλτράρισμα
         public List<AdoptionStatus>? AdoptionStatuses { get; set; }
@@ -50,7 +50,7 @@
             if (this.ExcludedIds != null && this.ExcludedIds.Count != 0) animalQuery.ExcludedIds = this.ExcludedIds;
             if (this.ShelterIds != null && this.ShelterIds.Count != 0) animalQuery.ShelterIds = this.ShelterIds;
             if (this.BreedIds != null && this.BreedIds.Count != 0) animalQuery.BreedIds = this.BreedIds;
-            if (this.TypeIds != null && this.TypeIds.Count != 0) animalQuery.TypeIds = this.TypeIds;
+            if (this.AnimalTypeIds != null && this.AnimalTypeIds.Count != 0) animalQuery.AnimalTypeIds = this.AnimalTypeIds;
             if (this.AdoptionStatuses != null && this.AdoptionStatuses.Count != 0) animalQuery.AdoptionStatuses = this.AdoptionStatuses;
             if (this.Genders != null && this.Genders.Count != 0) animalQuery.Genders = this.Genders;
             if (this.AgeFrom.HasValue) animalQuery.AgeFrom = this.AgeFrom;

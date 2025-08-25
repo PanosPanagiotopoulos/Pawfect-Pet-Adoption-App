@@ -191,6 +191,18 @@
               ></ng-icon>
               <span>{{ "APP.PROFILE-PAGE.SHELTER.BADGE" | translate }}</span>
             </div>
+            <!-- Adopter Badge -->
+            <div
+              *ngIf="!profileUser.roles?.includes(UserRole.Shelter)"
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"
+            >
+              <ng-icon
+                name="lucideUser"
+                class="w-4 h-4 mr-1"
+                aria-label="Adopter"
+              ></ng-icon>
+              <span>{{ "APP.PROFILE-PAGE.ROLE.ADOPTER" | translate }}</span>
+            </div>
           </div>
         </div>
       </div>

@@ -667,8 +667,15 @@
     },
     "PROFILE": {
       "ADOPTION_STATUS": {
-        "PENDING": "Εκκρεμής"
-      }
+        "AVAILABLE": "Διαθέσιμο",
+        "PENDING": "Σε Εκκρεμότητα",
+        "ADOPTED": "Υιοθετήθηκε"
+      },
+      "ROLE": {
+        "SHELTER": "Καταφύγιο",
+        "ADOPTER": "Υιοθετητής"
+      },
+      "UNKNOWN_USER": "Άγνωστος Χρήστης"
     },
     "ANIMALS": {
         "EDIT": {
@@ -852,25 +859,19 @@
         "HIDE_MAP": "Απόκρυψη Χάρτη"
       },
       "ADOPTION_APPLICATIONS": {
-        "STATUS": "Κατάσταση",
-        "ANIMAL": "Ζώο",
-        "ITEMS_PER_PAGE": "Αντικείμενα ανά σελίδα",
-        "TITLE": "Αιτήσεις Υιοθεσίας",
-        "BREED": "Ράτσα",
-        "APPLICANT": "Αιτών",
-        "EDIT_APPLICATION": "Επεξεργασία Αίτησης",
-        "NO_APPLICATIONS": "Δεν βρέθηκαν αιτήσεις υιοθεσίας.",
-        "START_SEARCHING": "Αναζητήστε ζώα",
-        "EMPTY_STATE_TITLE": "Δεν έχετε υποβάλει αιτήσεις υιοθεσίας ακόμα.",
-        "EMPTY_STATE_DESC": "Ξεκινήστε το ταξίδι σας αναζητώντας ζώα διαθέσιμα για υιοθεσία.",
-        "EMPTY_STATE_CTA": "Αναζητήστε ζώα",
-        "NO_RECEIVED_APPLICATIONS_SUBTEXT": "Δεν έχετε λάβει αιτήσεις υιοθεσίας ακόμα. Όταν κάποιος υποβάλει αίτηση για υιοθεσία των ζώων σας, θα τις δείτε εδώ.",
-        "NO_RECEIVED_APPLICATIONS_TITLE": "Καμία ληφθείσα αίτηση",
-        "NO_APPLICATIONS_TITLE": "Καμία αίτηση υιοθεσίας ακόμα",
-        "NO_APPLICATIONS_SUBTEXT": "Δεν έχετε υποβάλει αίτηση για υιοθεσία κατοικιδίων ακόμα. Ξεκινήστε το ταξίδι σας αναζητώντας τον τέλειο σύντροφό σας!",
-        "NO_APPLICATIONS_CTA": "Αναζητήστε ζώα",
-        "LOAD_ERROR": "Αποτυχία φόρτωσης αιτήσεων υιοθεσίας. Παρακαλούμε δοκιμάστε ξανά.",
-        "FORBIDDEN": "Τα καταφύγια δεν μπορούν να δημιουργήσουν αιτήσεις υιοθεσίας. Μπορείτε μόνο να προβάλετε και να διαχειριστείτε υπάρχουσες αιτήσεις."
+        "NO_APPLICATIONS_TITLE": "No Applications Yet",
+        "NO_APPLICATIONS_SUBTEXT": "You haven't submitted any adoption applications yet. Start by searching for pets you'd like to adopt!",
+        "NO_APPLICATIONS_CTA": "Search for Pets",
+        "NO_RECEIVED_APPLICATIONS_TITLE": "No Received Applications",
+        "NO_RECEIVED_APPLICATIONS_SUBTEXT": "No one has submitted adoption applications to your shelter yet.",
+        "LOAD_ERROR": "Failed to load applications",
+        "EDIT_APPLICATION": "Edit Application",
+        "ANIMAL": "Animal",
+        "BREED": "Breed",
+        "APPLICANT": "Applicant",
+        "STATUS": "Status",
+        "SEARCH_LABEL": "Search",
+        "SEARCH_PLACEHOLDER": "Search by applicant name, animal name, etc."
       },
       "SHELTER_INFO": {
         "TITLE": "Πληροφορίες Καταφυγίου",
@@ -903,15 +904,15 @@
       },
       "MY_ANIMALS": {
         "TITLE": "Οι Αγαπημένοι μας Σύντροφοι",
-        "NO_ANIMALS": "Δεν έχετε προσθέσει ζώα ακόμα.",
-        "NO_ANIMALS_SUBTEXT": "Δεν έχετε προσθέσει ζώα ακόμα. Ξεκινήστε προσθέτοντας το πρώτο σας ζώο για να τα παρουσιάσετε εδώ!",
+        "NO_ANIMALS": "Δεν έχετε προσθέσει ακόμα κανένα ζώο.",
+        "NO_ANIMALS_SUBTEXT": "Δεν έχετε προσθέσει ακόμα κανένα ζώο. Ξεκινήστε προσθέτοντας το πρώτο σας ζώο για να το δείξετε εδώ!",
         "VIEW_DETAILS": "Προβολή Λεπτομερειών",
         "VIEW_ANIMAL": "Προβολή Ζώου",
-        "BREED": "Ράτσα",
+        "BREED": "Φυλή",
         "TYPE": "Τύπος",
         "GENDER": "Φύλο",
         "AGE": "Ηλικία",
-        "YEARS": "χρόνια",
+        "YEARS": "έτη",
         "CREATED": "Δημιουργήθηκε",
         "ANIMAL": "Ζώο",
         "STATUS": "Κατάσταση",
@@ -946,92 +947,107 @@
         "UNKNOWN": "Άγνωστη"
       },
       "ADOPTION_STATUS": {
-    "AVAILABLE": "Διαθέσιμο",
-    "IN_PROGRESS": "Σε εξέλιξη",
-    "ADOPTED": "Υιοθετήθηκε"
-  },
-  "SHELTER": {
-    "BADGE": "Καταφύγιο",
-    "NO_HOURS": "Δεν υπάρχουν διαθέσιμες ώρες λειτουργίας",
-    "CLOSED_TODAY": "Κλειστό σήμερα",
-    "OPEN_TODAY": "Ανοιχτό σήμερα"
-  },
-  "ACTIONS": {
-    "TRY_AGAIN": "Προσπάθησε ξανά",
-    "ADOPT_PET": "Υιοθέτησε ένα κατοικίδιο"
-  },
-  "EDIT": {
-    "EDIT": "Επεξεργασία",
-    "CANCEL": "Ακύρωση",
-    "SAVE": "Αποθήκευση αλλαγών",
-    "SAVING": "Αποθήκευση...",
-    "SAVE_SUCCESS": "Το προφίλ ενημερώθηκε επιτυχώς",
-    "SAVE_ERROR": "Αποτυχία ενημέρωσης προφίλ",
-    "VALIDATION_ERROR": "Παρακαλώ διορθώστε τα σφάλματα της φόρμας πριν την αποθήκευση",
-    "DESCRIPTION_PLACEHOLDER": "Εισαγάγετε περιγραφή καταφυγίου...",
-    "WEBSITE_PLACEHOLDER": "https://example.com",
-    "FACEBOOK_PLACEHOLDER": "https://facebook.com/yourpage",
-    "INSTAGRAM_PLACEHOLDER": "https://instagram.com/yourpage",
-    "HOURS_PLACEHOLDER": "π.χ., 09:00,17:00 ή 'κλειστό'",
-    "SHELTER_NAME_PLACEHOLDER": "Εισαγάγετε όνομα καταφυγίου...",
-    "PROFILE_PHOTO_TITLE": "Φωτογραφία προφίλ",
-    "PROFILE_PHOTO_SUBTITLE": "Ανεβάστε ή διαγράψτε τη φωτογραφία προφίλ σας",
-    "DRAG_DROP_PHOTO": "Σύρετε και αφήστε μια φωτογραφία εδώ ή κάντε κλικ για επιλογή",
-    "PHOTO_REQUIREMENTS": "Απαιτήσεις φωτογραφίας",
-    "PHOTO_FORMAT": "JPG, PNG",
-    "PHOTO_SIZE": "Μέγιστο 10 MB",
-    "PHOTO_DIMENSIONS": "400x400px",
-    "RECOMMENDED": "συνιστάται",
-    "DELETE_PHOTO": "Διαγραφή φωτογραφίας",
-    "UPLOAD_PHOTO": "Ανέβασμα φωτογραφίας",
-    "PHOTO_SELECTED": "Η φωτογραφία επιλέχθηκε επιτυχώς",
-    "PHOTO_WILL_BE_DELETED": "Η φωτογραφία θα διαγραφεί όταν αποθηκευτούν οι αλλαγές",
-    "PHOTO_DELETE_PLACEHOLDER": "Η διαγραφή φωτογραφίας προφίλ δεν έχει υλοποιηθεί ακόμα",
-    "PHOTO_UPLOAD_PLACEHOLDER": "Το ανέβασμα φωτογραφίας προφίλ δεν έχει υλοποιηθεί ακόμα",
-    "PHOTO_DELETED": "Η φωτογραφία προφίλ διαγράφηκε επιτυχώς",
-    "PHOTO_UPDATED": "Η φωτογραφία προφίλ ενημερώθηκε επιτυχώς",
-    "PHOTO_UPDATE_ERROR": "Αποτυχία ενημέρωσης φωτογραφίας προφίλ",
-    "ERRORS": {
-      "HOURS_FORMAT_INVALID": "Παρακαλώ εισαγάγετε την ώρα σε μορφή ΩΩ:ΛΛ,ΩΩ:ΛΛ ή 'κλειστό'",
-      "HOURS_RANGE_INVALID": "Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος",
-      "INSTAGRAM_INVALID": "Η διεύθυνση Instagram πρέπει να περιέχει 'instagram'",
-      "FACEBOOK_INVALID": "Η διεύθυνση Facebook πρέπει να περιέχει 'facebook'",
-      "WEBSITE_INVALID": "Παρακαλώ εισαγάγετε μια έγκυρη διεύθυνση ιστοσελίδας",
-      "DESCRIPTION_REQUIRED": "Η περιγραφή είναι υποχρεωτική",
-      "SHELTER_NAME_MINLENGTH": "Το όνομα του καταφυγίου πρέπει να έχει τουλάχιστον 3 χαρακτήρες",
-      "INVALID_FILE_TYPE": "Παρακαλώ επιλέξτε ένα έγκυρο αρχείο εικόνας (JPG, PNG, GIF)",
-      "FILE_TOO_LARGE": "Το μέγεθος του αρχείου πρέπει να είναι μικρότερο από 10MB",
-      "SHELTER_NAME_REQUIRED": "Το όνομα του καταφυγίου είναι υποχρεωτικό",
-      "DESCRIPTION_MINLENGTH": "Η περιγραφή πρέπει να έχει τουλάχιστον 10 χαρακτήρες"
+        "AVAILABLE": "Διαθέσιμο",
+        "PENDING": "Σε Εκκρεμότητα",
+        "ADOPTED": "Υιοθετήθηκε",
+        "UNKNOWN": "Άγνωστο"
+      },
+      "SHELTER": {
+        "BADGE": "Καταφύγιο",
+        "NO_HOURS": "Δεν υπάρχουν διαθέσιμες ώρες λειτουργίας",
+        "CLOSED_TODAY": "Κλειστό σήμερα",
+        "OPEN_TODAY": "Ανοιχτό σήμερα"
+      },
+      "ACTIONS": {
+        "TRY_AGAIN": "Προσπάθησε ξανά",
+        "ADOPT_PET": "Υιοθέτησε ένα κατοικίδιο"
+      },
+      "EDIT": {
+        "EDIT": "Επεξεργασία",
+        "CANCEL": "Ακύρωση",
+        "SAVE": "Αποθήκευση αλλαγών",
+        "SAVING": "Αποθήκευση...",
+        "SAVE_SUCCESS": "Το προφίλ ενημερώθηκε επιτυχώς",
+        "SAVE_ERROR": "Αποτυχία ενημέρωσης προφίλ",
+        "VALIDATION_ERROR": "Παρακαλώ διορθώστε τα σφάλματα της φόρμας πριν την αποθήκευση",
+        "DESCRIPTION_PLACEHOLDER": "Εισαγάγετε περιγραφή καταφυγίου...",
+        "WEBSITE_PLACEHOLDER": "https://example.com",
+        "FACEBOOK_PLACEHOLDER": "https://facebook.com/yourpage",
+        "INSTAGRAM_PLACEHOLDER": "https://instagram.com/yourpage",
+        "HOURS_PLACEHOLDER": "π.χ., 09:00,17:00 ή 'κλειστό'",
+        "SHELTER_NAME_PLACEHOLDER": "Εισαγάγετε όνομα καταφυγίου...",
+        "PROFILE_PHOTO_TITLE": "Φωτογραφία προφίλ",
+        "PROFILE_PHOTO_SUBTITLE": "Ανεβάστε ή διαγράψτε τη φωτογραφία προφίλ σας",
+        "DRAG_DROP_PHOTO": "Σύρετε και αφήστε μια φωτογραφία εδώ ή κάντε κλικ για επιλογή",
+        "PHOTO_REQUIREMENTS": "Απαιτήσεις φωτογραφίας",
+        "PHOTO_FORMAT": "JPG, PNG",
+        "PHOTO_SIZE": "Μέγιστο 10 MB",
+        "PHOTO_DIMENSIONS": "400x400px",
+        "RECOMMENDED": "συνιστάται",
+        "DELETE_PHOTO": "Διαγραφή φωτογραφίας",
+        "UPLOAD_PHOTO": "Ανέβασμα φωτογραφίας",
+        "PHOTO_SELECTED": "Η φωτογραφία επιλέχθηκε επιτυχώς",
+        "PHOTO_WILL_BE_DELETED": "Η φωτογραφία θα διαγραφεί όταν αποθηκευτούν οι αλλαγές",
+        "PHOTO_DELETE_PLACEHOLDER": "Η διαγραφή φωτογραφίας προφίλ δεν έχει υλοποιηθεί ακόμα",
+        "PHOTO_UPLOAD_PLACEHOLDER": "Το ανέβασμα φωτογραφίας προφίλ δεν έχει υλοποιηθεί ακόμα",
+        "PHOTO_DELETED": "Η φωτογραφία προφίλ διαγράφηκε επιτυχώς",
+        "PHOTO_UPDATED": "Η φωτογραφία προφίλ ενημερώθηκε επιτυχώς",
+        "PHOTO_UPDATE_ERROR": "Αποτυχία ενημέρωσης φωτογραφίας προφίλ",
+        "ERRORS": {
+          "HOURS_FORMAT_INVALID": "Παρακαλώ εισαγάγετε την ώρα σε μορφή ΩΩ:ΛΛ,ΩΩ:ΛΛ ή 'κλειστό'",
+          "HOURS_RANGE_INVALID": "Η ώρα κλεισίματος πρέπει να είναι μετά την ώρα ανοίγματος",
+          "INSTAGRAM_INVALID": "Η διεύθυνση Instagram πρέπει να περιέχει 'instagram'",
+          "FACEBOOK_INVALID": "Η διεύθυνση Facebook πρέπει να περιέχει 'facebook'",
+          "WEBSITE_INVALID": "Παρακαλώ εισαγάγετε μια έγκυρη διεύθυνση ιστοσελίδας",
+          "DESCRIPTION_REQUIRED": "Η περιγραφή είναι υποχρεωτική",
+          "SHELTER_NAME_MINLENGTH": "Το όνομα του καταφυγίου πρέπει να έχει τουλάχιστον 3 χαρακτήρες",
+          "INVALID_FILE_TYPE": "Παρακαλώ επιλέξτε ένα έγκυρο αρχείο εικόνας (JPG, PNG, GIF)",
+          "FILE_TOO_LARGE": "Το μέγεθος του αρχείου πρέπει να είναι μικρότερο από 10MB",
+          "SHELTER_NAME_REQUIRED": "Το όνομα του καταφυγίου είναι υποχρεωτικό",
+          "DESCRIPTION_MINLENGTH": "Η περιγραφή πρέπει να έχει τουλάχιστον 10 χαρακτήρες"
+        }
+      },
+      "ERRORS": {
+        "INVALID_PROFILE_ID": "Μη έγκυρο ID προφίλ",
+        "PROFILE_LOAD_ERROR": "Αποτυχία φόρτωσης προφίλ. Παρακαλώ προσπαθήστε ξανά."
+      },
+      "NO_RECEIVED_APP": "Δεν βρέθηκαν ληφθείσες αιτήσεις.",
+      "FILTERS_AND_SORT": {
+        "TOGGLE": "Φίλτρα & Ταξινόμηση",
+        "STATUS_LABEL": "Κατάσταση",
+        "SORT_BY_LABEL": "Ταξινόμηση κατά",
+        "SORT_DIRECTION_LABEL": "Κατεύθυνση ταξινόμησης",
+        "ASC": "Αύξουσα",
+        "DESC": "Φθίνουσα",
+        "SEARCH_LABEL": "Αναζήτηση",
+        "SEARCH_PLACEHOLDER": "Αναζήτηση με όνομα, φυλή, κλπ.",
+        "ADOPTION_STATUS_LABEL": "Κατάσταση Υιοθεσίας",
+        "GENDER_LABEL": "Φύλο",
+        "ANIMAL_TYPE_LABEL": "Τύπος Ζώου",
+        "BREED_LABEL": "Φυλή",
+        "AGE_LABEL": "Ηλικία",
+        "AGE_FROM": "Από (έτη)",
+        "AGE_TO": "Έως (έτη)",
+        "LOADING_ANIMAL_TYPES": "Φόρτωση τύπων ζώων...",
+        "LOADING_BREEDS": "Φόρτωση φυλών...",
+        "SELECT_ANIMAL_TYPE_FIRST": "Επιλέξτε τύπο ζώου πρώτα",
+        "NO_BREEDS_FOUND": "Δεν βρέθηκαν φυλές",
+        "FILTERS_SECTION_LABEL": "Επιλογές φίλτρων και ταξινόμησης",
+        "SHOW_FILTERS": "Εμφάνιση φίλτρων",
+        "HIDE_FILTERS": "Απόκρυψη φίλτρων"
+      },
+      "SORT": {
+        "CREATED_AT": "Ημερομηνία δημιουργίας",
+        "UPDATED_AT": "Ημερομηνία τροποποίησης",
+        "STATUS": "Κατάσταση"
+      },
+      "NO_PROFILE_TABS": "Δεν υπάρχουν διαθέσιμες πληροφορίες προφίλ",
+      "NO_PROFILE_TABS_SUBTEXT": "Αδυναμία φόρτωσης καρτελών προφίλ",
+      "ROLE": {
+        "SHELTER": "Καταφύγιο",
+        "ADOPTER": "Υιοθετητής"
+      },
+      "UNKNOWN_USER": "Άγνωστος Χρήστης"
     }
-  },
-  "ERRORS": {
-    "INVALID_PROFILE_ID": "Μη έγκυρο ID προφίλ",
-    "PROFILE_LOAD_ERROR": "Αποτυχία φόρτωσης προφίλ. Παρακαλώ προσπαθήστε ξανά."
-  },
-  "NO_RECEIVED_APP": "Δεν βρέθηκαν ληφθείσες αιτήσεις.",
-  "FILTERS_AND_SORT": {
-    "TOGGLE": "Φίλτρα & Ταξινόμηση",
-    "STATUS_LABEL": "Κατάσταση",
-    "SORT_BY_LABEL": "Ταξινόμηση κατά",
-    "SORT_DIRECTION_LABEL": "Κατεύθυνση ταξινόμησης",
-    "ASC": "Αύξουσα",
-    "DESC": "Φθίνουσα",
-    "SEARCH_LABEL": "Αναζήτηση",
-    "SEARCH_PLACEHOLDER": "Αναζήτηση με όνομα, ράτσα, κλπ.",
-    "ADOPTION_STATUS_LABEL": "Κατάσταση υιοθεσίας",
-    "GENDER_LABEL": "Φύλο",
-    "AGE_LABEL": "Ηλικία",
-    "AGE_FROM": "Από (χρόνια)",
-    "AGE_TO": "Έως (χρόνια)"
-  },
-  "SORT": {
-    "CREATED_AT": "Ημερομηνία δημιουργίας",
-    "UPDATED_AT": "Ημερομηνία τροποποίησης",
-    "STATUS": "Κατάσταση"
-  },
-  "NO_PROFILE_TABS": "Δεν υπάρχουν διαθέσιμες πληροφορίες προφίλ",
-  "NO_PROFILE_TABS_SUBTEXT": "Αδυναμία φόρτωσης καρτελών προφίλ"
   }
-}
 }

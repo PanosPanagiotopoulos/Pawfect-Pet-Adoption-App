@@ -12,4 +12,28 @@
 
 // The .animate-fadeIn class is used for the no-animals state container for a smooth entrance.
 // The .animate-bounce utility is provided by Tailwind for the icon.
-// No additional styles needed for the redesigned empty state. 
+// No additional styles needed for the redesigned empty state.
+
+// Custom scrollbar styles for dropdowns
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(124, 58, 237, 0.3) rgba(243, 244, 246, 0.5);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.3);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(124, 58, 237, 0.5);
+}

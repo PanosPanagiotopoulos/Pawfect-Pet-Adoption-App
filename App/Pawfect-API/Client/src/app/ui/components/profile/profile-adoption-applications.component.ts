@@ -76,6 +76,7 @@ export class ProfileAdoptionApplicationsComponent
     sortBy: [],
     sortDescending: true,
     status: undefined,
+    query: '', // Add search query field
   };
 
   readonly sortFields = [
@@ -133,6 +134,14 @@ export class ProfileAdoptionApplicationsComponent
 
   set pageSize(val: number) {
     this.lookup.pageSize = val;
+  }
+
+  get searchQuery(): string {
+    return this.lookup.query ?? '';
+  }
+
+  set searchQuery(val: string) {
+    this.lookup.query = val;
   }
 
   constructor(
@@ -343,10 +352,17 @@ export class ProfileAdoptionApplicationsComponent
     this.loadApplications();
   }
 
+  onSearchQueryChange(value: string) {
+    this.lookup.query = value;
+    this.resetPagination();
+    this.loadApplications();
+  }
+
   clearFilters() {
     this.lookup.status = [];
     this.lookup.sortBy = [];
     this.lookup.sortDescending = true;
+    this.lookup.query = ''; // Clear search query
     this.resetPagination();
     this.loadApplications();
   }

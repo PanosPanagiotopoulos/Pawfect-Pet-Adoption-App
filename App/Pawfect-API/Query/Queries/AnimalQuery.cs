@@ -55,7 +55,7 @@ namespace Pawfect_API.Query.Queries
 		public List<String>? BreedIds { get; set; }
 
 		// Λίστα από IDs τύπων για φιλτράρισμα
-		public List<String>? TypeIds { get; set; }
+		public List<String>? AnimalTypeIds { get; set; }
 
 		// Λίστα από καταστάσεις υιοθεσίας για φιλτράρισμα
 		public List<AdoptionStatus>? AdoptionStatuses { get; set; }
@@ -122,10 +122,10 @@ namespace Pawfect_API.Query.Queries
 			}
 
 			// Εφαρμόζει φίλτρο για τα IDs των τύπων
-			if (TypeIds != null && TypeIds.Any())
+			if (AnimalTypeIds != null && AnimalTypeIds.Any())
 			{
 				// Convert String IDs to ObjectId for comparison
-				IEnumerable<ObjectId> referenceIds = TypeIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+				IEnumerable<ObjectId> referenceIds = AnimalTypeIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
 
 				// Ensure that only valid ObjectId values are passed in the filter
 				filter &= builder.In(nameof(Data.Entities.Animal.AnimalTypeId), referenceIds.Where(id => id != ObjectId.Empty));

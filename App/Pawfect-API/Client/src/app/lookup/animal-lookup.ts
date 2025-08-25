@@ -6,7 +6,7 @@ export interface AnimalLookup extends Lookup {
   ids?: string[];
   shelterIds?: string[];
   breedIds?: string[];
-  typeIds?: string[];
+  animalTypeIds?: string[];
   adoptionStatuses?: AdoptionStatus[];
   genders?: Gender[];
   ageFrom?: number;
