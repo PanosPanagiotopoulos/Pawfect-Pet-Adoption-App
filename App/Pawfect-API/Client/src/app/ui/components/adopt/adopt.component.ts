@@ -1,4 +1,5 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, AfterViewInit, OnDestroy } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AnimalService } from 'src/app/services/animal.service';
@@ -451,6 +452,7 @@ import { Permission } from 'src/app/common/enum/permission.enum';
                 (applicationSubmitted)="onApplicationSubmitted($event)"
                 (deleteRequested)="showDeleteConfirmation()"
                 (fileUploadStateChange)="onFileUploadStateChange($event)"
+                (submittingStateChange)="onSubmittingStateChange($event)"
               ></app-adoption-form>
             </div>
           </div>
@@ -506,7 +508,7 @@ import { Permission } from 'src/app/common/enum/permission.enum';
 })
 export class AdoptComponent
   extends BaseComponent
-  implements OnInit, CanComponentDeactivate
+  implements OnInit, OnDestroy, AfterViewInit, CanComponentDeactivate
 {
   animal?: Animal;
   adoptionApplication?: AdoptionApplication;
@@ -522,8 +524,10 @@ export class AdoptComponent
   canDeleteApp = false;
   isLoadingDeletePermission = true;
   isUploadingFiles = false;
+  isSubmitting = false;
   private formSaved = false;
   private formDeleted = false;
+  private hasUnsavedChangesFlag = false;
 
   @ViewChild(AdoptionFormComponent)
   adoptionFormComponent?: AdoptionFormComponent;
@@ -576,6 +580,11 @@ export class AdoptComponent
         this.router.navigate(['/404']);
       }
     });
+  }
+
+  ngAfterViewInit(): void {
+    // Set up form change tracking after view is initialized
+    this.setupFormChangeTracking();
   }
 
   loadAdoptionApplication(applicationId: string) {
@@ -656,6 +665,8 @@ export class AdoptComponent
       }
     }
   }
+
+
 
   openDialog(): void {
     this.isDialogOpen = true;
@@ -1005,8 +1016,48 @@ export class AdoptComponent
   }
 
   // CanComponentDeactivate implementation
-  canDeactivate(): boolean {
-    return !this.hasUnsavedChanges();
+  canDeactivate(): Observable<boolean> | boolean {
+    if (!this.hasUnsavedChanges()) {
+      return true;
+    }
+
+    const dialogRef = this.dialog.open(FormLeaveConfirmationDialogComponent, {
+      data: {
+        title: this.translationService.translate('APP.COMMONS.FORM_GUARD.TITLE'),
+        message: this.translationService.translate('APP.COMMONS.FORM_GUARD.MESSAGE'),
+        confirmText: this.translationService.translate('APP.COMMONS.FORM_GUARD.LEAVE'),
+        cancelText: this.translationService.translate('APP.COMMONS.FORM_GUARD.STAY')
+      },
+      disableClose: false,
+      width: '28rem',
+      panelClass: 'form-guard-panel',
+      backdropClass: 'form-guard-backdrop',
+      autoFocus: false,
+      hasBackdrop: true
+    });
+
+    return dialogRef.afterClosed();
+  }
+
+  // Handle page refresh/close with unsaved changes
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification($event: any): void {
+    if (this.hasUnsavedChanges()) {
+      $event.returnValue = this.translationService.translate('APP.COMMONS.FORM_GUARD.MESSAGE');
+    }
+  }
+
+  private setupFormChangeTracking(): void {
+    // Track changes in the adoption form
+    if (this.adoptionFormComponent?.applicationForm) {
+      this.adoptionFormComponent.applicationForm.valueChanges
+        .pipe(takeUntil(this._destroyed))
+        .subscribe(() => {
+          if (!this.isSubmitting && !this.isDeletingApplication) {
+            this.hasUnsavedChangesFlag = true;
+          }
+        });
+    }
   }
 
   hasUnsavedChanges(): boolean {
@@ -1018,6 +1069,11 @@ export class AdoptComponent
     // Don't show guard dialog if files are currently uploading
     if (this.isUploadingFiles) {
       return false;
+    }
+
+    // Check the flag first for immediate response
+    if (this.hasUnsavedChangesFlag) {
+      return true;
     }
 
     // Check if the adoption form has unsaved changes
@@ -1061,6 +1117,7 @@ export class AdoptComponent
         // Check if status changed (for shelter users)
         let statusChanged = false;
         if (
+          this.adoptionFormComponent?.applicationForm?.get('status')?.enabled &&
           this.adoptionFormComponent?.canManageApplicationStatus &&
           this.adoptionFormComponent?.isCurrentUserShelter
         ) {
@@ -1081,6 +1138,10 @@ export class AdoptComponent
 
   onFileUploadStateChange(isUploading: boolean): void {
     this.isUploadingFiles = isUploading;
+  }
+
+  onSubmittingStateChange(isSubmitting: boolean): void {
+    this.isSubmitting = isSubmitting;
   }
 
   // Permission check for delete - use service call

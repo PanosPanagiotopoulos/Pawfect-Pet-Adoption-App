@@ -302,16 +302,17 @@ interface AvailabilityStatus {
           <h3 class="text-lg font-medium text-white">
             {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.PROFILE_PHOTO_TITLE' | translate }}
           </h3>
-          <app-file-drop-area
-            [form]="form"
-            controlName="profilePhoto"
-            [label]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHOTO_LABEL' | translate"
-            [hint]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHOTO_HINT' | translate"
-            accept=".jpg,.jpeg,.png"
-            [multiple]="false"
-            [maxFileSize]="10 * 1024 * 1024"
-            (filesChange)="onProfilePhotoChange($event)"
-          ></app-file-drop-area>
+                     <app-file-drop-area
+             [form]="form"
+             controlName="profilePhoto"
+             [label]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHOTO_LABEL' | translate"
+             [hint]="'APP.AUTH.SIGNUP.PERSONAL_INFO.PHOTO_HINT' | translate"
+             accept=".jpg,.jpeg,.png"
+             [multiple]="false"
+             [maxFileSize]="10 * 1024 * 1024"
+             (filesChange)="onProfilePhotoChange($event)"
+             (uploadStateChange)="onUploadStateChange($event)"
+           ></app-file-drop-area>
 
           <!-- Photo Preview -->
           <div
@@ -370,13 +371,20 @@ interface AvailabilityStatus {
         <button
           type="button"
           (click)="onNext()"
-          [disabled]="!form.valid || hasAvailabilityErrors()"
+          [disabled]="!form.valid || hasAvailabilityErrors() || isPhotoUploading()"
           class="w-full sm:w-auto px-6 py-3 sm:py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg
                  hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 
                  transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
+          <ng-icon *ngIf="isPhotoUploading()" name="lucideLoader" [size]="'20'" class="animate-spin mr-2"></ng-icon>
           {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.NEXT' | translate }}
         </button>
+      </div>
+
+      <!-- Photo Upload Status Message -->
+      <div *ngIf="isPhotoUploading()" class="text-center text-sm text-yellow-400 mt-2 animate-pulse">
+        <ng-icon name="lucideUpload" [size]="'16'" class="inline mr-1"></ng-icon>
+        {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.PHOTO_UPLOADING' | translate }}
       </div>
       
       <!-- Error Summary -->
@@ -498,6 +506,17 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
     
     // Check initial values for availability
     this.checkInitialValuesAvailability();
+    
+    // Check if there are any files currently uploading in the form control
+    this.checkFormControlUploadState();
+    
+    // Listen to profile photo form control changes
+    this.form.get('profilePhoto')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        this.checkFormControlUploadState();
+        this.cdr.markForCheck();
+      });
   }
 
   ngOnDestroy(): void {
@@ -520,6 +539,95 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
     );
   }
 
+  isPhotoUploading(): boolean {
+    // Check if profile photo is currently uploading
+    const isUploading = this.isPhotoLoading || this.hasUploadingFiles() || this.isFileActuallyUploading();
+    
+    // Debug logging
+    console.log('Photo upload state check:', {
+      isPhotoLoading: this.isPhotoLoading,
+      hasUploadingFiles: this.hasUploadingFiles(),
+      isFileActuallyUploading: this.isFileActuallyUploading(),
+      currentUploadingFile: this.currentUploadingFile,
+      result: isUploading
+    });
+    
+    return isUploading;
+  }
+
+  private isFileActuallyUploading(): boolean {
+    // Check if the current tracked file is actually uploading
+    if (this.currentUploadingFile) {
+      return this.currentUploadingFile.isPersisting || false;
+    }
+    return false;
+  }
+
+  private hasUploadingFiles(): boolean {
+    // Check if there are any files in the profile photo form control that are still uploading
+    const profilePhotoControl = this.form.get('profilePhoto');
+    if (profilePhotoControl && profilePhotoControl.value) {
+      // If it's a single file (not an array), check if it's uploading
+      if (Array.isArray(profilePhotoControl.value)) {
+        return profilePhotoControl.value.some((fileItem: any) => fileItem?.isPersisting);
+      } else {
+        // Single file case - check if it's a FileItem with isPersisting or if it's just a file ID
+        const value = profilePhotoControl.value;
+        if (value && typeof value === 'object' && 'isPersisting' in value) {
+          return value.isPersisting || false;
+        }
+        // If it's just a file ID (string), it's not uploading
+        return false;
+      }
+    }
+    return false;
+  }
+
+  // Method to check if the form control has any uploading files
+  private checkFormControlUploadState(): void {
+    const profilePhotoControl = this.form.get('profilePhoto');
+    if (profilePhotoControl && profilePhotoControl.value) {
+      // Check if the current value is a FileItem that's uploading
+      if (Array.isArray(profilePhotoControl.value)) {
+        const uploadingFile = profilePhotoControl.value.find((fileItem: any) => fileItem?.isPersisting);
+        if (uploadingFile) {
+          this.currentUploadingFile = uploadingFile;
+          this.isPhotoLoading = true;
+        }
+      } else {
+        const value = profilePhotoControl.value;
+        if (value && typeof value === 'object' && 'isPersisting' in value && value.isPersisting) {
+          this.currentUploadingFile = value;
+          this.isPhotoLoading = true;
+        }
+      }
+    }
+  }
+
+  // Track the current file being uploaded
+  private currentUploadingFile: FileItem | null = null;
+
+  private monitorFileUploadState(fileItem: FileItem): void {
+    // Set up an interval to check the upload state
+    const checkInterval = setInterval(() => {
+      // Check if the file is still persisting
+      if (!fileItem.isPersisting) {
+        clearInterval(checkInterval);
+        // Clear the uploading state when file is done
+        if (this.currentUploadingFile === fileItem) {
+          this.currentUploadingFile = null;
+          this.isPhotoLoading = false;
+        }
+        this.cdr.markForCheck();
+      }
+    }, 100); // Check every 100ms
+
+    // Clear interval after 30 seconds to prevent memory leaks
+    setTimeout(() => {
+      clearInterval(checkInterval);
+    }, 30000);
+  }
+
   getLocationForm(): FormGroup {
     return this.form.get('location') as FormGroup;
   }
@@ -527,6 +635,11 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
   onNext(): void {
     this.validationErrors = [];
     this.showErrorSummary = false;
+
+    // Check if profile photo is still uploading
+    if (this.isPhotoUploading()) {
+      return;
+    }
 
     if (this.form.valid && !this.hasAvailabilityErrors()) {
       this.next.emit();
@@ -569,6 +682,8 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
       this.profilePhotoPreview = null;
       this.photoUploadSuccess = false;
       this.photoUploadError = null;
+      this.currentUploadingFile = null;
+      this.isPhotoLoading = false;
       return;
     }
 
@@ -577,11 +692,13 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
     this.isPhotoLoading = true;
     this.photoUploadSuccess = false;
     this.photoUploadError = null;
+    this.currentUploadingFile = fileItem;
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
       this.isPhotoLoading = false;
       this.photoUploadError = this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.INVALID_FILE_TYPE');
+      this.currentUploadingFile = null;
       this.cdr.markForCheck();
       return;
     }
@@ -590,11 +707,26 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
     if (file.size > 10 * 1024 * 1024) {
       this.isPhotoLoading = false;
       this.photoUploadError = this.translationService.translate('APP.AUTH.SIGNUP.PERSONAL_INFO.ERRORS.INVALID_FILE_SIZE');
+      this.currentUploadingFile = null;
       this.cdr.markForCheck();
       return;
     }
 
     this.createImagePreview(file);
+    
+    // Listen to upload state changes for this file
+    this.monitorFileUploadState(fileItem);
+  }
+
+  onUploadStateChange(isUploading: boolean): void {
+    // Update the photo loading state based on the upload state from FileDropAreaComponent
+    if (isUploading) {
+      this.isPhotoLoading = true;
+    } else {
+      // Check if there are still files being uploaded
+      this.isPhotoLoading = this.hasUploadingFiles() || this.isFileActuallyUploading();
+    }
+    this.cdr.markForCheck();
   }
 
   hasGooglePopulatedFields(): boolean {
@@ -620,6 +752,8 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
     this.profilePhotoPreview = null;
     this.photoUploadSuccess = false;
     this.photoUploadError = null;
+    this.currentUploadingFile = null;
+    this.isPhotoLoading = false;
     this.form.patchValue({ profilePhoto: null });
     this.cdr.markForCheck();
   }
@@ -639,6 +773,8 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
 
     reader.onload = () => {
       this.profilePhotoPreview = reader.result as string;
+      // Note: isPhotoLoading is set to false here, but the actual upload to server
+      // is handled by the FileDropAreaComponent, which will set isPersisting on the FileItem
       this.isPhotoLoading = false;
       this.photoUploadSuccess = true;
       this.cdr.markForCheck();

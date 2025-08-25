@@ -571,16 +571,16 @@
         },
         "BoostSettings": {
           "ExactPhraseBoost": 35.0,
-          "PhraseWithSlopBoost": 28.0, 
-          "SemanticTextBoost": 35.0, 
-          "SynonymBoost": 6.0, 
-          "DescriptionBoost": 18.0, 
-          "FuzzySearchBoost": 8.0, 
-          "HealthTermsBoost": 32.0, 
+          "PhraseWithSlopBoost": 28.0,
+          "SemanticTextBoost": 35.0,
+          "SynonymBoost": 6.0,
+          "DescriptionBoost": 18.0,
+          "FuzzySearchBoost": 15.0,
+          "HealthTermsBoost": 32.0,
           "AutocompleteBoost": 1.5,
-          "GenderExactBoost": 21.0, 
+          "GenderExactBoost": 21.0,
           "GenderPhraseBoost": 12.0,
-          "NumericRangeBoost": 22.0, 
+          "NumericRangeBoost": 22.0,
           "WeightRangeBoost": 22.0
         },
         "ThresholdSettings": {
@@ -588,7 +588,7 @@
           "BaseMultiplier": 3.5,
           "WordCountAdjustment": true,
           "ContextualAdjustment": true,
-          "StrictModeEnabled": true,
+          "StrictModeEnabled": true
         },
         "FuzzySettings": {
           "MaxEdits": 1,

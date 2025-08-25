@@ -214,6 +214,7 @@
           "NUMBER_PLACEHOLDER": "Phone Number",
           "PHOTO_HINT": "Upload a profile photo (max size: 10MB)",
           "PHOTO_SUCCESS": "Photo uploaded successfully",
+          "PHOTO_UPLOADING": "Photo is uploading. Please wait before proceeding.",
           "NEXT": "Next",
           "ERROR_SUMMARY_TITLE": "Please correct the following errors:",
           "ERRORS": {
@@ -530,6 +531,7 @@
         "UPLOADING": "Uploading...",
         "UPLOAD_FAILED": "Upload failed",
         "UPLOAD_SUCCESS": "Upload successful",
+        "UPLOAD_FAILED_HINT": "Upload failed. Please try again.",
         "RETRY": "Retry",
         "RETRY_FILE": "Retry file upload",
         "CLEAR_FAILED": "Clear failed",

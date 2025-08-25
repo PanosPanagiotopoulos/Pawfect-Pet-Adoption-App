@@ -755,12 +755,6 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
   }
 
   private handleUploadError(filesToPersist: FileItem[], error: Error): void {
-    this.log.logFormatted({
-      message: 'File upload error occurred',
-      error: error,
-      data: { filesCount: filesToPersist.length }
-    });
-
     filesToPersist.forEach((item) => {
       const fileKey = `${item.file.name}_${item.file.size}`;
       this.recentlyRemovedFiles.add(fileKey);
@@ -777,20 +771,11 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     this.currentUploadBatch = [];
     this.uploadStateChange.emit(false);
     
-    this.uploadError = 'Η μεταφόρτωση απέτυχε. Παρακαλώ δοκιμάστε ξανά.';
+    this.uploadError = this.translate.translate('APP.UI_COMPONENTS.FILE_DROP.UPLOAD_FAILED_HINT');
     
     this.updateFormControl();
     this.filesChange.emit(this.selectedFiles);
     this.cdr.markForCheck();
-    
-    this.log.logFormatted({
-      message: 'Upload state reset after error',
-      data: { 
-        isUploading: this.isUploading, 
-        failedFiles: filesToPersist.length,
-        totalFiles: this.selectedFiles.length
-      }
-    });
   }
 
   retryFile(fileItem: FileItem): void {

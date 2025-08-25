@@ -575,7 +575,7 @@
           "SemanticTextBoost": 35.0,
           "SynonymBoost": 6.0,
           "DescriptionBoost": 18.0,
-          "FuzzySearchBoost": 8.0,
+          "FuzzySearchBoost": 15.0,
           "HealthTermsBoost": 32.0,
           "AutocompleteBoost": 1.5,
           "GenderExactBoost": 21.0,

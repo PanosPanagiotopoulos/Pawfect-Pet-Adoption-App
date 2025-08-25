@@ -278,6 +278,7 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
   @Output() applicationSubmitted = new EventEmitter<string>();
   @Output() deleteRequested = new EventEmitter<void>();
   @Output() fileUploadStateChange = new EventEmitter<boolean>();
+  @Output() submittingStateChange = new EventEmitter<boolean>();
   @ViewChild('formContainer') formContainer!: ElementRef;
 
   ApplicationStatus = ApplicationStatus;
@@ -385,6 +386,7 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
 
     if (this.applicationForm.valid) {
       this.isSubmitting = true;
+      this.submittingStateChange.emit(true);
 
       const statusToUse = this.determineStatusToUse();
       const application = this.buildApplicationPersist(statusToUse);
@@ -394,10 +396,12 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
         .subscribe({
           next: (model: AdoptionApplication) => {
             this.isSubmitting = false;
+            this.submittingStateChange.emit(false);
             this.applicationSubmitted.emit(model.id);
           },
           error: (error) => {
             this.isSubmitting = false;
+            this.submittingStateChange.emit(false);
             this.error = this.errorHandler.handleError(error);
             this.applicationSubmitted.emit('');
           },
