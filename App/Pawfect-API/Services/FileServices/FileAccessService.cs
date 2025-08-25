@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using Pawfect_API.Data.Entities.EnumTypes;
 using Pawfect_API.Data.Entities.Types.Files;
+using Pawfect_API.Models.File;
 using Pawfect_API.Services.AwsServices;
 
 namespace Pawfect_API.Services.FileServices
@@ -27,6 +28,28 @@ namespace Pawfect_API.Services.FileServices
             this._memoryCache = memoryCache;
             this._filesConfig = options.Value;
             this._awsService = awsService;
+        }
+        public async Task AttachUrlsAsync(List<FilePersist> files)
+        {
+            if (files == null || files.Count == 0) return;
+
+            List<Data.Entities.File> filesData = files.Select(file => new Data.Entities.File
+            {
+                AwsKey = file.AwsKey,
+                AccessType = file.AccessType,
+                Filename = file.Filename
+            })
+            .OrderBy(file => file.Filename)
+            .ToList();
+
+            await this.AttachUrlsAsync(filesData);
+
+            // Fix: Use indexed for loop instead of ForEach with index
+            List<FilePersist> sortedFiles = files.OrderBy(file => file.Filename).ToList();
+            for (int i = 0; i < sortedFiles.Count; i++)
+            {
+                sortedFiles[i].SourceUrl = filesData[i].SourceUrl;
+            }
         }
         public async Task AttachUrlsAsync(List<Data.Entities.File> files)
         {

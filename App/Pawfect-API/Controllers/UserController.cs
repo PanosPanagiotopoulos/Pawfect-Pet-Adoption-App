@@ -16,6 +16,9 @@ using System.Security.Claims;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Models.User;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using Pawfect_API.Data.Entities.Types.Cache;
 
 namespace Pawfect_API.Controllers
 {
@@ -32,14 +35,17 @@ namespace Pawfect_API.Controllers
         private readonly IConventionService _conventionService;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IMemoryCache _memoryCache;
+        private readonly CacheConfig _cacheConfig;
 
         public UserController
 		(
 			IUserService userService, ILogger<UserController> logger,
 			IQueryFactory queryFactory, IBuilderFactory builderFactory,
 			ICensorFactory censorFactory, AuthContextBuilder contextBuilder,
-            IConventionService conventionService, IAuthorizationContentResolver AuthorizationContentResolver,
-            ClaimsExtractor claimsExtractor
+            IConventionService conventionService, IAuthorizationContentResolver authorizationContentResolver,
+            ClaimsExtractor claimsExtractor, IMemoryCache memoryCache, 
+            IOptions<CacheConfig> cacheOptions
 
         )
 		{
@@ -50,8 +56,10 @@ namespace Pawfect_API.Controllers
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
             _conventionService = conventionService;
-            _authorizationContentResolver = AuthorizationContentResolver;
+            _authorizationContentResolver = authorizationContentResolver;
             _claimsExtractor = claimsExtractor;
+            _memoryCache = memoryCache;
+            _cacheConfig = cacheOptions.Value;
         }
 
 		[HttpPost("query")]
@@ -123,6 +131,16 @@ namespace Pawfect_API.Controllers
             String userId = _claimsExtractor.CurrentUserId(currentUser);
             if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
 
+            User model = null;
+
+            String cacheKey = $"User_Profile_{userId}_[{String.Join('|', fields)}]";
+            if (_memoryCache.TryGetValue(cacheKey, out String profileData))
+            {
+                model = JsonHelper.DeserializeObjectFormattedSafe<User>(profileData);
+                if (model != null)
+                    return Ok(model);
+            }
+
             UserLookup lookup = new UserLookup();
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
             lookup.Offset = 1;
@@ -136,11 +154,13 @@ namespace Pawfect_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
 
             lookup.Fields = censoredFields;
-            User model = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+            model = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
                                 .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
                                 .FirstOrDefault();
 
             if (model == null) throw new NotFoundException("Shelter not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.Shelter));
+
+            _memoryCache.Set(cacheKey, JsonHelper.SerializeObjectFormattedSafe(model), TimeSpan.FromMinutes(_cacheConfig.QueryCacheTime));
 
             return Ok(model);
         }

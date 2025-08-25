@@ -20,6 +20,7 @@ import { FileItem, FilePersist, File } from 'src/app/models/file/file.model';
 import { FileService } from 'src/app/services/file.service';
 import { TranslationService } from 'src/app/common/services/translation.service';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { LogService } from 'src/app/common/services/log.service';
 
 @Component({
   selector: 'app-file-drop-area',
@@ -31,10 +32,9 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
     ValidationMessageComponent,
     TranslatePipe,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.Default,
   template: `
     <div [formGroup]="form" class="relative group mb-10">
-      <!-- Label -->
       <label
         [for]="controlName"
         class="block text-sm font-medium text-gray-400 mb-2"
@@ -42,7 +42,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         {{ label }}
       </label>
 
-      <!-- File drop area -->
       <div
         #dropArea
         class="relative border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all duration-300 max-w-full"
@@ -84,8 +83,43 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         </div>
       </div>
 
-      <!-- Selected files preview -->
       <div *ngIf="selectedFiles.length > 0" class="mt-4 space-y-2">
+        <div *ngIf="hasFailedUploads()" class="mb-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <ng-icon name="lucideCircleAlert" [size]="'16'" class="text-red-400"></ng-icon>
+              <span class="text-sm text-red-400">
+                {{ getFailedUploadsCount() }}
+                {{ 'APP.UI_COMPONENTS.FILE_DROP.UPLOAD_FAILED' | translate }}
+              </span>
+            </div>
+            <button
+              type="button"
+              class="text-xs text-yellow-400 hover:text-yellow-300 underline hover:no-underline transition-colors"
+              (click)="clearFailedUploads()"
+            >
+              {{ 'APP.UI_COMPONENTS.FILE_DROP.CLEAR_FAILED' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="getUploadStatus().total > 0" class="mb-3 p-2 bg-gray-500/10 border border-gray-500/20 rounded-lg">
+          <div class="flex items-center justify-between text-xs text-gray-400">
+            <span>{{ 'APP.UI_COMPONENTS.FILE_DROP.STATUS_SUMMARY' | translate }}</span>
+            <div class="flex items-center space-x-3">
+              <span *ngIf="getUploadStatus().uploading > 0" class="text-yellow-400">
+                {{ getUploadStatus().uploading }} {{ 'APP.UI_COMPONENTS.FILE_DROP.UPLOADING' | translate }}
+              </span>
+              <span *ngIf="getUploadStatus().successful > 0" class="text-green-400">
+                {{ getUploadStatus().successful }} {{ 'APP.UI_COMPONENTS.FILE_DROP.UPLOAD_SUCCESS' | translate }}
+              </span>
+              <span *ngIf="getUploadStatus().existing > 0" class="text-blue-400">
+                {{ getUploadStatus().existing }} {{ 'APP.UI_COMPONENTS.FILE_DROP.EXISTING_FILE' | translate }}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div class="text-sm font-medium text-gray-400 mb-2">
           {{ selectedFiles.length }}
           <ng-container *ngIf="selectedFiles.length === 1; else multipleFiles">
@@ -113,7 +147,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
             }"
           >
             <div class="flex items-center overflow-hidden">
-              <!-- File icon with status indicator -->
               <div class="relative mr-2 flex-shrink-0">
                 <ng-icon
                   [name]="getFileIcon(file)"
@@ -121,7 +154,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
                   [class]="getFileIconClass(file)"
                 ></ng-icon>
 
-                <!-- Status indicators -->
                 <div *ngIf="file.isPersisting" class="absolute -top-1 -right-1">
                   <div
                     class="w-3 h-3 bg-yellow-500 rounded-full animate-pulse"
@@ -144,7 +176,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
               </div>
 
               <div class="flex flex-col overflow-hidden">
-                <!-- Clickable filename for download -->
                 <button
                   *ngIf="canDownloadFile(file); else nonDownloadableFilename"
                   type="button"
@@ -162,7 +193,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
                   {{ file.file.name }}
                 </button>
 
-                <!-- Non-downloadable filename (for files being uploaded or failed) -->
                 <ng-template #nonDownloadableFilename>
                   <span class="text-sm text-gray-300 truncate">{{
                     file.file.name
@@ -184,6 +214,9 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
                       'APP.UI_COMPONENTS.FILE_DROP.UPLOAD_FAILED' | translate
                     }}
                   </span>
+                  <span *ngIf="file.persistedId && !file.isExisting" class="text-green-400">
+                    {{ 'APP.UI_COMPONENTS.FILE_DROP.UPLOAD_SUCCESS' | translate }}
+                  </span>
                   <span *ngIf="canDownloadFile(file)" class="text-primary-400">
                     {{
                       'APP.UI_COMPONENTS.FILE_DROP.CLICK_TO_DOWNLOAD'
@@ -195,7 +228,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
             </div>
 
             <div class="flex items-center space-x-2 flex-shrink-0">
-              <!-- Download button for existing files -->
               <button
                 *ngIf="file.isExisting && file.sourceUrl"
                 type="button"
@@ -208,7 +240,18 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
                 <ng-icon name="lucideDownload" [size]="'16'"></ng-icon>
               </button>
 
-              <!-- Remove button -->
+              <button
+                *ngIf="canRetryFile(file)"
+                type="button"
+                class="p-1 text-gray-500 hover:text-yellow-400 transition-colors opacity-0 group-hover:opacity-100"
+                (click)="retryFile(file)"
+                [attr.aria-label]="
+                  'APP.UI_COMPONENTS.FILE_DROP.RETRY_FILE' | translate
+                "
+              >
+                <ng-icon name="lucideRefreshCw" [size]="'16'"></ng-icon>
+              </button>
+
               <button
                 type="button"
                 class="p-1 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
@@ -225,12 +268,16 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         </div>
       </div>
 
-      <!-- Error message for upload failure -->
-      <div *ngIf="uploadError" class="mt-2 text-sm text-red-500">
-        {{ uploadError }}
+      <div *ngIf="uploadError" class="mt-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+        <div class="flex items-center space-x-2 mb-2">
+          <ng-icon name="lucideCircleAlert" [size]="'16'" class="text-red-400"></ng-icon>
+          <span class="text-sm text-red-400 font-medium">{{ uploadError }}</span>
+        </div>
+        <div class="text-xs text-red-400/80">
+          {{ 'APP.UI_COMPONENTS.FILE_DROP.ERROR_HINT' | translate }}
+        </div>
       </div>
 
-      <!-- Error message from validation -->
       <app-validation-message
         [id]="controlName + '-error'"
         [control]="form.get(controlName)"
@@ -239,7 +286,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
       >
       </app-validation-message>
 
-      <!-- Hint text -->
       <p *ngIf="hint && !isInvalid" class="mt-2 text-sm text-gray-400">
         {{ hint }}
       </p>
@@ -291,13 +337,16 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
   isDragging = false;
   selectedFiles: FileItem[] = [];
   uploadError: string | null = null;
+  isUploading = false;
+  private currentUploadBatch: FileItem[] = [];
+  private recentlyRemovedFiles: Set<string> = new Set();
 
   constructor(
     private cdr: ChangeDetectorRef,
     private fileService: FileService,
-    private translate: TranslationService
+    private translate: TranslationService,
+    private log: LogService
   ) {
-    // Set default label if not provided
     if (!this.label) {
       this.label = this.translate.translate(
         'APP.UI_COMPONENTS.FILE_DROP.DEFAULT_LABEL'
@@ -315,9 +364,6 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     }
   }
 
-  /**
-   * Load existing files from AWS S3 and convert them to FileItem format
-   */
   private loadExistingFiles(): void {
     if (this.existingFiles && this.existingFiles.length > 0) {
       const existingFileItems = this.existingFiles.map((file) =>
@@ -329,18 +375,13 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     }
   }
 
-  /**
-   * Convert File model (from AWS S3) to FileItem format for display
-   */
   private convertFileToFileItem(file: File): FileItem {
-    // Handle both fileName and filename properties from API
     const fileName = file.filename || (file as any).filename || 'Unknown File';
     const fileSize = file.size || 0;
     const mimeType = file.mimeType || 'application/octet-stream';
 
-    // Create a mock File object from the existing file data
     const mockFile = new globalThis.File(
-      [new Blob()], // Empty blob since we don't have the actual file content
+      [new Blob()],
       fileName,
       {
         type: mimeType,
@@ -350,7 +391,6 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       }
     );
 
-    // Override the size property if available
     if (fileSize > 0) {
       Object.defineProperty(mockFile, 'size', {
         value: fileSize,
@@ -441,10 +481,67 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
   }
 
   handleFiles(fileList: FileList): void {
+    this.clearUploadError();
+    
+    if (this.isUploading) {
+      this.log.logFormatted({
+        message: 'Upload in progress, cannot start new upload',
+        data: { 
+          isUploading: this.isUploading
+        }
+      });
+      return;
+    }
+    
     const newFiles = Array.from(fileList);
+    const processedFiles: globalThis.File[] = [];
+    const failedFilesToReplace: { oldFile: FileItem, newFile: globalThis.File }[] = [];
+
+    newFiles.forEach(newFile => {
+      const fileKey = `${newFile.name}_${newFile.size}`;
+      
+      const existingFile = this.selectedFiles.find(existing => 
+        existing.file.name === newFile.name &&
+        existing.file.size === newFile.size
+      );
+
+      if (existingFile) {
+        const isSuccessfullyPersisted = existingFile.persistedId && !existingFile.uploadFailed;
+        
+        if (isSuccessfullyPersisted) {
+          this.log.logFormatted({
+            message: 'Skipping file - already successfully uploaded',
+            data: { filename: newFile.name }
+          });
+        } else {
+          failedFilesToReplace.push({ oldFile: existingFile, newFile });
+          this.log.logFormatted({
+            message: 'Found non-persisted file to re-upload',
+            data: { 
+              filename: newFile.name,
+              state: {
+                uploadFailed: existingFile.uploadFailed,
+                isPersisting: existingFile.isPersisting,
+                persistedId: existingFile.persistedId
+              }
+            }
+          });
+        }
+      } else if (this.recentlyRemovedFiles.has(fileKey)) {
+        processedFiles.push(newFile);
+        this.recentlyRemovedFiles.delete(fileKey);
+        this.log.logFormatted({
+          message: 'Re-uploading previously removed file',
+          data: { filename: newFile.name }
+        });
+      } else {
+        processedFiles.push(newFile);
+      }
+    });
 
     if (this.multiple) {
-      if (this.selectedFiles.length + newFiles.length > this.maxFiles) {
+      const currentFileCount = this.selectedFiles.length - failedFilesToReplace.length;
+      if (currentFileCount + processedFiles.length > this.maxFiles) {
         this.setError(
           this.translate
             .translate('APP.UI_COMPONENTS.FILE_DROP.MAX_FILES_ERROR')
@@ -454,9 +551,11 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       }
     } else {
       this.selectedFiles = [];
+      failedFilesToReplace.length = 0;
     }
 
-    const oversizedFiles = newFiles.filter(
+    const allFilesToValidate = [...processedFiles, ...failedFilesToReplace.map(r => r.newFile)];
+    const oversizedFiles = allFilesToValidate.filter(
       (file) => file.size > this.maxFileSize
     );
     if (oversizedFiles.length > 0) {
@@ -470,7 +569,7 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
 
     if (this.accept !== '*/*') {
       const acceptedTypes = this.accept.split(',').map((type) => type.trim());
-      const invalidFiles = newFiles.filter((file) => {
+      const invalidFiles = allFilesToValidate.filter((file) => {
         return !acceptedTypes.some((type) => {
           if (type.startsWith('.')) {
             return file.name.toLowerCase().endsWith(type.toLowerCase());
@@ -487,7 +586,24 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       }
     }
 
-    const newFileItems = newFiles.map((file) => ({
+    const filesToUpload: FileItem[] = [];
+    failedFilesToReplace.forEach(replacement => {
+      replacement.oldFile.file = replacement.newFile;
+      replacement.oldFile.addedAt = Date.now();
+      replacement.oldFile.isPersisting = false;
+      replacement.oldFile.uploadFailed = false;
+      replacement.oldFile.persistedId = undefined;
+      replacement.oldFile.sourceUrl = undefined;
+      
+      filesToUpload.push(replacement.oldFile);
+      
+      this.log.logFormatted({
+        message: 'Replaced non-persisted file for re-upload',
+        data: { filename: replacement.newFile.name }
+      });
+    });
+
+    const newFileItems = processedFiles.map((file) => ({
       file,
       addedAt: Date.now(),
       isPersisting: false,
@@ -499,12 +615,58 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     } else {
       this.selectedFiles = newFileItems;
     }
+    filesToUpload.push(...newFileItems);
 
-    this.persistFiles(newFileItems);
+    if (filesToUpload.length > 0) {
+      this.persistFiles(filesToUpload);
+    } else {
+      this.log.logFormatted({
+        message: 'No files to upload after processing',
+        data: { 
+          newFiles: newFiles.length,
+          skippedSuccessful: newFiles.length - processedFiles.length - failedFilesToReplace.length
+        }
+      });
+    }
+  }
+
+  private handleNewBatchUpload(filesToPersist: FileItem[]): void {
+    this.clearUploadError();
+    
+    filesToPersist.forEach((item) => {
+      item.isPersisting = true;
+      item.uploadFailed = false;
+      
+      if (!item.isExisting) {
+        item.persistedId = undefined;
+        item.sourceUrl = undefined;
+      }
+    });
+    
+    this.currentUploadBatch = [...filesToPersist];
+    
+    this.log.logFormatted({
+      message: 'Starting new batch upload',
+      data: { 
+        filesCount: filesToPersist.length, 
+        totalFiles: this.selectedFiles.length,
+        retriedFiles: filesToPersist.filter(f => f.uploadFailed).length
+      }
+    });
   }
 
   persistFiles(filesToPersist: FileItem[]): void {
-    filesToPersist.forEach((item) => (item.isPersisting = true));
+    if (this.isUploading) {
+      this.log.logFormatted({
+        message: 'Upload already in progress, skipping new upload request',
+        data: { filesCount: filesToPersist.length }
+      });
+      return;
+    }
+
+    this.handleNewBatchUpload(filesToPersist);
+    
+    this.isUploading = true;
     this.uploadStateChange.emit(true);
 
     const formData = new FormData();
@@ -512,43 +674,250 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       formData.append(`files[${index}]`, item.file);
     });
 
+    this.log.logFormatted({
+      message: 'Sending upload request',
+      data: { 
+        filesCount: filesToPersist.length, 
+        fileNames: filesToPersist.map(f => f.file.name)
+      }
+    });
+
     this.fileService.persistBatchTemporary(formData).subscribe({
       next: (filePersists: FilePersist[]) => {
-        filePersists.forEach((fp, index) => {
-          const item = filesToPersist[index];
-          if (this.selectedFiles.includes(item)) {
-            item.persistedId = fp.id;
-          }
-          item.isPersisting = false;
-        });
-        this.updateFormControl();
-        this.filesChange.emit(this.selectedFiles);
-        this.uploadStateChange.emit(
-          this.selectedFiles.some((item) => item.isPersisting)
-        );
-        this.uploadError = null;
-        this.cdr.markForCheck();
+        this.handleUploadSuccess(filesToPersist, filePersists);
       },
       error: (error: Error) => {
-        console.error('Error persisting files:', error);
-        // Remove failed files from the list
-        this.selectedFiles = this.selectedFiles.filter(
-          (item) => !filesToPersist.includes(item)
-        );
-        this.updateFormControl();
-        this.filesChange.emit(this.selectedFiles);
-        this.uploadStateChange.emit(false);
-        this.uploadError = 'Η μεταφόρτωση απέτυχε. Παρακαλώ δοκιμάστε ξανά.';
-        this.cdr.markForCheck();
+        this.handleUploadError(filesToPersist, error);
       },
     });
   }
 
+  private handleUploadSuccess(filesToPersist: FileItem[], filePersists: FilePersist[]): void {
+    this.log.logFormatted({
+      message: 'File upload successful',
+      data: { 
+        requestedFiles: filesToPersist.length, 
+        returnedFiles: filePersists.length 
+      }
+    });
+
+    const matchFiles = (fileItem: FileItem, persist: FilePersist): boolean => {
+      const persistFileName = persist.fileName || (persist as any).filename;
+      const nameMatch = fileItem.file.name === persistFileName;
+      const sizeMatch = !persist.size || fileItem.file.size === persist.size;
+      return nameMatch && sizeMatch;
+    };
+
+    const usedPersists = new Set<number>();
+
+    filesToPersist.forEach((item) => {
+      const persistIndex = filePersists.findIndex((fp, index) => 
+        !usedPersists.has(index) && matchFiles(item, fp)
+      );
+      
+      if (persistIndex !== -1) {
+        const successfulUpload = filePersists[persistIndex];
+        usedPersists.add(persistIndex);
+        
+        item.persistedId = successfulUpload.id;
+        item.isPersisting = false;
+        item.uploadFailed = false;
+        
+        if (successfulUpload.sourceUrl) {
+          item.sourceUrl = successfulUpload.sourceUrl;
+        }
+        
+        this.log.logFormatted({
+          message: 'File upload completed successfully',
+          data: { filename: item.file.name, persistedId: successfulUpload.id }
+        });
+      } else {
+        this.log.logFormatted({
+          message: 'File upload failed - no response for file, marking as failed',
+          data: { filename: item.file.name }
+        });
+        
+        item.isPersisting = false;
+        item.uploadFailed = true;
+        item.persistedId = undefined;
+        item.sourceUrl = undefined;
+      }
+    });
+
+    this.isUploading = false;
+    this.currentUploadBatch = [];
+    this.uploadStateChange.emit(false);
+    this.uploadError = null;
+    
+    this.updateFormControl();
+    this.filesChange.emit(this.selectedFiles);
+    this.cdr.markForCheck();
+  }
+
+  private handleUploadError(filesToPersist: FileItem[], error: Error): void {
+    this.log.logFormatted({
+      message: 'File upload error occurred',
+      error: error,
+      data: { filesCount: filesToPersist.length }
+    });
+
+    filesToPersist.forEach((item) => {
+      const fileKey = `${item.file.name}_${item.file.size}`;
+      this.recentlyRemovedFiles.add(fileKey);
+      
+      item.isPersisting = false;
+      item.uploadFailed = true;
+      if (!item.isExisting) {
+        item.persistedId = undefined;
+        item.sourceUrl = undefined;
+      }
+    });
+
+    this.isUploading = false;
+    this.currentUploadBatch = [];
+    this.uploadStateChange.emit(false);
+    
+    this.uploadError = 'Η μεταφόρτωση απέτυχε. Παρακαλώ δοκιμάστε ξανά.';
+    
+    this.updateFormControl();
+    this.filesChange.emit(this.selectedFiles);
+    this.cdr.markForCheck();
+    
+    this.log.logFormatted({
+      message: 'Upload state reset after error',
+      data: { 
+        isUploading: this.isUploading, 
+        failedFiles: filesToPersist.length,
+        totalFiles: this.selectedFiles.length
+      }
+    });
+  }
+
+  retryFile(fileItem: FileItem): void {
+    if (!fileItem.uploadFailed) {
+      return;
+    }
+
+    this.log.logFormatted({
+      message: 'Retrying file upload',
+      data: { filename: fileItem.file.name }
+    });
+    
+    fileItem.uploadFailed = false;
+    fileItem.isPersisting = false;
+    if (!fileItem.isExisting) {
+      fileItem.persistedId = undefined;
+      fileItem.sourceUrl = undefined;
+    }
+    
+    this.clearUploadError();
+    
+    if (this.isUploading) {
+      this.log.logFormatted({
+        message: 'Upload in progress, cannot retry now',
+        data: { filename: fileItem.file.name }
+      });
+      
+      fileItem.uploadFailed = true;
+      this.setError('Upload in progress. Please wait before retrying.');
+      return;
+    }
+    
+    this.cdr.markForCheck();
+    this.persistFiles([fileItem]);
+  }
+
+  clearFailedUploads(): void {
+    const failedCount = this.selectedFiles.filter(f => f.uploadFailed).length;
+    if (failedCount > 0) {
+      this.selectedFiles = this.selectedFiles.filter(f => !f.uploadFailed);
+      this.updateFormControl();
+      this.filesChange.emit(this.selectedFiles);
+      this.uploadError = null;
+      
+      this.log.logFormatted({
+        message: 'Cleared failed uploads',
+        data: { clearedCount: failedCount, remainingFiles: this.selectedFiles.length }
+      });
+      
+      this.cdr.markForCheck();
+    }
+  }
+
+  canRetryFile(fileItem: FileItem): boolean {
+    return fileItem.uploadFailed && !fileItem.isPersisting && !this.isUploading;
+  }
+
+  hasFailedUploads(): boolean {
+    return this.selectedFiles.some(f => f.uploadFailed);
+  }
+
+  hasUploadingFiles(): boolean {
+    return this.selectedFiles.some(f => f.isPersisting);
+  }
+
+  isReadyForUpload(): boolean {
+    return !this.isUploading;
+  }
+
+  getFailedUploadsCount(): number {
+    return this.selectedFiles.filter(f => f.uploadFailed).length;
+  }
+
+  getUploadStatus(): { 
+    total: number; 
+    uploading: number; 
+    failed: number; 
+    successful: number; 
+    existing: number; 
+  } {
+    return {
+      total: this.selectedFiles.length,
+      uploading: this.selectedFiles.filter(f => f.isPersisting).length,
+      failed: this.selectedFiles.filter(f => f.uploadFailed).length,
+      successful: this.selectedFiles.filter(f => f.persistedId && !f.isExisting).length,
+      existing: this.selectedFiles.filter(f => f.isExisting).length
+    };
+  }
+
+  private clearUploadError(): void {
+    this.uploadError = null;
+    
+    const control = this.form.get(this.controlName);
+    if (control && control.errors?.['custom']) {
+      const errors = { ...control.errors };
+      delete errors['custom'];
+      if (Object.keys(errors).length === 0) {
+        control.setErrors(null);
+      } else {
+        control.setErrors(errors);
+      }
+    }
+    
+    this.cdr.markForCheck();
+  }
+
   removeFile(index: number): void {
+    const fileToRemove = this.selectedFiles[index];
+    
+    if (fileToRemove && fileToRemove.isPersisting) {
+      this.log.logFormatted({
+        message: 'Cannot remove file currently being uploaded',
+        data: { filename: fileToRemove.file.name }
+      });
+      return;
+    }
+    
+    if (fileToRemove) {
+      const fileKey = `${fileToRemove.file.name}_${fileToRemove.file.size}`;
+      this.recentlyRemovedFiles.add(fileKey);
+    }
+    
     this.selectedFiles.splice(index, 1);
     this.updateFormControl();
     this.filesChange.emit(this.selectedFiles);
     this.uploadError = null;
+    
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }
@@ -559,9 +928,11 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     const control = this.form.get(this.controlName);
     if (control) {
       const persistedIds = this.selectedFiles
-        .filter((item) => item.persistedId)
+        .filter((item) => item.persistedId && !item.uploadFailed)
         .map((item) => item.persistedId!);
+      
       const valueToSet = this.multiple ? persistedIds : persistedIds[0] || null;
+      
       control.setValue(valueToSet);
       control.markAsTouched();
       control.markAsDirty();
@@ -575,6 +946,8 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       control.setErrors({ custom: errorMessage });
       control.markAsTouched();
     }
+    this.uploadError = errorMessage;
+    this.cdr.markForCheck();
   }
 
   formatFileSize(bytes: number): string {
@@ -585,9 +958,6 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  /**
-   * Get appropriate icon for file type
-   */
   getFileIcon(fileItem: FileItem): string {
     if (fileItem.uploadFailed) {
       return 'lucideCircleAlert';
@@ -600,12 +970,10 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     const mimeType = fileItem.file.type.toLowerCase();
     const fileName = fileItem.file.name.toLowerCase();
 
-    // Image files
     if (mimeType.startsWith('image/')) {
       return 'lucideImage';
     }
 
-    // Document files
     if (mimeType.includes('pdf') || fileName.endsWith('.pdf')) {
       return 'lucideFileText';
     }
@@ -618,7 +986,6 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       return 'lucideFileText';
     }
 
-    // Spreadsheet files
     if (
       mimeType.includes('excel') ||
       mimeType.includes('spreadsheet') ||
@@ -629,7 +996,6 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       return 'lucideSheet';
     }
 
-    // Archive files
     if (
       mimeType.includes('zip') ||
       mimeType.includes('rar') ||
@@ -640,23 +1006,17 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
       return 'lucideArchive';
     }
 
-    // Video files
     if (mimeType.startsWith('video/')) {
       return 'lucideVideo';
     }
 
-    // Audio files
     if (mimeType.startsWith('audio/')) {
       return 'lucideMusic';
     }
 
-    // Default file icon
     return 'lucideFile';
   }
 
-  /**
-   * Get appropriate CSS class for file icon based on status
-   */
   getFileIconClass(fileItem: FileItem): string {
     if (fileItem.uploadFailed) {
       return 'text-red-400';
@@ -673,15 +1033,7 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     return 'text-gray-400';
   }
 
-  /**
-   * Check if a file can be downloaded
-   */
   canDownloadFile(fileItem: FileItem): boolean {
-    // File can be downloaded if:
-    // 1. It has a sourceUrl (existing file from server)
-    // 2. It's not currently being uploaded
-    // 3. Upload didn't fail
-    // 4. It has actual file data (blob) for newly uploaded files
     return (
       !fileItem.isPersisting &&
       !fileItem.uploadFailed &&
@@ -691,36 +1043,22 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     );
   }
 
-  /**
-   * Check if file has blob data available
-   */
   private hasFileBlob(fileItem: FileItem): boolean {
     return fileItem.file && fileItem.file.size > 0;
   }
 
-  /**
-   * Download file by clicking on filename
-   */
   downloadFileByName(fileItem: FileItem): void {
     this.downloadFileContent(fileItem);
   }
 
-  /**
-   * Download existing file from AWS S3 or blob data
-   */
   downloadFile(fileItem: FileItem): void {
     this.downloadFileContent(fileItem);
   }
 
-  /**
-   * Core download functionality that handles both sourceUrl and blob data
-   */
   private downloadFileContent(fileItem: FileItem): void {
     if (fileItem.sourceUrl) {
-      // Download from server URL (existing files)
       this.downloadFromUrl(fileItem.sourceUrl, fileItem.file.name);
     } else if (this.hasFileBlob(fileItem)) {
-      // Download from blob data (newly uploaded files)
       this.downloadFromBlob(fileItem.file, fileItem.file.name);
     } else {
       console.warn(
@@ -730,9 +1068,6 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     }
   }
 
-  /**
-   * Download file from URL
-   */
   private downloadFromUrl(url: string, filename: string): void {
     const link = document.createElement('a');
     link.href = url;
@@ -740,30 +1075,22 @@ export class FileDropAreaComponent implements OnInit, OnChanges {
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
 
-    // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }
 
-  /**
-   * Download file from blob data
-   */
   private downloadFromBlob(file: globalThis.File, filename: string): void {
-    // Create blob URL from file data
     const blobUrl = URL.createObjectURL(file);
 
-    // Create download link
     const link = document.createElement('a');
     link.href = blobUrl;
     link.download = filename;
 
-    // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    // Clean up blob URL to free memory
     setTimeout(() => {
       URL.revokeObjectURL(blobUrl);
     }, 100);

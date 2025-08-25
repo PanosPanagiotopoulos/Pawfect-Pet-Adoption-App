@@ -19,18 +19,21 @@ namespace Pawfect_API.Query.Queries
 	public class AdoptionApplicationQuery : BaseQuery<Data.Entities.AdoptionApplication>
 	{
         private readonly IConventionService _conventionService;
+        private readonly IQueryFactory _queryFactory;
 
         public AdoptionApplicationQuery
 		(
 			MongoDbService mongoDbService,
             IAuthorizationService AuthorizationService,
 			ClaimsExtractor claimsExtractor,
-            IAuthorizationContentResolver AuthorizationContentResolver,
-			IConventionService conventionService
+            IAuthorizationContentResolver authorizationContentResolver,
+			IConventionService conventionService,
+			IQueryFactory queryFactory
 
-        ) : base(mongoDbService, AuthorizationService, AuthorizationContentResolver, claimsExtractor)
+        ) : base(mongoDbService, AuthorizationService, authorizationContentResolver, claimsExtractor)
         {
             _conventionService = conventionService;
+            _queryFactory = queryFactory;
         }
 
         // Λίστα με τα IDs των αιτήσεων υιοθεσίας για φιλτράρισμα
@@ -62,7 +65,7 @@ namespace Pawfect_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<AdoptionApplication> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<Data.Entities.AdoptionApplication>> ApplyFilters()
+        public override async Task<FilterDefinition<Data.Entities.AdoptionApplication>> ApplyFilters()
 		{
             FilterDefinitionBuilder<Data.Entities.AdoptionApplication> builder = Builders<Data.Entities.AdoptionApplication>.Filter;
             FilterDefinition<Data.Entities.AdoptionApplication> filter = builder.Empty;
@@ -134,7 +137,27 @@ namespace Pawfect_API.Query.Queries
 				filter &= builder.Lte(asset => asset.CreatedAt, CreatedTill.Value);
 			}
 
-			return Task.FromResult(filter);
+			if (!String.IsNullOrEmpty(base.Query))
+			{
+				UserQuery userQuery = _queryFactory.Query<UserQuery>();
+				userQuery.Query = base.Query;
+				userQuery.Offset = 1;
+				userQuery.PageSize = base.PageSize;
+				userQuery.Fields = userQuery.FieldNamesOf([nameof(Models.User.User.Id)]);
+				userQuery = userQuery.Authorise(this._authorise);
+
+				List<String> userIds = (await userQuery.CollectAsync())?.Select(user => user.Id).ToList() ?? [];
+				if (userIds.Any())
+                {
+                    // Convert String IDs to ObjectId for comparison
+                    IEnumerable<ObjectId> referenceIds = userIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+                    // Ensure that only valid ObjectId values are passed in the filter
+                    filter &= builder.In(nameof(Data.Entities.AdoptionApplication.UserId), referenceIds.Where(id => id != ObjectId.Empty));
+                }
+            }
+
+			return filter;
         }
 
         public override async Task<FilterDefinition<Data.Entities.AdoptionApplication>> ApplyAuthorization(

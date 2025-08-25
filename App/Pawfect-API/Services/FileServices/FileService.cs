@@ -133,7 +133,7 @@ namespace Pawfect_API.Services.FileServices
 
 		public async Task<Models.File.FilePersist> SaveTemporarily(IFormFile file) => (await this.SaveTemporarily(new List<IFormFile>() { file })).FirstOrDefault();
 
-		public async Task<IEnumerable<Models.File.FilePersist>> SaveTemporarily(List<IFormFile> files)
+		public async Task<List<Models.File.FilePersist>> SaveTemporarily(List<IFormFile> files)
 		{
             if (files == null || files.Count == 0)
 				throw new ArgumentException("No files provided for upload.");
@@ -236,7 +236,7 @@ namespace Pawfect_API.Services.FileServices
 			// Step 6: Log performance metrics
 			LogUploadPerformance(saveResults, files.Count);
 
-			return persists;
+			return persists.ToList();
 		}
 
         private async Task<UploadResult> ProcessFileUploadAsync(Data.Entities.FileInfo info, List<Models.File.FilePersist> persists)

@@ -529,6 +529,12 @@
         "EXISTING_FILE": "Existing",
         "UPLOADING": "Uploading...",
         "UPLOAD_FAILED": "Upload failed",
+        "UPLOAD_SUCCESS": "Upload successful",
+        "RETRY": "Retry",
+        "RETRY_FILE": "Retry file upload",
+        "CLEAR_FAILED": "Clear failed",
+        "ERROR_HINT": "You can retry individual files or clear all failed uploads",
+        "STATUS_SUMMARY": "Status",
         "DOWNLOAD_FILE": "Download file",
         "CLICK_TO_DOWNLOAD": "Click to download"
       },

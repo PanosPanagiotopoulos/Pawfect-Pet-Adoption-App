@@ -55,7 +55,7 @@ namespace Pawfect_API.Controllers
         }
 
         [HttpPost("persist/temporary/many")]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
+        [ServiceFilter(typeof(MongoTransactionFilter))] 
         public async Task<IActionResult> PersistBatchTemporarily()
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -65,7 +65,9 @@ namespace Pawfect_API.Controllers
             // Early validation for empty or null input
             if (files == null || files.Count == 0) return BadRequest("No files provided for upload.");
 
-            IEnumerable<Models.File.FilePersist> filesPersisted = await _fileService.SaveTemporarily([..files]);
+            List<Models.File.FilePersist> filesPersisted = await _fileService.SaveTemporarily([..files]);
+
+            await _accessService.AttachUrlsAsync(filesPersisted);
 
             return Ok(filesPersisted);
         }
