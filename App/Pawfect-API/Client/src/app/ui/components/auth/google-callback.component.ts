@@ -139,13 +139,16 @@ export class GoogleCallbackComponent implements OnInit {
             this.googleAuthService.handleAuthCallback(queryParams);
           }
           
+          // Determine the correct route based on the origin
+          const targetRoute = this.determineTargetRoute(decodedState);
+          
           // Use replace instead of navigate to avoid back button issues
-          this.router.navigateByUrl('/auth/sign-up?mode=google&t=' + Date.now(), { 
+          this.router.navigateByUrl(targetRoute, { 
             replaceUrl: true 
           }).then(
             (success) => {
               if (!success) {
-                console.error('Navigation to signup failed');
+                console.error('Navigation failed to:', targetRoute);
                 this.error = 'Navigation failed. Please try again.';
               }
             }
@@ -164,6 +167,46 @@ export class GoogleCallbackComponent implements OnInit {
         this.error = this.translationService.translate('APP.AUTH.GOOGLE.PROCESSING_ERROR');
       }
     }, 200); // Increased delay to ensure everything is ready
+  }
+
+  private determineTargetRoute(decodedState: any): string {
+    // Check if we have origin information in the decoded state
+    if (decodedState.origin) {
+      // If origin contains 'login', redirect to login with Google mode
+      if (decodedState.origin.includes('/auth/login') || decodedState.origin.includes('login')) {
+        return `/auth/login?mode=google&t=${Date.now()}`;
+      }
+      
+      // If origin contains 'sign-up' or 'signup', redirect to signup with Google mode
+      if (decodedState.origin.includes('/auth/sign-up') || decodedState.origin.includes('signup')) {
+        return `/auth/sign-up?mode=google&t=${Date.now()}`;
+      }
+    }
+
+    // Check stored origin as fallback
+    const storedOrigin = this.secureStorageService.getItem<string>('googleAuthOrigin');
+    if (storedOrigin) {
+      if (storedOrigin.includes('/auth/login') || storedOrigin.includes('login')) {
+        return `/auth/login?mode=google&t=${Date.now()}`;
+      }
+      
+      if (storedOrigin.includes('/auth/sign-up') || storedOrigin.includes('signup')) {
+        return `/auth/sign-up?mode=google&t=${Date.now()}`;
+      }
+    }
+
+    // Check for any additional context in state
+    if (decodedState.action === 'login') {
+      return `/auth/login?mode=google&t=${Date.now()}`;
+    }
+    
+    if (decodedState.action === 'signup' || decodedState.action === 'register') {
+      return `/auth/sign-up?mode=google&t=${Date.now()}`;
+    }
+
+    // Default to signup if no clear indication (maintains current behavior for edge cases)
+    console.warn('Could not determine origin route, defaulting to signup');
+    return `/auth/sign-up?mode=google&t=${Date.now()}`;
   }
 
   private handleError(errorCode: string): void {

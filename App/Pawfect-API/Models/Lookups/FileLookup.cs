@@ -15,8 +15,8 @@ namespace Pawfect_API.Models.Lookups
 		public List<String>? ExcludedIds { get; set; }
 
 		public List<String>? OwnerIds { get; set; }
-
-		public List<FileSaveStatus>? FileSaveStatuses { get; set; }
+        public List<String>? ContextIds { get; set; }
+        public List<FileSaveStatus>? FileSaveStatuses { get; set; }
 
         public DateTime? CreatedFrom { get; set; }
         public DateTime? CreatedTill { get; set; }
@@ -29,6 +29,7 @@ namespace Pawfect_API.Models.Lookups
             if (this.Ids != null && this.Ids.Count != 0) fileQuery.Ids = this.Ids;
             if (this.ExcludedIds != null && this.ExcludedIds.Count != 0) fileQuery.ExcludedIds = this.ExcludedIds;
             if (this.OwnerIds != null && this.OwnerIds.Count != 0) fileQuery.OwnerIds = this.OwnerIds;
+            if (this.ContextIds != null && this.ContextIds.Count != 0) fileQuery.ContextIds = this.ContextIds;
             if (this.FileSaveStatuses != null && this.FileSaveStatuses.Count != 0) fileQuery.FileSaveStatuses = this.FileSaveStatuses;
             if (this.CreatedFrom.HasValue) fileQuery.CreatedFrom = this.CreatedFrom;
             if (this.CreatedTill.HasValue) fileQuery.CreatedTill = this.CreatedTill;

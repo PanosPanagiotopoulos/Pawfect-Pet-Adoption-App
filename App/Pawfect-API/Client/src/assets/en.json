@@ -358,6 +358,22 @@
         "USER_MESSAGE": "Your email has been successfully verified.",
         "USER_VERIFY_ERROR": "User verification failed"
       },
+      "SHELTER_VERIFIED": {
+        "PROCESSING": "Processing shelter verification...",
+        "APPROVED_TITLE": "Shelter Approved Successfully",
+        "APPROVED_MESSAGE": "The shelter has been approved and can now access the platform.",
+        "REJECTED_TITLE": "Shelter Rejected",
+        "REJECTED_MESSAGE": "The shelter application has been rejected and cannot access the platform.",
+        "ERROR_TITLE": "Verification Failed",
+        "NO_TOKEN": "No verification token provided.",
+        "INVALID_ACTION": "Invalid action parameter. Must be 'approve' or 'reject'.",
+        "INVALID_TOKEN_OR_ACTION": "Invalid token or action parameter.",
+        "SHELTER_NOT_FOUND": "Shelter not found or already processed.",
+        "UNAUTHORIZED": "You are not authorized to perform this action.",
+        "VERIFICATION_FAILED": "Verification process failed. Please try again.",
+        "UNEXPECTED_ERROR": "An unexpected error occurred during verification.",
+        "BACK_TO_ADMIN": "Back to Admin Dashboard"
+      },
       "RESET_PASSWORD_REQUEST": {
         "TITLE": "Reset Password",
         "INSTRUCTIONS": "Enter your email to receive reset instructions",
@@ -402,7 +418,9 @@
         "NUMBER_REQUIRED": "At least one number required",
         "SPECIAL_CHAR_REQUIRED": "At least one special character required",
         "PASSWORDS_DONT_MATCH": "Passwords do not match"
-      }
+      },
+      "VERIFICATION_SUCCESS": "Verification Successful",
+      "VERIFICATION_SUCCESS_SUBMESSAGE": "You can now login to your acocunt!" 
     },
     "NOT_FOUND": {
       "TITLE": "Oops! The pet got lost...",

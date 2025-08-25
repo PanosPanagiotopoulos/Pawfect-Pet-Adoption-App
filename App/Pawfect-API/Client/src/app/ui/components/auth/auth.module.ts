@@ -49,10 +49,10 @@ import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.
 import { ErrorMessageBannerComponent } from 'src/app/common/ui/error-message-banner.component';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { FormGuard } from 'src/app/common/guards/form.guard';
-import { FormLeaveConfirmationDialogComponent } from 'src/app/common/ui/form-leave-confirmation-dialog.component';
+import { ShelterVerifiedComponent } from './shelter-verified.component';
 
 @NgModule({
-  declarations: [LoginComponent, SignupComponent, VerifiedComponent],
+  declarations: [LoginComponent, SignupComponent, VerifiedComponent, ShelterVerifiedComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -61,7 +61,8 @@ import { FormLeaveConfirmationDialogComponent } from 'src/app/common/ui/form-lea
     RouterModule.forChild([
       { path: 'login', component: LoginComponent, canActivate: [LoggedInGuard] },
       { path: 'sign-up', component: SignupComponent, canActivate: [LoggedInGuard], canDeactivate: [FormGuard] },
-      { path: 'verified', component: VerifiedComponent },
+      { path: 'verified/user', component: VerifiedComponent },
+      { path: 'verified/shelter', component: ShelterVerifiedComponent },
       { path: 'google/callback-page', component: GoogleCallbackComponent },
       {
         path: 'reset-password-request',
@@ -100,7 +101,7 @@ import { FormLeaveConfirmationDialogComponent } from 'src/app/common/ui/form-lea
       lucideTriangle,
     }),
   ],
-  exports: [LoginComponent, SignupComponent, VerifiedComponent],
+  exports: [LoginComponent, SignupComponent, VerifiedComponent, ShelterVerifiedComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AuthModule {}

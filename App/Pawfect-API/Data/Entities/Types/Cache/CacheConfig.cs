@@ -7,6 +7,7 @@
         public int JWTTokensCacheTime { get; set; }
         public int RequirementResultTime { get; set; }
         public int QueryCacheTime { get; set; }
+        public int AdminVerificationCacheTime { get; set; }
 
     }
 }

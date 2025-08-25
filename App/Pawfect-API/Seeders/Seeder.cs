@@ -182,7 +182,7 @@ public class Seeder
                 };
 
                 // Construct the AWS key and upload the file
-                String key = _awsService.ConstructAwsKey(fileName);
+                String key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
                 String sourceUrl = null;
                 if (!uploadedFiles.Contains(fileName))
                 {
@@ -191,7 +191,7 @@ public class Seeder
                 else sourceUrl = await _awsService.GetAsync(key);
 
                     uploadedFiles.Add(fileName);
-
+                
                 // Create the File entity
                 Pawfect_API.Data.Entities.File fileEntity = new Pawfect_API.Data.Entities.File
                 {
@@ -202,6 +202,9 @@ public class Seeder
                     MimeType = mimeType,
                     FileType = fileType,
                     SourceUrl = sourceUrl,
+                    AccessType = FileAccessType.Public,
+                    ContextId = null,
+                    ContextType = null,
                     AwsKey = key,
                     FileSaveStatus = FileSaveStatus.Permanent,
                     CreatedAt = DateTime.UtcNow,
@@ -268,6 +271,9 @@ public class Seeder
                 FileType = fileType,
                 SourceUrl = sourceUrl,
                 AwsKey = key,
+                AccessType = FileAccessType.Public,
+                ContextId = null,
+                ContextType = null,
                 FileSaveStatus = FileSaveStatus.Permanent,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow

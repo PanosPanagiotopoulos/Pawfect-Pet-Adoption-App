@@ -63,7 +63,9 @@ namespace Pawfect_API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            AuthContext context = _contextBuilder.OwnedFrom(adoptionApplicationLookup).AffiliatedWith(adoptionApplicationLookup).Build();
+            String shelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
+
+            AuthContext context = _contextBuilder.OwnedFrom(adoptionApplicationLookup).AffiliatedWith(adoptionApplicationLookup, null, shelterId).Build();
             List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor([.. adoptionApplicationLookup.Fields], context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying adoption applications");
 
@@ -138,7 +140,7 @@ namespace Pawfect_API.Controllers
             String shelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
             if (!_conventionService.IsValidId(shelterId)) return null;
 
-            AuthContext context = _contextBuilder.OwnedFrom(adoptionApplicationLookup).AffiliatedWith(adoptionApplicationLookup).Build();
+            AuthContext context = _contextBuilder.OwnedFrom(adoptionApplicationLookup).AffiliatedWith(adoptionApplicationLookup, null, shelterId).Build();
             List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor([.. adoptionApplicationLookup.Fields], context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying adoption applications");
 
@@ -174,7 +176,9 @@ namespace Pawfect_API.Controllers
         public async Task<IActionResult> GetAdoptionApplication(String id, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
-		
+
+            String shelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
+
             AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
             lookup.Offset = 1;
@@ -182,7 +186,7 @@ namespace Pawfect_API.Controllers
             lookup.PageSize = 1;
             lookup.Ids = [id];
 
-            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup, null, shelterId).Build();
             List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor(BaseCensor.PrepareFieldsList(fields), context);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying adoption applications");
 

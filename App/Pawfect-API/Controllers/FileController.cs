@@ -29,6 +29,7 @@ namespace Pawfect_API.Controllers
         private readonly AuthContextBuilder _contextBuilder;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IFileAccessService _accessService;
         private readonly IQueryFactory _queryFactory;
 
         public FileController(
@@ -39,6 +40,7 @@ namespace Pawfect_API.Controllers
             AuthContextBuilder contextBuilder,
             IAuthorizationContentResolver AuthorizationContentResolver,
             ClaimsExtractor claimsExtractor, 
+            IFileAccessService accessService,
             IQueryFactory queryFactory)
         {
             _fileService = fileService;
@@ -48,6 +50,7 @@ namespace Pawfect_API.Controllers
             _contextBuilder = contextBuilder;
             _authorizationContentResolver = AuthorizationContentResolver;
             _claimsExtractor = claimsExtractor;
+            _accessService = accessService;
             _queryFactory = queryFactory;
         }
 
@@ -82,6 +85,8 @@ namespace Pawfect_API.Controllers
             FileQuery q = fileLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation);
 
             List<Data.Entities.File> datas = await q.CollectAsync();
+
+            await _accessService.AttachUrlsAsync(datas);
 
             List<Models.File.File> models = await _builderFactory.Builder<FileBuilder>()
                 .Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)

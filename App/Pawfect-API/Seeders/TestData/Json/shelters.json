@@ -214,29 +214,5 @@
     "VerifiedById": "709f3f99def98de900439035",
     "CreatedAt": "2023-01-01T00:00:00Z",
     "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "80af4faaef0a9ef90043904a",
-    "UserId": "709f3f99def98de900439035",
-    "ShelterName": "Animal Sanctuary",
-    "Description": "A sanctuary for all animals",
-    "Website": "https://animalsanctuary.org",
-    "SocialMedia": {
-      "Facebook": "https://facebook.com/animalsanctuary",
-      "Instagram": "https://instagram.com/animalsanctuary"
-    },
-    "OperatingHours": {
-      "Monday": "09:00,17:00",
-      "Tuesday": "09:00,17:00",
-      "Wednesday": "09:00,17:00",
-      "Thursday": "09:00,17:00",
-      "Friday": "09:00,17:00",
-      "Saturday": "10:00,16:00",
-      "Sunday": "closed"
-    },
-    "VerificationStatus": 2,
-    "VerifiedById": "709f3f99def98de900439035",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
   }
 ]

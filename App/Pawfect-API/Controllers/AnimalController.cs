@@ -12,15 +12,14 @@ using Pawfect_API.Services.AnimalServices;
 using Pawfect_API.Transactions;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Services.FileServices;
 using Microsoft.Extensions.Options;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
 using Microsoft.Extensions.Caching.Memory;
 using Pawfect_API.Services.AuthenticationServices;
 using System.Security.Claims;
 using Pawfect_API.Data.Entities.Types.Cache;
-using Pawfect_API.Services.ConversationServices;
 using Pawfect_API.Services.Convention;
+using Pawfect_API.Services.FileServices;
 
 namespace Pawfect_API.Controllers
 {

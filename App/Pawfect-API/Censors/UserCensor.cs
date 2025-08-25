@@ -53,8 +53,10 @@ namespace Pawfect_API.Censors
 
             // Create the file lookup for the profile photo censoring
             FileLookup fileLookup = new FileLookup();
-            fileLookup.OwnerIds = [context.CurrentUserId];
-            AuthContext fileContext = _contextBuilder.OwnedFrom(fileLookup).Build();
+            if (!String.IsNullOrEmpty(context.CurrentUserId))
+                fileLookup.OwnerIds = [context.CurrentUserId];
+
+            AuthContext fileContext = _contextBuilder.OwnedFrom(fileLookup, context.CurrentUserId).Build();
             censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<FileCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.User.User.ProfilePhoto)), fileContext), nameof(Models.User.User.ProfilePhoto)));
 
             return censoredFields;

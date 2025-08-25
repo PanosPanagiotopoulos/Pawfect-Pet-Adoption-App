@@ -36,6 +36,7 @@ import { PersonalInfoComponent } from './sign-up-steps/personal-info/personal-in
 import { AccountDetailsComponent } from './sign-up-steps/account-details/account-details.component';
 import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
 import { UserAvailabilityService } from 'src/app/services/user-availability.service';
+import { SnackbarService } from 'src/app/common/services/snackbar.service';
 
 interface LocationFormGroup extends FormGroup {
   controls: {
@@ -181,6 +182,7 @@ export class SignupComponent
     private readonly route: ActivatedRoute,
     private readonly secureStorageService: SecureStorageService,
     public readonly translationService: TranslationService,
+    private readonly snackbarService: SnackbarService,
     private readonly dialog: MatDialog
   ) {
     super();
@@ -892,7 +894,7 @@ export class SignupComponent
             this.resendEmailVerification();
             this.currentStep = SignupStep.EmailConfirmation;
           } else {
-            this.router.navigate(['/auth/verified'], {
+            this.router.navigate(['/auth/verified/user'], {
               queryParams: {
                 complete: formValue.role,
                 identification: this.userId,
@@ -1021,8 +1023,14 @@ export class SignupComponent
                 this.currentStep = SignupStep.EmailConfirmation;
                 this.resendEmailVerification();
               } else {
-                this.router.navigate(['/auth/verified'], {
-                  queryParams: { complete: role, identification: this.userId },
+                this.router.navigate(['/auth/login']);
+                this.snackbarService.showSuccess({
+                  message: this.translationService.translate(
+                    'APP.AUTH.VERIFICATION_SUCCESS'
+                  ),
+                  subMessage: this.translationService.translate(
+                    'APP.AUTH.VERIFICATION_SUCCESS_SUBMESSAGE'
+                  ),
                 });
               }
             }
@@ -1126,7 +1134,7 @@ export class SignupComponent
     } else {
       // Regular signup flow, redirect to verification complete page
       const { role } = this.registrationForm.getRawValue();
-      this.router.navigate(['/auth/verified'], {
+      this.router.navigate(['/auth/verified/user'], {
         queryParams: { complete: role, identification: this.userId },
       });
     }

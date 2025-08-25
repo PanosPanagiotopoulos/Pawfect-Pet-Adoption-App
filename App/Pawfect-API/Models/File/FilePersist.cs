@@ -1,5 +1,4 @@
 ﻿using Pawfect_API.Data.Entities.EnumTypes;
-using Pawfect_API.Data.Entities.Types.Files;
 
 namespace Pawfect_API.Models.File
 {
@@ -14,5 +13,8 @@ namespace Pawfect_API.Models.File
 		public FileSaveStatus? FileSaveStatus { get; set; }
 		public String SourceUrl { get; set; }
         public String AwsKey { get; set; }
+        public FileAccessType AccessType { get; set; }
+        public String ContextType { get; set; }
+        public String ContextId { get; set; }
     }
 }

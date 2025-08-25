@@ -7,7 +7,9 @@ namespace Pawfect_API.Data.Entities.Types.Files
 		public int InitialRetryDelayMs { get; set; }
 		public long MaxFileSizeBytes { get; set; }
 		public int BatchSize { get; set; }
-		public List<FileTypeConfig> AllowedFileTypes { get; set; }
+        public int PrivateFilesExpiryTime { get; set; }
+        public List<FileTypeConfig> AllowedFileTypes { get; set; }
+        public List<String> PrivateFileTypes { get; set; }
         public ExcelExtractorConfig ExcelExtractorConfig { get; set; }
     }
 

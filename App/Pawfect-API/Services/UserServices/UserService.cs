@@ -30,6 +30,9 @@ using Pawfect_API.Models.Notification;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 using Pawfect_API.Services.NotificationServices;
 using Pawfect_Pet_Adoption_App_API.DevTools;
+using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
+using MongoDB.Driver.Core.Servers;
+using Pawfect_Pet_Adoption_App_API.Models.Authorization;
 
 namespace Pawfect_API.Services.UserServices
 {
@@ -48,6 +51,7 @@ namespace Pawfect_API.Services.UserServices
 		private readonly Lazy<IFileService> _fileService;
         private readonly ICensorFactory _censorFactory;
         private readonly AuthContextBuilder _contextBuilder;
+        private readonly IShelterRepository _shelterRepository;
         private readonly ClaimsExtractor _claimsExtractor;
         private readonly IAuthorizationService _authorizationService;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
@@ -68,6 +72,7 @@ namespace Pawfect_API.Services.UserServices
 			Lazy<IFileService> fileService,
 			ICensorFactory censorFactory,
             AuthContextBuilder contextBuilder,
+			IShelterRepository shelterRepository,
 			ClaimsExtractor claimsExtractor,
 			IAuthorizationService AuthorizationService,
 			IAuthorizationContentResolver authorizationContentResolver,
@@ -89,6 +94,7 @@ namespace Pawfect_API.Services.UserServices
 			_fileService = fileService;
             _censorFactory = censorFactory;
             _contextBuilder = contextBuilder;
+            _shelterRepository = shelterRepository;
             _claimsExtractor = claimsExtractor;
             _authorizationService = AuthorizationService;
             _authorizationContentResolver = authorizationContentResolver;
@@ -318,8 +324,8 @@ namespace Pawfect_API.Services.UserServices
 			// Σε περίπτωση που δεν είναι End-User , θα πρέπει να σταλεί ειδοποίηση σε admin για αν επιβεβαιωθεί
 			if (user.Roles.Any(role => role != UserRole.User))
 			{
-				// TODO: Στείλτε ειδοποίηση στον admin για να επιβεβαιώσει τον χρήστη
 				user.IsVerified = false;
+				await this.SendAdminVerifyNotificationAsync(user);
 
 			}
 
@@ -328,7 +334,131 @@ namespace Pawfect_API.Services.UserServices
 			return true;
 		}
 
-		public async Task SendResetPasswordEmailAsync(String email)
+		public async Task<Boolean> VerifyShelterAsync(AdminVerifyPayload payload)
+		{
+			String cacheKey = $"verify_user_email_admin_{payload.AdminToken}";
+			if (!_memoryCache.TryGetValue(cacheKey, out String adminUserData))
+				throw new ForbiddenException();
+			
+			// [0]: admin id, [1] user id
+			String[] adminUserValues = adminUserData.Split('_');
+
+			Data.Entities.User toVeirfyUser = await this.RetrieveUserAsync(adminUserValues[1], null);
+			toVeirfyUser.IsVerified = true;
+
+			Data.Entities.Shelter toVerifyShelter = await _shelterRepository.FindAsync(x => x.UserId.Equals(adminUserValues[1]));
+			toVerifyShelter.VerificationStatus = payload.Accept ? VerificationStatus.Verified : VerificationStatus.Rejected;
+            toVerifyShelter.VerifiedById = adminUserValues[0];
+
+            String[] results = await Task.WhenAll(_userRepository.UpdateAsync(toVeirfyUser), _shelterRepository.UpdateAsync(toVerifyShelter));
+			// Validate update sucess
+			if (results == null || results.Length != 2 || results.Any(String.IsNullOrEmpty)) throw new InvalidOperationException("Failed to update shelter verification");
+
+			return true;
+		}
+
+
+        private async Task SendAdminVerifyNotificationAsync(Data.Entities.User user)
+		{
+			// Fetch shelter data
+			if (!user.Roles.Contains(UserRole.Shelter) || String.IsNullOrEmpty(user.ShelterId)) return;
+
+			Data.Entities.Shelter shelter = await _shelterRepository.FindAsync(x => x.Id == user.ShelterId);
+			Data.Entities.User admin = await _userRepository.FindAsync(x => x.Roles.Contains(UserRole.Admin), [nameof(Data.Entities.User.Id)]);
+
+			String adminToken = Guid.NewGuid().ToString();
+
+            Dictionary<String, String> titleMappings = new Dictionary<String, String>()
+			{
+				{
+					_notificationConfig.VerifyUserPlaceholders.ShelterName,
+					shelter.ShelterName
+				},
+			};
+            Dictionary<String, String> contentMappings = new Dictionary<String, String>()
+            {
+                {
+                    _notificationConfig.VerifyUserPlaceholders.AdminToken,
+                    adminToken
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.ShelterName,
+                    shelter.ShelterName
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.ShelterId,
+                    shelter.Id
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.Description,
+                    shelter.Description
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.UserId,
+                    user.Id
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.RegistrationDate,
+                    user.CreatedAt.ToString()
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.Website,
+                    shelter.Website ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.SocialMediaFacebook,
+                    shelter.SocialMedia?.Facebook ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.SocialMediaInstagram,
+                    shelter.SocialMedia?.Instagram ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.OperatingHoursMonday,
+                    shelter.OperatingHours?.Monday ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.OperatingHoursTuesday,
+                    shelter.OperatingHours?.Tuesday ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.OperatingHoursWednesday,
+                    shelter.OperatingHours?.Wednesday ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.OperatingHoursThursday,
+                    shelter.OperatingHours?.Thursday ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.OperatingHoursFriday,
+                    shelter.OperatingHours?.Friday ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.OperatingHoursSaturday,
+                    shelter.OperatingHours?.Saturday ?? "None"
+                },
+                {
+                    _notificationConfig.VerifyUserPlaceholders.OperatingHoursSunday,
+                    shelter.OperatingHours?.Sunday ?? "None"
+                }
+            };
+
+            NotificationEvent sendEmailEvent = new NotificationEvent()
+            {
+                UserId = admin.Id,
+                Type = NotificationType.Email,
+                TitleMappings = titleMappings,
+                ContentMappings = contentMappings,
+                TeplateId = _notificationConfig.VerifyUserPlaceholders.TemplateId
+            };
+
+            await _notificationApiClient.NotificationEvent(sendEmailEvent);
+
+            _memoryCache.Set($"verify_user_email_admin_{adminToken}", $"{admin.Id}_{user.Id}", TimeSpan.FromHours(_cacheConfig.AdminVerificationCacheTime));
+        }
+
+
+        public async Task SendResetPasswordEmailAsync(String email)
 		{
 			if (String.IsNullOrEmpty(email))
 				throw new ArgumentException("No email found to send reset password email");

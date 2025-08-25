@@ -89,7 +89,7 @@
   },
   {
     "Id": "709f3f99def98de900439035",
-    "Email": "admin3@gmail.com",
+    "Email": "dit21151@go.uop.gr",
     "Password": "admin",
     "FullName": "Admin User",
     "Roles": [ 1, 2, 3 ],
@@ -100,7 +100,7 @@
       "City": "Boston",
       "ZipCode": "02108"
     },
-    "ShelterId": "80af4faaef0a9ef90043904a",
+    "ShelterId": null,
     "AuthProvider": 1,
     "AuthProviderId": null,
     "IsVerified": true,

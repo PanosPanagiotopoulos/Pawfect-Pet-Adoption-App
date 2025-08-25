@@ -22,6 +22,7 @@
     using Pawfect_API.Data.Entities.Types.Cache;
     using Pawfect_Pet_Adoption_App_API.Services.UserServices;
     using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
+    using Pawfect_Pet_Adoption_App_API.Models.Authorization;
 
     [ApiController]
 	[Route("auth")]
@@ -417,19 +418,31 @@
 			return Ok(persisted);
 		}
 
-		[HttpPost("verify-user")]
+		[HttpPost("verify/user")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> VerifyUser([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            if (!(await _userService.VerifyUserAsync(payload.Id, payload.Email)))
+            if (!await _userService.VerifyUserAsync(payload.Id, payload.Email))
                 return BadRequest();
 
 			return Ok();
 		}
 
-		[HttpPost("send/reset-password")]
+        [HttpPost("verify/shelter")]
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        public async Task<IActionResult> VerifyShelter([FromBody] AdminVerifyPayload payload)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (!await _userService.VerifyShelterAsync(payload))
+                return BadRequest();
+
+            return Ok();
+        }
+
+        [HttpPost("send/reset-password")]
 		public async Task<IActionResult> SendResetPasswordEmail([FromBody] AuthPayload AuthPayload)
 		{
             if (!ModelState.IsValid)  return BadRequest(ModelState);
@@ -440,7 +453,7 @@
 		}
 
 		[HttpPost("verify-reset-password-token")]
-		public async Task<IActionResult> VerifyResetPasswordToken([FromBody] AuthPayload payload)
+        public async Task<IActionResult> VerifyResetPasswordToken([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 

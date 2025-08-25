@@ -2,6 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using Pawfect_API.Data.Entities.EnumTypes;
 using Pawfect_API.Models.File;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Data.Entities
 {
@@ -17,12 +18,20 @@ namespace Pawfect_API.Data.Entities
 		public String OwnerId { get; set; }
 		public String MimeType { get; set; }
 		public String FileType { get; set; }
+		[BsonIgnoreIfNull]
 		public String SourceUrl { get; set; }
         public String AwsKey { get; set; }
         public FileSaveStatus FileSaveStatus { get; set; }
 
-		// Commons
-		public DateTime CreatedAt { get; set; }
+        // Authorization
+        public FileAccessType AccessType { get; set; }
+		[BsonIgnoreIfNull]
+        public String ContextType { get; set; }
+        [BsonIgnoreIfNull]
+        public String ContextId { get; set; }
+
+        // Commons
+        public DateTime CreatedAt { get; set; }
 
 		public DateTime UpdatedAt { get; set; }
 	}

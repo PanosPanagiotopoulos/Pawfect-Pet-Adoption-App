@@ -489,7 +489,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    debugger;
     // Initialize last values
     this.lastEmailValue = this.form.get('email')?.value || null;
     this.lastPhoneValue = this.form.get('phoneNumber')?.value || null;

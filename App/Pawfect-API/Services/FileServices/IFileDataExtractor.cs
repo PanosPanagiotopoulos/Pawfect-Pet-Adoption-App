@@ -1,6 +1,6 @@
 ﻿using Pawfect_API.Models.Animal;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
+namespace Pawfect_API.Services.FileServices
 {
     public interface IFileDataExtractor
     {

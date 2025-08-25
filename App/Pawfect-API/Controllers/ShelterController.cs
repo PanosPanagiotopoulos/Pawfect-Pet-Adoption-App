@@ -77,6 +77,7 @@ namespace Pawfect_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying shelters");
 
             shelterLookup.Fields = censoredFields;
+            shelterLookup.Fields.Add(String.Join('.', nameof(Models.Shelter.Shelter.User), nameof(Models.User.User.IsVerified)));
 
             ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
@@ -103,7 +104,7 @@ namespace Pawfect_API.Controllers
 
             queryResult = new QueryResult<Shelter>()
             {
-                Items = models,
+                Items = models.Where(m => (m.User.IsVerified ?? false)).ToList(),
                 Count = await q.CountAsync()
             };
 

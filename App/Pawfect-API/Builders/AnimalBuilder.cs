@@ -4,6 +4,7 @@ using Pawfect_API.Data.Entities.Types.Authorization;
 using Pawfect_API.Models.Animal;
 using Pawfect_API.Models.Lookups;
 using Pawfect_API.Query;
+using Pawfect_API.Services.FileServices;
 
 namespace Pawfect_API.Builders
 {
@@ -27,15 +28,18 @@ namespace Pawfect_API.Builders
 	{
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
+        private readonly IFileAccessService _accessService;
 
         public AnimalBuilder
 		(
 			IQueryFactory queryFactory,
-			IBuilderFactory builderFactory	
+			IBuilderFactory builderFactory,
+			IFileAccessService accessService
 		)
 		{
             this._queryFactory = queryFactory;
             this._builderFactory = builderFactory;
+            this._accessService = accessService;
         }
 
 
@@ -198,6 +202,8 @@ namespace Pawfect_API.Builders
             fileLookup.Fields = fileFields;
 
             List<Data.Entities.File> files = await fileLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
+
+            await _accessService.AttachUrlsAsync(files);
 
             // Κατασκευή των dtos
             List<Models.File.File> fileDtos = await _builderFactory.Builder<FileBuilder>().Authorise(this._authorise).Build(files, fileFields);

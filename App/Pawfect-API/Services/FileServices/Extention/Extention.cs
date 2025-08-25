@@ -2,7 +2,7 @@
 using Pawfect_API.Data.Entities.Types.Apis;
 using Pawfect_API.Data.Entities.Types.Files;
 using Pawfect_API.Services.AdoptionApplicationServices;
-using Pawfect_Pet_Adoption_App_API.Services.FileServices;
+using Pawfect_API.Services.FileServices;
 
 namespace Pawfect_API.Services.FileServices.Extention
 {
@@ -14,9 +14,11 @@ namespace Pawfect_API.Services.FileServices.Extention
 
 			services.AddScoped<IFileService, FileService>();
             services.AddScoped<IFileDataExtractor, ExcelExtractor>();
+            services.AddScoped<IFileAccessService, FileAccessService>();
 
             services.AddScoped(provider => new Lazy<IFileService>(() => provider.GetRequiredService<IFileService>()));
             services.AddScoped(provider => new Lazy<IFileDataExtractor>(() => provider.GetRequiredService<IFileDataExtractor>()));
+            services.AddScoped(provider => new Lazy<IFileAccessService>(() => provider.GetRequiredService<IFileAccessService>()));
 
             return services;
 		}

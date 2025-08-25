@@ -17,5 +17,7 @@
 		public const String WEBM = "WEBM";
 		public const String WMV = "WMV";
 		public const String EXCEL = "EXCEL";
-	}
+        public const String WORD = "WORD";
+        public const String WORD_OLD = "WORD_OLD";
+    }
 }

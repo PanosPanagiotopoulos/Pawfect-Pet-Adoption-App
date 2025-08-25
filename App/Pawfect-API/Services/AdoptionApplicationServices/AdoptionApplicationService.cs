@@ -84,6 +84,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             Boolean isUpdate = _conventionService.IsValidId(persist.Id);
             Boolean statusChanged = false;
             Data.Entities.AdoptionApplication data = new Data.Entities.AdoptionApplication();
+            List<String> prevFileIds = null;
             String dataId = String.Empty;
             if (isUpdate)
             {
@@ -103,6 +104,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                     if (data.ShelterId != persist.ShelterId) throw new ForbiddenException("Not allowed action");
                 }
 
+                prevFileIds = data.AttachedFilesIds;
 
                 data.UpdatedAt = DateTime.UtcNow;
             }
@@ -126,8 +128,6 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                 data.CreatedAt = DateTime.UtcNow;
                 data.UpdatedAt = DateTime.UtcNow;
             }
-            // Set files to permanent
-            await this.PersistFiles(persist.AttachedFilesIds, data.AttachedFilesIds);
 
             statusChanged = isUpdate && persist.Status != data.Status;
 
@@ -135,6 +135,9 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
             if (isUpdate) dataId = await _adoptionApplicationRepository.UpdateAsync(data);
             else dataId = await _adoptionApplicationRepository.AddAsync(data);
+
+            // Set files to permanent
+            await this.PersistFiles(persist.AttachedFilesIds, prevFileIds, dataId);
 
             if (String.IsNullOrEmpty(dataId))
                 throw new InvalidOperationException("Failed to persist Adoption Application");
@@ -150,7 +153,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             lookup.Offset = 1;
             lookup.PageSize = 1;
 
-            AuthContext censorContext = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            AuthContext censorContext = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup, null, data.ShelterId).Build();
             List<String> censoredFields = await _censorFactory.Censor<AdoptionApplicationCensor>().Censor([.. lookup.Fields], censorContext);
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying adoption applications");
 
@@ -177,7 +180,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                 lookup.UserIds = new List<String> { userId };
                 AuthContext authContext =
                     _contextBuilder.OwnedFrom(lookup, data.UserId)
-                                   .AffiliatedWith(lookup)
+                                   .AffiliatedWith(lookup, null, data.ShelterId)
                                    .Build();
 
                 if (await _authorizationService.AuthorizeOrOwnedOrAffiliated(authContext, permission))
@@ -187,7 +190,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             return false;
         }
 
-        private async Task PersistFiles(List<String> attachedFilesIds, List<String> currentFileIds)
+        private async Task PersistFiles(List<String> attachedFilesIds, List<String> currentFileIds, String applicationId)
         {
             // Make null lto an empty list so that we can delete all current file Ids
             if (attachedFilesIds == null) { attachedFilesIds = new List<String>(); }
@@ -208,7 +211,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             lookup.Offset = 1;
             lookup.PageSize = attachedFilesIds.Count;
 
-            List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermission).CollectAsync();
+            List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync();
             if (attachedFiles == null || attachedFiles.Count == 0)
             {
                 _logger.LogError("Failed to saved attached files. No return from query");
@@ -224,6 +227,8 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             {
                 file.FileSaveStatus = FileSaveStatus.Permanent;
                 file.OwnerId = userId;
+                file.ContextId = applicationId;
+                file.ContextType = nameof(Data.Entities.AdoptionApplication);
                 persistModels.Add(_mapper.Map<FilePersist>(file));
             }
 

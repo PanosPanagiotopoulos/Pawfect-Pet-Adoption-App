@@ -20,23 +20,6 @@ namespace Pawfect_API.Services.AwsServices
 
 		public async Task<String> UploadAsync(IFormFile file, String key)
 		{
-			// Check if the key already exists
-			try
-			{
-				await _s3Client.GetObjectMetadataAsync(_awsConfig.BucketName, key);
-				// If the above line doesn't throw, the object exists
-				throw new InvalidOperationException($"A file with the key '{key}' already exists in the S3 bucket.");
-			}
-			catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-			{
-				// Object does not exist, proceed with upload
-			}
-			catch (Exception ex)
-			{
-				// Handle other exceptions
-				throw new InvalidOperationException($"Error checking for existing file: {ex.Message}", ex);
-			}
-
 			// Proceed with upload
 			using (Stream stream = file.OpenReadStream())
 			{
@@ -51,6 +34,7 @@ namespace Pawfect_API.Services.AwsServices
 				TransferUtility transferUtility = new TransferUtility(_s3Client);
 				await transferUtility.UploadAsync(uploadRequest);
 			}
+
 			return await this.GetAsync(key);
 		}
 
@@ -65,6 +49,26 @@ namespace Pawfect_API.Services.AwsServices
 				throw new InvalidOperationException($"Failed to generate file URL: {ex.Message}", ex);
 			}
 		}
+
+        public async Task<String> GeneratePresignedUrlAsync(String key, TimeSpan expiry)
+        {
+            try
+            {
+                GetPreSignedUrlRequest request = new GetPreSignedUrlRequest
+                {
+                    BucketName = _awsConfig.BucketName,
+                    Key = key,
+                    Verb = HttpVerb.GET,
+                    Expires = DateTime.UtcNow.Add(expiry)
+                };
+
+                return await Task.FromResult(_s3Client.GetPreSignedURL(request));
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to generate presigned URL: {ex.Message}", ex);
+            }
+        }
 
 		public async Task<Dictionary<String, Boolean>> DeleteAsync(String key)
 		{
@@ -121,7 +125,18 @@ namespace Pawfect_API.Services.AwsServices
 			if (keyParts.Any(part => String.IsNullOrEmpty(part)))
 				throw new ArgumentException("Key parts cannot be null or empty.");
 
-			return String.Join("-", keyParts);
+			String key = String.Join("_", keyParts);
+
+            String sanitizedKey = key
+			.Replace(" ", "_")
+			.Replace("(", "")
+			.Replace(")", "")
+			.Replace("[", "")
+			.Replace("]", "")
+			.Replace("&", "and")
+			.Replace("%", "");
+
+			return sanitizedKey;
 		}
 
 	}

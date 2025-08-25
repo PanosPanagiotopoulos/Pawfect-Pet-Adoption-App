@@ -42,7 +42,7 @@ namespace Pawfect_API.Censors
             AuthContext breedContext = _contextBuilder.OwnedFrom(new BreedLookup(), context.CurrentUserId).AffiliatedWith(new BreedLookup()).Build();
             censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<BreedCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.Breed)), breedContext), nameof(Models.Animal.Animal.Breed)));
 
-            AuthContext fileContext = _contextBuilder.OwnedFrom(new AnimalLookup(), context.CurrentUserId).AffiliatedWith(new FileLookup()).Build();
+            AuthContext fileContext = _contextBuilder.OwnedFrom(new AnimalLookup()).AffiliatedWith(new FileLookup()).Build();
             censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<FileCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.Animal.Animal.AttachedPhotos)), fileContext), nameof(Models.Animal.Animal.AttachedPhotos)));
 
             return censoredFields;

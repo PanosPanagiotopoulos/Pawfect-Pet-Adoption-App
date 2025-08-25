@@ -40,7 +40,15 @@ namespace Pawfect_API.Censors
             AuthContext animalContext = _contextBuilder.OwnedFrom(new AnimalLookup(), context.CurrentUserId).AffiliatedWith(new AnimalLookup()).Build();
             censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<AnimalCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.AdoptionApplication.AdoptionApplication.Animal)), animalContext), nameof(Models.AdoptionApplication.AdoptionApplication.Animal)));
 
-            AuthContext fileContext = _contextBuilder.OwnedFrom(new FileLookup(), context.CurrentUserId).AffiliatedWith(new FileLookup()).Build();
+            FileLookup ownedFilter = new FileLookup();
+            if (!String.IsNullOrEmpty(context.CurrentUserId))
+                ownedFilter.OwnerIds = [context.CurrentUserId];
+
+            FileLookup affiliatedFilter = new FileLookup();
+            if (!String.IsNullOrEmpty(context.AffiliatedId))
+                ownedFilter.ContextIds = [context.AffiliatedId];
+
+            AuthContext fileContext = _contextBuilder.OwnedFrom(ownedFilter, context.CurrentUserId).AffiliatedWith(affiliatedFilter, null, context.AffiliatedId).Build();
             censoredFields.AddRange(this.AsPrefixed(await _censorFactory.Censor<FileCensor>().Censor(this.ExtractPrefixed(fields, nameof(Models.AdoptionApplication.AdoptionApplication.AttachedFiles)), fileContext), nameof(Models.AdoptionApplication.AdoptionApplication.AttachedFiles)));
 
             AuthContext shelterContext = _contextBuilder.OwnedFrom(new ShelterLookup(), context.CurrentUserId).AffiliatedWith(new ShelterLookup()).Build();

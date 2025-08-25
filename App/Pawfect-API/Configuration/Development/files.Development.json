@@ -4,6 +4,7 @@
 		"InitialRetryDelayMs": 1000,
 		"MaxFileSizeBytes": 10485760,
 		"BatchSize": 7,
+		"PrivateFilesExpiryTime": 60, // min
 		"AllowedFileTypes": [
 			{
 				"FileType": "PDF",
@@ -79,8 +80,24 @@
 				"FileType": "EXCEL",
 				"MimeTypes": [ "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ],
 				"Extensions": [ ".xlsx" ]
+			},
+			{
+				"FileType": "WORD",
+				"MimeTypes": [ "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ],
+				"Extensions": [ ".docx" ]
+			},
+			{
+				"FileType": "WORD_OLD",
+				"MimeTypes": [
+					"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+					"application/msword"
+				],
+				"Extensions": [ ".doc" ]
 			}
 		],
+		
+		"PrivateFileTypes": [ "PDF", "WORD", "WORD_OLD", "EXCEL" ],
+
 		"ExcelExtractorConfig": {
 			"Headers": [
 				"Name",

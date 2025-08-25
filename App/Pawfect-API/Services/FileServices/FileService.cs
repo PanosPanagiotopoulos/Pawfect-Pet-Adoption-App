@@ -86,7 +86,7 @@ namespace Pawfect_API.Services.FileServices
 
 					if (data == null) throw new NotFoundException("File not found", persist.Id, typeof(Data.Entities.File));
 
-                    if (!data.SourceUrl.Equals(persist.SourceUrl)) throw new InvalidOperationException("Cannot change source url");
+                    if (!String.IsNullOrEmpty(data.SourceUrl) && !data.SourceUrl.Equals(persist.SourceUrl)) throw new InvalidOperationException("Cannot change source url");
 
 					if (!persist.FileSaveStatus.HasValue || !(persist.FileSaveStatus.Value == FileSaveStatus.Permanent)) throw new ArgumentException("FileSaveStatus is required");
 
@@ -144,7 +144,7 @@ namespace Pawfect_API.Services.FileServices
 				files.Select(file =>
 				{
 					String fileId = ObjectId.GenerateNewId().ToString();
-					String awsKey = _awsService.ConstructAwsKey(file.FileName, Guid.NewGuid().ToString());
+					String awsKey = _awsService.ConstructAwsKey(file.FileName, fileId, Guid.NewGuid().ToString());
 					(Boolean IsValid, String ErrorMessage) validationResult = _conventionService.IsValidFile(file, _filesConfig);
 					return new Data.Entities.FileInfo
 					{
@@ -161,47 +161,19 @@ namespace Pawfect_API.Services.FileServices
 			List<FileSaveResult> saveResults = new List<FileSaveResult>();
             List<Models.File.FilePersist> persists = new List<Models.File.FilePersist>();
 
-			List<Data.Entities.FileInfo> validFiles = [.. fileInfos.Where(fi => fi.IsValid)];
-			for (int i = 0; i < validFiles.Count; i += _filesConfig.BatchSize)
-			{
-				List<Data.Entities.FileInfo> batch = [.. validFiles.Skip(i).Take(_filesConfig.BatchSize)];
-				IEnumerable<Task<UploadResult>> uploadTasks = batch.Select(async (Data.Entities.FileInfo info) =>
-				{
-					int retryDelay = _filesConfig.InitialRetryDelayMs;
-					for (int attempt = 0; attempt < _filesConfig.MaxRetryCount; attempt++)
-					{
-						try
-						{
-							String url = await _awsService.UploadAsync(info.TempFile, info.AwsKey);
-							FilePersist persist = new FilePersist()
-							{
-								Id = info.FileId,
-								Filename = info.TempFile.FileName,
-								FileType = _conventionService.ToFileType(Path.GetExtension(info.TempFile.FileName)),
-								MimeType = info.TempFile.ContentType,
-								Size = info.TempFile.Length,
-								FileSaveStatus = FileSaveStatus.Temporary,
-								SourceUrl = url,
-								AwsKey = info.AwsKey,
-								OwnerId = null // TODO: Can be null for now since it is temporary
-							};
+            List<Data.Entities.FileInfo> validFiles = [.. fileInfos.Where(fi => fi.IsValid)];
+            for (int i = 0; i < validFiles.Count; i += _filesConfig.BatchSize)
+            {
+                List<Data.Entities.FileInfo> batch = [.. validFiles.Skip(i).Take(_filesConfig.BatchSize)];
 
-							persists.Add(persist);
-                            
-							return new UploadResult { Persist = persist, FileName = info.TempFile.FileName, Error = (String)null };
-						}
-						catch (Exception ex)
-						{
-							if (attempt == _filesConfig.MaxRetryCount - 1)
-								return new UploadResult { Persist = (FilePersist)null, FileName = info.TempFile.FileName, Error = ex.Message };
-							await Task.Delay(retryDelay);
-							retryDelay *= 2; // Exponential backoff
-						}
-					}
-					return new UploadResult { Persist = (FilePersist)null, FileName = info.TempFile.FileName, Error = "Unexpected retry failure" };
-				});
+                List<Task<UploadResult>> uploadTasks = new List<Task<UploadResult>>();
 
-				List<UploadResult> completeUploadResults = [..await Task.WhenAll(uploadTasks)];
+                foreach (Data.Entities.FileInfo info in batch)
+                {
+                    uploadTasks.Add(this.ProcessFileUploadAsync(info, persists));
+                }
+
+                List<UploadResult> completeUploadResults = [..await Task.WhenAll(uploadTasks)];
 
 
                 List<UploadResult> failedUploads = [.. completeUploadResults.Where(r => r.Persist == null)];
@@ -220,6 +192,9 @@ namespace Pawfect_API.Services.FileServices
 																	  Size = r.Persist.Size,
                                                                       MimeType = r.Persist.MimeType,
 																	  FileType = r.Persist.FileType,
+																	  AccessType = r.Persist.AccessType,
+																	  ContextId = r.Persist.ContextId,
+																	  ContextType = r.Persist.ContextType,
 																	  FileSaveStatus = r.Persist.FileSaveStatus.Value,
 																	  SourceUrl = r.Persist.SourceUrl,
 																	  AwsKey = r.Persist.AwsKey,
@@ -263,12 +238,52 @@ namespace Pawfect_API.Services.FileServices
 
 			return persists;
 		}
-		private void LogUploadPerformance(List<FileSaveResult> results, int totalFiles)
+
+        private async Task<UploadResult> ProcessFileUploadAsync(Data.Entities.FileInfo info, List<Models.File.FilePersist> persists)
+        {
+            int retryDelay = _filesConfig.InitialRetryDelayMs;
+            for (int attempt = 0; attempt < _filesConfig.MaxRetryCount; attempt++)
+            {
+                try
+                {
+                    String url = await _awsService.UploadAsync(info.TempFile, info.AwsKey);
+                    String fileType = _conventionService.ToFileType(Path.GetExtension(info.TempFile.FileName));
+                    FileAccessType accessType = _conventionService.ExtractAccessType(fileType);
+
+                    FilePersist persist = new FilePersist()
+                    {
+                        Id = info.FileId,
+                        Filename = info.TempFile.FileName,
+                        FileType = fileType,
+                        MimeType = info.TempFile.ContentType,
+                        Size = info.TempFile.Length,
+                        FileSaveStatus = FileSaveStatus.Temporary,
+                        AccessType = accessType,
+                        SourceUrl = accessType == FileAccessType.Public ? url : null,
+                        AwsKey = info.AwsKey,
+                        OwnerId = null
+                    };
+
+                    persists.Add(persist);
+
+                    return new UploadResult { Persist = persist, FileName = info.TempFile.FileName, Error = null };
+                }
+                catch (Exception ex)
+                {
+                    if (attempt == _filesConfig.MaxRetryCount - 1)
+                        return new UploadResult { Persist = null, FileName = info.TempFile.FileName, Error = ex.Message };
+
+                    await Task.Delay(retryDelay);
+                    retryDelay *= 2;
+                }
+            }
+            return new UploadResult { Persist = null, FileName = info.TempFile.FileName, Error = "Unexpected retry failure" };
+        }
+        private void LogUploadPerformance(List<FileSaveResult> results, int totalFiles)
 		{
 			// Placeholder for logging logic, e.g., using ILogger
 			_logger.LogInformation($"Uploaded {((results.Count(r => r.Success))/totalFiles) * 100}% of the files successfully.");
 		}
-
 
 		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 

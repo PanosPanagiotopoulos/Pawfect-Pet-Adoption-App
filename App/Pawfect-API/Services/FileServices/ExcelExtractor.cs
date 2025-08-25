@@ -11,7 +11,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.DataValidation;
 using OfficeOpenXml.DataValidation.Contracts;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.FileServices
+namespace Pawfect_API.Services.FileServices
 {
     public class ExcelExtractor : IFileDataExtractor
     {

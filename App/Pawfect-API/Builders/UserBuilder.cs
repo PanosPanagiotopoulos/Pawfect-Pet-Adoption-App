@@ -7,6 +7,7 @@ using Pawfect_API.Models.Lookups;
 using Pawfect_API.Models.User;
 using Pawfect_API.Query;
 using Pawfect_API.Services.AuthenticationServices;
+using Pawfect_API.Services.FileServices;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using System.Security.Claims;
 using ZstdSharp;
@@ -40,19 +41,22 @@ namespace Pawfect_API.Builders
         private readonly IBuilderFactory _builderFactory;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
         private readonly ClaimsExtractor _claimsExtractor;
+        private readonly IFileAccessService _accessService;
 
         public UserBuilder
 		(
 			IQueryFactory queryFactory, 
             IBuilderFactory builderFactory,
             IAuthorizationContentResolver authorizationContentResolver,
-            ClaimsExtractor claimsExtractor
+            ClaimsExtractor claimsExtractor,
+            IFileAccessService accessService
         )
 		{
             this._queryFactory = queryFactory;
             this._builderFactory = builderFactory;
             this._authorizationContentResolver = authorizationContentResolver;
             this._claimsExtractor = claimsExtractor;
+            this._accessService = accessService;
         }
 
         public AuthorizationFlags _authorise = AuthorizationFlags.None;
@@ -163,6 +167,8 @@ namespace Pawfect_API.Builders
             fileLookup.Fields = fileFields;
 
             List<Data.Entities.File> files = await fileLookup.EnrichLookup(_queryFactory).Authorise(this._authorise).CollectAsync();
+
+            await _accessService.AttachUrlsAsync(files);
 
             // Κατασκευή των dtos
             List<Models.File.File> fileDtos = await _builderFactory.Builder<FileBuilder>().Authorise(this._authorise).Build(files, fileFields);

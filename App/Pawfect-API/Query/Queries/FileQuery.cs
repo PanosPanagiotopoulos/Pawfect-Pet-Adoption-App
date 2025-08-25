@@ -34,8 +34,8 @@ namespace Pawfect_API.Query.Queries
 		public List<String>? ExcludedIds { get; set; }
 
 		public List<String>? OwnerIds { get; set; }
-
-		public List<FileSaveStatus>? FileSaveStatuses { get; set; }
+        public List<String>? ContextIds { get; set; }
+        public List<FileSaveStatus>? FileSaveStatuses { get; set; }
         public DateTime? CreatedFrom { get; set; }
         public DateTime? CreatedTill { get; set; }
 
@@ -78,8 +78,17 @@ namespace Pawfect_API.Query.Queries
 				filter &= builder.Nin(nameof(Data.Entities.File.OwnerId), referenceIds.Where(id => id != ObjectId.Empty));
 			}
 
-			// Owned By Ids
-			if (FileSaveStatuses != null && FileSaveStatuses.Any())
+            if (ContextIds != null && ContextIds.Any())
+            {
+                // Convert String IDs to ObjectId for comparison
+                IEnumerable<ObjectId> referenceIds = ContextIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.Nin(nameof(Data.Entities.File.ContextId), referenceIds.Where(id => id != ObjectId.Empty));
+            }
+
+            // Owned By Ids
+            if (FileSaveStatuses != null && FileSaveStatuses.Any())
 			{
 				filter &= builder.In(file => file.FileSaveStatus, FileSaveStatuses);
 			}
@@ -177,6 +186,9 @@ namespace Pawfect_API.Query.Queries
 				// Αντιστοιχίζει τα ονόματα πεδίων AnimalTypeDto στα ονόματα πεδίων AnimalType
 				projectionFields.Add(nameof(Data.Entities.File.Id));
                 projectionFields.Add(nameof(Data.Entities.File.AwsKey));
+                projectionFields.Add(nameof(Data.Entities.File.AccessType));
+                projectionFields.Add(nameof(Data.Entities.File.ContextType));
+                projectionFields.Add(nameof(Data.Entities.File.ContextId));
                 if (item.Equals(nameof(Models.File.File.Filename))) projectionFields.Add(nameof(Data.Entities.File.Filename));
 				if (item.Equals(nameof(Models.File.File.FileType))) projectionFields.Add(nameof(Data.Entities.File.FileType));
 				if (item.Equals(nameof(Models.File.File.MimeType))) projectionFields.Add(nameof(Data.Entities.File.MimeType));
@@ -186,7 +198,6 @@ namespace Pawfect_API.Query.Queries
                 if (item.Equals(nameof(Models.File.File.CreatedAt))) projectionFields.Add(nameof(Data.Entities.File.CreatedAt));
 				if (item.Equals(nameof(Models.File.File.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.File.UpdatedAt));
 				if (item.StartsWith(nameof(Models.File.File.Owner))) projectionFields.Add(nameof(Data.Entities.File.OwnerId));
-
 			}
 
 			return projectionFields.ToList();

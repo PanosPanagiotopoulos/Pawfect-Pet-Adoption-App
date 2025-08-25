@@ -47,3 +47,8 @@ export interface ResetPasswordPayload {
   token?: string;
   newPassword?: string;
 }
+
+export interface AdminVerifyPayload {
+  adminToken: string;
+  accept: boolean;
+}

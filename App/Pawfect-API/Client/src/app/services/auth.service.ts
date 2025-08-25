@@ -9,6 +9,7 @@ import {
   LoginPayload,
   RegisterPayload,
   OtpPayload,
+  AdminVerifyPayload,
 } from '../models/auth/auth.model';
 import { SecureStorageService } from '../common/services/secure-storage.service';
 
@@ -236,9 +237,16 @@ export class AuthService {
   }
 
   verifyUser(userId: string): Observable<void> {
-    const url = `${this.apiBase}/verify-user`;
+    const url = `${this.apiBase}/verify/user`;
     return this.http
       .post<void>(url, { id: userId })
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  verifyShelter(payload: AdminVerifyPayload): Observable<boolean> {
+    const url = `${this.apiBase}/verify/shelter`;
+    return this.http
+      .post<boolean>(url, payload)
       .pipe(catchError((error: any) => throwError(error)));
   }
 

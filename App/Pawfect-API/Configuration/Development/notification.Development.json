@@ -11,8 +11,30 @@
     },
     "ResetPasswordEmailPlaceholders": {
       "TemplateId": "529FADA1-9C2F-4F3B-A870-7337D2D154F4",
-      "FirstName": "{Firstname}",
+      "AdminName": "{AdminName}",
       "ResetToken": "{ResetToken}"
+    },
+    "VerifyUserPlaceholders": {
+      "TemplateId": "9E18EB46-89EE-40E4-9FC1-E324635F4186",
+      "ShelterName": "{ShelterName}",
+      "UserId": "{UserId}",
+      "ShelterId": "{ShelterId}",
+      "Description": "{Description}",
+      "RegistrationDate": "{RegistrationDate}",
+
+      "Website": "{Website}",
+      "SocialMediaFacebook": "{SocialMediaFacebook}",
+      "SocialMediaInstagram": "{SocialMediaInstagram}",
+
+      "OperatingHoursMonday": "{OperatingHoursMonday}",
+      "OperatingHoursTuesday": "{OperatingHoursTuesday}",
+      "OperatingHoursWednesday": "{OperatingHoursWednesday}",
+      "OperatingHoursThursday": "{OperatingHoursThursday}",
+      "OperatingHoursFriday": "{OperatingHoursFriday}",
+      "OperatingHoursSaturday": "{OperatingHoursSaturday}",
+      "OperatingHoursSunday": "{OperatingHoursSunday}",
+
+      "AdminToken": "{AdminToken}"
     },
     "OtpPasswordPlaceholders": {
       "TemplateId": "321BEF42-3FA6-402B-8D28-4F1435273DD7",

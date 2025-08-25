@@ -2,6 +2,7 @@
 using Pawfect_API.Models;
 using Pawfect_API.Models.Lookups;
 using Pawfect_API.Models.User;
+using Pawfect_Pet_Adoption_App_API.Models.Authorization;
 using Pawfect_Pet_Adoption_App_API.Models.User;
 using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
 
@@ -73,14 +74,15 @@ namespace Pawfect_API.Services.UserServices
 		/// <returns>True αν η επαλήθευση είναι επιτυχής, αλλιώς false.</returns>
 		/// <exception cref="Exception">Ρίχνεται όταν αποτυγχάνει η επαλήθευση του χρήστη.</exception>
 		Task<Boolean> VerifyUserAsync(String id, String email);
+		Task<Boolean> VerifyShelterAsync(AdminVerifyPayload payload);
 
-		/// <summary>
-		/// Ανάκτηση χρήστη.
-		/// </summary>
-		/// <param name="id">Το ID του χρήστη.</param>
-		/// <param name="email">Η διεύθυνση email του χρήστη.</param>
-		/// <returns>Ο χρήστης αν βρεθεί, αλλιώς null.</returns>
-		Task<Data.Entities.User?> RetrieveUserAsync(String id, String email);
+        /// <summary>
+        /// Ανάκτηση χρήστη.
+        /// </summary>
+        /// <param name="id">Το ID του χρήστη.</param>
+        /// <param name="email">Η διεύθυνση email του χρήστη.</param>
+        /// <returns>Ο χρήστης αν βρεθεί, αλλιώς null.</returns>
+        Task<Data.Entities.User?> RetrieveUserAsync(String id, String email);
 
 		/// <summary>
 		/// Αποστολή email επαναφοράς κωδικού.

@@ -13,6 +13,7 @@ using Pawfect_API.Services.Convention;
 using System.Collections.Concurrent;
 using System.Security.Claims;
 using Pawfect_API.DevTools;
+using Pawfect_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Services.AuthenticationServices
 {
@@ -120,6 +121,23 @@ namespace Pawfect_API.Services.AuthenticationServices
                         break;
                     }
 
+                case nameof(Data.Entities.File):
+                    {
+                        FilterDefinitionBuilder<Data.Entities.File> builder = Builders<Data.Entities.File>.Filter;
+
+                        // Allow access if file is public OR if user is the owner
+                        FilterDefinition<Data.Entities.File> filter = builder.Or(
+                            builder.Eq(nameof(Data.Entities.File.AccessType), FileAccessType.Public),
+                            builder.Eq(nameof(Data.Entities.File.OwnerId), new ObjectId(userId))
+                        );
+
+                        if (!String.IsNullOrEmpty(shelterId))
+                            filter = builder.Or(filter, builder.Eq(nameof(Data.Entities.File.ContextId), new ObjectId(shelterId)));
+
+                        finalFilter = MongoHelper.ToBsonFilter<Data.Entities.File>(filter);
+                        break;
+                    }
+
                 case nameof(Report):
                     {
                         FilterDefinitionBuilder<Report> builder = Builders<Report>.Filter;
@@ -172,13 +190,14 @@ namespace Pawfect_API.Services.AuthenticationServices
                 case nameof(Data.Entities.File):
                     {
                         FilterDefinitionBuilder<Data.Entities.File> builder = Builders<Data.Entities.File>.Filter;
-                        FilterDefinition<Data.Entities.File> filter = builder.Empty;
 
-                        // Filter for File.OwnerId to equal userId
-                        filter &= builder.In(nameof(Data.Entities.File.OwnerId), [new ObjectId(userId)]);
+                        // Allow access if file is public OR if user is the owner
+                        FilterDefinition<Data.Entities.File> filter = builder.Or(
+                            builder.Eq(nameof(Data.Entities.File.AccessType), FileAccessType.Public),
+                            builder.Eq(nameof(Data.Entities.File.OwnerId), new ObjectId(userId))
+                        );
 
                         finalFilter = MongoHelper.ToBsonFilter<Data.Entities.File>(filter);
-
                         break;
                     }
 

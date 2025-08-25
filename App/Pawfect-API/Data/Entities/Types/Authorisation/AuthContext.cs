@@ -9,10 +9,12 @@ namespace Pawfect_API.Data.Entities.Types.Authorization
         public OwnedResource OwnedResource { get; private set; }
         public AffiliatedResource AffiliatedResource { get; private set; }
         public String CurrentUserId { get; private set; }
+        public String AffiliatedId { get; private set; }
 
         public AuthContext
         (
             String currentUserId,
+            String affiliatedId = null,
             OwnedResource ownedResource = null, 
             AffiliatedResource affiliatedResource = null
         )
@@ -20,6 +22,7 @@ namespace Pawfect_API.Data.Entities.Types.Authorization
             this.OwnedResource = ownedResource;
             this.AffiliatedResource = affiliatedResource;
             this.CurrentUserId = currentUserId;
+            this.AffiliatedId = affiliatedId;
         }
     }
 
@@ -30,6 +33,8 @@ namespace Pawfect_API.Data.Entities.Types.Authorization
 
         private OwnedResource _ownedResource { get; set; }
         private AffiliatedResource _affiliatedResource { get; set; }
+
+        private String _affiliatedId { get; set; }
 
         public AuthContextBuilder
         (
@@ -44,8 +49,8 @@ namespace Pawfect_API.Data.Entities.Types.Authorization
         public AuthContextBuilder OwnedFrom(OwnedResource ownedResource) { this._ownedResource = ownedResource; return this; }
         public AuthContextBuilder OwnedFrom(Lookup requestedOwnedFilters, String ownedById) => this.OwnedFrom(requestedOwnedFilters, new List<String>() { ownedById });
         public AuthContextBuilder OwnedFrom(Lookup requestedOwnedFilters, List<String> ownedByIds = null) { _ownedResource = _authorizationContentResolver.BuildOwnedResource(requestedOwnedFilters, ownedByIds); return this; }
-        public AuthContextBuilder OwnedFrom(AffiliatedResource affiliatedResource) { this._affiliatedResource = affiliatedResource; return this; }
-        public AuthContextBuilder AffiliatedWith(Lookup requestedAffiliatedFilters, List<String> affiliatedRoles = null) { _affiliatedResource = _authorizationContentResolver.BuildAffiliatedResource(requestedAffiliatedFilters, affiliatedRoles); return this; }
+        public AuthContextBuilder AffiliatedWith(AffiliatedResource affiliatedResource, String affiliatedId = null) { this._affiliatedResource = affiliatedResource; this._affiliatedId = affiliatedId; return this; }
+        public AuthContextBuilder AffiliatedWith(Lookup requestedAffiliatedFilters, List<String> affiliatedRoles = null, String affiliatedId = null) { _affiliatedResource = _authorizationContentResolver.BuildAffiliatedResource(requestedAffiliatedFilters, affiliatedRoles); this._affiliatedId = affiliatedId; return this; }
 
         public AuthContext Build()
         {
@@ -57,6 +62,7 @@ namespace Pawfect_API.Data.Entities.Types.Authorization
             return new AuthContext
             (
                 userId,
+                _affiliatedId,
                 _ownedResource,
                 _affiliatedResource
             );

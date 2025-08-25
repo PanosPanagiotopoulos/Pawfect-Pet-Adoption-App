@@ -26,7 +26,8 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
     '/auth/sign-up',
     '/auth/google/callback',
     '/auth/google/callback-page',
-    '/auth/verified',
+    '/auth/verified/user',
+    '/auth/verified/shelter',
     '/auth/reset-password-request',
     '/auth/reset-password',
   ];

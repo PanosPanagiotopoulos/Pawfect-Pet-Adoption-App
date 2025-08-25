@@ -44,6 +44,11 @@
         "TemplateId": "912BC173-1342-4568-9D64-E26850AF47ED",
         "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Title.html",
         "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Content.html"
+      },
+      {
+        "TemplateId": "9E18EB46-89EE-40E4-9FC1-E324635F4186",
+        "TitlePath": "Templates/Emails/Verify_Shelter/Verify_Shelter.Title.html",
+        "ContentPath": "Templates/Emails/Verify_Shelter/Verify_Shelter.Content.html"
       }
     ]
   }
