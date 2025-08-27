@@ -16,13 +16,13 @@ using System.Security.Claims;
 using Pawfect_Notifications.Services.Convention;
 using Pawfect_Notifications.Attributes;
 using Pawfect_Notifications.Data.Entities.EnumTypes;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Pawfect_Notifications.Controllers
 {
 	[ApiController]
 	[Route("api/notifications")]
-	public class NotificationController : ControllerBase
+    [RateLimit(RateLimitLevel.Moderate)]
+    public class NotificationController : ControllerBase
 	{
         private readonly INotificationService _notificationService;
         private readonly ILogger<NotificationController> _logger;
@@ -112,6 +112,7 @@ namespace Pawfect_Notifications.Controllers
 
         [HttpPost("persist/batch")]
         [ServiceFilter(typeof(InternalApiAttribute))]
+        [RateLimit(RateLimitLevel.Permissive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] List<NotificationEvent> models)
         {
@@ -126,6 +127,7 @@ namespace Pawfect_Notifications.Controllers
 
         [HttpPost("delete/{id}")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromRoute] String id)
         {

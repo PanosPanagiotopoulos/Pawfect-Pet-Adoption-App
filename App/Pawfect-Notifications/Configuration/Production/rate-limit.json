@@ -1,0 +1,30 @@
+{
+  "RateLimit": {
+    "Permissive": {
+      "RequestsPerMinute": 50,
+      "BurstLimit": 150,
+      "WindowSize": "00:01:00",
+      "Enabled": true
+    },
+    "Moderate": {
+      "RequestsPerMinute": 30,
+      "BurstLimit": 80,
+      "WindowSize": "00:01:00",
+      "Enabled": true
+    },
+    "Restrictive": {
+      "RequestsPerMinute": 15,
+      "BurstLimit": 40,
+      "WindowSize": "00:01:00",
+      "Enabled": true
+    },
+    "Strict": {
+      "RequestsPerMinute": 5,
+      "BurstLimit": 15,
+      "WindowSize": "00:01:00",
+      "Enabled": true
+    },
+    "EnableGlobalRateLimit": true,
+    "GlobalRequestsPerMinute": 1000
+  }
+}

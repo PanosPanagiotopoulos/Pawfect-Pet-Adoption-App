@@ -43,6 +43,8 @@ using Pawfect_API.Services.MongoServices;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
 using Pawfect_Pet_Adoption_App_API.Services.TranslationServices.Extentions;
 using Vonage.Voice.EventWebhooks;
+using Microsoft.Extensions.Configuration;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.RateLimiting;
 
 public class Program
 {
@@ -122,6 +124,7 @@ public class Program
 		AddConfigurationFiles(configBuilder, configurationPaths, "embedding", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "translation", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "notification", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "rate-limit", env);
 
 
         // Load environment variables
@@ -182,6 +185,8 @@ public class Program
 		builder.Services.Configure<CorsConfig>(builder.Configuration.GetSection("Cors"));
         // Api Keys Configuration
         builder.Services.Configure<ApiKeyConfig>(builder.Configuration.GetSection("ApiKeys"));
+		// Rate Limiting
+        builder.Services.Configure<RateLimitConfig>(builder.Configuration.GetSection("RateLimit"));
 
         // HttpContextAccessor
         builder.Services.AddHttpContextAccessor();
@@ -337,6 +342,7 @@ public class Program
 		app.UseAuthentication();
 
 		// MIDDLEWARES
+		app.UseRateLimitMiddleware();
 		app.UseApiKeyMiddleware();
 		app.UseJwtRevocation();
 		app.UseVerifiedUserMiddleware();

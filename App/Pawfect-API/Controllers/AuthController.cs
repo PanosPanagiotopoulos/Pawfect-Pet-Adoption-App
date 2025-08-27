@@ -1,32 +1,34 @@
-﻿namespace Pawfect_API.Controllers 
-{ 
-	using AutoMapper;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using Pawfect_API.Censors;
-    using Pawfect_API.Data.Entities;
-    using Pawfect_API.Data.Entities.EnumTypes;
-	using Pawfect_API.DevTools;
-    using Pawfect_API.Exceptions;
-    using Pawfect_API.Models;
-	using Pawfect_API.Models.Authorization;
-    using Pawfect_API.Query.Interfaces;
-    using Pawfect_API.Services.AuthenticationServices;
-    using Pawfect_API.Services.Convention;
-    using Pawfect_API.Services.CookiesServices;
-    using Pawfect_API.Services.UserServices;
-    using Pawfect_API.Transactions;
-    using System.IdentityModel.Tokens.Jwt;
-    using System.Security.Claims;
-    using Microsoft.Extensions.Caching.Memory;
-    using Pawfect_API.Data.Entities.Types.Cache;
-    using Pawfect_Pet_Adoption_App_API.Services.UserServices;
-    using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
-    using Pawfect_Pet_Adoption_App_API.Models.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Pawfect_API.Censors;
+using Pawfect_API.Data.Entities;
+using Pawfect_API.Data.Entities.EnumTypes;
+using Pawfect_API.DevTools;
+using Pawfect_API.Exceptions;
+using Pawfect_API.Models;
+using Pawfect_API.Models.Authorization;
+using Pawfect_API.Query.Interfaces;
+using Pawfect_API.Services.AuthenticationServices;
+using Pawfect_API.Services.Convention;
+using Pawfect_API.Services.CookiesServices;
+using Pawfect_API.Services.UserServices;
+using Pawfect_API.Transactions;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.Extensions.Caching.Memory;
+using Pawfect_Pet_Adoption_App_API.Services.UserServices;
+using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
+using Pawfect_Pet_Adoption_App_API.Models.Authorization;
+using Pawfect_Pet_Adoption_App_API.Attributes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
+namespace Pawfect_API.Controllers 
+{ 
     [ApiController]
 	[Route("auth")]
-	public class AuthController : ControllerBase
+    [RateLimit(RateLimitLevel.Moderate)]
+    public class AuthController : ControllerBase
 	{
 		private readonly IUserService _userService;
 		private readonly ILogger<AuthController> _logger;
@@ -74,7 +76,8 @@
 		// ** AUTHENTICATION ** //
 
 		[HttpPost("login")]
-		public async Task<IActionResult> Login([FromBody] AuthPayload payload)
+        [RateLimit(RateLimitLevel.Restrictive)]
+        public async Task<IActionResult> Login([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -133,6 +136,7 @@
 		}
 
         [HttpPost("refresh")]
+        [RateLimit(RateLimitLevel.Restrictive)]
         public async Task<IActionResult> RefreshToken()
         {
             // Extract access token from cookie
@@ -208,6 +212,7 @@
 
         [HttpPost("logout")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         public async Task<IActionResult> Logout()
         {
             // Extract access token from cookie
@@ -305,7 +310,8 @@
 
 		[HttpPost("register/unverified")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
-		public async Task<IActionResult> RegisterUserUnverified([FromBody] RegisterPersist toRegisterUser, [FromQuery] List<String> fields)
+        [RateLimit(RateLimitLevel.Strict)]
+        public async Task<IActionResult> RegisterUserUnverified([FromBody] RegisterPersist toRegisterUser, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -321,6 +327,7 @@
 
 		[HttpPost("register/unverified/google")]
         [ServiceFilter(typeof(MongoTransactionFilter))]
+        [RateLimit(RateLimitLevel.Strict)]
         public async Task<IActionResult> RegisterUserWithGoogleUnverified([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -341,7 +348,8 @@
         }
 
         [HttpPost("send/otp")]
-		public async Task<IActionResult> SendOtp([FromBody] AuthPayload payload)
+        [RateLimit(RateLimitLevel.Restrictive)]
+        public async Task<IActionResult> SendOtp([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -350,6 +358,7 @@
 		}
 
 		[HttpPost("verify-otp")]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> VerifyUserOtp([FromBody] AuthPayload payload)
 		{
@@ -380,7 +389,8 @@
 		}
 
 		[HttpPost("send/email-verification")]
-		public async Task<IActionResult> SendEmailVerification([FromBody] AuthPayload payload)
+        [RateLimit(RateLimitLevel.Restrictive)]
+        public async Task<IActionResult> SendEmailVerification([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -389,6 +399,7 @@
 		}
 
 		[HttpPost("verify-email")]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> VerifyEmail([FromBody] AuthPayload payload)
 		{
@@ -419,6 +430,7 @@
 		}
 
 		[HttpPost("verify/user")]
+        [RateLimit(RateLimitLevel.Strict)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> VerifyUser([FromBody] AuthPayload payload)
 		{
@@ -431,6 +443,7 @@
 		}
 
         [HttpPost("verify/shelter")]
+        [RateLimit(RateLimitLevel.Strict)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> VerifyShelter([FromBody] AdminVerifyPayload payload)
         {
@@ -443,7 +456,8 @@
         }
 
         [HttpPost("send/reset-password")]
-		public async Task<IActionResult> SendResetPasswordEmail([FromBody] AuthPayload AuthPayload)
+        [RateLimit(RateLimitLevel.Restrictive)]
+        public async Task<IActionResult> SendResetPasswordEmail([FromBody] AuthPayload AuthPayload)
 		{
             if (!ModelState.IsValid)  return BadRequest(ModelState);
 
@@ -453,6 +467,7 @@
 		}
 
 		[HttpPost("verify-reset-password-token")]
+        [RateLimit(RateLimitLevel.Restrictive)]
         public async Task<IActionResult> VerifyResetPasswordToken([FromBody] AuthPayload payload)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -470,6 +485,7 @@
 		}
 
 		[HttpPost("reset-password")]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> ResetPassword([FromBody] AuthPayload AuthPayload)
 		{

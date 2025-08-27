@@ -5,22 +5,22 @@ using Pawfect_API.Censors;
 using Pawfect_API.Data.Entities.Types.Authorization;
 using Pawfect_API.DevTools;
 using Pawfect_API.Exceptions;
-using Pawfect_API.Models.File;
 using Pawfect_API.Models.Lookups;
 using Pawfect_API.Query;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.FileServices;
 using Pawfect_API.Transactions;
-using System.Linq;
-using System.Security.Claims;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_API.Query.Queries;
+using Pawfect_Pet_Adoption_App_API.Attributes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {
 	[ApiController]
 	[Route("api/files")]
-	public class FileController: ControllerBase
+    [RateLimit(RateLimitLevel.Moderate)]
+    public class FileController: ControllerBase
 	{
         private readonly IFileService _fileService;
         private readonly ILogger<FileController> _logger;
@@ -55,7 +55,8 @@ namespace Pawfect_API.Controllers
         }
 
         [HttpPost("persist/temporary/many")]
-        [ServiceFilter(typeof(MongoTransactionFilter))] 
+        [ServiceFilter(typeof(MongoTransactionFilter))]
+        [RateLimit(RateLimitLevel.Restrictive)]
         public async Task<IActionResult> PersistBatchTemporarily()
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -133,6 +134,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("delete/{id}")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromRoute] String id)
         {

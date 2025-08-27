@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  pawfect-api:
+    build:
+      context: ./Pawfect-API
+      dockerfile: Dockerfile
+    container_name: pawfect-api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+    ports:
+      - "5000:8080"
+    networks:
+      - pawfect-network
+
+  # Notifications API
+  notifications-api:
+    build:
+      context: ./Pawfect-Notifications
+      dockerfile: Dockerfile
+    container_name: pawfect-notifications-api
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8081
+    ports:
+      - "5001:8081"
+    networks:
+      - pawfect-network
+
+networks:
+  pawfect-network:
+    driver: bridge

@@ -18,12 +18,15 @@ using Microsoft.Extensions.Options;
 using Pawfect_API.Data.Entities.Types.Cache;
 using System.Security.Claims;
 using Microsoft.Extensions.Caching.Memory;
+using Pawfect_Pet_Adoption_App_API.Attributes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {
 	[ApiController]
 	[Route("api/shelters")]
-	public class ShelterController : ControllerBase
+    [RateLimit(RateLimitLevel.Moderate)]
+    public class ShelterController : ControllerBase
 	{
 		private readonly IShelterService _shelterService;
 		private readonly ILogger<ShelterController> _logger;
@@ -146,6 +149,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("persist")]
 		[Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] ShelterPersist model, [FromQuery] List<String> fields)
 		{
@@ -161,6 +165,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("delete/{id}")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromRoute] String id)
         {

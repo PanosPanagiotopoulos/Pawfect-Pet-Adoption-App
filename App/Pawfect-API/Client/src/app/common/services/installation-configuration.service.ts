@@ -1,83 +1,58 @@
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Injectable, isDevMode } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { map, catchError, shareReplay } from 'rxjs/operators';
 import { environment as envDev } from 'src/environments/environment.Development';
 import { environment as envProd } from 'src/environments/environment.Production';
-
-interface AppConfig {
-  production: boolean;
-}
 
 @Injectable({
   providedIn: 'root',
 })
 export class InstallationConfigurationService {
-  private configLoaded = false;
+  private configLoaded = true;
   private config: any;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor() {
+    this.initializeConfig();
+  }
 
-  private _appServiceAddress: string = './';
   get appServiceAddress(): string {
-    return this._appServiceAddress || './';
+    return this.config.appServiceAddress;
   }
 
-  private _notificationsServiceAddress: string = './';
   get notificationsServiceAddress(): string {
-    return this._notificationsServiceAddress || './';
+    return this.config.notificationsServiceAddress;
   }
 
-  private _disableAuth: boolean = true;
   get disableAuth(): boolean {
-    return this._disableAuth;
+    return this.config.disableAuth;
   }
 
-  private _googleClientId: string = '';
   get googleClientId(): string {
-    return this._googleClientId;
+    return this.config.googleClientId;
   }
 
-  private _baseGoogleEndpoint: string = '';
   get baseGoogleEndpoint(): string {
-    return this._baseGoogleEndpoint;
+    return this.config.baseGoogleEndpoint;
   }
 
-  private _redirectUri: string = '';
   get redirectUri(): string {
-    return this._redirectUri;
+    return this.config.redirectUri;
   }
 
-  private _storageAccountKey: string = '';
   get storageAccountKey(): string {
-    return this._storageAccountKey;
+    return this.config.storageAccountKey;
   }
 
-  private _encryptKey: string = '';
   get encryptKey(): string {
-    return this._encryptKey;
+    return this.config.encryptKey;
   }
 
-  private _mainAppApiKey: string = '';
   get mainAppApiKey(): string {
-    return this._mainAppApiKey;
+    return this.config.mainAppApiKey;
   }
 
-  private readonly config$ = this.http.get<AppConfig>('/configs/config.json').pipe(
-    map((appConfig) => {
-      this.applyRuntimeConfig(appConfig);
-      return appConfig;
-    }),
-    catchError((error) => {
-      const fallback: AppConfig = { production: false };
-      this.applyRuntimeConfig(fallback);
-      return of(fallback);
-    }),
-    shareReplay(1) // Cache the response for all future subscribers
-  );
-
-  loadConfig(): Observable<AppConfig> {
-    return this.config$;
+  loadConfig(): Observable<any> {
+    // Return the environment configuration immediately
+    return of({ production: !isDevMode() });
   }
 
   isConfigLoaded(): boolean {
@@ -85,22 +60,36 @@ export class InstallationConfigurationService {
   }
 
   waitForConfig(): Promise<void> {
-    return this.loadConfig().toPromise().then(() => {});
+    // No async operation needed, config is immediately available
+    return Promise.resolve();
   }
 
-  private applyRuntimeConfig(appConfig: AppConfig): void {
-    const envConfig = appConfig.production ? envProd : envDev;
+  private initializeConfig(): void {
+    const isProduction = !isDevMode();
+    const selectedEnv = isProduction ? envProd : envDev;
+    
+    this.config = {
+      appServiceAddress: selectedEnv.appServiceAddress,
+      notificationsServiceAddress: selectedEnv.notificationsServiceAddress,
+      disableAuth: selectedEnv.disableAuth,
+      googleClientId: selectedEnv.googleClientId,
+      baseGoogleEndpoint: selectedEnv.baseGoogleEndpoint,
+      redirectUri: `${window.location.origin}${selectedEnv.redirectPath}`,
+      storageAccountKey: selectedEnv.storageAccountKey,
+      encryptKey: selectedEnv.encryptKey,
+      mainAppApiKey: selectedEnv.mainAppApiKey
+    };
 
-    this.config = envConfig;
-    this._appServiceAddress = envConfig.appServiceAddress;
-    this._notificationsServiceAddress = envConfig.notificationsServiceAddress;
-    this._disableAuth = envConfig.disableAuth;
-    this._googleClientId = envConfig.googleClientId;
-    this._baseGoogleEndpoint = envConfig.baseGoogleEndpoint;
-    this._redirectUri = `${window.location.origin}${envConfig.redirectPath}`;
-    this._storageAccountKey = envConfig.storageAccountKey;
-    this._encryptKey = envConfig.encryptKey;
-    this._mainAppApiKey = envConfig.mainAppApiKey;
-    this.configLoaded = true;
+    // Log configuration in development only
+    if (isDevMode()) {
+      console.log('Configuration initialized:', {
+        isDevMode: isDevMode(),
+        isProduction: isProduction,
+        selectedEnvironment: isProduction ? 'Production' : 'Development',
+        appServiceAddress: this.config.appServiceAddress,
+        notificationsServiceAddress: this.config.notificationsServiceAddress,
+        disableAuth: this.config.disableAuth
+      });
+    }
   }
 }

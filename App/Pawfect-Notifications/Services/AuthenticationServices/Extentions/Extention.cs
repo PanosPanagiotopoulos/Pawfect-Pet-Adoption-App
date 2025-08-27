@@ -2,7 +2,7 @@
 using Pawfect_Notifications.Data.Entities;
 using Pawfect_Notifications.Data.Entities.Types.Authentication;
 using Pawfect_Notifications.Data.Entities.Types.Authorization;
-using Pawfect_Pet_Adoption_App_Notifications.Data.Entities.Types.Authorisation;
+using Pawfect_Notifications.Data.Entities.Types.Authorisation;
 
 namespace Pawfect_Notifications.Services.AuthenticationServices.Extentions
 {

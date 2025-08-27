@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 using System.Text;
-using Pawfect_Pet_Adoption_App_Notifications.Data.Entities.Types.Authorisation;
+using Pawfect_Notifications.Data.Entities.Types.Authorisation;
 
 namespace Pawfect_Notifications.Attributes
 {

@@ -52,7 +52,7 @@ namespace Pawfect_API.Services.NotificationServices
                 }
             } catch (Exception ex)
             {
-                _logger.LogError($"Failed to send notifications request with data\n{JsonHelper.SerializeObjectFormattedSafe(notificationEvents)}");
+                _logger.LogError($"Failed to send notifications request with data\n{ex.Message}\n{JsonHelper.SerializeObjectFormattedSafe(ex.Data)}\n{ex.StackTrace}{JsonHelper.SerializeObjectFormattedSafe(notificationEvents)}");
             }
         }
 

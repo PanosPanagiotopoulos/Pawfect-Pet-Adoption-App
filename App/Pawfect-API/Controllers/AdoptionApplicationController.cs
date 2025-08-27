@@ -15,12 +15,15 @@ using System.Security.Claims;
 using Pawfect_API.Services.Convention;
 using Pawfect_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_Pet_Adoption_App_API.Attributes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {
 	[ApiController]
 	[Route("api/adoption-applications")]
-	public class AdoptionApplicationController : ControllerBase
+    [RateLimit(RateLimitLevel.Moderate)]
+    public class AdoptionApplicationController : ControllerBase
 	{
 		private readonly IAdoptionApplicationService _adoptionApplicationService;
 		private readonly ILogger<AdoptionApplicationController> _logger;
@@ -204,6 +207,7 @@ namespace Pawfect_API.Controllers
 
 		[HttpPost("persist")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] AdoptionApplicationPersist model, [FromQuery] List<String> fields)
 		{
@@ -232,6 +236,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("delete/{id}")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromRoute] String id)
         {

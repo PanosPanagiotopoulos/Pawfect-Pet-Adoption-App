@@ -23,6 +23,7 @@ using Pawfect_Notifications.Services.FilterServices.Extensions;
 using Pawfect_Notifications.Data.Entities.Types.Authorization;
 using Pawfect_Notifications.BackgroundTasks.Extentions;
 using Pawfect_Notifications.Attributes;
+using Pawfect_Notifications.Data.Entities.Types.RateLimiting;
 
 public class Program
 {
@@ -36,12 +37,6 @@ public class Program
             .Enrich.FromLogContext());
 
         ConfigureServices(builder);
-
-        // Include frontend files in production
-        if (builder.Environment.IsProduction())
-        {
-            builder.WebHost.UseWebRoot("wwwroot");
-        }
 
         WebApplication app = builder.Build();
 
@@ -73,6 +68,7 @@ public class Program
         AddConfigurationFiles(configBuilder, configurationPaths, "cache", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "permissions", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "api-keys", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "rate-limit", env);
 
 
         // Load environment variables
@@ -129,10 +125,12 @@ public class Program
 
         // Cache Configuration
         builder.Services.Configure<CacheConfig>(builder.Configuration.GetSection("Cache"));
-        // Cors Configuration
-        builder.Services.Configure<CorsConfig>(builder.Configuration.GetSection("Cors"));
         // Api Keys Configuration
         builder.Services.Configure<ApiKeyConfig>(builder.Configuration.GetSection("ApiKeys"));
+        // Cors Configuration
+        builder.Services.Configure<CorsConfig>(builder.Configuration.GetSection("Cors"));
+        // Rate Limiting
+        builder.Services.Configure<RateLimitConfig>(builder.Configuration.GetSection("RateLimit"));
 
         // HttpContextAccessor
         builder.Services.AddHttpContextAccessor();
@@ -156,15 +154,15 @@ public class Program
          .AddFilterBuilderServices()
          .AddCookiesServices();
 
-
         // CORS
         List<String> allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<List<String>>() ?? new List<String>();
+        Console.WriteLine($"Allowed Origins : {String.Join('|', allowedOrigins)}");
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("Cors", policyBuilder =>
             {
                 policyBuilder.WithOrigins([.. allowedOrigins])
-                             .WithMethods("GET", "POST", "PUT", "DELETE")
+                             .AllowAnyMethod()
                              .AllowAnyHeader()
                              .AllowCredentials();
             });
@@ -274,6 +272,7 @@ public class Program
         app.UseApiKeyMiddleware();
         app.UseJwtRevocation();
         app.UseVerifiedUserMiddleware();
+        app.UseRateLimitMiddleware();
         app.UseErrorHandlingMiddleware();
 
         // Authorization

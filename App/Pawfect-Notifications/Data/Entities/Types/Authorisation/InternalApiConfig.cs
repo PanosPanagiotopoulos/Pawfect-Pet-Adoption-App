@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_Notifications.Data.Entities.Types.Authorisation
+﻿namespace Pawfect_Notifications.Data.Entities.Types.Authorisation
 {
     public class InternalApiConfig
     {

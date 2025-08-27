@@ -12,11 +12,14 @@ using Microsoft.AspNetCore.Mvc;
 using Pawfect_Pet_Adoption_App_API.Query;
 using Pawfect_API.Services.AnimalTypeServices;
 using Pawfect_API.Exceptions;
+using Pawfect_Pet_Adoption_App_API.Attributes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_Pet_Adoption_App_API.Controllers
 {
     [ApiController]
     [Route("api/animal-types")]
+    [RateLimit(RateLimitLevel.Moderate)]
     public class AnimalTypeController : ControllerBase
     {
         private readonly IAnimalTypeService _animalTypeService;
@@ -105,6 +108,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
         [HttpPost("persist")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] AnimalTypePersist model, [FromQuery] List<String> fields)
         {
@@ -119,6 +123,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
         [HttpPost("delete/{id}")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromRoute] String id)
         {

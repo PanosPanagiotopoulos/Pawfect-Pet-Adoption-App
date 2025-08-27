@@ -19,12 +19,15 @@ using Pawfect_Pet_Adoption_App_API.Models.User;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Pawfect_API.Data.Entities.Types.Cache;
+using Pawfect_Pet_Adoption_App_API.Attributes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {
 	[ApiController]
 	[Route("api/users")]
-	public class UserController : ControllerBase
+    [RateLimit(RateLimitLevel.Moderate)]
+    public class UserController : ControllerBase
 	{
 		private readonly IUserService _userService;
 		private readonly ILogger<UserController> _logger;
@@ -167,6 +170,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("update")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] UserUpdate model, [FromQuery] List<String> fields)
         {
@@ -181,6 +185,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("delete")]
 		[Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromBody] String id)
 		{
@@ -193,6 +198,7 @@ namespace Pawfect_API.Controllers
 
 		[HttpPost("delete/many")]
 		[Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> DeleteMany([FromBody] List<String> ids)
 		{

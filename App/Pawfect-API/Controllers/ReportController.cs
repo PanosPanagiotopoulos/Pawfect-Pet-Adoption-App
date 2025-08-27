@@ -15,12 +15,15 @@ using System.Linq;
 using System.Reflection;
 using Pawfect_API.Query.Queries;
 using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_Pet_Adoption_App_API.Attributes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {
 	[ApiController]
 	[Route("api/reports")]
-	public class ReportController : ControllerBase
+    [RateLimit(RateLimitLevel.Moderate)]
+    public class ReportController : ControllerBase
 	{
 		private readonly IReportService _reportService;
 		private readonly ILogger<ReportController> _logger;
@@ -108,6 +111,7 @@ namespace Pawfect_API.Controllers
 
 		[HttpPost("persist")]
 		[Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] ReportPersist model, [FromQuery] List<String> fields)
 		{
@@ -122,6 +126,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("delete/{id}")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromRoute] String id)
         {

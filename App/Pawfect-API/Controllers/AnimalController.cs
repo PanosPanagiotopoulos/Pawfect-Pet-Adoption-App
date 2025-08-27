@@ -20,12 +20,15 @@ using System.Security.Claims;
 using Pawfect_API.Data.Entities.Types.Cache;
 using Pawfect_API.Services.Convention;
 using Pawfect_API.Services.FileServices;
+using Pawfect_Pet_Adoption_App_API.Attributes;
+using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {
 	[ApiController]
 	[Route("api/animals")]
-	public class AnimalController : ControllerBase
+    [RateLimit(RateLimitLevel.Moderate)]
+    public class AnimalController : ControllerBase
 	{
         private readonly IAnimalService _animalService;
         private readonly ILogger<AnimalController> _logger;
@@ -197,6 +200,7 @@ namespace Pawfect_API.Controllers
 
 		[HttpPost("persist")]
 		[Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Persist([FromBody] AnimalPersist model, [FromQuery] List<String> fields)
 		{
@@ -211,6 +215,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("persist/batch")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> PersistBatch([FromBody] List<AnimalPersist> model, [FromQuery] List<String> fields)
         {
@@ -225,6 +230,7 @@ namespace Pawfect_API.Controllers
 
         [HttpGet("import-template/excel")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> GetAnimalTempalteExcel()
         {
@@ -242,6 +248,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("from-template/excel")]
         [Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> ImportFromExcelTemplate()
         {
@@ -262,6 +269,7 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("delete/{id}")]
 		[Authorize]
+        [RateLimit(RateLimitLevel.Restrictive)]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> Delete([FromRoute] String id)
 		{
