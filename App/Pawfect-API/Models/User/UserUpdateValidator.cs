@@ -20,12 +20,13 @@ namespace Pawfect_Pet_Adoption_App_API.Models.User
                 .MinimumLength(5)
                 .WithMessage("The full name cannot have fewer than 5 characters.");
 
-          
-            // The phone number is required and must be valid
+
             RuleFor(user => user.Phone)
-                .Cascade(CascadeMode.Stop)
-                .Matches(@"^\+?[1-9]\Double{1,14}$")
-                .WithMessage("Please enter a valid phone number.");
+             .Cascade(CascadeMode.Stop)
+             .NotEmpty()
+             .WithMessage("Phone number is required.")
+             .Matches(@"^\+[1-9]\d{4,14}$") // E.164: 5-15 total digits
+             .WithMessage("Please enter a valid international phone number.");
 
             // If a location is provided, it must be valid according to creation rules
             RuleFor(user => user.Location)

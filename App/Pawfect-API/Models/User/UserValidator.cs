@@ -26,11 +26,12 @@ namespace Pawfect_API.Models.User
                 .IsInEnum()
                 .WithMessage("The user role must be one of: [User: 1, Shelter: 2, Admin: 3].");
 
-            // The phone number is required and must be valid
             RuleFor(user => user.Phone)
-                 .Cascade(CascadeMode.Stop)
-                 .Matches(@"^\+?[1-9]\d{1,14}$")
-                 .WithMessage("Please enter a valid phone number.");
+             .Cascade(CascadeMode.Stop)
+             .NotEmpty()
+             .WithMessage("Phone number is required.")
+             .Matches(@"^\+[1-9]\d{4,14}$") // E.164: 5-15 total digits
+             .WithMessage("Please enter a valid international phone number.");
 
             // If a location is provided, it must be valid according to creation rules
             RuleFor(user => user.Location)

@@ -136,7 +136,7 @@ namespace Pawfect_API.Controllers
 
             User model = null;
 
-            String cacheKey = $"User_Profile_{userId}_[{String.Join('|', fields)}]";
+            String cacheKey = $"User_Profile_{userId}";
             if (_memoryCache.TryGetValue(cacheKey, out String profileData))
             {
                 model = JsonHelper.DeserializeObjectFormattedSafe<User>(profileData);

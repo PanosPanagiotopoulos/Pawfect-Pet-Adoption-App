@@ -19,20 +19,17 @@ namespace Pawfect_API.Builders
 		// Builder για Entity : User
 		public AutoUserBuilder()
 		{
-			// Mapping για nested object : Location
-			CreateMap<Location, Location>();
-
             // Mapping για το Entity : User σε User για χρήση του σε αντιγραφή αντικειμένων
             CreateMap<Data.Entities.User, Data.Entities.User>();
 			CreateMap<Models.User.User, Data.Entities.User>().ReverseMap();
 
 
             // POST Request Dto Μοντέλα
-            CreateMap<Data.Entities.User, UserPersist>();
-            CreateMap<UserPersist, Data.Entities.User>();
+            CreateMap<Data.Entities.User, UserPersist>().ReverseMap();
 
-            CreateMap<Data.Entities.User, UserUpdate>();
-            CreateMap<UserUpdate, Data.Entities.User>();
+            CreateMap<Data.Entities.User, UserUpdate>()
+            .ReverseMap()
+            .ForMember(dest => dest.Location, opt => opt.Ignore());
         }
 	}
 	public class UserBuilder : BaseBuilder<Models.User.User, Data.Entities.User>

@@ -20,17 +20,11 @@ namespace Pawfect_API.Builders
 		// Builder για Entity : Shelter
 		public AutoShelterBuilder()
 		{
-			// Mapping για nested object : OpeningHours
-			CreateMap<OperatingHours, OperatingHours>();
-			// Mapping για nested object : SocialMedia
-			CreateMap<SocialMedia, SocialMedia>();
-
             // Mapping για το Entity : Shelter σε Shelter για χρήση του σε αντιγραφή αντικειμένων
             CreateMap<Data.Entities.Shelter, Data.Entities.Shelter>();
 
             // POST Request Dto Μοντέλα
-            CreateMap<Data.Entities.Shelter, ShelterPersist>();
-            CreateMap<ShelterPersist, Data.Entities.Shelter>();
+            CreateMap<Data.Entities.Shelter, ShelterPersist>().ReverseMap();
 		}
 	}
 

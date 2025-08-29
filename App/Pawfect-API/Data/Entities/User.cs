@@ -41,6 +41,7 @@
 		/// <value>
 		/// Η τοποθεσία του χρήστη
 		/// </value>
+		
 		public Location Location { get; set; }
 
 		/// <value>

@@ -614,7 +614,8 @@ namespace Pawfect_API.Services.UserServices
 		{
             Data.Entities.User? workingUser = await this.RetrieveUserAsync(model.Id, null);
 			if (workingUser == null) throw new NotFoundException();
-
+           
+            
 			if (auth)
 			{
                 ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
@@ -624,6 +625,11 @@ namespace Pawfect_API.Services.UserServices
                 OwnedResource ownedResource = new OwnedResource(userId, new OwnedFilterParams(new UserLookup()));
                 if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.EditUsers))
                     throw new ForbiddenException();
+
+                // Delete old profile from me 
+                String cacheKey = $"User_Profile_{userId}";
+
+				_memoryCache.Remove(cacheKey);
             }
 
             String oldProfilePhoto = workingUser?.ProfilePhotoId;
@@ -736,9 +742,6 @@ namespace Pawfect_API.Services.UserServices
                         Location = user.Location,
                         Phone = user.Phone,
                         ProfilePhotoId = user.ProfilePhotoId,
-						HasPhoneVerified = user.HasPhoneVerified,
-						HasEmailVerified = user.HasEmailVerified,
-						IsVerified = user.IsVerified
                     },
                     buildFields,
                     buildDto,

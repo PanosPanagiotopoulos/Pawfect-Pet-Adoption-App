@@ -73,18 +73,26 @@ namespace Pawfect_API.Repositories.Implementations
                 throw new ArgumentNullException(nameof(entity));
 
             String id = GetEntityId(entity);
-            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
+
+            if (!ObjectId.TryParse(id, out ObjectId objectId))
+                throw new ArgumentException($"Invalid ObjectId format: {id}");
+
+            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", objectId);
 
             ReplaceOneResult result;
+            ReplaceOptions options = new ReplaceOptions
+            {
+                IsUpsert = false
+            };
             try
             {
                 if (session != null)
                 {
-                    result = await _collection.ReplaceOneAsync(session, filter, entity, cancellationToken: default);
+                    result = await _collection.ReplaceOneAsync(session, filter, entity, options: options, cancellationToken: default);
                 }
                 else
                 {
-                    result = await _collection.ReplaceOneAsync(filter, entity, cancellationToken: default);
+                    result = await _collection.ReplaceOneAsync(filter, entity, options: options, cancellationToken: default);
                 }
             }
             catch (MongoException ex)
@@ -92,7 +100,7 @@ namespace Pawfect_API.Repositories.Implementations
                 throw new InvalidOperationException($"Failed to update entity: {ex.Message}", ex);
             }
 
-            if (!result.IsAcknowledged || result.ModifiedCount == 0)
+            if (!result.IsAcknowledged)
                 throw new InvalidOperationException("Failed to update entity.");
 
             return id;
@@ -123,10 +131,10 @@ namespace Pawfect_API.Repositories.Implementations
 
         public async Task<Boolean> DeleteAsync(String id, IClientSessionHandle session = null)
         {
-            if (String.IsNullOrEmpty(id) || !ObjectId.TryParse(id, out _))
+            if (String.IsNullOrEmpty(id) || !ObjectId.TryParse(id, out ObjectId objectId))
                 throw new InvalidOperationException("Invalid ObjectId provided for deletion.");
 
-            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", ObjectId.Parse(id));
+            FilterDefinition<T> filter = Builders<T>.Filter.Eq("_id", objectId);
 
             DeleteResult result;
             try
