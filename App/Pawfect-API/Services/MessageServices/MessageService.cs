@@ -124,7 +124,7 @@ namespace Pawfect_API.Services.MessageServices
 		{
             MessageLookup lookup = new MessageLookup();
             lookup.Ids = ids;
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             lookup.PageSize = 10000;
             lookup.Fields = new List<String> {
                                                 nameof(Models.Message.Message.Id),

@@ -1,0 +1,107 @@
+/* Custom animations for the loading component */
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes reverse-spin-slow {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes fast-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-reverse-spin-slow {
+  animation: reverse-spin-slow 3s linear infinite;
+}
+
+.animate-fast-bounce {
+  animation: fast-bounce 0.6s ease-in-out infinite;
+}
+
+/* Loading container hover effects */
+.loading-container:hover {
+  transform: scale(1.02);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Prevent text selection on loading overlay */
+.loading-container {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Ensure smooth animations on different devices */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow,
+  .animate-reverse-spin-slow,
+  .animate-fast-bounce,
+  .animate-ping {
+    animation: none;
+  }
+  
+  .loading-container:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .bg-black {
+    background-color: #000000;
+  }
+  
+  .border-primary-400\/30,
+  .border-secondary-400\/20 {
+    border-color: #ffffff;
+    border-opacity: 0.8;
+  }
+}
+
+@keyframes fast-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fast-spin {
+  animation: fast-spin 0.8s linear infinite;
+}
+
+/* Ensure the GIF component fits properly */
+.loading-container app-gif {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

@@ -125,7 +125,7 @@ namespace Pawfect_API.Services.ShelterServices
             ShelterLookup sLookup = new ShelterLookup();
             sLookup.Ids = ids;
             sLookup.Fields = new List<String> { nameof(Models.Shelter.Shelter.Id), nameof(Models.Shelter.Shelter.User) + "." + nameof(Models.User.User.Id) };
-            sLookup.Offset = 1;
+            sLookup.Offset = 0;
             sLookup.PageSize = 10000;
 
             List<Data.Entities.Shelter> shelters = await sLookup.EnrichLookup(_queryFactory).CollectAsync();
@@ -138,7 +138,7 @@ namespace Pawfect_API.Services.ShelterServices
             AnimalLookup aLookup = new AnimalLookup();
 			aLookup.ShelterIds = ids;
 			aLookup.Fields = new List<String> { nameof(Models.Animal.Animal.Id) };
-			aLookup.Offset = 1;
+			aLookup.Offset = 0;
 			aLookup.PageSize = 10000;
 
 			List<Data.Entities.Animal> animals = await aLookup.EnrichLookup(_queryFactory).CollectAsync();

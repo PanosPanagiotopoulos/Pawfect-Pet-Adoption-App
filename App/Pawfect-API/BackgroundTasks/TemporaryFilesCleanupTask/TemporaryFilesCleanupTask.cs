@@ -67,7 +67,7 @@ namespace Pawfect_API.BackgroundTasks.TemporaryFilesCleanupTask
             {
                 IQueryFactory queryFactory = serviceScope.ServiceProvider.GetRequiredService<IQueryFactory>();
                 FileQuery fileQuery = queryFactory.Query<FileQuery>();
-                fileQuery.Offset = 1;
+                fileQuery.Offset = 0;
                 fileQuery.PageSize = _config.BatchSize;
                 fileQuery.Fields = [nameof(Data.Entities.File.Id), nameof(Data.Entities.File.OwnerId), nameof(Data.Entities.File.AwsKey)];
                 fileQuery.FileSaveStatuses = [FileSaveStatus.Temporary];

@@ -126,9 +126,9 @@ input:focus, textarea:focus, button:focus {
   }
 }
 
-// Button hover effects using global btn classes
+// Button hover effects using Tailwind classes
 .btn-hover-lift {
-  @apply btn transition-all duration-200;
+  @apply px-4 py-2 rounded-md font-medium transition-all duration-200;
   
   &:hover {
     @apply -translate-y-0.5 shadow-lg;

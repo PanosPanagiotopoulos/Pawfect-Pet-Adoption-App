@@ -69,7 +69,7 @@ namespace Pawfect_API.BackgroundTasks.UnverifiedUserCleanupTask
             {
                 IQueryFactory queryFactory = serviceScope.ServiceProvider.GetRequiredService<IQueryFactory>();
                 UserQuery userQuery = queryFactory.Query<UserQuery>();
-                userQuery.Offset = 1;
+                userQuery.Offset = 0;
                 userQuery.PageSize = _config.BatchSize;
                 userQuery.Fields = [nameof(Data.Entities.User.Id)];
                 userQuery.IsVerified = false;

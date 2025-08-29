@@ -111,7 +111,7 @@ namespace Pawfect_API.Services.AnimalTypeServices
             BreedLookup breedsLookup = new BreedLookup();
             breedsLookup.TypeIds = ids;
             breedsLookup.Fields = new List<String> { nameof(Models.Breed.Breed.Id) };
-            breedsLookup.Offset = 1;
+            breedsLookup.Offset = 0;
             breedsLookup.PageSize = 10000;
 
             List<Data.Entities.Breed> breeds = await breedsLookup.EnrichLookup(_queryFactory).CollectAsync();

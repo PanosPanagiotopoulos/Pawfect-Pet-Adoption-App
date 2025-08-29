@@ -54,15 +54,13 @@ export class SearchComponent
   isLoadingMore = false;
   error: ErrorDetails | null = null;
 
-  // Search suggestions
   searchSuggestions: SearchSuggestion[] = [];
 
-  // Pagination related properties
-  pageSize = 20;
+  pageSize = 10;
   currentOffset = 0;
-  loadThreshold = 0.8; // Changed to 80% as requested
+  loadThreshold = 0.75;
   hasMoreToLoad = true;
-  totalAnimalsCount = 0; // Track total count from query response
+  totalAnimalsCount = 0;
 
   isInitialLoad = true;
 
@@ -70,7 +68,6 @@ export class SearchComponent
 
   showInstructionsModal = true;
 
-  // Track animals that have been explicitly saved or declined by user
   private savedAnimalIds: Set<string> = new Set();
   private declinedAnimalIds: Set<string> = new Set();
   private currentSearchQuery = '';
@@ -239,16 +236,10 @@ export class SearchComponent
       this.isLoadingMore = true;
     }
 
-    // Only exclude animals that have been explicitly saved or declined
-    const excludedIds = Array.from(
-      new Set([...this.savedAnimalIds, ...this.declinedAnimalIds])
-    );
-
     const lookup: AnimalLookup = {
       offset: this.currentOffset,
       pageSize: this.pageSize,
       query: this.currentSearchQuery,
-      excludedIds: excludedIds.length > 0 ? excludedIds : undefined,
       ...this.currentFilters,
       fields: [
         nameof<Animal>((x) => x.id),
@@ -275,7 +266,7 @@ export class SearchComponent
           nameof<Shelter>((x) => x.shelterName),
         ].join('.'),
       ],
-      sortBy: [],
+      sortBy: [nameof<Animal>(x => x.createdAt)],
       sortDescending: false,
     };
 
@@ -336,11 +327,12 @@ export class SearchComponent
   }
 
   checkLoadMore() {
-    // Calculate viewed percentage based on total animals count from query response
+    // Calculate viewed percentage based on currently loaded animals
     const viewedPercentage =
-      this.totalAnimalsCount > 0
-        ? this.currentIndex / this.totalAnimalsCount
+      this.animals.length > 0
+        ? (this.currentIndex + 1) / this.animals.length
         : 0;
+
     if (
       viewedPercentage >= this.loadThreshold &&
       !this.isLoadingMore &&

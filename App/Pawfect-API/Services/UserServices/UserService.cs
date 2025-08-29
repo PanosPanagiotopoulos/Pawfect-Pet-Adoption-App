@@ -161,7 +161,7 @@ namespace Pawfect_API.Services.UserServices
 
 			FileLookup lookup = new FileLookup();
 			lookup.Ids = new List<String>() { profilePhoto };
-			lookup.Offset = 1;
+			lookup.Offset = 0;
 			lookup.PageSize = 1;
 			
 			Data.Entities.File profilePhotoFile = (await lookup.EnrichLookup(_queryFactory).CollectAsync()).FirstOrDefault();
@@ -644,7 +644,7 @@ namespace Pawfect_API.Services.UserServices
                 UserLookup lookup = new UserLookup();
                 lookup.Ids = new List<String> { workingUser.Id };
                 lookup.Fields = buildFields ?? new List<String> { nameof(Models.User.User.FullName) };
-                lookup.Offset = 1;
+                lookup.Offset = 0;
                 lookup.PageSize = 1;
 
 				if (auth)
@@ -713,7 +713,7 @@ namespace Pawfect_API.Services.UserServices
 				UserLookup lookup = new UserLookup();
 				lookup.Ids = new List<String> { workingUser.Id };
 				lookup.Fields = buildFields ?? new List<String> { nameof(Models.User.User.FullName) };
-				lookup.Offset = 1;
+				lookup.Offset = 0;
 				lookup.PageSize = 1;
 
                 persisted = (await _builderFactory.Builder<UserBuilder>()
@@ -769,7 +769,7 @@ namespace Pawfect_API.Services.UserServices
 				UserLookup lookup = new UserLookup();
 				lookup.Ids = new List<String> { workingUser.Id };
 				lookup.Fields = buildFields ?? new List<String> { "*", nameof(Models.Shelter.Shelter) + ".*" };
-				lookup.Offset = 1;
+				lookup.Offset = 0;
 				lookup.PageSize = 1;
 
                 persisted = (await _builderFactory.Builder<UserBuilder>()

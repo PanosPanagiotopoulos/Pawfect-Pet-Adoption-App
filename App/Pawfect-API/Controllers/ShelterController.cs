@@ -126,7 +126,7 @@ namespace Pawfect_API.Controllers
             ShelterLookup lookup = new ShelterLookup();
 
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             lookup.PageSize = 1;
             lookup.Ids = [id];

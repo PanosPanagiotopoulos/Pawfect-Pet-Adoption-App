@@ -99,6 +99,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { UnauthorizedInterceptor } from 'src/app/common/tools/unauthorised.interceptor';
 import { BaseHttpService } from './common/services/base-http.service';
 import { HeaderComponent } from './ui/components/home/shared/header/header.component';
+import { LoadingComponent } from './ui/components/loading/loading.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -106,8 +107,10 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { ErrorHandlerService } from './common/services/error-handler.service';
 import { CookiesInterceptor } from './common/tools/cookies.interceptor';
 import { ApiKeyInterceptor } from './common/tools/api-key.interceptor';
+import { LoadingInterceptor } from './common/tools/loading.interceptor';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from './common/services/translation.service';
+import { LoadingService } from './common/services/loading.service';
 
 export function initializeApp(
   installationConfigService: InstallationConfigurationService,
@@ -230,11 +233,13 @@ export function initializeApp(
       lucideHistory,
     }),
     HeaderComponent,
+    LoadingComponent,
     TranslatePipe,
   ],
   providers: [
     InstallationConfigurationService,
     TranslationService,
+    LoadingService,
     BaseHttpService,
     {
       provide: APP_INITIALIZER,
@@ -250,6 +255,11 @@ export function initializeApp(
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ApiKeyInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoadingInterceptor,
       multi: true,
     },
     {

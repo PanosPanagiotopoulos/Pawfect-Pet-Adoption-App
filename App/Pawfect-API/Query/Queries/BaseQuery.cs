@@ -42,7 +42,7 @@ namespace Pawfect_API.Query.Queries
 
 
         // Base Query fields
-        public int Offset { get; set; } = 1;
+        public int Offset { get; set; } = 0;
 		public int PageSize { get; set; } = 10;
 		public ICollection<String>? Fields { get; set; }
 		public ICollection<String>? SortBy { get; set; }
@@ -142,24 +142,24 @@ namespace Pawfect_API.Query.Queries
         // Εφαρμόζει την σελιδοποίηση στην ερώτηση
         protected IFindFluent<T, T> ApplyPagination(IFindFluent<T, T> finder)
 		{
-			if (Offset > 0)
-			{
-				finder = finder.Skip(( Math.Max(Offset - 1, 0) ) * PageSize);
-			}
+            this.Offset = Math.Max(this.Offset, 0);
+            this.PageSize = Math.Max(this.PageSize, 1);
 
-			if (PageSize > 0)
-			{
-				finder = finder.Limit(PageSize);
-			}
+			finder = finder.Skip(this.Offset * this.PageSize);
 
-			return finder;
+			finder = finder.Limit(this.PageSize);
+			
+            return finder;
 		}
         protected List<BsonDocument> ApplyPagination(List<BsonDocument> pipeline)
         {
-            int skipCount = (Math.Max(this.Offset - 1, 0)) * this.PageSize;
+            this.Offset = Math.Max(this.Offset, 0);
+            this.PageSize = Math.Max(this.PageSize, 1);
+
+            int skipCount = this.Offset * this.PageSize;
             pipeline.Add(new BsonDocument("$skip", skipCount));
 
-            pipeline.Add(new BsonDocument("$limit", Math.Max(this.PageSize, 1)));
+            pipeline.Add(new BsonDocument("$limit", this.PageSize));
 
             return pipeline;
         }

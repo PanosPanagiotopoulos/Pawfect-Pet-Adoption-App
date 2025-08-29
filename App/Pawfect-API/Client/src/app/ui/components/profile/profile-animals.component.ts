@@ -331,10 +331,10 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
 
   private updatePagination(event?: PageEvent): void {
     if (event) {
+      this.lookup.offset = event.pageIndex;
       this.pageIndex = event.pageIndex;
       this.lookup.pageSize = event.pageSize;
     }
-    this.lookup.offset = this.pageIndex * this.lookup.pageSize;
   }
 
   private resetPagination(): void {

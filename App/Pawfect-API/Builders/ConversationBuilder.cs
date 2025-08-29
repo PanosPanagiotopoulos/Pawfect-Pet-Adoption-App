@@ -80,7 +80,7 @@ namespace Pawfect_API.Builders
 			UserLookup userLookup = new UserLookup();
 
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            userLookup.Offset = 1;
+            userLookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             userLookup.PageSize = 1000;
             userLookup.Ids = userIds;
@@ -109,7 +109,7 @@ namespace Pawfect_API.Builders
             AnimalLookup animalLookup = new AnimalLookup();
 
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            animalLookup.Offset = 1;
+            animalLookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             animalLookup.PageSize = 1000;
             animalLookup.Ids = animalIds;

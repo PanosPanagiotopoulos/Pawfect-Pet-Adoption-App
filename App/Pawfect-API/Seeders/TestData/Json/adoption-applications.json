@@ -76,7 +76,7 @@
     "UserId": "609f3f99def98de900439044",
     "AnimalId": "90bf5fbbcfa9adf90043905d",
     "ShelterId": "80af4faaef0a9ef900439041",
-    "Status": 4,
+    "Status": 3,
     "ApplicationDetails": "I have a quiet home where Sunny's beautiful songs can be appreciated. I understand canary care requirements.",
     "CreatedAt": "2023-01-04T15:00:00Z",
     "UpdatedAt": "2023-01-04T16:00:00Z"
@@ -183,7 +183,7 @@
     "UserId": "609f3f99def98de900439044",
     "AnimalId": "90bf5fbbcfa9adf90043905b",
     "ShelterId": "80af4faaef0a9ef900439041",
-    "Status": 4,
+    "Status": 3,
     "ApplicationDetails": "I'm interested in Max and have experience with water-loving dogs. My family includes children who are great with dogs.",
     "AttachedFilesIds": null,
     "CreatedAt": "2023-01-05T15:00:00Z",

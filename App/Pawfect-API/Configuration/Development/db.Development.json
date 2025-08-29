@@ -20,7 +20,7 @@
       "Dims": 1024,
       "NumCandidates": 1000,
       "Topk": 100,
-      "VectorScoreThreshold": 0.87,
+      "VectorScoreThreshold": 0.886,
       "TextScoreThreshold": 13.5,
       "SynonymsBatch": [
         {

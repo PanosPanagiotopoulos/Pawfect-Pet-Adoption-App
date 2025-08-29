@@ -107,7 +107,7 @@ namespace Pawfect_API.Builders
             BreedLookup breedLookup = new BreedLookup();
 
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            breedLookup.Offset = 1;
+            breedLookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             breedLookup.PageSize = 1000;
             breedLookup.Ids = breedIds;
@@ -136,7 +136,7 @@ namespace Pawfect_API.Builders
 			AnimalTypeLookup animalTypeLookup = new AnimalTypeLookup();
 
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            animalTypeLookup.Offset = 1;
+            animalTypeLookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             animalTypeLookup.PageSize = 1000;
             animalTypeLookup.Ids = animalTypeIds;
@@ -164,7 +164,7 @@ namespace Pawfect_API.Builders
 
             ShelterLookup shelterLookup = new ShelterLookup();
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            shelterLookup.Offset = 1;
+            shelterLookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             shelterLookup.PageSize = 1000;
             shelterLookup.Ids = shelterIds;
@@ -196,7 +196,7 @@ namespace Pawfect_API.Builders
 
             FileLookup fileLookup = new FileLookup();
 
-            fileLookup.Offset = 1;
+            fileLookup.Offset = 0;
             fileLookup.PageSize = 1000;
             fileLookup.Ids = fileIds;
             fileLookup.Fields = fileFields;

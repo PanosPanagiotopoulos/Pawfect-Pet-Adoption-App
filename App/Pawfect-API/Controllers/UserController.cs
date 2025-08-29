@@ -104,7 +104,7 @@ namespace Pawfect_API.Controllers
             UserLookup lookup = new UserLookup();
 
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             lookup.PageSize = 1;
             lookup.Ids = [id];
@@ -146,7 +146,7 @@ namespace Pawfect_API.Controllers
 
             UserLookup lookup = new UserLookup();
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             lookup.PageSize = 1;
             lookup.Ids = [userId];
@@ -161,7 +161,7 @@ namespace Pawfect_API.Controllers
                                 .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
                                 .FirstOrDefault();
 
-            if (model == null) throw new NotFoundException("Shelter not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.Shelter));
+            if (model == null) throw new NotFoundException("User not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.User));
 
             _memoryCache.Set(cacheKey, JsonHelper.SerializeObjectFormattedSafe(model), TimeSpan.FromMinutes(_cacheConfig.QueryCacheTime));
 

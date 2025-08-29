@@ -26,6 +26,7 @@
     "@ng-icons/lucide": "^29.5.2",
     "crypto-js": "^4.2.0",
     "file-saver": "^2.0.5",
+    "gif.js": "^0.2.0",
     "jwt-decode": "^4.0.0",
     "lucide": "^0.453.0",
     "lucide-angular": "^0.344.0",

@@ -150,7 +150,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
             lookup.Ids = new List<String> { dataId };
             lookup.Fields = fields;
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             lookup.PageSize = 1;
 
             AuthContext censorContext = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup, null, data.ShelterId).Build();
@@ -208,7 +208,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
             FileLookup lookup = new FileLookup();
             lookup.Ids = attachedFilesIds;
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             lookup.PageSize = attachedFilesIds.Count;
 
             List<Data.Entities.File> attachedFiles = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync();
@@ -331,7 +331,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
             AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
             lookup.Ids = ids;
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             lookup.PageSize = 10000;
             lookup.Fields = new List<String> {
                 nameof(Models.AdoptionApplication.AdoptionApplication.Id),
@@ -360,7 +360,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
             AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
             lookup.AnimalIds = animalIds;
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             lookup.PageSize = 10000;
             lookup.Fields = new List<String> {
                 nameof(Models.AdoptionApplication.AdoptionApplication.Id),

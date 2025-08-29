@@ -80,7 +80,7 @@ namespace Pawfect_API.Builders
             AnimalTypeLookup animalTypeLookup = new AnimalTypeLookup();
 
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            animalTypeLookup.Offset = 1;
+            animalTypeLookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             animalTypeLookup.PageSize = 1000;
             animalTypeLookup.Ids = animalTypeIds;

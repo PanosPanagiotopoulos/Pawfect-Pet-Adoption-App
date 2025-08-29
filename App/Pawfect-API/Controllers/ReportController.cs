@@ -87,7 +87,7 @@ namespace Pawfect_API.Controllers
             ReportLookup lookup = new ReportLookup();
 
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             // Γενική τιμή για τη λήψη των dtos
             lookup.PageSize = 1;
             lookup.Ids = [id];

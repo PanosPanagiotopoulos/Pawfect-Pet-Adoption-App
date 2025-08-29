@@ -295,7 +295,7 @@ namespace Pawfect_API.Services.FileServices
 			lookup.Ids = ids;
 			lookup.Fields = new List<String> { nameof(Models.File.File.Id), nameof(Data.Entities.File.AwsKey),
 											   String.Join('.', nameof(Models.File.File.Owner), nameof(Models.User.User.Id)) };
-			lookup.Offset = 1;
+			lookup.Offset = 0;
 			lookup.PageSize = 10000;
 
 			List<Data.Entities.File> files = await lookup.EnrichLookup(_queryFactory).CollectAsync();

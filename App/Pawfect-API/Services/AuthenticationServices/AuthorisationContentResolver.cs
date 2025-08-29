@@ -63,7 +63,7 @@ namespace Pawfect_API.Services.AuthenticationServices
             ShelterQuery shelterQuery = _queryFactory.Query<ShelterQuery>();
             shelterQuery.UserIds = new List<String> { userId };
             shelterQuery.Fields = [nameof(Models.Shelter.Shelter.Id)];
-            shelterQuery.Offset = 1;
+            shelterQuery.Offset = 0;
             shelterQuery.PageSize = 1;
 
             String shelterId = (await shelterQuery.CollectAsync())?.FirstOrDefault()?.Id;

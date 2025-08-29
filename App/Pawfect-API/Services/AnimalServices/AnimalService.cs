@@ -231,7 +231,7 @@ namespace Pawfect_API.Services.AnimalServices
             lookup.Ids = ids;
             lookup.ShelterIds = [shelterId];
             lookup.Fields = new List<String> { nameof(Models.Animal.Animal.Id), String.Join('.', nameof(Models.Animal.Animal.AttachedPhotos), nameof(Models.File.File.Id)) };
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             lookup.PageSize = 10000;
 
             List<Pawfect_API.Data.Entities.Animal> animals = [.. await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync()];

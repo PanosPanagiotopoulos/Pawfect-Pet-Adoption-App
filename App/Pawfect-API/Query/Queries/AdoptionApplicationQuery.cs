@@ -141,7 +141,7 @@ namespace Pawfect_API.Query.Queries
 			{
 				UserQuery userQuery = _queryFactory.Query<UserQuery>();
 				userQuery.Query = base.Query;
-				userQuery.Offset = 1;
+				userQuery.Offset = 0;
 				userQuery.PageSize = base.PageSize;
 				userQuery.Fields = userQuery.FieldNamesOf([nameof(Models.User.User.Id)]);
 				userQuery = userQuery.Authorise(this._authorise);

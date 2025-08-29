@@ -1057,6 +1057,9 @@
         "ADOPTER": "Adopter"
       },
       "UNKNOWN_USER": "Unknown User"
+    },
+    "LOADING": {
+      "MESSAGE": "Loading your perfect matches..."
     }
   }
 } 

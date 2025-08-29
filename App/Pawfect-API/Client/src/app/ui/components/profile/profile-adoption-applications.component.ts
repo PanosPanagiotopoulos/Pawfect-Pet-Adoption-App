@@ -218,9 +218,9 @@ export class ProfileAdoptionApplicationsComponent
   private updatePagination(event?: PageEvent): void {
     if (event) {
       this.pageIndex = event.pageIndex;
+      this.lookup.offset = event.pageIndex;
       this.lookup.pageSize = event.pageSize;
     }
-    this.lookup.offset = this.pageIndex * this.lookup.pageSize;
   }
 
   private resetPagination(): void {

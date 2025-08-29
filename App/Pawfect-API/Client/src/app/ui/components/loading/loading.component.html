@@ -1,0 +1,63 @@
+<div
+  *ngIf="isLoading$ | async"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+  (click)="$event.preventDefault(); $event.stopPropagation()"
+  (wheel)="$event.preventDefault()"
+  (touchmove)="$event.preventDefault()"
+>
+  <div class="flex flex-col items-center justify-center p-8">
+    <div class="relative mb-6 loading-container cursor-pointer">
+      <div
+        class="w-48 h-48 rounded-full bg-gradient-to-r from-primary-600 via-secondary-600 to-accent-600 p-1 animate-spin-slow shadow-2xl"
+      >
+        <!-- Inner Container - Fixed position to prevent spinning -->
+        <div
+          class="w-full h-full rounded-full bg-white/10 backdrop-blur-md p-3 flex items-center justify-center animate-reverse-spin-slow"
+        >
+          <!-- GIF Container -->
+          <div
+            class="w-40 h-40 rounded-full overflow-hidden relative shadow-xl"
+          >
+            <!-- Fast Animated GIF -->
+            <img
+              [src]="currentGifSrc"
+              alt="Loading animation"
+              class="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
+              style="
+                animation: fastPulse 0.3s ease-in-out infinite alternate;
+                filter: contrast(1.2) brightness(1.1) saturate(1.2);
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+              "
+              (error)="onGifError($event)"
+              loading="eager"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="absolute inset-0 rounded-full border-2 border-primary-400/30 animate-ping"
+      ></div>
+      <div
+        class="absolute inset-2 rounded-full border border-secondary-400/20 animate-ping"
+        style="animation-delay: 0.5s"
+      ></div>
+    </div>
+
+    <div class="flex space-x-2 mt-2">
+      <div
+        class="w-3 h-3 bg-gradient-to-r from-primary-400 to-secondary-400 rounded-full animate-fast-bounce shadow-lg"
+        style="animation-delay: 0ms"
+      ></div>
+      <div
+        class="w-3 h-3 bg-gradient-to-r from-secondary-400 to-accent-400 rounded-full animate-fast-bounce shadow-lg"
+        style="animation-delay: 100ms"
+      ></div>
+      <div
+        class="w-3 h-3 bg-gradient-to-r from-accent-400 to-primary-400 rounded-full animate-fast-bounce shadow-lg"
+        style="animation-delay: 200ms"
+      ></div>
+    </div>
+  </div>
+</div>
