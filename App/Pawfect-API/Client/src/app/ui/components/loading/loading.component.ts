@@ -3,10 +3,6 @@ import { CommonModule } from '@angular/common';
 import { LoadingService } from 'src/app/common/services/loading.service';
 
 import { Observable, Subscription } from 'rxjs';
-import {
-  GifComponent,
-  GifComponentConfig,
-} from 'src/app/common/ui/gif.component';
 
 @Component({
   selector: 'app-loading',

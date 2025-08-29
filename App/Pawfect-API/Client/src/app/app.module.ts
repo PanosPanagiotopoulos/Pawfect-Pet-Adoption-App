@@ -128,10 +128,12 @@ import { LoadingInterceptor } from './common/tools/loading.interceptor';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from './common/services/translation.service';
 import { LoadingService } from './common/services/loading.service';
+import { RouteLoadingInterceptor } from './common/tools/route-loading.interceptor';
 
 export function initializeApp(
   installationConfigService: InstallationConfigurationService,
-  translationService: TranslationService
+  translationService: TranslationService,
+  routeLoadingInterceptor: RouteLoadingInterceptor
 ) {
   return () =>
     Promise.all([
@@ -274,11 +276,12 @@ export function initializeApp(
     InstallationConfigurationService,
     TranslationService,
     LoadingService,
+    RouteLoadingInterceptor,
     BaseHttpService,
     {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,
-      deps: [InstallationConfigurationService, TranslationService],
+      deps: [InstallationConfigurationService, TranslationService, RouteLoadingInterceptor],
       multi: true,
     },
     {
