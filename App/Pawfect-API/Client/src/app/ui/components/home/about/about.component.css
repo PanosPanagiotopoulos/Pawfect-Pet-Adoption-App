@@ -16,6 +16,27 @@
   z-index: 0;
 }
 
+.about-dark-theme .text-white {
+  color: #ffffff !important;
+}
+
+.about-dark-theme .text-gray-200 {
+  color: #e5e7eb !important;
+}
+
+.about-dark-theme .group:hover h3,
+.about-dark-theme .group:hover p {
+  color: inherit !important;
+}
+
+.about-dark-theme h3 {
+  color: #ffffff !important;
+}
+
+.about-dark-theme p {
+  color: #e5e7eb !important;
+}
+
 .about-gradient-base {
   position: absolute;
   inset: 0;

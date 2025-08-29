@@ -3,10 +3,10 @@ import { RouterModule } from '@angular/router';
 import { NgIconsModule } from '@ng-icons/core';
 import { CommonModule } from '@angular/common';
 import {
-  lucideHeart,
   lucidePhone,
   lucideMail,
-  lucideMessageCircle,
+  lucideFacebook,
+  lucideInstagram,
 } from '@ng-icons/lucide';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 
@@ -62,16 +62,22 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
             <h4 class="text-lg font-medium mb-4">{{ 'APP.HOME-PAGE.FOOTER_FOLLOW_US' | translate }}</h4>
             <div class="flex space-x-4">
               <a
-                href="#"
-                class="text-gray-400 hover:text-white transition-colors"
+                href="https://facebook.com/pawfectpetadoption"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-gray-400 hover:text-blue-400 transition-colors"
+                [attr.aria-label]="'APP.CONTACT.SOCIAL_FACEBOOK' | translate"
               >
-                <ng-icon name="lucideHeart" [size]="'24'"></ng-icon>
+                <ng-icon name="lucideFacebook" [size]="'24'"></ng-icon>
               </a>
               <a
-                href="#"
-                class="text-gray-400 hover:text-white transition-colors"
+                href="https://instagram.com/pawfectpets_official"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-gray-400 hover:text-pink-400 transition-colors"
+                [attr.aria-label]="'APP.CONTACT.SOCIAL_INSTAGRAM' | translate"
               >
-                <ng-icon name="lucideMessageCircle" [size]="'24'"></ng-icon>
+                <ng-icon name="lucideInstagram" [size]="'24'"></ng-icon>
               </a>
             </div>
           </div>

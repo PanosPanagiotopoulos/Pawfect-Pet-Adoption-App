@@ -9,19 +9,17 @@
 
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between h-20">
-      <!-- Logo and Brand -->
       <div class="flex items-center">
         <a routerLink="/" class="flex items-center group">
           <div class="relative">
             <div
-              class="w-10 h-10 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300"
+              class="w-[5.6rem] h-[5.6rem] flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300"
             >
-              <ng-icon
-                name="lucideHeart"
-                class="text-white animate-float-very-slow"
-                [size]="'32'"
-              >
-              </ng-icon>
+              <img
+                src="assets/logo.png"
+                alt="Pawfect Logo"
+                class="w-[4.85rem] h-[4.85rem] object-contain animate-float-very-slow"
+              />
             </div>
           </div>
           <!-- Brand name with gradient - visible on all screens -->
@@ -283,13 +281,13 @@
               class="text-white group-hover:rotate-12 transition-all duration-300"
               [size]="'20'"
             ></ng-icon>
-            
+
             <!-- Notification Count Badge -->
             <span
               *ngIf="notificationCount > 0"
               class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center min-w-[20px] animate-pulse"
             >
-              {{ notificationCount > 99 ? '99+' : notificationCount }}
+              {{ notificationCount > 99 ? "99+" : notificationCount }}
             </span>
           </button>
 
@@ -386,7 +384,10 @@
         </ng-container>
 
         <ng-template #userMenu>
-          <app-dropdown [(isOpen)]="isUserMenuOpen" (isOpenChange)="onUserMenuToggle($event)">
+          <app-dropdown
+            [(isOpen)]="isUserMenuOpen"
+            (isOpenChange)="onUserMenuToggle($event)"
+          >
             <div trigger class="flex items-center space-x-2 cursor-pointer">
               <app-user-avatar
                 [imageUrl]="currentUser?.profilePhoto?.sourceUrl"
@@ -422,13 +423,13 @@
               class="transition-all duration-300"
               [size]="'20'"
             ></ng-icon>
-            
+
             <!-- Notification Count Badge -->
             <span
               *ngIf="notificationCount > 0"
               class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center min-w-[20px] animate-pulse"
             >
-              {{ notificationCount > 99 ? '99+' : notificationCount }}
+              {{ notificationCount > 99 ? "99+" : notificationCount }}
             </span>
           </button>
         </div>
