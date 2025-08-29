@@ -16,6 +16,16 @@ export const routes: Routes = [
       import('./ui/components/home/home.module').then((m) => m.HomeModule),
   },
   {
+    path: 'about',
+    redirectTo: 'home/about',
+    pathMatch: 'full',
+  },
+  {
+    path: 'contact',
+    redirectTo: 'home/contact',
+    pathMatch: 'full',
+  },
+  {
     path: 'auth',
     loadChildren: () =>
       import('./ui/components/auth/auth.module').then((m) => m.AuthModule),

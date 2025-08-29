@@ -1,0 +1,279 @@
+/* Professional Dark Theme for About Component */
+
+/* Main container with full dark theme */
+.about-dark-theme {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #111827, #1e1b4b, #4c1d95, #831843);
+  color: #ffffff;
+}
+
+/* Background layers */
+.about-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.about-gradient-base {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #111827 0%, #1e1b4b 25%, #4c1d95 50%, #831843 75%, #111827 100%);
+}
+
+.about-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(124, 58, 237, 0.15) 0%, 
+    rgba(219, 39, 119, 0.15) 50%, 
+    rgba(79, 70, 229, 0.15) 100%);
+  animation: gradient-shift 8s linear infinite;
+  background-size: 200% 200%;
+}
+
+.about-gradient-radial {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, 
+    transparent 0%, 
+    rgba(124, 58, 237, 0.08) 50%, 
+    transparent 100%);
+}
+
+/* Slide-in animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.8s ease-out forwards;
+}
+
+.animate-slide-left {
+  animation: slideInLeft 0.8s ease-out forwards;
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.8s ease-out forwards;
+}
+
+.animate-fade-scale {
+  animation: fadeInScale 0.8s ease-out forwards;
+}
+
+.animation-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animation-delay-400 {
+  animation-delay: 0.4s;
+}
+
+.animation-delay-600 {
+  animation-delay: 0.6s;
+}
+
+.animation-delay-800 {
+  animation-delay: 0.8s;
+}
+
+/* Initial state for animated elements */
+.animate-slide-up,
+.animate-slide-left,
+.animate-slide-right,
+.animate-fade-scale {
+  opacity: 0;
+}
+
+/* Animated orbs */
+.about-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
+}
+
+.about-orb-1 {
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 400px;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(79, 70, 229, 0.1));
+  transform: translate(-50%, -50%);
+  animation: float-1 20s ease-in-out infinite;
+}
+
+.about-orb-2 {
+  top: 50%;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, rgba(219, 39, 119, 0.1), rgba(124, 58, 237, 0.1));
+  transform: translate(50%, -50%);
+  animation: float-2 25s ease-in-out infinite;
+}
+
+.about-orb-3 {
+  bottom: 0;
+  left: 50%;
+  width: 350px;
+  height: 350px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(219, 39, 119, 0.1));
+  transform: translate(-50%, 50%);
+  animation: float-3 30s ease-in-out infinite;
+}
+
+/* Decorative dots */
+.about-dot {
+  position: absolute;
+  border-radius: 50%;
+  animation: pulse 3s ease-in-out infinite;
+}
+
+.about-dot-1 {
+  top: 25%;
+  left: 25%;
+  width: 4px;
+  height: 4px;
+  background: rgba(124, 58, 237, 0.3);
+}
+
+.about-dot-2 {
+  top: 75%;
+  right: 25%;
+  width: 6px;
+  height: 6px;
+  background: rgba(79, 70, 229, 0.3);
+  animation-delay: 1s;
+}
+
+.about-dot-3 {
+  bottom: 25%;
+  left: 75%;
+  width: 3px;
+  height: 3px;
+  background: rgba(219, 39, 119, 0.3);
+  animation-delay: 2s;
+}
+
+/* Content styling */
+.about-dark-theme .relative {
+  position: relative;
+  z-index: 10;
+}
+
+/* Override any global styles */
+.about-dark-theme * {
+  color: inherit;
+}
+
+.about-dark-theme .text-white {
+  color: #ffffff !important;
+}
+
+.about-dark-theme .text-gray-200 {
+  color: #e5e7eb !important;
+}
+
+.about-dark-theme .text-gray-300 {
+  color: #d1d5db !important;
+}
+
+/* Animations */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float-1 {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+  25% { transform: translate(-45%, -55%) rotate(5deg); }
+  50% { transform: translate(-50%, -45%) rotate(-5deg); }
+  75% { transform: translate(-55%, -50%) rotate(5deg); }
+}
+
+@keyframes float-2 {
+  0%, 100% { transform: translate(50%, -50%) rotate(0deg); }
+  25% { transform: translate(45%, -45%) rotate(-5deg); }
+  50% { transform: translate(50%, -55%) rotate(5deg); }
+  75% { transform: translate(55%, -50%) rotate(-5deg); }
+}
+
+@keyframes float-3 {
+  0%, 100% { transform: translate(-50%, 50%) rotate(0deg); }
+  25% { transform: translate(-45%, 45%) rotate(5deg); }
+  50% { transform: translate(-50%, 55%) rotate(-5deg); }
+  75% { transform: translate(-55%, 50%) rotate(5deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* Gradient text effect */
+.gradient-text {
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Custom gradient backgrounds */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Ensure proper dark theme for all child elements */
+.about-dark-theme .bg-slate-600\/80 {
+  background-color: rgba(71, 85, 105, 0.8) !important;
+}
+
+.about-dark-theme .bg-slate-800\/90 {
+  background-color: rgba(30, 41, 59, 0.9) !important;
+}

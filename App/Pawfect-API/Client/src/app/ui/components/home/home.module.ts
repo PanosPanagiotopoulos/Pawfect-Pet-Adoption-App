@@ -11,6 +11,8 @@ import { HeaderComponent } from './shared/header/header.component';
 import { AnimationDirective } from './shared/directives/animation.directive';
 import { NotFoundComponent } from '../not-found/not-found.component';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
+import { AboutComponent } from './about/about.component';
+import { ContactComponent } from './contact/contact.component';
 
 @NgModule({
   declarations: [HomeComponent],
@@ -18,6 +20,8 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
     CommonModule,
     RouterModule.forChild([
       { path: '', component: HomeComponent },
+      { path: 'about', component: AboutComponent },
+      { path: 'contact', component: ContactComponent },
       { path: '**', component: NotFoundComponent },
     ]),
     NgIconsModule,
@@ -27,7 +31,9 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
     HeroSectionComponent,
     AiMatchingSectionComponent,
     AnimationDirective,
-    TranslatePipe
+    TranslatePipe,
+    AboutComponent,
+    ContactComponent
   ],
   exports: [HomeComponent],
 })

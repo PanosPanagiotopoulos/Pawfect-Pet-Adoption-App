@@ -1,0 +1,354 @@
+<div class="contact-dark-theme">
+  <!-- Professional dark background with proper layering -->
+  <div class="contact-background">
+    <div class="contact-gradient-base"></div>
+    <div class="contact-gradient-overlay"></div>
+    <div class="contact-gradient-radial"></div>
+
+    <!-- Subtle animated elements -->
+    <div class="contact-orb contact-orb-1"></div>
+    <div class="contact-orb contact-orb-2"></div>
+    <div class="contact-orb contact-orb-3"></div>
+    
+    <!-- Decorative dots -->
+    <div class="contact-dot contact-dot-1"></div>
+    <div class="contact-dot contact-dot-2"></div>
+    <div class="contact-dot contact-dot-3"></div>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="relative z-10 pt-32 pb-20 animate-slide-up">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="mb-8 flex justify-center items-center space-x-4">
+        <ng-icon name="lucideMessageCircle" [size]="'32'" class="text-primary-400 animate-bounce"></ng-icon>
+        <ng-icon name="lucidePhone" [size]="'28'" class="text-accent-400 animate-pulse"></ng-icon>
+        <ng-icon name="lucideMail" [size]="'24'" class="text-secondary-400 animate-bounce delay-500"></ng-icon>
+      </div>
+      <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-8">
+        <span class="gradient-text">{{ "APP.CONTACT.HERO_TITLE" | translate }}</span>
+      </h1>
+      <p class="text-xl md:text-2xl text-gray-200 max-w-4xl mx-auto leading-relaxed">
+        {{ "APP.CONTACT.HERO_SUBTITLE" | translate }}
+      </p>
+      <div class="mt-8 flex justify-center space-x-6">
+        <div class="flex items-center space-x-2 px-4 py-2 bg-primary-500/20 rounded-full border border-primary-400/30">
+          <ng-icon name="lucideClock" [size]="'20'" class="text-primary-300"></ng-icon>
+          <span class="text-primary-200 text-sm font-medium">24/7 Support</span>
+        </div>
+        <div class="flex items-center space-x-2 px-4 py-2 bg-accent-500/20 rounded-full border border-accent-400/30">
+          <ng-icon name="lucideHeadphones" [size]="'20'" class="text-accent-300"></ng-icon>
+          <span class="text-accent-200 text-sm font-medium">Expert Help</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Methods Section -->
+  <div class="relative z-10 py-20 animate-slide-up animation-delay-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <div class="flex justify-center mb-6">
+          <div class="p-4 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-2xl border border-primary-400/30">
+            <ng-icon name="lucideContact" [size]="'32'" class="text-primary-300"></ng-icon>
+          </div>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+          {{ "APP.CONTACT.METHODS_TITLE" | translate }}
+        </h2>
+        <p class="text-lg text-gray-200 max-w-3xl mx-auto">
+          {{ "APP.CONTACT.METHODS_SUBTITLE" | translate }}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div
+          *ngFor="let method of contactMethods; let i = index"
+          class="bg-slate-600/80 backdrop-blur-sm p-8 rounded-2xl border border-slate-500/70 hover:border-primary-400/80 hover:shadow-2xl hover:shadow-primary-400/25 transition-all duration-500 transform hover:-translate-y-3 text-center group relative overflow-hidden"
+          style="background-color: rgba(71, 85, 105, 0.8) !important; color: white !important;"
+        >
+          <!-- Decorative background pattern -->
+          <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-accent-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          <div class="relative z-10">
+            <div
+              class="inline-flex items-center justify-center w-18 h-18 bg-gradient-to-br rounded-2xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg"
+              [class]="method.gradient"
+            >
+              <ng-icon [name]="method.icon" [size]="'32'" class="text-white"></ng-icon>
+            </div>
+            
+            <!-- Method number badge -->
+            <div class="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-secondary-400 to-primary-400 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-lg">
+              {{ i + 1 }}
+            </div>
+            
+            <h3 class="text-xl font-semibold text-white mb-3 group-hover:text-primary-200 transition-colors duration-300">
+              {{ method.titleKey | translate }}
+            </h3>
+            <p class="text-lg font-medium text-primary-300 mb-2 group-hover:text-primary-200 transition-colors duration-300">
+              {{ method.valueKey | translate }}
+            </p>
+            <p class="text-gray-300 text-sm group-hover:text-gray-200 transition-colors duration-300">
+              {{ method.descriptionKey | translate }}
+            </p>
+            
+            <!-- Decorative dots -->
+            <div class="flex justify-center mt-4 space-x-1">
+              <div class="w-2 h-2 bg-primary-400/40 rounded-full"></div>
+              <div class="w-2 h-2 bg-accent-400/40 rounded-full"></div>
+              <div class="w-2 h-2 bg-secondary-400/40 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Departments Section -->
+  <div class="relative z-10 py-20 animate-slide-left animation-delay-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <div class="flex justify-center mb-6">
+          <div class="p-4 bg-gradient-to-br from-secondary-500/20 to-accent-500/20 rounded-2xl border border-secondary-400/30">
+            <ng-icon name="lucideBuilding" [size]="'32'" class="text-secondary-300"></ng-icon>
+          </div>
+        </div>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+          {{ "APP.CONTACT.DEPARTMENTS_TITLE" | translate }}
+        </h2>
+        <p class="text-lg text-gray-200 max-w-3xl mx-auto">
+          {{ "APP.CONTACT.DEPARTMENTS_SUBTITLE" | translate }}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div
+          *ngFor="let dept of departments; let i = index"
+          class="bg-slate-600/70 backdrop-blur-sm p-8 rounded-2xl border border-slate-500/60 hover:border-accent-400/80 hover:bg-slate-600/90 transition-all duration-500 group relative overflow-hidden"
+        >
+          <div class="absolute inset-0 bg-gradient-to-br from-accent-400/5 to-primary-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          <div class="relative z-10">
+            <div class="flex items-center justify-between mb-6">
+              <div class="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-primary-400 to-accent-400 rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+                <ng-icon [name]="dept.icon" [size]="'24'" class="text-white"></ng-icon>
+              </div>
+              <div class="flex space-x-1">
+                <div class="w-2 h-2 bg-primary-400/40 rounded-full animate-pulse"></div>
+                <div class="w-2 h-2 bg-accent-400/40 rounded-full animate-pulse delay-200"></div>
+                <div class="w-2 h-2 bg-secondary-400/40 rounded-full animate-pulse delay-400"></div>
+              </div>
+            </div>
+            
+            <h3 class="text-xl font-semibold text-white mb-4 group-hover:text-accent-200 transition-colors duration-300">
+              {{ dept.titleKey | translate }}
+            </h3>
+            <p class="text-gray-300 leading-relaxed group-hover:text-gray-200 transition-colors duration-300">
+              {{ dept.descriptionKey | translate }}
+            </p>
+            
+            <!-- Department specialization indicator -->
+            <div class="mt-6 flex items-center space-x-2">
+              <div class="w-3 h-3 bg-gradient-to-r from-primary-400 to-accent-400 rounded-full"></div>
+              <span class="text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300 uppercase tracking-wide">
+                Specialized Team
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Location & Hours Section -->
+  <div class="relative z-10 py-20 animate-fade-scale animation-delay-600">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="bg-gradient-to-r from-primary-500/35 via-secondary-500/35 to-accent-500/35 backdrop-blur-sm rounded-3xl border border-slate-500/80 p-12 shadow-2xl" style="background: linear-gradient(to right, rgba(124, 58, 237, 0.35), rgba(219, 39, 119, 0.35), rgba(79, 70, 229, 0.35)) !important; color: white !important;">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div class="text-white space-y-8">
+            <div class="flex items-center space-x-3 mb-8">
+              <div class="p-3 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-xl border border-primary-400/30">
+                <ng-icon name="lucideNavigation" [size]="'24'" class="text-primary-300"></ng-icon>
+              </div>
+              <h2 class="text-3xl md:text-4xl font-bold">
+                {{ "APP.CONTACT.LOCATION_TITLE" | translate }}
+              </h2>
+            </div>
+            
+            <div class="space-y-6">
+              <div class="flex items-start space-x-4 p-6 bg-slate-600/80 backdrop-blur-sm rounded-xl border border-slate-500/70 hover:border-primary-400/70 transition-all duration-300 group">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 bg-gradient-to-br from-primary-400 to-accent-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <ng-icon name="lucideMapPin" [size]="'24'" class="text-white"></ng-icon>
+                  </div>
+                </div>
+                <div>
+                  <h3 class="text-xl font-semibold mb-2 group-hover:text-primary-200 transition-colors duration-300">
+                    {{ "APP.CONTACT.ADDRESS_TITLE" | translate }}
+                  </h3>
+                  <p class="text-gray-100 group-hover:text-white transition-colors duration-300">
+                    {{ "APP.CONTACT.ADDRESS_VALUE" | translate }}
+                  </p>
+                  <div class="flex items-center mt-2 space-x-2">
+                    <ng-icon name="lucideExternalLink" [size]="'16'" class="text-primary-400"></ng-icon>
+                    <span class="text-primary-400 text-sm hover:text-primary-300 cursor-pointer">View on Map</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4 p-6 bg-slate-600/80 backdrop-blur-sm rounded-xl border border-slate-500/70 hover:border-secondary-400/70 transition-all duration-300 group">
+                <div class="flex-shrink-0">
+                  <div class="w-12 h-12 bg-gradient-to-br from-secondary-400 to-primary-400 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <ng-icon name="lucideClock" [size]="'24'" class="text-white"></ng-icon>
+                  </div>
+                </div>
+                <div>
+                  <h3 class="text-xl font-semibold mb-2 group-hover:text-secondary-200 transition-colors duration-300">
+                    {{ "APP.CONTACT.HOURS_TITLE" | translate }}
+                  </h3>
+                  <p class="text-gray-100 group-hover:text-white transition-colors duration-300">
+                    {{ "APP.CONTACT.HOURS_VALUE" | translate }}
+                  </p>
+                  <div class="flex items-center mt-2 space-x-2">
+                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span class="text-green-400 text-sm">Currently Open</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-600/80 backdrop-blur-sm rounded-3xl p-8 border border-slate-500/70 hover:border-red-400/80 transition-all duration-500 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-red-500/8 to-orange-500/8 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div class="relative z-10">
+              <div class="flex items-center justify-center mb-6">
+                <div class="p-3 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-xl border border-red-400/30">
+                  <ng-icon name="lucideCircleAlert" [size]="'24'" class="text-red-300"></ng-icon>
+                </div>
+              </div>
+              
+              <h3 class="text-2xl font-bold text-white mb-6 text-center">
+                {{ "APP.CONTACT.EMERGENCY_TITLE" | translate }}
+              </h3>
+              
+              <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-400 to-red-500 rounded-2xl mb-4 animate-pulse shadow-lg">
+                  <ng-icon name="lucidePhone" [size]="'32'" class="text-white"></ng-icon>
+                </div>
+                <p class="text-white text-lg mb-2 font-semibold">
+                  {{ "APP.CONTACT.EMERGENCY_NUMBER" | translate }}
+                </p>
+                <p class="text-gray-200 text-sm mb-4">
+                  {{ "APP.CONTACT.EMERGENCY_DESC" | translate }}
+                </p>
+                
+                <!-- Emergency features -->
+                <div class="flex justify-center space-x-4 mt-4">
+                  <div class="flex items-center space-x-1">
+                    <ng-icon name="lucideClock" [size]="'16'" class="text-red-300"></ng-icon>
+                    <span class="text-red-300 text-xs">24/7</span>
+                  </div>
+                  <div class="flex items-center space-x-1">
+                    <ng-icon name="lucideZap" [size]="'16'" class="text-red-300"></ng-icon>
+                    <span class="text-red-300 text-xs">Fast Response</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Social Media Section -->
+  <div class="relative z-10 py-20 animate-slide-right animation-delay-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="flex justify-center mb-6">
+        <div class="p-4 bg-gradient-to-br from-accent-500/20 to-secondary-500/20 rounded-2xl border border-accent-400/30">
+          <ng-icon name="lucideShare2" [size]="'32'" class="text-accent-300"></ng-icon>
+        </div>
+      </div>
+      
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+        {{ "APP.CONTACT.SOCIAL_TITLE" | translate }}
+      </h2>
+      <p class="text-lg text-gray-200 mb-12 max-w-2xl mx-auto">
+        {{ "APP.CONTACT.SOCIAL_SUBTITLE" | translate }}
+      </p>
+
+      <div class="flex justify-center space-x-8">
+        <a
+          *ngFor="let social of socialLinks; let i = index"
+          [href]="social.url"
+          class="group relative flex items-center justify-center w-24 h-24 bg-gradient-to-br rounded-2xl hover:shadow-2xl hover:shadow-primary-400/20 transition-all duration-500 transform hover:-translate-y-4 hover:scale-110 border border-slate-600/50 hover:border-primary-400/60 overflow-hidden"
+          [class]="social.gradient"
+        >
+          <!-- Background pattern -->
+          <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          <!-- Social icon -->
+          <ng-icon
+            [name]="social.icon"
+            [size]="'40'"
+            class="text-white group-hover:scale-125 transition-transform duration-300 relative z-10"
+          ></ng-icon>
+          
+          <!-- Floating badge -->
+          <div class="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-secondary-400 to-accent-400 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            {{ i + 1 }}
+          </div>
+          
+          <!-- Hover effect ring -->
+          <div class="absolute inset-0 rounded-2xl border-2 border-primary-400/0 group-hover:border-primary-400/50 transition-all duration-300"></div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="relative z-10 py-20 animate-slide-up animation-delay-1000">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div class="bg-slate-600/70 backdrop-blur-sm rounded-3xl border border-slate-500/70 p-12 relative overflow-hidden">
+        <!-- Decorative background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-500/15 to-accent-500/15"></div>
+        
+        <div class="relative z-10">
+          <div class="flex justify-center mb-6">
+            <div class="p-4 bg-gradient-to-br from-primary-500/20 to-accent-500/20 rounded-2xl border border-primary-400/30">
+              <ng-icon name="lucideRocket" [size]="'32'" class="text-primary-300"></ng-icon>
+            </div>
+          </div>
+          
+          <h2 class="text-3xl font-bold text-white mb-4">
+            {{ "APP.CONTACT.CTA_TITLE" | translate }}
+          </h2>
+          <p class="text-lg text-gray-200 mb-8">
+            {{ "APP.CONTACT.CTA_SUBTITLE" | translate }}
+          </p>
+          
+          <div class="flex flex-col sm:flex-row gap-6 justify-center">
+            <a
+              href="tel:{{ 'APP.HOME-PAGE.FOOTER_PHONE' | translate }}"
+              class="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-primary-500 via-secondary-500 to-accent-500 text-white font-semibold rounded-xl hover:shadow-2xl hover:shadow-primary-400/20 transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 animate-gradient relative overflow-hidden"
+            >
+              <div class="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <ng-icon name="lucidePhone" [size]="'20'" class="mr-2 relative z-10 group-hover:animate-pulse"></ng-icon>
+              <span class="relative z-10">{{ "APP.CONTACT.CTA_CALL" | translate }}</span>
+            </a>
+            
+            <a
+              href="mailto:{{ 'APP.HOME-PAGE.FOOTER_EMAIL' | translate }}"
+              class="group inline-flex items-center justify-center px-8 py-4 border-2 border-primary-400 text-primary-300 font-semibold rounded-xl hover:bg-primary-500 hover:text-white hover:border-primary-500 transition-all duration-500 transform hover:-translate-y-2 relative overflow-hidden"
+            >
+              <div class="absolute inset-0 bg-gradient-to-r from-primary-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <ng-icon name="lucideMail" [size]="'20'" class="mr-2 relative z-10 group-hover:animate-pulse"></ng-icon>
+              <span class="relative z-10">{{ "APP.CONTACT.CTA_EMAIL" | translate }}</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
