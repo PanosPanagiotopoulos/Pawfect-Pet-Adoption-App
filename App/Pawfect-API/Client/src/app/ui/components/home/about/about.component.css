@@ -16,27 +16,6 @@
   z-index: 0;
 }
 
-.about-dark-theme .text-white {
-  color: #ffffff !important;
-}
-
-.about-dark-theme .text-gray-200 {
-  color: #e5e7eb !important;
-}
-
-.about-dark-theme .group:hover h3,
-.about-dark-theme .group:hover p {
-  color: inherit !important;
-}
-
-.about-dark-theme h3 {
-  color: #ffffff !important;
-}
-
-.about-dark-theme p {
-  color: #e5e7eb !important;
-}
-
 .about-gradient-base {
   position: absolute;
   inset: 0;
@@ -225,21 +204,48 @@
   z-index: 10;
 }
 
-/* Override any global styles */
+/* FORCE TEXT COLORS - NO HOVER CHANGES */
 .about-dark-theme * {
   color: inherit;
 }
 
-.about-dark-theme .text-white {
+.about-dark-theme .text-white,
+.about-dark-theme h1,
+.about-dark-theme h2,
+.about-dark-theme h3,
+.about-dark-theme h4,
+.about-dark-theme h5,
+.about-dark-theme h6 {
   color: #ffffff !important;
 }
 
-.about-dark-theme .text-gray-200 {
+.about-dark-theme .text-gray-200,
+.about-dark-theme p {
   color: #e5e7eb !important;
 }
 
 .about-dark-theme .text-gray-300 {
   color: #d1d5db !important;
+}
+
+/* PREVENT ALL WHITE HOVER EFFECTS */
+.about-dark-theme .values-card h3,
+.about-dark-theme .values-card p,
+.about-dark-theme .group h3,
+.about-dark-theme .group p {
+  color: #ffffff !important;
+}
+
+.about-dark-theme .values-card p,
+.about-dark-theme .group p {
+  color: #e5e7eb !important;
+}
+
+.about-dark-theme .values-card:hover h3,
+.about-dark-theme .values-card:hover p,
+.about-dark-theme .group:hover h3,
+.about-dark-theme .group:hover p {
+  color: inherit !important;
 }
 
 /* Animations */

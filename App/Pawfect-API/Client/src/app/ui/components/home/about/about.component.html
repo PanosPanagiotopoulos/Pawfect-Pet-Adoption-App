@@ -65,7 +65,6 @@
         <div 
           *ngFor="let feature of features; let i = index" 
           class="text-center p-8 bg-slate-600/80 backdrop-blur-sm rounded-2xl border border-slate-500/70 hover:border-primary-400/80 hover:shadow-2xl hover:shadow-primary-400/25 transition-all duration-500 transform hover:-translate-y-3 group relative overflow-hidden"
-          style="background-color: rgba(71, 85, 105, 0.8) !important; color: white !important;"
         >
           <!-- Decorative background pattern -->
           <div class="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-accent-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -80,10 +79,10 @@
               {{ i + 1 }}
             </div>
             
-            <h3 class="text-xl font-semibold text-white mb-4 group-hover:text-primary-200 transition-colors duration-300">
+            <h3 class="text-xl font-semibold text-white mb-4">
               {{ feature.titleKey | translate }}
             </h3>
-            <p class="text-gray-300 leading-relaxed group-hover:text-gray-200 transition-colors duration-300">
+            <p class="text-gray-300 leading-relaxed">
               {{ feature.descriptionKey | translate }}
             </p>
             
@@ -102,7 +101,7 @@
   <!-- Stats Section -->
   <div class="relative z-10 py-20 animate-fade-scale animation-delay-400">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="bg-gradient-to-r from-primary-500/35 via-secondary-500/35 to-accent-500/35 backdrop-blur-sm rounded-3xl border border-slate-500/80 p-12 shadow-2xl" style="background: linear-gradient(to right, rgba(124, 58, 237, 0.35), rgba(219, 39, 119, 0.35), rgba(79, 70, 229, 0.35)) !important; color: white !important;">
+      <div class="bg-gradient-to-r from-primary-500/35 via-secondary-500/35 to-accent-500/35 backdrop-blur-sm rounded-3xl border border-slate-500/80 p-12 shadow-2xl">
         <div class="text-center mb-12">
           <div class="flex justify-center mb-6">
             <div class="p-4 bg-gradient-to-br from-accent-500/20 to-primary-500/20 rounded-2xl border border-accent-400/30">
@@ -164,34 +163,34 @@
           </div>
           
           <div class="space-y-6 text-gray-200 leading-relaxed text-lg">
-            <div class="p-6 bg-slate-600/80 backdrop-blur-sm rounded-xl border border-slate-500/70 hover:border-primary-400/70 transition-all duration-300 group">
+            <div class="p-6 bg-slate-600/80 backdrop-blur-sm rounded-xl border border-slate-500/70 hover:border-primary-400/70 transition-all duration-300">
               <div class="flex items-start space-x-4">
                 <div class="p-2 bg-gradient-to-br from-red-400/30 to-orange-400/30 rounded-lg border border-red-300/50 flex-shrink-0">
                   <ng-icon name="lucideCircleAlert" [size]="'20'" class="text-red-200"></ng-icon>
                 </div>
-                <p class="group-hover:text-white transition-colors duration-300">
+                <p class="text-gray-200">
                   {{ 'APP.ABOUT.STORY_PARAGRAPH_1' | translate }}
                 </p>
               </div>
             </div>
             
-            <div class="p-6 bg-slate-600/80 backdrop-blur-sm rounded-xl border border-slate-500/70 hover:border-accent-400/70 transition-all duration-300 group">
+            <div class="p-6 bg-slate-600/80 backdrop-blur-sm rounded-xl border border-slate-500/70 hover:border-accent-400/70 transition-all duration-300">
               <div class="flex items-start space-x-4">
                 <div class="p-2 bg-gradient-to-br from-yellow-400/30 to-orange-400/30 rounded-lg border border-yellow-300/50 flex-shrink-0">
                   <ng-icon name="lucideLightbulb" [size]="'20'" class="text-yellow-200"></ng-icon>
                 </div>
-                <p class="group-hover:text-white transition-colors duration-300">
+                <p class="text-gray-200">
                   {{ 'APP.ABOUT.STORY_PARAGRAPH_2' | translate }}
                 </p>
               </div>
             </div>
             
-            <div class="p-6 bg-slate-600/80 backdrop-blur-sm rounded-xl border border-slate-500/70 hover:border-green-400/70 transition-all duration-300 group">
+            <div class="p-6 bg-slate-600/80 backdrop-blur-sm rounded-xl border border-slate-500/70 hover:border-green-400/70 transition-all duration-300">
               <div class="flex items-start space-x-4">
                 <div class="p-2 bg-gradient-to-br from-green-400/30 to-emerald-400/30 rounded-lg border border-green-300/50 flex-shrink-0">
                   <ng-icon name="lucideCheck" [size]="'20'" class="text-green-200"></ng-icon>
                 </div>
-                <p class="group-hover:text-white transition-colors duration-300">
+                <p class="text-gray-200">
                   {{ 'APP.ABOUT.STORY_PARAGRAPH_3' | translate }}
                 </p>
               </div>
@@ -265,67 +264,67 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div class="bg-slate-600/80 backdrop-blur-sm p-8 rounded-2xl border border-slate-500/70 hover:border-green-400/80 hover:shadow-2xl hover:shadow-green-400/25 transition-all duration-500 text-center group relative overflow-hidden transform hover:-translate-y-2 hover:scale-105">
-          <div class="absolute inset-0 bg-gradient-to-br from-green-400/12 to-emerald-400/12 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div class="values-card bg-slate-600/80 backdrop-blur-sm p-8 rounded-2xl border border-slate-500/70 hover:border-green-400/80 hover:shadow-2xl hover:shadow-green-400/25 transition-all duration-500 text-center relative overflow-hidden transform hover:-translate-y-2">
+          <div class="absolute inset-0 bg-gradient-to-br from-green-400/8 to-emerald-400/8 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
           <div class="relative z-10">
-            <div class="inline-flex items-center justify-center w-18 h-18 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg group-hover:shadow-green-400/40">
-              <ng-icon name="lucideLeaf" [size]="'32'" class="text-white group-hover:animate-pulse"></ng-icon>
+            <div class="inline-flex items-center justify-center w-18 h-18 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl mb-6 hover:scale-110 transition-all duration-300 shadow-lg">
+              <ng-icon name="lucideLeaf" [size]="'32'" class="text-white"></ng-icon>
             </div>
             <div class="flex justify-center mb-4">
               <div class="flex space-x-1">
-                <div class="w-2 h-2 bg-green-400/80 rounded-full animate-pulse"></div>
-                <div class="w-2 h-2 bg-emerald-400/80 rounded-full animate-pulse delay-200"></div>
-                <div class="w-2 h-2 bg-green-400/80 rounded-full animate-pulse delay-400"></div>
+                <div class="w-2 h-2 bg-green-400/60 rounded-full animate-pulse"></div>
+                <div class="w-2 h-2 bg-emerald-400/60 rounded-full animate-pulse delay-200"></div>
+                <div class="w-2 h-2 bg-green-400/60 rounded-full animate-pulse delay-400"></div>
               </div>
             </div>
-            <h3 class="text-xl font-semibold text-white mb-4 transition-colors duration-300">
+            <h3 class="text-xl font-semibold text-white mb-4">
               {{ 'APP.ABOUT.VALUE_SUSTAINABILITY_TITLE' | translate }}
             </h3>
-            <p class="text-gray-200 leading-relaxed transition-colors duration-300">
+            <p class="text-gray-200 leading-relaxed">
               {{ 'APP.ABOUT.VALUE_SUSTAINABILITY_DESC' | translate }}
             </p>
           </div>
         </div>
 
-        <div class="bg-slate-600/80 backdrop-blur-sm p-8 rounded-2xl border border-slate-500/70 hover:border-blue-400/80 hover:shadow-2xl hover:shadow-blue-400/25 transition-all duration-500 text-center group relative overflow-hidden transform hover:-translate-y-2 hover:scale-105">
-          <div class="absolute inset-0 bg-gradient-to-br from-blue-400/12 to-cyan-400/12 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div class="values-card bg-slate-600/80 backdrop-blur-sm p-8 rounded-2xl border border-slate-500/70 hover:border-blue-400/80 hover:shadow-2xl hover:shadow-blue-400/25 transition-all duration-500 text-center relative overflow-hidden transform hover:-translate-y-2">
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-400/8 to-cyan-400/8 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
           <div class="relative z-10">
-            <div class="inline-flex items-center justify-center w-18 h-18 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg group-hover:shadow-blue-400/40">
-              <ng-icon name="lucideGlobe" [size]="'32'" class="text-white group-hover:animate-pulse"></ng-icon>
+            <div class="inline-flex items-center justify-center w-18 h-18 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-2xl mb-6 hover:scale-110 transition-all duration-300 shadow-lg">
+              <ng-icon name="lucideGlobe" [size]="'32'" class="text-white"></ng-icon>
             </div>
             <div class="flex justify-center mb-4">
               <div class="flex space-x-1">
-                <div class="w-2 h-2 bg-blue-400/80 rounded-full animate-pulse"></div>
-                <div class="w-2 h-2 bg-cyan-400/80 rounded-full animate-pulse delay-200"></div>
-                <div class="w-2 h-2 bg-blue-400/80 rounded-full animate-pulse delay-400"></div>
+                <div class="w-2 h-2 bg-blue-400/60 rounded-full animate-pulse"></div>
+                <div class="w-2 h-2 bg-cyan-400/60 rounded-full animate-pulse delay-200"></div>
+                <div class="w-2 h-2 bg-blue-400/60 rounded-full animate-pulse delay-400"></div>
               </div>
             </div>
-            <h3 class="text-xl font-semibold text-white mb-4 transition-colors duration-300">
+            <h3 class="text-xl font-semibold text-white mb-4">
               {{ 'APP.ABOUT.VALUE_TRANSPARENCY_TITLE' | translate }}
             </h3>
-            <p class="text-gray-200 leading-relaxed transition-colors duration-300">
+            <p class="text-gray-200 leading-relaxed">
               {{ 'APP.ABOUT.VALUE_TRANSPARENCY_DESC' | translate }}
             </p>
           </div>
         </div>
 
-        <div class="bg-slate-600/80 backdrop-blur-sm p-8 rounded-2xl border border-slate-500/70 hover:border-purple-400/80 hover:shadow-2xl hover:shadow-purple-400/25 transition-all duration-500 text-center group relative overflow-hidden transform hover:-translate-y-2 hover:scale-105">
-          <div class="absolute inset-0 bg-gradient-to-br from-purple-400/12 to-pink-400/12 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        <div class="values-card bg-slate-600/80 backdrop-blur-sm p-8 rounded-2xl border border-slate-500/70 hover:border-purple-400/80 hover:shadow-2xl hover:shadow-purple-400/25 transition-all duration-500 text-center relative overflow-hidden transform hover:-translate-y-2">
+          <div class="absolute inset-0 bg-gradient-to-br from-purple-400/8 to-pink-400/8 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
           <div class="relative z-10">
-            <div class="inline-flex items-center justify-center w-18 h-18 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg group-hover:shadow-purple-400/40">
-              <ng-icon name="lucideZap" [size]="'32'" class="text-white group-hover:animate-pulse"></ng-icon>
+            <div class="inline-flex items-center justify-center w-18 h-18 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl mb-6 hover:scale-110 transition-all duration-300 shadow-lg">
+              <ng-icon name="lucideZap" [size]="'32'" class="text-white"></ng-icon>
             </div>
             <div class="flex justify-center mb-4">
               <div class="flex space-x-1">
-                <div class="w-2 h-2 bg-purple-400/80 rounded-full animate-pulse"></div>
-                <div class="w-2 h-2 bg-pink-400/80 rounded-full animate-pulse delay-200"></div>
-                <div class="w-2 h-2 bg-purple-400/80 rounded-full animate-pulse delay-400"></div>
+                <div class="w-2 h-2 bg-purple-400/60 rounded-full animate-pulse"></div>
+                <div class="w-2 h-2 bg-pink-400/60 rounded-full animate-pulse delay-200"></div>
+                <div class="w-2 h-2 bg-purple-400/60 rounded-full animate-pulse delay-400"></div>
               </div>
             </div>
-            <h3 class="text-xl font-semibold text-white mb-4 transition-colors duration-300">
+            <h3 class="text-xl font-semibold text-white mb-4">
               {{ 'APP.ABOUT.VALUE_INNOVATION_TITLE' | translate }}
             </h3>
-            <p class="text-gray-200 leading-relaxed transition-colors duration-300">
+            <p class="text-gray-200 leading-relaxed">
               {{ 'APP.ABOUT.VALUE_INNOVATION_DESC' | translate }}
             </p>
           </div>

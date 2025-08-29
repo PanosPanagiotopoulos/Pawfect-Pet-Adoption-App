@@ -34,6 +34,7 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
     '/auth/verified/shelter',
     '/auth/reset-password-request',
     '/auth/reset-password',
+    '/search'
   ];
   private readonly LANG_STORAGE_KEY = 'pawfect-language';
 
