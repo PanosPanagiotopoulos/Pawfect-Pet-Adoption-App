@@ -13,5 +13,9 @@
         public Location Location { get; set; }
 
         public String ProfilePhotoId { get; set; }
+
+        public Boolean? IsVerified { get; set; }
+        public Boolean? HasEmailVerified { get; set; }
+        public Boolean? HasPhoneVerified { get; set; }
     }
 }

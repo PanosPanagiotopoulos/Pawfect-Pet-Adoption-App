@@ -113,7 +113,7 @@ namespace Pawfect_API.Controllers
 
             FileLookup lookup = new FileLookup
             {
-                Offset = 1,
+                Offset = 0,
                 PageSize = 1,
                 Ids = new List<String> { id },
             };

@@ -177,4 +177,27 @@ export class LoadingService {
     );
     return config ? config.enabled : false;
   }
+
+  /**
+   * Force stop all loading states - useful for emergency situations
+   * where loading states might get stuck
+   */
+  forceStopLoading(): void {
+    this.logService.logFormatted('Force stopping all loading states');
+    
+    // Clear all active requests
+    this.activeRequests.clear();
+    
+    // Clear all route timeouts
+    this.routeTimeouts.forEach((timeoutId, route) => {
+      clearTimeout(timeoutId);
+      this.logService.logFormatted(`Cleared timeout for route: ${route}`);
+    });
+    this.routeTimeouts.clear();
+    
+    // Force update loading state to false
+    this.loadingSubject.next(false);
+    
+    this.logService.logFormatted('All loading states forcefully stopped');
+  }
 }

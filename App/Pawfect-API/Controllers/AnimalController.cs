@@ -178,7 +178,7 @@ namespace Pawfect_API.Controllers
 
             AnimalLookup lookup = new AnimalLookup
             {
-                Offset = 1,
+                Offset = 0,
                 PageSize = 1,
                 Ids = new List<String> { id },
                 Fields = fields

@@ -9,12 +9,17 @@ using Pawfect_Notifications.Query;
 using Pawfect_Notifications.Query.Queries;
 using Pawfect_Notifications.Exceptions;
 using Pawfect_Notifications.DevTools;
+using Microsoft.Extensions.Caching.Memory;
+using Pawfect_Notifications.Data.Entities.Types.Cache;
+using EllipticCurve;
 
 namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
 {
     public class EmailSender : IEmailSender
     {
         private readonly ILogger<EmailSender> _logger;
+        private readonly IMemoryCache _memoryCache;
+        private readonly CacheConfig _cacheConfig;
         private readonly EmailApiConfig _emailConfig;
         private readonly NotificationTemplates _templates;
 
@@ -22,13 +27,19 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
         (
             ILogger<EmailSender> logger,
             IOptions<EmailApiConfig> emailOptions,
-            IOptions<NotificationTemplates> templateOptions
+            IOptions<NotificationTemplates> templateOptions,
+            IMemoryCache memoryCache,
+            IOptions<CacheConfig> cacheOptions
         )
         {
             this._logger = logger;
+            this._memoryCache = memoryCache;
+            this._cacheConfig = cacheOptions.Value;
             this._emailConfig = emailOptions.Value;
             this._templates = templateOptions.Value;
         }
+
+        private const String cacheKey = "email_templates";
         public async Task<Boolean> SendAsync(Notification notification, IServiceScope serviceScope, IClientSession session)
         {
             ArgumentNullException.ThrowIfNull(_emailConfig);
@@ -41,11 +52,8 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
             if (notificationTemplate == null) throw new ArgumentException("Invalid Notification Template Id");
 
             // Title on [0] , Content on [1]
-            String[] templates = await Task.WhenAll(
-                System.IO.File.ReadAllTextAsync(notificationTemplate.TitlePath),
-                System.IO.File.ReadAllTextAsync(notificationTemplate.ContentPath)
-            );
-
+            String[] templates = await this.GetOrAddCachedTemplates(notificationTemplate);
+                            
             // Replace placeholders
             foreach (KeyValuePair<String, String> kv in notification.TitleMappings)
                 templates[0] = templates[0].Replace(kv.Key, kv.Value);
@@ -74,6 +82,26 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
                 throw new InvalidOperationException($"Failed to send email\nBody : {JsonHelper.SerializeObjectFormattedSafe(await response.Body.ReadAsStringAsync())}");
 
             return true;
+        }
+
+        private async Task<String[]> GetOrAddCachedTemplates(NotificationTemplate template)
+        {
+            String[] templates = null;
+            if (_memoryCache.TryGetValue(cacheKey, out String templatesData))
+            {
+                templates = JsonHelper.DeserializeObjectFormattedSafe<String[]>(templatesData);
+                if (templates != null && templates.Length == 2)
+                    return templates;
+            }
+
+            templates = await Task.WhenAll(
+                System.IO.File.ReadAllTextAsync(template.TitlePath),
+                System.IO.File.ReadAllTextAsync(template.ContentPath)
+            );
+
+            _memoryCache.Set(cacheKey, JsonHelper.SerializeObjectFormattedSafe(templates), TimeSpan.FromMinutes(_cacheConfig.TemplatesCacheTime));
+
+            return templates;
         }
     }
 }

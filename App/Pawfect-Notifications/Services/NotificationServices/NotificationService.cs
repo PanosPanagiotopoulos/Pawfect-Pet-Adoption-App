@@ -122,7 +122,7 @@ namespace Pawfect_Notifications.Services.NotificationServices
             NotificationLookup lookup = new NotificationLookup();
             lookup.Ids = updatedNotifications;
             lookup.Fields = fields;
-            lookup.Offset = 1;
+            lookup.Offset = 0;
             lookup.PageSize = updatedNotifications.Count;
 
             AuthContext censorContext = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();

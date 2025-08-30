@@ -24,13 +24,13 @@ using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {
-	[ApiController]
-	[Route("api/users")]
+    [ApiController]
+    [Route("api/users")]
     [RateLimit(RateLimitLevel.Moderate)]
     public class UserController : ControllerBase
-	{
-		private readonly IUserService _userService;
-		private readonly ILogger<UserController> _logger;
+    {
+        private readonly IUserService _userService;
+        private readonly ILogger<UserController> _logger;
         private readonly IQueryFactory _queryFactory;
         private readonly IBuilderFactory _builderFactory;
         private readonly ICensorFactory _censorFactory;
@@ -42,18 +42,18 @@ namespace Pawfect_API.Controllers
         private readonly CacheConfig _cacheConfig;
 
         public UserController
-		(
-			IUserService userService, ILogger<UserController> logger,
-			IQueryFactory queryFactory, IBuilderFactory builderFactory,
-			ICensorFactory censorFactory, AuthContextBuilder contextBuilder,
+        (
+            IUserService userService, ILogger<UserController> logger,
+            IQueryFactory queryFactory, IBuilderFactory builderFactory,
+            ICensorFactory censorFactory, AuthContextBuilder contextBuilder,
             IConventionService conventionService, IAuthorizationContentResolver authorizationContentResolver,
-            ClaimsExtractor claimsExtractor, IMemoryCache memoryCache, 
+            ClaimsExtractor claimsExtractor, IMemoryCache memoryCache,
             IOptions<CacheConfig> cacheOptions
 
         )
-		{
-			_userService = userService;
-			_logger = logger;
+        {
+            _userService = userService;
+            _logger = logger;
             _queryFactory = queryFactory;
             _builderFactory = builderFactory;
             _censorFactory = censorFactory;
@@ -65,12 +65,12 @@ namespace Pawfect_API.Controllers
             _cacheConfig = cacheOptions.Value;
         }
 
-		[HttpPost("query")]
-		[Authorize]
+        [HttpPost("query")]
+        [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryUsers([FromBody] UserLookup userLookup)
-		{
-			if (!ModelState.IsValid) return BadRequest(ModelState);
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             AuthContext context = _contextBuilder.OwnedFrom(userLookup).Build();
             List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. userLookup.Fields], context);
@@ -92,14 +92,14 @@ namespace Pawfect_API.Controllers
                 Items = models,
                 Count = await q.CountAsync()
             });
-		}
+        }
 
-		[HttpGet("{id}")]
-		[Authorize]
+        [HttpGet("{id}")]
+        [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> GetUser(String id, [FromQuery] List<String> fields)
-		{
-			if (!ModelState.IsValid) return BadRequest(ModelState);
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             UserLookup lookup = new UserLookup();
 
@@ -116,13 +116,13 @@ namespace Pawfect_API.Controllers
 
             lookup.Fields = censoredFields;
             User model = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-								.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+                                .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
                                 .FirstOrDefault();
 
             if (model == null) throw new NotFoundException("Shelter not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.Shelter));
 
             return Ok(model);
-		}
+        }
 
         [HttpGet("me")]
         [Authorize]
@@ -130,13 +130,15 @@ namespace Pawfect_API.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            if (fields == null || fields.Count == 0) return BadRequest();
+
             ClaimsPrincipal currentUser = _authorizationContentResolver.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(currentUser);
             if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
 
             User model = null;
 
-            String cacheKey = $"User_Profile_{userId}";
+            String cacheKey = $"User_Profile_{userId}_Fields_{String.Join('|', fields)}";
             if (_memoryCache.TryGetValue(cacheKey, out String profileData))
             {
                 model = JsonHelper.DeserializeObjectFormattedSafe<User>(profileData);

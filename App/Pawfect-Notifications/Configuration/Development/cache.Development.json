@@ -4,6 +4,7 @@
     "ShelterDataCacheTime": 20, // min
     "JWTTokensCacheTime": 30, // min
     "RequirementResultTime": 10, // min
-    "QueryCacheTime":  10
+    "QueryCacheTime": 10,
+    "TemplatesCacheTime":  3600 // min
   }
 }

@@ -28,8 +28,14 @@ namespace Pawfect_API.Builders
             CreateMap<Data.Entities.User, UserPersist>().ReverseMap();
 
             CreateMap<Data.Entities.User, UserUpdate>()
-            .ReverseMap()
-            .ForMember(dest => dest.Location, opt => opt.Ignore());
+                .ForMember(dest => dest.IsVerified, opt => opt.Ignore())
+                .ForMember(dest => dest.HasEmailVerified, opt => opt.Ignore())
+                .ForMember(dest => dest.HasPhoneVerified, opt => opt.Ignore())
+                .ReverseMap()
+                .ForMember(dest => dest.Location, opt => opt.Ignore())
+                .ForMember(dest => dest.IsVerified, opt => opt.Ignore())
+                .ForMember(dest => dest.HasEmailVerified, opt => opt.Ignore())
+                .ForMember(dest => dest.HasPhoneVerified, opt => opt.Ignore());
         }
 	}
 	public class UserBuilder : BaseBuilder<Models.User.User, Data.Entities.User>

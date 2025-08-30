@@ -86,7 +86,7 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
             AnimalTypeLookup lookup = new AnimalTypeLookup
             {
-                Offset = 1,
+                Offset = 0,
                 PageSize = 1,
                 Ids = new List<String> { id },
                 Fields = fields
