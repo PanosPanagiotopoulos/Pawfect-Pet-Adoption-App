@@ -6,13 +6,14 @@
 
     "VerificationEmailPlaceholders": {
       "TemplateId": "4E84F930-A93A-470F-9CFA-58AD31240DCF",
-      "FirstName": "{Firstname}",
+      "FirstName": "{FirstName}",
       "VerificationToken": "{VerificationToken}"
     },
     "ResetPasswordEmailPlaceholders": {
       "TemplateId": "529FADA1-9C2F-4F3B-A870-7337D2D154F4",
       "AdminName": "{AdminName}",
-      "ResetToken": "{ResetToken}"
+      "ResetToken": "{ResetToken}",
+      "FirstName": "{FirstName}"
     },
     "VerifyUserPlaceholders": {
       "TemplateId": "9E18EB46-89EE-40E4-9FC1-E324635F4186",

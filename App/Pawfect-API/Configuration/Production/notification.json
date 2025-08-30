@@ -2,7 +2,7 @@
   "Notifications": {
     "SharedSecret": "%{SharedNotificationApiSecret}%",
     "FromServiceName": "Pawfect-API",
-    "NotificationEventUrl": "http://pawfect-notifications-api:8081/api/notifications/persist/batch",
+    "NotificationEventUrl": "http://localhost:7201/api/notifications/persist/batch",
 
     "VerificationEmailPlaceholders": {
       "TemplateId": "4E84F930-A93A-470F-9CFA-58AD31240DCF",
@@ -12,7 +12,8 @@
     "ResetPasswordEmailPlaceholders": {
       "TemplateId": "529FADA1-9C2F-4F3B-A870-7337D2D154F4",
       "AdminName": "{AdminName}",
-      "ResetToken": "{ResetToken}"
+      "ResetToken": "{ResetToken}",
+      "FirstName": "{FirstName}"
     },
     "VerifyUserPlaceholders": {
       "TemplateId": "9E18EB46-89EE-40E4-9FC1-E324635F4186",

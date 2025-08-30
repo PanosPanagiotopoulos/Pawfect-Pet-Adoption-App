@@ -11,6 +11,7 @@ import { ErrorHandlerService } from 'src/app/common/services/error-handler.servi
 import { SnackbarService } from 'src/app/common/services/snackbar.service';
 import { SecureStorageService } from 'src/app/common/services/secure-storage.service';
 import { TranslationService } from 'src/app/common/services/translation.service';
+import { LoadingService } from 'src/app/common/services/loading.service';
 
 @Component({
   selector: 'app-login',
@@ -29,7 +30,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
     private readonly errorHandler: ErrorHandlerService,
     private readonly snackbarService: SnackbarService,
     private readonly secureStorageService: SecureStorageService,
-    private readonly translationService: TranslationService
+    private readonly translationService: TranslationService,
+    private readonly loadingService: LoadingService
   ) {
     super();
     this.loginForm = this.fb.group({
@@ -66,6 +68,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
     this.authService.loginWithGoogle(authCode).subscribe({
       next: (response: LoggedAccount) => {
         this.isLoading = false;
+        // Force stop any stuck loading states after Google login
+        this.loadingService.forceStopLoading();
 
         // Check verification status and route accordingly
         if (
@@ -85,6 +89,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
       },
       error: (error: HttpErrorResponse) => {
         this.isLoading = false;
+        // Force stop any stuck loading states after Google login error
+        this.loadingService.forceStopLoading();
         const errorDetails = this.errorHandler.handleAuthError(error);
         this.snackbarService.showError({
           message: errorDetails.message,
@@ -104,6 +110,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
       this.authService.login(email, password).subscribe({
         next: (response) => {
           this.isLoading = false;
+          // Force stop any stuck loading states after login
+          this.loadingService.forceStopLoading();
 
           // Check verification status and route accordingly
           if (
@@ -131,6 +139,8 @@ export class LoginComponent extends BaseComponent implements OnInit {
         },
         error: (error: HttpErrorResponse) => {
           this.isLoading = false;
+          // Force stop any stuck loading states after login error
+          this.loadingService.forceStopLoading();
           const errorDetails = this.errorHandler.handleAuthError(error);
           this.snackbarService.showError({
             message: errorDetails.message,

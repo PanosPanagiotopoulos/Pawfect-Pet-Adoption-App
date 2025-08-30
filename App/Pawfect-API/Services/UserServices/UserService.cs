@@ -466,7 +466,10 @@ namespace Pawfect_API.Services.UserServices
             // Δημιουργήστε ένα νέο token επιβεβαίωσης email.
             String token = Guid.NewGuid().ToString();
 
-            Data.Entities.User user = await _userRepository.FindAsync(user => user.Email == email, [nameof(Data.Entities.User.Id), nameof(Data.Entities.User.FullName)]);
+            Data.Entities.User user = await _userRepository.FindAsync(user => user.Email == email, [nameof(Data.Entities.User.Id), nameof(Data.Entities.User.FullName), nameof(Data.Entities.User.AuthProvider)]);
+
+			if (user.AuthProvider != AuthProvider.Local)
+				throw new ArgumentException("Cannot reset password of google user");
 
 			String firstName = UserDataHelper.GetFirstNameFormatted(user.FullName);
             Dictionary<String, String> titleMappings = new Dictionary<String, String>()

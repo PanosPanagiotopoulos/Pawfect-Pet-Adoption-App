@@ -136,16 +136,6 @@ namespace Pawfect_API.Controllers
             String userId = _claimsExtractor.CurrentUserId(currentUser);
             if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
 
-            User model = null;
-
-            String cacheKey = $"User_Profile_{userId}_Fields_{String.Join('|', fields)}";
-            if (_memoryCache.TryGetValue(cacheKey, out String profileData))
-            {
-                model = JsonHelper.DeserializeObjectFormattedSafe<User>(profileData);
-                if (model != null)
-                    return Ok(model);
-            }
-
             UserLookup lookup = new UserLookup();
             // Προσθήκη βασικών παραμέτρων αναζήτησης για το ερώτημα μέσω των αναγνωριστικών
             lookup.Offset = 0;
@@ -159,13 +149,11 @@ namespace Pawfect_API.Controllers
             if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
 
             lookup.Fields = censoredFields;
-            model = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
+            User model = (await _builderFactory.Builder<UserBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
                                 .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
                                 .FirstOrDefault();
 
             if (model == null) throw new NotFoundException("User not found", JsonHelper.SerializeObjectFormatted(lookup), typeof(Data.Entities.User));
-
-            _memoryCache.Set(cacheKey, JsonHelper.SerializeObjectFormattedSafe(model), TimeSpan.FromMinutes(_cacheConfig.QueryCacheTime));
 
             return Ok(model);
         }

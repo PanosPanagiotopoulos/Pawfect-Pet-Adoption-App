@@ -251,13 +251,61 @@ export class ProfileComponent
     ];
   }
 
-  private setupMapUrls(user: User): void {
-    if (user.location) {
+  private getUpdateFields(): string[] {
+    // Fields needed for update operations to get complete data back
+    return [
+      nameof<User>((x) => x.id),
+      nameof<User>((x) => x.fullName),
+      nameof<User>((x) => x.email),
+      nameof<User>((x) => x.phone),
+      nameof<User>((x) => x.location),
+      nameof<User>((x) => x.roles),
+      nameof<User>((x) => x.isVerified),
+      [nameof<User>((x) => x.profilePhoto), nameof<File>((x) => x.id)].join(
+        '.'
+      ),
+      [
+        nameof<User>((x) => x.profilePhoto),
+        nameof<File>((x) => x.sourceUrl),
+      ].join('.'),
+    ];
+  }
+
+  private getShelterUpdateFields(): string[] {
+    // Fields needed for shelter update operations to get complete data back
+    return [
+      nameof<Shelter>((x) => x.id),
+      nameof<Shelter>((x) => x.shelterName),
+      nameof<Shelter>((x) => x.description),
+      nameof<Shelter>((x) => x.website),
+      nameof<Shelter>((x) => x.socialMedia),
+      nameof<Shelter>((x) => x.operatingHours),
+      nameof<Shelter>((x) => x.verificationStatus),
+      nameof<Shelter>((x) => x.verifiedBy),
+      [nameof<Shelter>((x) => x.user), nameof<User>((x) => x.id)].join('.'),
+      [nameof<Shelter>((x) => x.user), nameof<User>((x) => x.location)].join(
+        '.'
+      ),
+      [
+        nameof<Shelter>((x) => x.user),
+        nameof<User>((x) => x.profilePhoto),
+        nameof<File>((x) => x.id),
+      ].join('.'),
+      [
+        nameof<Shelter>((x) => x.user),
+        nameof<User>((x) => x.profilePhoto),
+        nameof<File>((x) => x.sourceUrl),
+      ].join('.'),
+    ];
+  }
+
+  private setupMapUrls(user: User | null): void {
+    if (user?.location) {
       this.personalMapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
         this.getGoogleMapsEmbedUrl(user.location)
       );
     }
-    if (user.shelter?.user?.location) {
+    if (user?.shelter?.user?.location) {
       this.shelterMapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
         this.getGoogleMapsEmbedUrl(user.shelter.user.location)
       );
@@ -441,6 +489,20 @@ export class ProfileComponent
     });
   }
 
+  private initializeOperatingHoursDisplay(): void {
+    if (!this.profileUser?.shelter) return;
+
+    // Reset operating hours display state
+    this.days.forEach((day) => {
+      this.closedDays[day] = false;
+      this.openTimes[day] = '';
+      this.closeTimes[day] = '';
+      this.timeErrors[day] = null;
+    });
+
+    this.operatingHoursModified = false;
+  }
+
   private createEditForm(): void {
     if (!this.profileUser) return;
 
@@ -609,7 +671,9 @@ export class ProfileComponent
         };
 
         promises.push(
-          this.userService.update(userUpdate, this.userFields).toPromise()
+          this.userService
+            .update(userUpdate, this.getUpdateFields())
+            .toPromise()
         );
       }
 
@@ -645,7 +709,7 @@ export class ProfileComponent
 
         promises.push(
           this.shelterService
-            .persist(shelterPersist, this.shelterFields)
+            .persist(shelterPersist, this.getShelterUpdateFields())
             .toPromise()
         );
       }
@@ -661,53 +725,36 @@ export class ProfileComponent
         if (profilePhotoId || shouldDeletePhoto) {
           const updatedUser = results[resultIndex++];
           if (updatedUser) {
-            this.profileUser.profilePhoto = updatedUser.profilePhoto;
-          } else if (shouldDeletePhoto) {
-            // If deletion was requested, clear the photo
-            this.profileUser.profilePhoto = undefined;
-          } else if (profilePhotoId) {
-            // If new photo was uploaded, update with the new ID
-            this.profileUser.profilePhoto = {
-              ...this.profileUser.profilePhoto,
-              id: profilePhotoId,
-              sourceUrl:
-                this.localProfilePhotoPreview ||
-                this.profileUser.profilePhoto?.sourceUrl ||
-                'assets/placeholder.jpg',
+            // Update user data with response from server
+            this.profileUser = {
+              ...this.profileUser,
+              ...updatedUser,
+              // Preserve nested objects that might not be fully returned
+              location: updatedUser.location || this.profileUser.location,
+              shelter: this.profileUser.shelter, // Keep existing shelter data
             };
+
+            // Update current user if this is own profile
+            if (this.isOwnProfile) {
+              this.currentUser = this.profileUser;
+            }
           }
         }
 
         // Handle shelter update result
         if (
           isShelter &&
-          this.profileUser.shelter &&
+          this.profileUser?.shelter &&
           this.editForm.get('shelter')
         ) {
           const updatedShelter = results[resultIndex++];
-          if (updatedShelter && this.profileUser.shelter) {
-            // Update local shelter data immediately with form values
-            const shelterForm = this.editForm.get('shelter');
-            const socialMediaForm = shelterForm?.get('socialMedia');
-            const operatingHoursForm = shelterForm?.get('operatingHours');
-
+          if (updatedShelter && this.profileUser?.shelter) {
+            // Update shelter data with response from server
             this.profileUser.shelter = {
               ...this.profileUser.shelter,
-              shelterName:
-                shelterForm?.get('shelterName')?.value ||
-                this.profileUser.shelter.shelterName,
-              description:
-                shelterForm?.get('description')?.value ||
-                this.profileUser.shelter.description,
-              website:
-                shelterForm?.get('website')?.value ||
-                this.profileUser.shelter.website,
-              socialMedia:
-                this.getSocialMediaPayload(socialMediaForm?.value) ||
-                this.profileUser.shelter.socialMedia,
-              operatingHours:
-                this.getOperatingHoursPayload(operatingHoursForm?.value) ||
-                this.profileUser.shelter.operatingHours,
+              ...updatedShelter,
+              // Ensure user reference is maintained
+              user: updatedShelter.user || this.profileUser.shelter.user,
             };
           }
         }
@@ -724,9 +771,17 @@ export class ProfileComponent
       this.editForm = null;
       // Clear local preview after successful save
       this.clearLocalProfilePhotoPreview();
+
+      // Update map URLs with the updated profile data
       this.setupMapUrls(this.profileUser);
 
-      window.location.reload();
+      // Re-initialize operating hours display with updated data
+      if (this.profileUser?.shelter) {
+        this.initializeOperatingHoursDisplay();
+      }
+
+      // Force change detection to update the UI
+      this.cdr.detectChanges();
     } catch (error) {
       console.error('Error saving profile changes:', error);
       this.snackbarService.showError({

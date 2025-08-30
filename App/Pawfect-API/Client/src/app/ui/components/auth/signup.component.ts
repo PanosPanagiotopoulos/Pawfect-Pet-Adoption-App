@@ -37,6 +37,7 @@ import { AccountDetailsComponent } from './sign-up-steps/account-details/account
 import { ShelterInfoComponent } from './sign-up-steps/shelter-info/shelter-info.component';
 import { UserAvailabilityService } from 'src/app/services/user-availability.service';
 import { SnackbarService } from 'src/app/common/services/snackbar.service';
+import { LoadingService } from 'src/app/common/services/loading.service';
 
 interface LocationFormGroup extends FormGroup {
   controls: {
@@ -183,7 +184,8 @@ export class SignupComponent
     private readonly secureStorageService: SecureStorageService,
     public readonly translationService: TranslationService,
     private readonly snackbarService: SnackbarService,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private readonly loadingService: LoadingService
   ) {
     super();
     this.initializeForms();
@@ -751,11 +753,15 @@ export class SignupComponent
         this.hasUnsavedChangesFlag = true; 
   
         this.isExternalProviderLoading = false;
+        // Force stop any stuck loading states after Google signup
+        this.loadingService.forceStopLoading();
         this.error = undefined;
       },
       error: (error: HttpErrorResponse) => {
         console.error('Google signup error:', error);
         this.isExternalProviderLoading = false;
+        // Force stop any stuck loading states after Google signup error
+        this.loadingService.forceStopLoading();
         this.error = this.errorHandler.handleAuthError(error);
       },
     });

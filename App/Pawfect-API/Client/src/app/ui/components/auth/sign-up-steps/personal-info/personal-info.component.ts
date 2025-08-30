@@ -28,6 +28,7 @@ import { UserAvailabilityResult } from 'src/app/models/user-availability/user-av
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
 import { CustomValidators } from '../../validators/custom.validators';
+import { LoadingService } from 'src/app/common/services/loading.service';
 
 interface ValidationError {
   field: string;
@@ -493,7 +494,8 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
   constructor(
     private cdr: ChangeDetectorRef,
     private translationService: TranslationService,
-    private userAvailabilityService: UserAvailabilityService
+    private userAvailabilityService: UserAvailabilityService,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit(): void {
@@ -1125,6 +1127,8 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
               this.revertGoogleSignupProcess();
             }
 
+            // Force stop any stuck loading states after Google data availability check
+            this.loadingService.forceStopLoading();
             this.cdr.markForCheck();
           },
           error: (error) => {
@@ -1133,6 +1137,8 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
             // On error, revert Google signup process to prevent issues
             this.revertGoogleSignupProcess();
             
+            // Force stop any stuck loading states after Google data availability check error
+            this.loadingService.forceStopLoading();
             this.cdr.markForCheck();
           }
         });
