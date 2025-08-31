@@ -52,24 +52,42 @@ import { FormGuard } from 'src/app/common/guards/form.guard';
 import { ShelterVerifiedComponent } from './shelter-verified.component';
 
 @NgModule({
-  declarations: [LoginComponent, SignupComponent, VerifiedComponent, ShelterVerifiedComponent],
+  declarations: [
+    LoginComponent,
+    SignupComponent,
+    VerifiedComponent,
+    ShelterVerifiedComponent,
+  ],
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatDialogModule,
     RouterModule.forChild([
-      { path: 'login', component: LoginComponent, canActivate: [LoggedInGuard] },
-      { path: 'sign-up', component: SignupComponent, canActivate: [LoggedInGuard], canDeactivate: [FormGuard] },
+      {
+        path: 'login',
+        component: LoginComponent,
+        canActivate: [LoggedInGuard],
+      },
+      {
+        path: 'sign-up',
+        component: SignupComponent,
+        canActivate: [LoggedInGuard],
+        canDeactivate: [FormGuard],
+      },
       { path: 'verified/user', component: VerifiedComponent },
       { path: 'verified/shelter', component: ShelterVerifiedComponent },
       { path: 'google/callback-page', component: GoogleCallbackComponent },
       {
         path: 'reset-password-request',
         component: ResetPasswordRequestComponent,
-        canActivate: [LoggedInGuard]
+        canActivate: [LoggedInGuard],
       },
-      { path: 'reset-password', component: ResetPasswordComponent, canActivate: [LoggedInGuard] },
+      {
+        path: 'reset-password',
+        component: ResetPasswordComponent,
+        canActivate: [LoggedInGuard],
+      },
     ]),
     FormInputComponent,
     TextAreaInputComponent,
@@ -101,7 +119,12 @@ import { ShelterVerifiedComponent } from './shelter-verified.component';
       lucideTriangle,
     }),
   ],
-  exports: [LoginComponent, SignupComponent, VerifiedComponent, ShelterVerifiedComponent],
+  exports: [
+    LoginComponent,
+    SignupComponent,
+    VerifiedComponent,
+    ShelterVerifiedComponent,
+  ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AuthModule {}

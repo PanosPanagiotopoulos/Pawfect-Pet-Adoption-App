@@ -266,7 +266,7 @@ export class SearchComponent
           nameof<Shelter>((x) => x.shelterName),
         ].join('.'),
       ],
-      sortBy: [nameof<Animal>(x => x.createdAt)],
+      sortBy: [nameof<Animal>((x) => x.createdAt)],
       sortDescending: false,
     };
 

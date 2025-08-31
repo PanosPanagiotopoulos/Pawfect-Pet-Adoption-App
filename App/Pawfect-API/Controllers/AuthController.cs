@@ -282,7 +282,7 @@ namespace Pawfect_API.Controllers
             // Retrieve user from database for additional details
             Data.Entities.User user = await _userService.RetrieveUserAsync(userId, null);
             if (user == null)
-                throw new NotFoundException("Authorized user not found");
+                throw new ForbiddenException("Authorized user not found");
 
             // Get roles and permissions
             List<String> userRoles = user.Roles?.Select(roleEnum => roleEnum.ToString()).ToList() ?? new List<String>();

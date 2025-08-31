@@ -437,14 +437,14 @@
       "SEARCH_BUTTON": "Find My Match",
       "SEARCHING": "Finding your perfect match...",
       "SUGGESTIONS": {
-        "CHILD_FRIENDLY": "Family Guardian",
-        "CHILD_FRIENDLY_QUERY": "A gentle, patient companion who treasures children and family moments",
-        "SMALL_SIZE": "Apartment Angel",
-        "SMALL_SIZE_QUERY": "A perfectly-sized companion ideal for cozy living spaces",
-        "ACTIVE": "Adventure Buddy",
-        "ACTIVE_QUERY": "An energetic companion ready for outdoor adventures and active lifestyle",
-        "QUIET": "Peaceful Soul",
-        "QUIET_QUERY": "A serene, calm companion perfect for tranquil moments"
+        "CHILD_FRIENDLY": "Child Friendly Dogs",
+        "CHILD_FRIENDLY_QUERY": "gentle child friendly dog good with kids",
+        "SMALL_SIZE": "Small Apartment Pets",
+        "SMALL_SIZE_QUERY": "small cute cat perfect for apartments",
+        "ACTIVE": "Playful & Energetic",
+        "ACTIVE_QUERY": "playful energetic buddy loves exercise",
+        "QUIET": "Calm & Gentle",
+        "QUIET_QUERY": "calm gentle companion quiet peaceful"
       },
       "ERRORS": {
         "SEARCH_ERROR_TITLE": "Search Error",

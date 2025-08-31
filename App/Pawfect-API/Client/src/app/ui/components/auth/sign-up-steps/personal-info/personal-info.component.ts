@@ -372,12 +372,12 @@ interface AvailabilityStatus {
         <button
           type="button"
           (click)="onNext()"
-          [disabled]="!form.valid || hasAvailabilityErrors() || isPhotoUploading()"
+          [disabled]="!form.valid || hasAvailabilityErrors() || isPhotoUploading() || isAvailabilityChecking()"
           class="w-full sm:w-auto px-6 py-3 sm:py-2 bg-gradient-to-r from-primary-600 to-accent-600 text-white rounded-lg
                  hover:shadow-lg hover:shadow-primary-500/20 transition-all duration-300 
                  transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
-          <ng-icon *ngIf="isPhotoUploading()" name="lucideLoader" [size]="'20'" class="animate-spin mr-2"></ng-icon>
+          <ng-icon *ngIf="isPhotoUploading() || isAvailabilityChecking()" name="lucideLoader" [size]="'20'" class="animate-spin mr-2"></ng-icon>
           {{ 'APP.AUTH.SIGNUP.PERSONAL_INFO.NEXT' | translate }}
         </button>
       </div>
@@ -541,6 +541,10 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
     );
   }
 
+  isAvailabilityChecking(): boolean {
+    return this.emailAvailability.isChecking || this.phoneAvailability.isChecking;
+  }
+
   isPhotoUploading(): boolean {
     // Check if profile photo is currently uploading
     const isUploading = this.isPhotoLoading || this.hasUploadingFiles() || this.isFileActuallyUploading();
@@ -638,8 +642,8 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
     this.validationErrors = [];
     this.showErrorSummary = false;
 
-    // Check if profile photo is still uploading
-    if (this.isPhotoUploading()) {
+    // Check if profile photo is still uploading or availability is being checked
+    if (this.isPhotoUploading() || this.isAvailabilityChecking()) {
       return;
     }
 
@@ -660,7 +664,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
       // Only trigger if the value actually changed
       if (phone !== this.lastPhoneValue) {
         this.lastPhoneValue = phone;
-        this.phoneAvailability = { isChecking: false }; // Reset status first
         
         if (phone && phone.trim().length > 0) {
           const countryCode = this.form.get('countryCode')?.value || '+30';
@@ -671,7 +674,7 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
             this.phoneSubject.next(fullPhone);
           }
         } else {
-          // Reset availability status if phone is empty
+          // Only reset availability status if phone is empty
           this.phoneAvailability = { isChecking: false };
           this.cdr.markForCheck();
         }
@@ -992,10 +995,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
       .subscribe((email) => {
         if (email && this.isValidEmail(email)) {
           this.checkEmailAvailability(email);
-        } else {
-          // Reset availability status if email is invalid or empty
-          this.emailAvailability = { isChecking: false };
-          this.cdr.markForCheck();
         }
       });
 
@@ -1009,10 +1008,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
       .subscribe((phone) => {
         if (phone && this.isValidPhoneForAvailabilityCheck(phone)) {
           this.checkPhoneAvailability(phone);
-        } else {
-          // Reset availability status if phone is invalid or empty
-          this.phoneAvailability = { isChecking: false };
-          this.cdr.markForCheck();
         }
       });
 
@@ -1023,9 +1018,11 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
         if (!this.form.get('email')?.disabled) {
           if (email !== this.lastEmailValue) {
             this.lastEmailValue = email;
-            this.emailAvailability = { isChecking: false };
             if (email && email.trim().length > 0) {
               this.emailSubject.next(email.trim());
+            } else {
+              // Only reset availability status if email is empty
+              this.emailAvailability = { isChecking: false };
             }
           }
         }
@@ -1039,7 +1036,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
         if (!this.form.get('phoneNumber')?.disabled) {
           if (phoneNumber !== this.lastPhoneValue) {
             this.lastPhoneValue = phoneNumber;
-            this.phoneAvailability = { isChecking: false };
             
             if (phoneNumber && phoneNumber.trim().length > 0) {
               const countryCode = this.form.get('countryCode')?.value || '+30';
@@ -1048,6 +1044,9 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
               if (this.isValidPhoneForAvailabilityCheck(fullPhone)) {
                 this.phoneSubject.next(fullPhone);
               }
+            } else {
+              // Only reset availability status if phone is empty
+              this.phoneAvailability = { isChecking: false };
             }
           }
         }
@@ -1065,7 +1064,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
           if (this.isValidPhoneForAvailabilityCheck(fullPhone)) {
             // Reset last phone value to trigger new check
             this.lastPhoneValue = phoneNumber;
-            this.phoneAvailability = { isChecking: false };
             this.phoneSubject.next(fullPhone);
           }
         }

@@ -71,8 +71,8 @@ public class Program
         using (IServiceScope scope = app.Services.CreateScope())
 		{
 			//if (args.Length == 0)
-				if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
-            {
+			if (args.Length == 1 && args[0].Equals("seeddata", StringComparison.OrdinalIgnoreCase))
+			{
                 try
                 {
                     Seeder seeder = scope.ServiceProvider.GetRequiredService<Seeder>();

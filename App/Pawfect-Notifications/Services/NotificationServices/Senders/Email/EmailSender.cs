@@ -39,7 +39,7 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
             this._templates = templateOptions.Value;
         }
 
-        private const String cacheKey = "email_templates";
+        private const String cacheKeyPrefix = "email_templates_{templateId}";
         public async Task<Boolean> SendAsync(Notification notification, IServiceScope serviceScope, IClientSession session)
         {
             ArgumentNullException.ThrowIfNull(_emailConfig);
@@ -87,6 +87,8 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
         private async Task<String[]> GetOrAddCachedTemplates(NotificationTemplate template)
         {
             String[] templates = null;
+            String cacheKey = cacheKeyPrefix.Replace("{templateId}", template.TemplateId.ToString());
+
             if (_memoryCache.TryGetValue(cacheKey, out String templatesData))
             {
                 templates = JsonHelper.DeserializeObjectFormattedSafe<String[]>(templatesData);

@@ -20,8 +20,8 @@
       "Dims": 1024,
       "NumCandidates": 1000,
       "Topk": 100,
-      "VectorScoreThreshold": 0.886,
-      "TextScoreThreshold": 13.5,
+      "VectorScoreThreshold": 0.84,
+      "TextScoreThreshold": 12.5,
       "SynonymsBatch": [
         {
           "Category": "dog_breeds",
@@ -566,22 +566,22 @@
       },
       "SearchSettings": {
         "CombinationSettings": {
-          "VectorWeight": 0.4,
-          "SemanticWeight": 0.6
+          "VectorWeight": 0.5,
+          "SemanticWeight": 0.5
         },
         "BoostSettings": {
-          "ExactPhraseBoost": 35.0,
+          "ExactPhraseBoost": 45.0,
           "PhraseWithSlopBoost": 28.0,
-          "SemanticTextBoost": 35.0,
-          "SynonymBoost": 6.0,
-          "DescriptionBoost": 18.0,
-          "FuzzySearchBoost": 15.0,
-          "HealthTermsBoost": 32.0,
-          "AutocompleteBoost": 1.5,
-          "GenderExactBoost": 21.0,
-          "GenderPhraseBoost": 12.0,
-          "NumericRangeBoost": 22.0,
-          "WeightRangeBoost": 22.0
+          "SemanticTextBoost": 42.0,
+          "SynonymBoost": 20.0,
+          "DescriptionBoost": 25.0,
+          "FuzzySearchBoost": 20.0,
+          "HealthTermsBoost": 25.0,
+          "AutocompleteBoost": 3.5,
+          "GenderExactBoost": 40.0,
+          "GenderPhraseBoost": 40.0,
+          "NumericRangeBoost": 40.0,
+          "WeightRangeBoost": 40.0
         },
         "ThresholdSettings": {
           "DynamicThresholds": true,

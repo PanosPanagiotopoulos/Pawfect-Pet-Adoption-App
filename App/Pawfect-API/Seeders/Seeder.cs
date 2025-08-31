@@ -130,125 +130,37 @@ public class Seeder
 
     private async Task SeedFiles()
     {
-        // Get all animals, shelters, and users
-        IMongoCollection<Animal> animalsCollection = this._dbService.GetCollection<Animal>();
-        IMongoCollection<Shelter> sheltersCollection = this._dbService.GetCollection<Shelter>();
-        IMongoCollection<User> usersCollection = this._dbService.GetCollection<User>();
-        IMongoCollection<Pawfect_API.Data.Entities.File> filesCollection = this._dbService.GetCollection<Pawfect_API.Data.Entities.File>();
+        // Collections
+        var animalsCollection = _dbService.GetCollection<Animal>();
+        var sheltersCollection = _dbService.GetCollection<Shelter>();
+        var usersCollection = _dbService.GetCollection<User>();
+        var filesCollection = _dbService.GetCollection<Pawfect_API.Data.Entities.File>();
 
-        // Seed animal photos
-        List<Animal> animals = animalsCollection.Find(FilterDefinition<Animal>.Empty).ToList();
+        var animals = animalsCollection.Find(FilterDefinition<Animal>.Empty).ToList();
         if (animals.Count == 0)
             throw new Exception("No animals found to assign photos.");
 
-        // Get shelters and create a lookup for UserId by ShelterId
-        List<Shelter> shelters = sheltersCollection.Find(FilterDefinition<Shelter>.Empty).ToList();
-        Dictionary<String, String> shelterUserIds = shelters.ToDictionary(s => s.Id, s => s.UserId);
+        var shelters = sheltersCollection.Find(FilterDefinition<Shelter>.Empty).ToList();
+        var shelterUserIds = shelters.ToDictionary(s => s.Id, s => s.UserId);
 
-        // Get animal files from the directory
-        String animalFilesDirectory = Path.Combine("Seeders/TestData", "Files", "Animals");
-        String[] animalFilePaths = Directory.GetFiles(animalFilesDirectory);
+        var random = new Random();
+        var fileEntities = new List<Pawfect_API.Data.Entities.File>();
 
-        List<Pawfect_API.Data.Entities.File> fileEntities = new List<Pawfect_API.Data.Entities.File>();
-        Dictionary<String, List<String>> animalPhotoIds = new Dictionary<String, List<String>>();
-        Random random = new Random();
+        string animalFilesDirectory = Path.Combine("Seeders/TestData", "Files", "Animals");
+        string[] animalFilePaths = Directory.GetFiles(animalFilesDirectory);
 
-        HashSet<String> uploadedFiles = new HashSet<String>();
-        foreach (Animal animal in animals)
+        var uploadedAnimalFiles = new List<Pawfect_API.Data.Entities.File>();
+
+        foreach (string filePath in animalFilePaths)
         {
-            if (!shelterUserIds.TryGetValue(animal.ShelterId, out String ownerId))
-                throw new Exception($"No shelter found for animal {animal.Id} with ShelterId {animal.ShelterId}.");
+            string fileName = Path.GetFileName(filePath);
+            string fileId = ObjectId.GenerateNewId().ToString();
+            string extension = Path.GetExtension(fileName).ToLowerInvariant();
+            string mimeType = _conventionService.ToMimeType(extension);
+            string fileType = _conventionService.ToFileType(extension).ToString();
 
-            List<String> photoIds = new List<String>();
-            for (int i = 0; i < 2; i++)
-            {
-                // Select a random file
-                String filePath = animalFilePaths[random.Next(animalFilePaths.Length)];
-                String fileName = Path.GetFileName(filePath);
-                String fileId = ObjectId.GenerateNewId().ToString();
-                String extension = Path.GetExtension(fileName).ToLowerInvariant();
-                String mimeType = _conventionService.ToMimeType(extension);
-                String fileType = _conventionService.ToFileType(extension).ToString();
-
-                // Read file content into memory once
-                byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-
-                // Create an IFormFile using MemoryStream
-                using MemoryStream memoryStream = new MemoryStream(fileBytes);
-                FormFile formFile = new FormFile(memoryStream, 0, fileBytes.Length, null, fileName)
-                {
-                    Headers = new HeaderDictionary(),
-                    ContentType = mimeType
-                };
-
-                // Construct the AWS key and upload the file
-                String key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
-                String sourceUrl = null;
-                if (!uploadedFiles.Contains(fileName))
-                {
-                    sourceUrl = await _awsService.UploadAsync(formFile, key);
-                }
-                else sourceUrl = await _awsService.GetAsync(key);
-
-                    uploadedFiles.Add(fileName);
-                
-                // Create the File entity
-                Pawfect_API.Data.Entities.File fileEntity = new Pawfect_API.Data.Entities.File
-                {
-                    Id = fileId,
-                    Filename = fileName,
-                    Size = (Double)fileBytes.Length, // Use fileBytes.Length instead of stream.Length
-                    OwnerId = ownerId,
-                    MimeType = mimeType,
-                    FileType = fileType,
-                    SourceUrl = sourceUrl,
-                    AccessType = FileAccessType.Public,
-                    ContextId = null,
-                    ContextType = null,
-                    AwsKey = key,
-                    FileSaveStatus = FileSaveStatus.Permanent,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                fileEntities.Add(fileEntity);
-                photoIds.Add(fileId);
-            }
-
-            animalPhotoIds[animal.Id] = photoIds;
-        }
-
-        // Seed user profile pictures
-        List<User> users = usersCollection.Find(FilterDefinition<User>.Empty).ToList();
-        if (users.Count < 5)
-            throw new Exception($"Not enough users in the database. Need at least 5, found {users.Count}.");
-
-        // Get user profile picture files from the directory
-        String userFilesDirectory = Path.Combine("Seeders/TestData", "Files", "UserProfilePictures");
-        String[] userFilePaths = Directory.GetFiles(userFilesDirectory);
-        if (userFilePaths.Length < 5)
-            throw new Exception($"Not enough profile pictures in {userFilesDirectory}. Need at least 5, found {userFilePaths.Length}.");
-
-        // Select 5 random users
-        List<User> selectedUsers = [.. users.OrderBy(x => random.Next()).Take(5)];
-        int userFileIndex = 0;
-
-        foreach (User user in selectedUsers)
-        {
-            // Cycle through files if we run out
-            String filePath = userFilePaths[userFileIndex % userFilePaths.Length];
-            userFileIndex++;
-
-            String fileName = Path.GetFileName(filePath);
-            String fileId = ObjectId.GenerateNewId().ToString();
-            String extension = Path.GetExtension(fileName).ToLowerInvariant();
-            String mimeType = _conventionService.ToMimeType(extension);
-            String fileType = _conventionService.ToFileType(extension).ToString();
-
-            // Read file content into memory once
             byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
 
-            // Create an IFormFile using MemoryStream
             using MemoryStream memoryStream = new MemoryStream(fileBytes);
             FormFile formFile = new FormFile(memoryStream, 0, fileBytes.Length, null, fileName)
             {
@@ -256,16 +168,91 @@ public class Seeder
                 ContentType = mimeType
             };
 
-            // Construct the AWS key and upload the file
-            String key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
-            String sourceUrl = await _awsService.UploadAsync(formFile, key);
+            string key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
+            string sourceUrl = await _awsService.UploadAsync(formFile, key);
 
-            // Create the File entity for the user profile picture
-            Pawfect_API.Data.Entities.File fileEntity = new Pawfect_API.Data.Entities.File
+            var fileEntity = new Pawfect_API.Data.Entities.File
             {
                 Id = fileId,
                 Filename = fileName,
-                Size = (Double)fileBytes.Length, // Use fileBytes.Length instead of stream.Length
+                Size = fileBytes.Length,
+                OwnerId = null, 
+                MimeType = mimeType,
+                FileType = fileType,
+                SourceUrl = sourceUrl,
+                AwsKey = key,
+                AccessType = FileAccessType.Public,
+                ContextId = null,
+                ContextType = null,
+                FileSaveStatus = FileSaveStatus.Permanent,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            uploadedAnimalFiles.Add(fileEntity);
+        }
+
+        fileEntities.AddRange(uploadedAnimalFiles);
+
+        var animalPhotoIds = new Dictionary<string, List<string>>();
+
+        foreach (var animal in animals)
+        {
+            if (!shelterUserIds.TryGetValue(animal.ShelterId, out string ownerId))
+                throw new Exception($"No shelter found for animal {animal.Id} with ShelterId {animal.ShelterId}.");
+
+            // Pick 2 random photos per animal
+            var photos = uploadedAnimalFiles.OrderBy(_ => random.Next()).Take(2).ToList();
+
+            foreach (var photo in photos)
+            {
+                // update OwnerId only when assigned
+                photo.OwnerId ??= ownerId;
+            }
+
+            animalPhotoIds[animal.Id] = photos.Select(p => p.Id).ToList();
+        }
+
+        var users = usersCollection.Find(FilterDefinition<User>.Empty).ToList();
+        if (users.Count < 5)
+            throw new Exception($"Not enough users in the database. Need at least 5, found {users.Count}.");
+
+        string userFilesDirectory = Path.Combine("Seeders/TestData", "Files", "UserProfilePictures");
+        string[] userFilePaths = Directory.GetFiles(userFilesDirectory);
+        if (userFilePaths.Length < 5)
+            throw new Exception($"Not enough profile pictures in {userFilesDirectory}. Need at least 5, found {userFilePaths.Length}.");
+
+        var selectedUsers = users.OrderBy(x => random.Next()).Take(5).ToList();
+        int userFileIndex = 0;
+
+        foreach (var user in selectedUsers)
+        {
+            string filePath = userFilePaths[userFileIndex % userFilePaths.Length];
+            userFileIndex++;
+
+            string fileName = Path.GetFileName(filePath);
+            string fileId = ObjectId.GenerateNewId().ToString();
+            string extension = Path.GetExtension(fileName).ToLowerInvariant();
+            string mimeType = _conventionService.ToMimeType(extension);
+            string fileType = _conventionService.ToFileType(extension).ToString();
+
+            byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+            using MemoryStream memoryStream = new MemoryStream(fileBytes);
+            FormFile formFile = new FormFile(memoryStream, 0, fileBytes.Length, null, fileName)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = mimeType
+            };
+
+            string key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
+            string sourceUrl = await _awsService.UploadAsync(formFile, key);
+
+            var fileEntity = new Pawfect_API.Data.Entities.File
+            {
+                Id = fileId,
+                Filename = fileName,
+                Size = fileBytes.Length,
                 OwnerId = user.Id,
                 MimeType = mimeType,
                 FileType = fileType,
@@ -281,24 +268,21 @@ public class Seeder
 
             fileEntities.Add(fileEntity);
 
-            // Update the user's profile picture reference
-            UpdateDefinition<User> update = Builders<User>.Update.Set(u => u.ProfilePhotoId, fileId);
+            var update = Builders<User>.Update.Set(u => u.ProfilePhotoId, fileId);
             await usersCollection.UpdateOneAsync(u => u.Id == user.Id, update);
         }
 
-        // Insert all file entities into the database
+        // 🔹 Step 4: Save everything
         if (fileEntities.Any())
-        {
             await filesCollection.InsertManyAsync(fileEntities);
-        }
 
-        // Update animals with their photo IDs
-        foreach (KeyValuePair<String, List<String>> animal in animalPhotoIds)
+        foreach (var animal in animalPhotoIds)
         {
-            UpdateDefinition<Animal> update = Builders<Animal>.Update.Set(a => a.PhotosIds, animal.Value);
+            var update = Builders<Animal>.Update.Set(a => a.PhotosIds, animal.Value);
             await animalsCollection.UpdateOneAsync(a => a.Id == animal.Key, update);
         }
     }
+
     private async Task SeedAnimals()
     {
         IMongoCollection<Animal> animalsCollection = this._dbService.GetCollection<Animal>();
