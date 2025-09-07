@@ -75,6 +75,23 @@ App/Pawfect-Notifications/Configuration/Development/environment.Development.json
 App/Pawfect-Notifications/Configuration/Production/environment.json
 App/Pawfect-Notifications/logs/
 
+App/Pawfect-Messenger/bin/
+App/Pawfect-Messenger/obj/
+App/Pawfect-Messenger/*.dll
+App/Pawfect-Messenger/*.exe
+App/Pawfect-Messenger/*.pdb
+App/Pawfect-Messenger/*.cache
+App/Pawfect-Messenger/*.pyo
+App/Pawfect-Messenger/*.pyc
+App/Pawfect-Messenger/*.pid
+App/Pawfect-Messenger/*.manifest
+App/Pawfect-Messenger/*.nupkg
+App/Pawfect-Messenger/*.local
+App/Pawfect-Messenger/*.config
+App/Pawfect-Messenger/Configuration/Development/environment.Development.json
+App/Pawfect-Messenger/Configuration/Production/environment.json
+App/Pawfect-Messenger/logs/
+
     
 # Windows & OS Specific Files
 Thumbs.db
@@ -103,3 +120,16 @@ App/Pawfect-API/Client/*.txt
 App/Pawfect-API/*.txt
 App/Pawfect-Notifications/*.txt
 ~$*
+
+
+# Ignore specific file types in root directory
+/*.txt
+/*.pdf
+/*.docx
+/*.zip
+
+# Ignore specific file types in /App directory
+/App/*.txt
+/App/*.pdf
+/App/*.docx
+/App/*.zip
