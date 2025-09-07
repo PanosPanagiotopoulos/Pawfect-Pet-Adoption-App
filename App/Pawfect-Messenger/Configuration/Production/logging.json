@@ -1,0 +1,36 @@
+{
+  "Serilog": {
+    "Properties": {
+      "Application": "PawfectAPI",
+      "Scope": 0
+    },
+    "MinimumLevel": {
+      "Default": "Debug"
+    },
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {NewLine}{Exception}",
+          "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "logs/log.json",
+          "rollingInterval": "Day",
+          "rollOnFileSizeLimit": true,
+          "fileSizeLimitBytes": 1073741824,
+          "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog",
+          "renderMessage": true,
+          "retainedFileCountLimit": 15
+        }
+      }
+    ],
+    "Enrich": [ "FromLogContext", "WithMachineName" ]
+  },
+  "Logging": {
+    "EFParameterLogging": false
+  }
+}

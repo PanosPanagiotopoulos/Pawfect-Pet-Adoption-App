@@ -11,7 +11,6 @@ using Pawfect_Notifications.Exceptions;
 using Pawfect_Notifications.DevTools;
 using Microsoft.Extensions.Caching.Memory;
 using Pawfect_Notifications.Data.Entities.Types.Cache;
-using EllipticCurve;
 
 namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
 {
