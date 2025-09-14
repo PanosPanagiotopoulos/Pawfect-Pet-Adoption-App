@@ -74,7 +74,7 @@
       {
         "Permission": "EditMessages",
         "Roles": [ "Admin" ],
-        "AffiliatedRoles": []
+        "AffiliatedRoles": [ "User", "Shelter" ]
       },
       {
         "Permission": "DeleteMessages",

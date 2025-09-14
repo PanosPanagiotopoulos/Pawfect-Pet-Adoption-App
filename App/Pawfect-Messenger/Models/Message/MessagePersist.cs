@@ -9,13 +9,11 @@ namespace Pawfect_Messenger.Models.Message
         public String SenderId { get; set; }
         public MessageType? Type { get; set; }
         public String Content { get; set; }
-        public MessageStatus? Status { get; set; }
     }
 
     public class MessageReadPersist
     {
         public String MessageId { get; set; }
-
         public List<String> UserIds { get; set; }
     }
 }

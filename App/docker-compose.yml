@@ -30,6 +30,21 @@ services:
     networks:
       - pawfect-network
 
+  # Messenger
+  messenger:
+    build:
+      context: ./Pawfect-Messenger
+      dockerfile: Dockerfile
+    container_name: pawfect-messenger
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8082
+    ports:
+      - "5002:8082"
+    networks:
+      - pawfect-network
+
 networks:
   pawfect-network:
     driver: bridge

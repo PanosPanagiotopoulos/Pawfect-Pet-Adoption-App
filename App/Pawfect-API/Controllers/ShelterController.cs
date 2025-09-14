@@ -70,7 +70,6 @@ namespace Pawfect_API.Controllers
 
 		[HttpPost("query")]
 		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryShelters([FromBody] ShelterLookup shelterLookup)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -118,7 +117,6 @@ namespace Pawfect_API.Controllers
 
 		[HttpGet("{id}")]
 		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> GetShelter(String id, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);

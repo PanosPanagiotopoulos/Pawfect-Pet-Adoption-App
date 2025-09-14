@@ -43,7 +43,9 @@
       "SUBMIT_APPLICATION": "Submit Application",
       "UPDATE_APPLICATION": "Update Application",
       "DELETE_APPLICATION": "Delete Application",
+      "DELETE": "Delete",
       "DELETING_APPLICATION": "Deleting...",
+      "DELETING": "Deleting...",
       "DELETE_APPLICATION_SUCCESS": "Application deleted successfully",
       "DELETE_APPLICATION_ERROR": "Failed to delete application",
       "DELETE_APPLICATION_CONFIRMATION_TITLE": "Delete Application",
@@ -141,6 +143,7 @@
       "SEARCH": "Search",
       "SEARCH_SHELTERS": "Search shelters...",
       "NO_SHELTERS_FOUND": "No shelters found",
+      "NO_RESULTS_FOUND": "No results found",
       "SEARCH_DIFFERENT_KEYWORDS": "Try searching with different keywords or check your spelling",
       "RECENT_SEARCHES": "Recent successful searches",
       "CALL-TO-SEARCH": "Start Searching Now",
@@ -177,6 +180,19 @@
       "LOADING": "Loading...",
       "CHECK_FORM_ERRORS": "Please check the form for errors",
       "NOTIFICATIONS": "Notifications"
+    },
+    "MESSENGER": {
+      "OPEN_MESSENGER": "Open messenger",
+      "MESSAGES": "Messages",
+      "SEARCH_SHELTERS": "Search shelters...",
+      "NO_CONVERSATIONS": "No conversations yet",
+      "START_CONVERSATION": "Search for shelters to start a conversation",
+      "NO_MESSAGES": "No messages yet",
+      "TYPE_MESSAGE": "Type a message...",
+      "MESSAGE_SENDING": "Sending",
+      "MESSAGE_DELIVERED": "Delivered",
+      "MESSAGE_FAILED": "Failed",
+      "MESSAGE_READ": "Read"
     },
     "AUTH": {
       "LOGIN": {
@@ -1133,6 +1149,20 @@
       "CTA_SUBTITLE": "Contact us today and let's find your perfect companion together.",
       "CTA_CALL": "Call Now",
       "CTA_EMAIL": "Send Email"
+    },
+    "MESSENGER": {
+      "OPEN_MESSENGER": "Open Messenger",
+      "MESSAGES": "Messages",
+      "SEARCH_USERS": "Search users and shelters...",
+      "NO_CONVERSATIONS": "No conversations yet",
+      "START_CONVERSATION": "Search for users or shelters to start a conversation",
+      "NO_MESSAGES": "No messages yet",
+      "TYPE_MESSAGE": "Type a message...",
+      "MESSAGE_SENDING": "Sending...",
+      "MESSAGE_DELIVERED": "Delivered",
+      "MESSAGE_READ": "Read",
+      "MESSAGE_FAILED": "Failed to send",
+      "CREATING_CONVERSATION": "Creating conversation..."
     }
   }
 } 

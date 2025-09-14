@@ -88,6 +88,7 @@ namespace Pawfect_API.Builders
             // Sensitive Info flag
             ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
             String currentUserId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+            Boolean isShelter = !String.IsNullOrEmpty(await _authorizationContentResolver.CurrentPrincipalShelter());
 
             List<Models.User.User> result = new List<Models.User.User>();
 			foreach (Data.Entities.User e in entities)
@@ -105,8 +106,8 @@ namespace Pawfect_API.Builders
 				if (nativeFields.Contains(nameof(Models.User.User.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 
                 // Sensitive info. Include user role to build correctly
-                if (nativeFields.Contains(nameof(Models.User.User.Phone)) && canSeeSensitiveInfo) dto.Phone = e.Phone;
-                if (nativeFields.Contains(nameof(Models.User.User.Location)) && canSeeSensitiveInfo) dto.Location = e.Location;
+                if (nativeFields.Contains(nameof(Models.User.User.Phone)) && (canSeeSensitiveInfo || isShelter)) dto.Phone = e.Phone;
+                if (nativeFields.Contains(nameof(Models.User.User.Location)) && (canSeeSensitiveInfo || isShelter)) dto.Location = e.Location;
 
                 // Foreign
                 if (shelterMap != null && shelterMap.ContainsKey(e.Id)) dto.Shelter = shelterMap[e.Id];

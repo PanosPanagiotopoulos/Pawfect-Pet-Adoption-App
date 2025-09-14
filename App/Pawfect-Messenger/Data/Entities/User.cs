@@ -13,18 +13,13 @@
         public String Email { get; set; }
         public String FullName { get; set; }
         public List<UserRole> Roles { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public String ProfilePhotoId { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
         public String ShelterId { get; set; }
         public Boolean IsVerified { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-
-        // SignalR
-        public List<String> ConnectionIds { get; set; } = new List<String>();
-        public UserStatus Status { get; set; } = UserStatus.Offline;
-        [BsonIgnoreIfNull]
-        public DateTime? LastSeen { get; set; }
-       
     }
 
 }

@@ -24,6 +24,8 @@ using Pawfect_Messenger.Data.Entities.Types.Apis;
 using Pawfect_Messenger.Data.Entities.Types.Authorisation;
 using Pawfect_Messenger.Data.Entities.Types.Mongo;
 using Pawfect_Messenger.Data.Entities.Types.RateLimiting;
+using Pawfect_Messenger.Hubs.ChatHub;
+using Pawfect_Messenger.Services.PresenceServices.Extentions;
 public class Program
 {
     public static async Task Main(String[] args)
@@ -37,11 +39,6 @@ public class Program
 
         ConfigureServices(builder);
 
-        // Include frontend files in production
-        if (builder.Environment.IsProduction())
-        {
-            builder.WebHost.UseWebRoot("wwwroot");
-        }
 
         WebApplication app = builder.Build();
 
@@ -151,9 +148,9 @@ public class Program
         .AddConventionServices()
         .AddAwsServices(builder.Configuration.GetSection("Aws"))
         .AddFileServices(builder.Configuration.GetSection("Files"))
-        .AddMessageServices()
-        .AddConventionServices()
-        .AddFilterBuilderServices();
+        .AddPresenceServices()
+        .AddFilterBuilderServices()
+        .AddSignalR();
 
 
         // CORS
@@ -179,7 +176,6 @@ public class Program
         })
         .AddJwtBearer(options =>
         {
-            // TODO: In prod be true
             options.RequireHttpsMetadata = builder.Environment.IsProduction();
             options.SaveToken = true;
             options.TokenValidationParameters = new TokenValidationParameters
@@ -196,15 +192,33 @@ public class Program
             {
                 OnMessageReceived = context =>
                 {
+                    PathString path = context.HttpContext.Request.Path;
+
+                    // Allow hub connections to auth via querystring
+                    if (path.StartsWithSegments("/hubs/chat"))
+                    {
+                        Microsoft.Extensions.Primitives.StringValues qsToken = context.Request.Query["access_token"];
+                        if (!String.IsNullOrEmpty(qsToken))
+                        {
+                            context.Token = qsToken;
+                            return Task.CompletedTask;
+                        }
+
+                        Microsoft.Extensions.Primitives.StringValues alt = context.Request.Query[JwtService.ACCESS_TOKEN];
+                        if (!String.IsNullOrEmpty(alt))
+                        {
+                            context.Token = alt;
+                            return Task.CompletedTask;
+                        }
+                    }
 
                     String? token = context.Request.Cookies[JwtService.ACCESS_TOKEN];
-                    if (!String.IsNullOrEmpty(token))
-                    {
-                        context.Token = token;
-                    }
+                    if (!String.IsNullOrEmpty(token)) context.Token = token;
+
                     return Task.CompletedTask;
                 }
             };
+
         });
 
         // Authorization
@@ -280,5 +294,7 @@ public class Program
         app.UseAuthorization();
 
         app.MapControllers();
+
+        app.MapHub<ChatHub>("/hubs/chat");
     }
 }

@@ -1,16 +1,10 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
-
-using Pawfect_API.Data.Entities;
 using Pawfect_API.Data.Entities.EnumTypes;
 using Pawfect_API.Data.Entities.Types.Authorization;
-using Pawfect_API.DevTools;
 using Pawfect_API.Exceptions;
-using Pawfect_API.Models.User;
 using Pawfect_API.Services.AuthenticationServices;
-using Pawfect_API.Services.FilterServices;
 using Pawfect_API.Services.MongoServices;
-using Pawfect_API.Models.Lookups;
 using System.Text.RegularExpressions;
 
 namespace Pawfect_API.Query.Queries

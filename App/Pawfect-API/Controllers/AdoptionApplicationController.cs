@@ -61,7 +61,6 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("query")]
         [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryAdoptionApplications([FromBody] AdoptionApplicationLookup adoptionApplicationLookup)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -96,7 +95,6 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("query/mine/requested")]
         [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryAdoptionApplicationsMineRequested([FromBody] AdoptionApplicationLookup adoptionApplicationLookup)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -135,7 +133,6 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("query/mine/received")]
         [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryAdoptionApplicationsMineReceived([FromBody] AdoptionApplicationLookup adoptionApplicationLookup)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -175,7 +172,6 @@ namespace Pawfect_API.Controllers
 
         [HttpGet("{id}")]
 		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> GetAdoptionApplication(String id, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);

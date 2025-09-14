@@ -91,10 +91,10 @@ namespace Pawfect_API.Services.ShelterServices
 				data.Id = null;
 			}
 
-			if (isUpdate) dataId = await _shelterRepository.UpdateAsync(data);
-			else dataId = await _shelterRepository.AddAsync(data);
+			if (isUpdate) data.Id = await _shelterRepository.UpdateAsync(data);
+			else data.Id = await _shelterRepository.AddAsync(data);
 
-			if (String.IsNullOrEmpty(dataId))
+			if (String.IsNullOrEmpty(data.Id))
 				throw new InvalidOperationException("Failed to persist the shelter");
 
 			if (!isUpdate)
@@ -107,14 +107,8 @@ namespace Pawfect_API.Services.ShelterServices
                     throw new InvalidOperationException("Failed to update the connected user of the shelter");
             }
 			
-			// Return dto model
-			ShelterLookup lookup = new ShelterLookup();
-			lookup.Ids = new List<String> { dataId };
-			lookup.Fields = buildFields ?? new List<String> { "*", nameof(Models.User.User) + ".*" };
-			lookup.Offset = 0;
-			lookup.PageSize = 1;
             return (await _builderFactory.Builder<ShelterBuilder>()
-					.Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [..lookup.Fields]))
+					.Build([data], buildFields ?? new List<String> { "*", nameof(Models.User.User) + ".*" }))
 					.FirstOrDefault();
         }
 

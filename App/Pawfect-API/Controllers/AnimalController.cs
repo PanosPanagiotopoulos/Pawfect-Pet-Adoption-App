@@ -78,7 +78,6 @@ namespace Pawfect_API.Controllers
 
         [HttpPost("query")]
         [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryAnimals([FromBody] AnimalLookup animalLookup)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -128,7 +127,6 @@ namespace Pawfect_API.Controllers
         }
 
         [HttpPost("query/free-view")]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryAnimalsFreeView([FromBody] AnimalLookup animalLookup)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -171,7 +169,6 @@ namespace Pawfect_API.Controllers
 
         [HttpGet("{id}")]
 		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> GetAnimal(String id, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);

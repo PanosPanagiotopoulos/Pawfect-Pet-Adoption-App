@@ -43,28 +43,19 @@ export class RouteLoadingInterceptor {
     const route = this.extractRoute(event.url);
     this.currentRoute = route;
     
-    this.logService.logFormatted(`Extracted route: ${route} from URL: ${event.url}`);
     
     // Clear any existing safety timeout
     this.clearSafetyTimeout();
     
     if (this.loadingService.shouldShowRouteLoading(route)) {
-      this.logService.logFormatted(`Navigation started to: ${route}`);
       this.loadingService.startRouteLoading(route);
       
       // Set safety timeout to force stop loading after 12 seconds
       this.setSafetyTimeout(route);
-    } else {
-      this.logService.logFormatted(`No loading config found for route: ${route}`);
-    }
+    } 
   }
 
   private handleNavigationEnd(event: NavigationEnd): void {
-    // Navigation completed successfully - let the timeout handle stopping the loader
-    // This ensures the minimum loading time is respected for better UX
-    this.logService.logFormatted(`Navigation completed to: ${event.url}`);
-    
-    // Clear safety timeout since navigation completed successfully
     this.clearSafetyTimeout();
   }
 
@@ -89,20 +80,17 @@ export class RouteLoadingInterceptor {
 
   private setSafetyTimeout(route: string): void {
     this.safetyTimeout = setTimeout(() => {
-      this.logService.logFormatted(`Safety timeout triggered for route: ${route} - forcing stop loading`);
       this.loadingService.forceStopLoading();
       this.currentRoute = null;
       this.safetyTimeout = null;
     }, this.SAFETY_TIMEOUT_MS);
     
-    this.logService.logFormatted(`Safety timeout set for route: ${route} (${this.SAFETY_TIMEOUT_MS}ms)`);
   }
 
   private clearSafetyTimeout(): void {
     if (this.safetyTimeout) {
       clearTimeout(this.safetyTimeout);
       this.safetyTimeout = null;
-      this.logService.logFormatted('Safety timeout cleared');
     }
   }
 }

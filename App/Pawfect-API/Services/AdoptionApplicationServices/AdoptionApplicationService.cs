@@ -10,7 +10,6 @@ using Pawfect_API.Models.File;
 using Pawfect_API.Models.Lookups;
 using Pawfect_API.Models.Notification;
 using Pawfect_API.Query;
-using Pawfect_API.Repositories.Implementations;
 using Pawfect_API.Repositories.Interfaces;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.Convention;
@@ -159,7 +158,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
             lookup.Fields = censoredFields;
             return (await _builderFactory.Builder<AdoptionApplicationBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-                .Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+                .Build([data], censoredFields))
                 .FirstOrDefault();
         }
 

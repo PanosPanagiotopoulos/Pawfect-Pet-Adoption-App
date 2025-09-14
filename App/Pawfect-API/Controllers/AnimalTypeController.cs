@@ -49,7 +49,6 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
         [HttpPost("query")]
         [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryAnimalTypes([FromBody] AnimalTypeLookup animalTypeLookup)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);

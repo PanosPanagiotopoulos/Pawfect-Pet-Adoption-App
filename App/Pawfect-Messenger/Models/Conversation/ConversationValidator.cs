@@ -36,7 +36,7 @@ namespace Pawfect_Messenger.Models.Conversation
             When(conversation => conversation.Type == ConversationType.Direct, () =>
             {
                 RuleFor(conversation => conversation.Participants)
-                    .Must(participants => participants != null && participants.Count == 2)
+                    .Must(participants => participants != null && participants.Count >= 1)
                     .WithMessage("Direct conversations must have exactly 2 participants.");
             });
 
@@ -60,12 +60,6 @@ namespace Pawfect_Messenger.Models.Conversation
                 .WithMessage("The creator ID is required.")
                 .Must(RuleFluentValidation.IsObjectId)
                 .WithMessage("The creator ID is not in the correct format.");
-
-            // The creator must be one of the participants
-            RuleFor(conversation => conversation)
-                .Must(conversation => conversation.Participants != null && conversation.Participants.Contains(conversation.CreatedBy))
-                .WithMessage("The creator must be one of the conversation participants.")
-                .When(conversation => !String.IsNullOrEmpty(conversation.CreatedBy));
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using MongoDB.Bson.Serialization.Conventions;
 using Pawfect_Messenger.Builders;
 using Pawfect_Messenger.Censors;
 using Pawfect_Messenger.Data.Entities.Types.Authorisation;
+using Pawfect_Messenger.DevTools;
 using Pawfect_Messenger.Exceptions;
 using Pawfect_Messenger.Models.Conversation;
 using Pawfect_Messenger.Models.Lookups;
@@ -10,6 +12,8 @@ using Pawfect_Messenger.Query.Interfaces;
 using Pawfect_Messenger.Services.AuthenticationServices;
 using Pawfect_Messenger.Services.Convention;
 using Pawfect_Messenger.Services.MessageServices;
+using System.Reflection;
+using System.Security.Claims;
 
 namespace Pawfect_Messenger.Services.ConversationServices
 {
@@ -24,6 +28,7 @@ namespace Pawfect_Messenger.Services.ConversationServices
         private readonly IAuthorizationService _authorizationService;
         private readonly ICensorFactory _censorFactory;
         private readonly IAuthorizationContentResolver _authorizationContentResolver;
+        private readonly ClaimsExtractor _claimsExtractor;
 
         public ConversationService
 		(
@@ -35,7 +40,8 @@ namespace Pawfect_Messenger.Services.ConversationServices
 			AuthContextBuilder contextBuilder,
             IAuthorizationService AuthorizationService,
 			ICensorFactory censorFactory,
-            IAuthorizationContentResolver AuthorizationContentResolver
+            IAuthorizationContentResolver AuthorizationContentResolver,
+            ClaimsExtractor claimsExtractor
         )
 		{
 			_conversationRepository = conversationRepository;
@@ -47,14 +53,55 @@ namespace Pawfect_Messenger.Services.ConversationServices
             _authorizationService = AuthorizationService;
             _censorFactory = censorFactory;
             _authorizationContentResolver = AuthorizationContentResolver;
+            _claimsExtractor = claimsExtractor;
         }
 
-		public async Task<Models.Conversation.Conversation> Persist(ConversationPersist persist, List<String> fields)
-		{
-            return null;
+        public async Task<Models.Conversation.Conversation> CreateAsync(ConversationPersist model, List<String> fields = null)
+        {
+            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+            if (!_conventionService.IsValidId(userId)) throw new UnauthorizedAccessException("No authenticated user.");
+
+            if (!await _authorizationService.AuthorizeAsync(Permission.CreateConversations)) throw new ForbiddenException();
+
+            // Ensure the creator is in the list
+            if (!model.Participants.Contains(userId)) model.Participants.Add(userId);
+
+            // Deduplicate & sanitize
+            model.Participants = model.Participants.Distinct().ToList();
+
+            DateTime now = DateTime.UtcNow;
+            Data.Entities.Conversation data = new Data.Entities.Conversation
+            {
+                Id = null,
+                Type = model.Type.Value,
+                Participants = model.Participants,
+                CreatedBy = userId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                LastMessageAt = null,
+                LastMessageId = null,
+            };
+
+            data.Id = await _conversationRepository.AddAsync(data);
+
+
+            // Return dto model
+            ConversationLookup lookup = new ConversationLookup();
+            lookup.Ids = [data.Id];
+            lookup.Fields = fields.Concat(CommonFieldsHelper.ConversationFields()).Distinct().ToList();
+            lookup.Offset = 0;
+            lookup.PageSize = 1;
+
+            AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
+            List<String> censoredFields = await _censorFactory.Censor<ConversationCensor>().Censor([.. lookup.Fields], context);
+            if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying animals");
+
+
+            return (await _builderFactory.Builder<ConversationBuilder>().Build([data], censoredFields)).FirstOrDefault();
         }
 
-		public async Task Delete(String id) { await Delete(new List<String>() { id }); }
+        public async Task Delete(String id) { await Delete(new List<String>() { id }); }
 
 		public async Task Delete(List<String> ids)
 		{
@@ -74,7 +121,7 @@ namespace Pawfect_Messenger.Services.ConversationServices
             mLookup.ConversationIds = ids;
             mLookup.Fields = new List<String> { nameof(Models.Message.Message.Id) };
             mLookup.Offset = 0;
-            mLookup.PageSize = 50;
+            mLookup.PageSize = 100000;
 
 			List<Data.Entities.Message> messages = await mLookup.EnrichLookup(_queryFactory).CollectAsync();
 			await _messageService.Value.Delete([..messages?.Select(x => x.Id)]);

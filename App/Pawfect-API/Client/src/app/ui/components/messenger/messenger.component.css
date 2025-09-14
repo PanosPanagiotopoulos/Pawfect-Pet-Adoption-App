@@ -1,0 +1,363 @@
+/* Messenger Component Styles */
+
+/* Remove all blue focus outlines */
+.messenger-window *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Custom focus styles for messenger elements */
+.messenger-input:focus {
+  border-color: #9ca3af !important;
+  box-shadow: 0 0 0 1px #9ca3af !important;
+}
+
+.messenger-textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.messenger-button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 1px currentColor !important;
+}
+
+/* Enhanced messenger window styling */
+.messenger-window {
+  animation: slideInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: bottom left;
+  border: 2px solid #d1d5db;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Messenger window closing animation */
+.messenger-window-closing {
+  animation: slideOutDown 0.3s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+}
+
+@keyframes slideOutDown {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+}
+
+/* Conversation view animations */
+.conversation-enter {
+  animation: slideInRight 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.conversation-leave {
+  animation: slideOutLeft 0.3s cubic-bezier(0.55, 0.06, 0.68, 0.19);
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+/* Floating button pulse animation */
+.messenger-button {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Custom scrollbar for messages */
+.messages-scroll-container::-webkit-scrollbar {
+  width: 4px;
+}
+
+.messages-scroll-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.messages-scroll-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.messages-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Ensure proper scrolling behavior */
+.messages-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  max-height: calc(100% - 120px); /* Account for header and input */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Message input word wrapping */
+.message-input {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+/* Message bubble word wrapping */
+.message-bubble {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 200px;
+}
+
+/* Profile picture styling */
+.message-avatar {
+  transition: transform 0.2s ease;
+}
+
+.message-avatar:hover {
+  transform: scale(1.1);
+}
+
+/* Message animations */
+.message-item {
+  animation: messageSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes messageSlideIn {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Fade in animation for timestamps */
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Message bubble hover effects */
+.message-bubble {
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.message-bubble:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Search dropdown positioning */
+.search-dropdown {
+  z-index: 60;
+}
+
+/* Hover effects for conversation items */
+.conversation-item:hover {
+  background-color: #f8fafc;
+}
+
+/* Enhanced focus styles - no blue outlines */
+.messenger-input:focus {
+  box-shadow: 0 0 0 1px #9ca3af !important;
+  border-color: #9ca3af !important;
+}
+
+/* Remove all default focus styles */
+input:focus, textarea:focus, button:focus, div:focus {
+  outline: none !important;
+}
+
+/* Specific messenger element focus styles */
+.messenger-window input:focus {
+  box-shadow: 0 0 0 1px #9ca3af !important;
+  border-color: #9ca3af !important;
+}
+
+.messenger-window textarea:focus {
+  box-shadow: none !important;
+  border-color: #d1d5db !important;
+}
+
+.messenger-window button:focus {
+  box-shadow: 0 0 0 1px currentColor !important;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  border-top-color: #3b82f6;
+}
+
+/* Message status indicators */
+.message-status {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* Smooth transitions for UI elements */
+.conversation-item {
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.conversation-item:hover {
+  transform: translateX(2px);
+  background-color: #f8fafc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.conversation-item:focus {
+  outline: none !important;
+  box-shadow: inset 0 0 0 1px #9ca3af !important;
+}
+
+/* Enhanced unread conversation styling */
+.conversation-item.bg-blue-50 {
+  background-color: #eff6ff;
+}
+
+.conversation-item.bg-blue-50:hover {
+  background-color: #dbeafe;
+}
+
+.conversation-item.bg-blue-100 {
+  background-color: #dbeafe;
+  border-left-width: 4px;
+  border-left-color: #1d4ed8;
+}
+
+.conversation-item.bg-blue-100:hover {
+  background-color: #bfdbfe;
+}
+
+/* Search results animations */
+.search-result-item {
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.search-result-item:hover {
+  transform: translateX(2px);
+  background-color: #f8fafc;
+}
+
+.search-result-item:focus {
+  outline: none !important;
+  box-shadow: inset 0 0 0 1px #9ca3af !important;
+}
+
+/* Button animations */
+.messenger-button {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.messenger-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+/* Floating button specific styles */
+.messenger-button.fixed {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.messenger-button.fixed:focus {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Loading states */
+.loading-overlay {
+  backdrop-filter: blur(2px);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Fix message container display issues */
+.messages-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.message-item {
+  display: flex !important;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+/* Ensure conversation view takes full height */
+.conversation-enter {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .messenger-window {
+    width: calc(100vw - 2rem);
+    height: calc(100vh - 8rem);
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+  }
+  
+  .message-item {
+    animation-duration: 0.2s;
+  }
+}

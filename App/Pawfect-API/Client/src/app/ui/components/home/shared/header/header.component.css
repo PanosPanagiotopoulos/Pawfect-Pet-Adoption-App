@@ -402,3 +402,61 @@
 .animate-spin {
   animation: spinGlow 1s linear infinite;
 }
+
+/* Mobile header fixes */
+@media (max-width: 768px) {
+  /* Ensure proper spacing between logo/title and mobile buttons */
+  .flex.justify-between.h-20 {
+    gap: 0.5rem;
+  }
+  
+  /* Prevent title from overlapping with mobile buttons */
+  .flex.items-center.flex-1.min-w-0 {
+    max-width: calc(100% - 120px); /* Reserve space for mobile buttons */
+  }
+  
+  /* Ensure mobile buttons don't wrap */
+  .md\\:hidden.flex.items-center.space-x-1.flex-shrink-0 {
+    flex-shrink: 0;
+    min-width: fit-content;
+  }
+  
+  /* Adjust title size on very small screens */
+  @media (max-width: 480px) {
+    .text-3xl {
+      font-size: 1.5rem; /* text-2xl equivalent */
+    }
+    
+    .w-\\[5\\.6rem\\] {
+      width: 4rem; /* w-16 */
+    }
+    
+    .h-\\[5\\.6rem\\] {
+      height: 4rem; /* h-16 */
+    }
+    
+    .w-\\[4\\.5rem\\] {
+      width: 3rem; /* w-12 */
+    }
+    
+    .h-\\[4\\.5rem\\] {
+      height: 3rem; /* h-12 */
+    }
+  }
+}
+
+/* Prevent horizontal overflow on mobile */
+@media (max-width: 768px) {
+  .relative.max-w-7xl.mx-auto.px-4.sm\\:px-6.lg\\:px-8 {
+    padding-left: 1rem; /* px-4 */
+    padding-right: 1rem; /* px-4 */
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Ensure the header container doesn't cause overflow */
+  .fixed.w-full.top-0.z-40 {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}

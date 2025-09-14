@@ -9,9 +9,9 @@
 
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between h-20">
-      <div class="flex items-center">
-        <a routerLink="/" class="flex items-center group">
-          <div class="relative">
+      <div class="flex items-center flex-1 min-w-0">
+        <a routerLink="/" class="flex items-center group min-w-0">
+          <div class="relative flex-shrink-0">
             <div
               class="w-[5.6rem] h-[5.6rem] flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300"
             >
@@ -23,7 +23,7 @@
             </div>
           </div>
           <!-- Brand name with gradient - visible on all screens -->
-          <h1 class="ml-3 text-3xl font-bold">
+          <h1 class="ml-3 text-3xl font-bold flex-shrink-0 md:flex-shrink-0 sm:flex-shrink-0">
             <span
               class="bg-gradient-to-r from-primary-400 via-secondary-400 to-accent-400 bg-clip-text text-transparent animate-gradient"
             >
@@ -409,7 +409,7 @@
       </div>
 
       <!-- Mobile Search and Menu Button -->
-      <div class="md:hidden flex items-center space-x-2">
+      <div class="md:hidden flex items-center space-x-1 flex-shrink-0">
         <!-- Mobile Notifications Button - Only visible when logged in -->
         <div *ngIf="isLoggedIn" class="notifications-container relative z-50">
           <button

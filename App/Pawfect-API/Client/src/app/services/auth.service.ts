@@ -12,6 +12,7 @@ import {
   AdminVerifyPayload,
 } from '../models/auth/auth.model';
 import { SecureStorageService } from '../common/services/secure-storage.service';
+import { MessengerHubService } from '../hubs/messenger-hub.service';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +26,8 @@ export class AuthService {
   constructor(
     private readonly installationConfiguration: InstallationConfigurationService,
     private readonly http: BaseHttpService,
-    private readonly secureStorage: SecureStorageService
+    private readonly secureStorage: SecureStorageService,
+    private readonly messengerHub: MessengerHubService
   ) {
     // Initialize auth state after configuration is loaded
     this.installationConfiguration
@@ -36,6 +38,7 @@ export class AuthService {
         );
         if (loggedAccount) {
           this.authStateSubject.next(true);
+          this.messengerHub.init();
         }
       })
       .catch((error) => {
@@ -293,11 +296,15 @@ export class AuthService {
       account
     );
     this.authStateSubject.next(true);
+
+    this.messengerHub.init();
   }
 
   private clearUserData(): void {
     sessionStorage.clear();
     this.authStateSubject.next(false);
+
+    this.messengerHub.disconnect();
   }
 
   private loadLoggedAccount(): LoggedAccount | null {

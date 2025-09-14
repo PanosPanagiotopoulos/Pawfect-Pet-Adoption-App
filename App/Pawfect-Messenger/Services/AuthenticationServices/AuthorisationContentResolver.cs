@@ -93,17 +93,42 @@ namespace Pawfect_Messenger.Services.AuthenticationServices
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
             if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No claims id found");
 
-            String shelterId = await CurrentPrincipalShelter();
+            String shelterId = await this.CurrentPrincipalShelter();
 
-            // Check cache
-            (Type EntityType, String UserId) cacheKey = (EntityType: entityType, UserId: userId);
-            if (_affiliatedFilterCache.TryGetValue(cacheKey, out FilterDefinition<BsonDocument> cachedFilter)) return cachedFilter;
+            List<String> userConversations = await this.GetUsersConversations();
 
             // Apply filters
             FilterDefinitionBuilder<BsonDocument> bsonBuilder = Builders<BsonDocument>.Filter;
             FilterDefinition<BsonDocument> finalFilter = bsonBuilder.Empty;
             switch (entityType.Name)
             {
+                case nameof(Data.Entities.Message):
+                    {
+                        FilterDefinitionBuilder<Data.Entities.Message> builder = Builders<Data.Entities.Message>.Filter;
+
+                        FilterDefinition<Data.Entities.Message> filter = builder.Or(
+                            builder.Eq(nameof(Data.Entities.Message.SenderId), new ObjectId(userId))
+                        );
+
+                        if (userConversations.Count > 0)
+                            filter = builder.Or(filter, builder.In(nameof(Data.Entities.Message.ConversationId), userConversations.Select(id => new ObjectId(id))));
+
+                        finalFilter = MongoHelper.ToBsonFilter<Data.Entities.Message>(filter);
+                        break;
+                    }
+
+                case nameof(Data.Entities.Conversation):
+                    {
+                        FilterDefinitionBuilder<Data.Entities.Conversation> builder = Builders<Data.Entities.Conversation>.Filter;
+
+                        FilterDefinition<Data.Entities.Conversation> filter = builder.Or(
+                            builder.In(nameof(Data.Entities.Conversation.Participants), [new ObjectId(userId)])
+                        );
+
+                        finalFilter = MongoHelper.ToBsonFilter<Data.Entities.Conversation>(filter);
+                        break;
+                    }
+
                 case nameof(Data.Entities.File):
                     {
                         FilterDefinitionBuilder<Data.Entities.File> builder = Builders<Data.Entities.File>.Filter;
@@ -122,9 +147,6 @@ namespace Pawfect_Messenger.Services.AuthenticationServices
                     }
             }
 
-            // Cache the result
-            _affiliatedFilterCache.TryAdd(cacheKey, finalFilter);
-
             return finalFilter;
         }
 
@@ -142,6 +164,29 @@ namespace Pawfect_Messenger.Services.AuthenticationServices
             FilterDefinition<BsonDocument> finalFilter = bsonBuilder.Empty;
             switch (entityType.Name)
             {
+                case nameof(Data.Entities.Message):
+                    {
+                        FilterDefinitionBuilder<Data.Entities.Message> builder = Builders<Data.Entities.Message>.Filter;
+
+                        FilterDefinition<Data.Entities.Message> filter = builder.Or(
+                            builder.Eq(nameof(Data.Entities.Message.SenderId), new ObjectId(userId))
+                        );
+
+                        finalFilter = MongoHelper.ToBsonFilter<Data.Entities.Message>(filter);
+                        break;
+                    }
+
+                case nameof(Data.Entities.Conversation):
+                    {
+                        FilterDefinitionBuilder<Data.Entities.Conversation> builder = Builders<Data.Entities.Conversation>.Filter;
+
+                        FilterDefinition<Data.Entities.Conversation> filter = builder.Or(
+                            builder.Eq(nameof(Data.Entities.Conversation.CreatedBy), new ObjectId(userId))
+                        );
+
+                        finalFilter = MongoHelper.ToBsonFilter<Data.Entities.Conversation>(filter);
+                        break;
+                    }
                 case nameof(Data.Entities.File):
                     {
                         FilterDefinitionBuilder<Data.Entities.File> builder = Builders<Data.Entities.File>.Filter;
@@ -173,6 +218,29 @@ namespace Pawfect_Messenger.Services.AuthenticationServices
             _ownedFilterCache.TryAdd(cacheKey, finalFilter);
 
             return finalFilter;
+        }
+
+        private async Task<List<String>> GetUsersConversations()
+        {
+            String userId = _claimsExtractor.CurrentUserId(CurrentPrincipal());
+            if (String.IsNullOrWhiteSpace(userId)) return [];
+
+            if (!_memoryCache.TryGetValue($"conversations_of_{userId}", out String userConversations))
+            {
+                ConversationQuery conversationQuery = _queryFactory.Query<ConversationQuery>();
+                conversationQuery.Offset = 0;
+                conversationQuery.PageSize = 1000000;
+                conversationQuery.Participants = [userId];
+                conversationQuery.Fields = [nameof(Models.Conversation.Conversation.Id)];
+
+                 List<String> userConversationsIds = (await conversationQuery.CollectAsync())?.Select(c => c.Id).ToList() ?? [];
+
+                userConversations = JsonHelper.SerializeObjectFormattedSafe(userConversationsIds);
+
+                _memoryCache.Set($"conversations_of_{userId}", userConversations, TimeSpan.FromMinutes(_cacheConfig.QueryCacheTime));
+            }
+
+            return JsonHelper.DeserializeObjectFormattedSafe<List<String>>(userConversations);
         }
     }
 }

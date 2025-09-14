@@ -196,25 +196,32 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
 
           <div
             *ngIf="!isEditMode || canEdit"
-            class="flex gap-3 justify-end pt-6"
+            class="flex flex-col sm:flex-row gap-3 justify-end pt-6"
           >
             <button
               *ngIf="isEditMode && canDelete"
               type="button"
               (click)="onDelete()"
               [disabled]="isDeletingApplication || isSubmitting"
-              class="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md"
+              class="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-md text-sm sm:text-base"
             >
               <ng-icon
                 [name]="isDeletingApplication ? 'lucideLoader' : 'lucideTrash2'"
-                class="w-5 h-5"
+                class="w-4 h-4 sm:w-5 sm:h-5"
                 [ngClass]="{ 'animate-spin': isDeletingApplication }"
               ></ng-icon>
-              <span>
+              <span class="hidden sm:inline">
                 {{
                   isDeletingApplication
                     ? ('APP.ADOPT.DELETING_APPLICATION' | translate)
                     : ('APP.ADOPT.DELETE_APPLICATION' | translate)
+                }}
+              </span>
+              <span class="sm:hidden">
+                {{
+                  isDeletingApplication
+                    ? ('APP.ADOPT.DELETING' | translate)
+                    : ('APP.ADOPT.DELETE' | translate)
                 }}
               </span>
             </button>

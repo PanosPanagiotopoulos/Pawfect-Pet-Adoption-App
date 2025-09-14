@@ -5,8 +5,9 @@ namespace Pawfect_Messenger.Services.ConversationServices
 {
 	public interface IConversationService
 	{
-		Task<Conversation?> Persist(ConversationPersist persist, List<String> fields);
-		Task Delete(String id);
+		Task<Models.Conversation.Conversation> CreateAsync(ConversationPersist model, List<String> fields = null);
+
+        Task Delete(String id);
 		Task Delete(List<String> ids);
 	}
 }

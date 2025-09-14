@@ -167,7 +167,7 @@ namespace Pawfect_API.Controllers
 
             String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);
             if (String.IsNullOrEmpty(refreshTokenString))
-                return BadRequest("Refresh token is missing");
+                return Forbid("Refresh token is missing");
 
             RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString && rt.ExpiresAt > DateTime.UtcNow);
             if (refreshToken == null)

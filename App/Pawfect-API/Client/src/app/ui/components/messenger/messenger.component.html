@@ -1,0 +1,563 @@
+<!-- Floating Messenger Button -->
+<button
+  *ngIf="!isMessengerOpen && isUserLoggedIn"
+  type="button"
+  (click)="toggleMessenger()"
+  class="fixed bottom-6 left-6 z-50 w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group messenger-button focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+  [attr.aria-label]="'APP.MESSENGER.OPEN_MESSENGER' | translate"
+>
+  <ng-icon
+    name="lucideMessageCircle"
+    class="text-white group-hover:rotate-12 transition-all duration-300"
+    [size]="'24'"
+  ></ng-icon>
+</button>
+
+<!-- Messenger Window -->
+<div
+  *ngIf="isMessengerOpen && isUserLoggedIn"
+  class="fixed bottom-6 left-6 z-50 w-80 h-96 bg-white rounded-xl shadow-2xl border-2 border-gray-300 flex flex-col overflow-hidden messenger-window"
+>
+  <!-- Messenger Header -->
+  <div class="bg-primary-600 text-white p-4 flex items-center justify-between">
+    <h3 class="font-semibold text-lg">
+      {{ "APP.MESSENGER.MESSAGES" | translate }}
+    </h3>
+    <button
+      type="button"
+      (click)="toggleMessenger()"
+      class="text-white/80 hover:text-white transition-colors p-1 rounded hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-white focus:ring-opacity-50 messenger-button"
+    >
+      <ng-icon name="lucideX" [size]="'20'"></ng-icon>
+    </button>
+  </div>
+
+  <!-- Conversations List View -->
+  <div *ngIf="!isConversationOpen" class="flex-1 flex flex-col">
+    <!-- Search Bar -->
+    <div class="p-3 border-b border-gray-200">
+      <div class="relative">
+        <div
+          class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+        >
+          <ng-icon
+            name="lucideSearch"
+            class="text-gray-400"
+            [size]="'16'"
+          ></ng-icon>
+        </div>
+        <input
+          type="text"
+          [formControl]="shelterSearchControl"
+          (focus)="onShelterSearchFocus()"
+          class="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-all duration-200 messenger-input"
+          [placeholder]="'APP.MESSENGER.SEARCH_USERS' | translate"
+        />
+
+        <!-- Loading indicator -->
+        <div
+          *ngIf="isSearching"
+          class="absolute inset-y-0 right-0 pr-3 flex items-center"
+        >
+          <div
+            class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary-600"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Search Results Dropdown -->
+      <div
+        *ngIf="showShelterDropdown"
+        class="absolute left-3 right-3 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-10 max-h-60 overflow-y-auto"
+      >
+        <!-- Recent Searches -->
+        <div
+          *ngIf="
+            recentQueries.length > 0 &&
+            (!shelterSearchControl.value ||
+              shelterSearchControl.value.trim().length === 0) &&
+            !isSearching
+          "
+          class="p-2"
+        >
+          <div
+            class="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100"
+          >
+            {{ "APP.COMMONS.RECENT_SEARCHES" | translate }}
+          </div>
+          <div
+            *ngFor="let query of recentQueries"
+            (click)="onRecentQuerySelect(query)"
+            class="flex items-center justify-between px-2 py-2 hover:bg-gray-50 cursor-pointer transition-colors duration-200 rounded-md mx-1 my-1 group"
+          >
+            <div class="flex items-center flex-1 min-w-0">
+              <ng-icon
+                name="lucideHistory"
+                class="w-3 h-3 text-gray-400 mr-2 flex-shrink-0"
+              ></ng-icon>
+              <span class="text-xs text-gray-700 truncate">{{ query }}</span>
+            </div>
+            <button
+              (click)="onDeleteRecentQuery(query, $event)"
+              class="opacity-0 group-hover:opacity-100 ml-1 p-1 hover:bg-red-100 rounded-full transition-all duration-200 flex-shrink-0"
+            >
+              <ng-icon
+                name="lucideX"
+                class="w-2 h-2 text-red-500 hover:text-red-700"
+              ></ng-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Shelter Results -->
+        <div
+          *ngFor="let shelter of shelterSearchResults; trackBy: trackByShelter"
+          (click)="onShelterSelect(shelter)"
+          class="flex items-center p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 search-result-item"
+          [class.pointer-events-none]="isCreatingConversation"
+          [class.opacity-50]="isCreatingConversation"
+        >
+          <!-- Profile Photo -->
+          <div class="flex-shrink-0 mr-3">
+            <div
+              class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
+            >
+              <img
+                *ngIf="
+                  shelter.user?.profilePhoto?.sourceUrl;
+                  else defaultShelterAvatar
+                "
+                [src]="shelter.user?.profilePhoto?.sourceUrl!"
+                [alt]="shelter.user?.fullName || 'User'"
+                class="w-8 h-8 rounded-full object-cover"
+                (error)="onImageError($event)"
+              />
+              <ng-template #defaultShelterAvatar>
+                <img
+                  src="assets/placeholder.jpg"
+                  [alt]="shelter.user?.fullName || 'User'"
+                  class="w-8 h-8 rounded-full object-cover"
+                />
+              </ng-template>
+            </div>
+          </div>
+
+          <!-- Shelter Info -->
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-medium text-gray-900 truncate">
+              {{ shelter.shelterName }}
+            </h4>
+            <p class="text-xs text-gray-500 truncate">
+              {{ shelter.user?.fullName }}
+            </p>
+          </div>
+        </div>
+
+        <!-- User Results -->
+        <div
+          *ngFor="let user of userSearchResults; trackBy: trackByUser"
+          (click)="onUserSelect(user)"
+          class="flex items-center p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 search-result-item"
+          [class.pointer-events-none]="isCreatingConversation"
+          [class.opacity-50]="isCreatingConversation"
+        >
+          <!-- Profile Photo -->
+          <div class="flex-shrink-0 mr-3">
+            <div
+              class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
+            >
+              <img
+                *ngIf="user.profilePhoto?.sourceUrl; else defaultUserAvatar"
+                [src]="user.profilePhoto?.sourceUrl!"
+                [alt]="user.fullName || 'User'"
+                class="w-8 h-8 rounded-full object-cover"
+                (error)="onImageError($event)"
+              />
+              <ng-template #defaultUserAvatar>
+                <img
+                  src="assets/placeholder.jpg"
+                  [alt]="user.fullName || 'User'"
+                  class="w-8 h-8 rounded-full object-cover"
+                />
+              </ng-template>
+            </div>
+          </div>
+
+          <!-- User Info -->
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-medium text-gray-900 truncate">
+              {{ user.fullName }}
+            </h4>
+            <p class="text-xs text-gray-500 truncate">
+              {{ user.email }}
+            </p>
+          </div>
+        </div>
+
+        <!-- No Results -->
+        <div
+          *ngIf="
+            shelterSearchResults.length === 0 &&
+            userSearchResults.length === 0 &&
+            !isSearching &&
+            shelterSearchControl.value &&
+            shelterSearchControl.value.trim().length >= 2
+          "
+          class="px-4 py-6 text-center"
+        >
+          <ng-icon
+            name="lucideSearch"
+            class="w-8 h-8 text-gray-300 mx-auto mb-2"
+          ></ng-icon>
+          <p class="text-sm text-gray-500">
+            {{ "APP.COMMONS.NO_RESULTS_FOUND" | translate }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversations List -->
+    <div class="flex-1 overflow-y-auto">
+      <!-- Loading -->
+      <div
+        *ngIf="isLoadingConversations"
+        class="flex items-center justify-center py-8"
+      >
+        <div
+          class="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 border-t-primary-600"
+        ></div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        *ngIf="!isLoadingConversations && conversations.length === 0"
+        class="flex flex-col items-center justify-center h-full px-4 text-center"
+      >
+        <ng-icon
+          name="lucideMessageCircle"
+          class="w-16 h-16 text-gray-300 mb-4"
+        ></ng-icon>
+        <h4 class="text-base font-medium text-gray-900 mb-2">
+          {{ "APP.MESSENGER.NO_CONVERSATIONS" | translate }}
+        </h4>
+        <p class="text-sm text-gray-500">
+          {{ "APP.MESSENGER.START_CONVERSATION" | translate }}
+        </p>
+      </div>
+
+      <!-- Creating Conversation Loading -->
+      <div
+        *ngIf="isCreatingConversation"
+        class="flex items-center justify-center py-4 border-b border-gray-100"
+      >
+        <div
+          class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary-600 mr-2"
+        ></div>
+        <span class="text-sm text-gray-500">{{
+          "APP.MESSENGER.CREATING_CONVERSATION" | translate
+        }}</span>
+      </div>
+
+      <!-- Conversations -->
+      <div
+        *ngFor="let conversation of conversations; trackBy: trackByConversation"
+        (click)="openConversation(conversation)"
+        class="relative flex items-center p-3 hover:bg-gray-50 cursor-pointer transition-colors duration-200 border-b border-gray-100 last:border-b-0 conversation-item"
+        [class.pointer-events-none]="isCreatingConversation"
+        [class.opacity-50]="isCreatingConversation"
+        [class.bg-blue-50]="hasUnreadMessages(conversation)"
+        [class.bg-blue-100]="hasUnseenLastMessage(conversation)"
+        [class.border-l-4]="hasUnreadMessages(conversation)"
+        [class.border-l-primary-600]="hasUnreadMessages(conversation)"
+        [class.border-l-primary-700]="hasUnseenLastMessage(conversation)"
+      >
+        <!-- Profile Photo -->
+        <div class="flex-shrink-0 mr-3">
+          <div
+            class="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
+          >
+            <img
+              *ngIf="
+                getOtherParticipant(conversation)?.profilePhoto?.sourceUrl;
+                else defaultConversationAvatar
+              "
+              [src]="
+                getOtherParticipant(conversation)?.profilePhoto?.sourceUrl!
+              "
+              [alt]="getOtherParticipant(conversation)?.fullName || 'User'"
+              class="w-10 h-10 rounded-full object-cover"
+              (error)="onImageError($event)"
+            />
+            <ng-template #defaultConversationAvatar>
+              <img
+                src="assets/placeholder.jpg"
+                [alt]="getOtherParticipant(conversation)?.fullName || 'User'"
+                class="w-10 h-10 rounded-full object-cover"
+              />
+            </ng-template>
+          </div>
+        </div>
+
+        <!-- Conversation Info -->
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-1">
+            <h4
+              class="text-sm font-medium text-gray-900 truncate"
+              [class.font-bold]="hasUnreadMessages(conversation)"
+              [class.font-extrabold]="hasUnseenLastMessage(conversation)"
+            >
+              {{ getOtherParticipant(conversation)?.fullName }}
+            </h4>
+            <span
+              *ngIf="conversation.lastMessageAt"
+              class="text-xs text-gray-500"
+              [class.font-semibold]="hasUnreadMessages(conversation)"
+              [class.font-bold]="hasUnseenLastMessage(conversation)"
+              [class.text-gray-700]="hasUnseenLastMessage(conversation)"
+            >
+              {{ conversation.lastMessageAt | date : "short" }}
+            </span>
+          </div>
+          <p
+            *ngIf="conversation.lastMessagePreview?.content"
+            class="text-xs text-gray-500 truncate"
+            [class.font-semibold]="hasUnreadMessages(conversation)"
+            [class.text-gray-700]="hasUnreadMessages(conversation)"
+            [class.font-bold]="hasUnseenLastMessage(conversation)"
+            [class.text-gray-800]="hasUnseenLastMessage(conversation)"
+          >
+            {{ conversation.lastMessagePreview?.content }}
+          </p>
+        </div>
+
+        <!-- Unread indicator dot -->
+        <div
+          *ngIf="hasUnreadMessages(conversation)"
+          class="absolute top-3/4 right-3 transform -translate-y-1/2 w-2 h-2 rounded-full"
+          [class.bg-primary-600]="
+            hasUnreadMessages(conversation) &&
+            !hasUnseenLastMessage(conversation)
+          "
+          [class.bg-primary-700]="hasUnseenLastMessage(conversation)"
+          [class.w-3]="hasUnseenLastMessage(conversation)"
+          [class.h-3]="hasUnseenLastMessage(conversation)"
+        ></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversation View -->
+  <div
+    *ngIf="isConversationOpen && selectedConversation"
+    class="flex-1 flex flex-col min-h-0 conversation-enter"
+  >
+    <!-- Conversation Header -->
+    <div
+      class="bg-gray-50 border-b border-gray-200 p-3 flex items-center flex-shrink-0"
+    >
+      <button
+        type="button"
+        (click)="closeConversation()"
+        class="text-gray-500 hover:text-gray-700 transition-colors mr-3 focus:outline-none focus:ring-1 focus:ring-gray-400 rounded messenger-button"
+      >
+        <ng-icon name="lucideArrowLeft" [size]="'18'"></ng-icon>
+      </button>
+
+      <!-- Other Participant Info -->
+      <div class="flex items-center flex-1">
+        <div class="relative mr-3">
+          <div
+            class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
+          >
+            <img
+              *ngIf="
+                getOtherParticipant(selectedConversation)?.profilePhoto
+                  ?.sourceUrl;
+                else defaultParticipantAvatar
+              "
+              [src]="
+                getOtherParticipant(selectedConversation)?.profilePhoto
+                  ?.sourceUrl!
+              "
+              [alt]="
+                getOtherParticipant(selectedConversation)?.fullName || 'User'
+              "
+              class="w-8 h-8 rounded-full object-cover"
+              (error)="onImageError($event)"
+            />
+            <ng-template #defaultParticipantAvatar>
+              <img
+                src="assets/placeholder.jpg"
+                [alt]="
+                  getOtherParticipant(selectedConversation)?.fullName || 'User'
+                "
+                class="w-8 h-8 rounded-full object-cover"
+              />
+            </ng-template>
+          </div>
+          <!-- Active indicator -->
+          <div
+            class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-white"
+            [class.bg-green-500]="isUserOnline(getOtherParticipant(selectedConversation)?.id || '')"
+            [class.bg-gray-400]="!isUserOnline(getOtherParticipant(selectedConversation)?.id || '')"
+          ></div>
+        </div>
+        <h4 class="text-sm font-medium text-gray-900 truncate">
+          {{ getOtherParticipant(selectedConversation)?.fullName }}
+        </h4>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div
+      #messagesContainer
+      class="messages-scroll-container flex-1 overflow-y-auto p-3 space-y-3"
+      (scroll)="onMessagesScroll($event)"
+    >
+      <!-- Loading More Messages -->
+      <div
+        *ngIf="isLoadingMoreMessages"
+        class="flex items-center justify-center py-2"
+      >
+        <div
+          class="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-primary-600"
+        ></div>
+        <span class="ml-2 text-xs text-gray-500">Loading more messages...</span>
+      </div>
+
+      <!-- Loading Messages -->
+      <div
+        *ngIf="isLoadingMessages"
+        class="flex items-center justify-center py-4"
+      >
+        <div
+          class="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-primary-600"
+        ></div>
+      </div>
+
+      <!-- Messages -->
+      <div
+        *ngFor="let message of messages; trackBy: trackByMessage"
+        class="flex items-end space-x-2 message-item"
+        [class.flex-row-reverse]="isMessageFromCurrentUser(message)"
+        [class.space-x-reverse]="isMessageFromCurrentUser(message)"
+        (click)="onMessageClick(message)"
+      >
+        <!-- Profile Picture -->
+        <div class="flex-shrink-0 mb-1 relative">
+          <div
+            class="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
+          >
+            <img
+              *ngIf="
+                message.sender?.profilePhoto?.sourceUrl;
+                else defaultMessageAvatar
+              "
+              [src]="message.sender?.profilePhoto?.sourceUrl!"
+              [alt]="message.sender?.fullName || 'User'"
+              class="w-6 h-6 rounded-full object-cover"
+              (error)="onImageError($event)"
+            />
+            <ng-template #defaultMessageAvatar>
+              <img
+                src="assets/placeholder.jpg"
+                [alt]="message.sender?.fullName || 'User'"
+                class="w-6 h-6 rounded-full object-cover"
+              />
+            </ng-template>
+          </div>
+          <!-- Active indicator for message sender -->
+          <div
+            *ngIf="!isMessageFromCurrentUser(message)"
+            class="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white"
+            [class.bg-green-500]="isUserOnline(message.sender?.id || '')"
+            [class.bg-gray-400]="!isUserOnline(message.sender?.id || '')"
+          ></div>
+        </div>
+
+        <!-- Message Content -->
+        <div class="max-w-[200px] flex flex-col">
+          <!-- Message Bubble -->
+          <div
+            class="px-3 py-2 rounded-lg text-sm break-words cursor-pointer transition-all duration-200 hover:shadow-sm"
+            [class.bg-primary-600]="isMessageFromCurrentUser(message)"
+            [class.text-white]="isMessageFromCurrentUser(message)"
+            [class.bg-gray-200]="!isMessageFromCurrentUser(message)"
+            [class.text-gray-900]="!isMessageFromCurrentUser(message)"
+            [class.rounded-br-sm]="isMessageFromCurrentUser(message)"
+            [class.rounded-bl-sm]="!isMessageFromCurrentUser(message)"
+            [class.ring-2]="isMessageSelected(message)"
+            [class.ring-primary-300]="isMessageSelected(message)"
+          >
+            <span class="whitespace-pre-wrap">{{ message.content }}</span>
+          </div>
+
+          <!-- Message Timestamp (shown when selected) -->
+          <div
+            *ngIf="isMessageSelected(message)"
+            class="mt-1 text-xs text-gray-500 animate-fade-in"
+            [class.text-right]="isMessageFromCurrentUser(message)"
+          >
+            <span>{{ message.createdAt | date : "medium" }}</span>
+          </div>
+
+          <!-- Message Info -->
+          <div
+            *ngIf="getMessageStatusText(message)"
+            class="mt-1 text-xs text-gray-500"
+            [class.text-right]="isMessageFromCurrentUser(message)"
+          >
+            <span>{{ getMessageStatusText(message) | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty Messages State -->
+      <div
+        *ngIf="!isLoadingMessages && messages.length === 0"
+        class="flex flex-col items-center justify-center py-8 text-center"
+      >
+        <ng-icon
+          name="lucideMessageSquare"
+          class="w-8 h-8 text-gray-300 mb-2"
+        ></ng-icon>
+        <p class="text-sm text-gray-500">
+          {{ "APP.MESSENGER.NO_MESSAGES" | translate }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="border-t border-gray-200 p-3 flex-shrink-0">
+      <div class="flex items-center space-x-2">
+        <textarea
+          #messageInput
+          [formControl]="messageControl"
+          (keydown)="onMessageInputKeydown($event)"
+          (input)="autoResizeTextarea()"
+          class="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-0 transition-all duration-200 resize-none messenger-textarea"
+          [placeholder]="'APP.MESSENGER.TYPE_MESSAGE' | translate"
+          [disabled]="isSendingMessage"
+          rows="1"
+          style="max-height: 100px; overflow-y: auto"
+        ></textarea>
+        <button
+          type="button"
+          (click)="sendMessage()"
+          [disabled]="!messageControl.value?.trim() || isSendingMessage"
+          class="px-3 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 text-white rounded-lg transition-colors duration-200 flex items-center justify-center min-w-[40px] focus:outline-none focus:ring-1 focus:ring-primary-400 messenger-button"
+        >
+          <div
+            *ngIf="isSendingMessage"
+            class="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"
+          ></div>
+          <ng-icon
+            *ngIf="!isSendingMessage"
+            name="lucideSend"
+            [size]="'16'"
+          ></ng-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

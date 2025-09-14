@@ -49,7 +49,6 @@ namespace Pawfect_API.Controllers
 
 		[HttpPost("query")]
 		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryReports([FromBody] ReportLookup reportLookup)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -79,7 +78,6 @@ namespace Pawfect_API.Controllers
 
 		[HttpGet("{id}")]
 		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> GetReport(String id, [FromQuery] List<String> fields)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);

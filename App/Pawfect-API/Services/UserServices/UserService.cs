@@ -30,8 +30,6 @@ using Pawfect_API.Models.Notification;
 using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
 using Pawfect_API.Services.NotificationServices;
 using Pawfect_Pet_Adoption_App_API.DevTools;
-using OfficeOpenXml.FormulaParsing.LexicalAnalysis;
-using MongoDB.Driver.Core.Servers;
 using Pawfect_Pet_Adoption_App_API.Models.Authorization;
 
 namespace Pawfect_API.Services.UserServices
@@ -644,27 +642,13 @@ namespace Pawfect_API.Services.UserServices
                 throw new InvalidOperationException("Failed to update user");
 
             await this.PersistProfilePhoto(model.ProfilePhotoId, oldProfilePhoto, workingUser.Id, justCreated: !auth);
+			workingUser.ProfilePhotoId = model.ProfilePhotoId;
 
             Models.User.User persisted = null;
             if (buildDto)
             {
-                // Return dto model
-                UserLookup lookup = new UserLookup();
-                lookup.Ids = new List<String> { workingUser.Id };
-                lookup.Fields = buildFields ?? new List<String> { nameof(Models.User.User.FullName) };
-                lookup.Offset = 0;
-                lookup.PageSize = 1;
-
-				if (auth)
-				{
-                    AuthContext context = _contextBuilder.OwnedFrom(lookup).AffiliatedWith(lookup).Build();
-                    List<String> censoredFields = await _censorFactory.Censor<UserCensor>().Censor([.. lookup.Fields], context);
-                    if (censoredFields.Count == 0) throw new ForbiddenException("Unauthorised access when querying users");
-                    lookup.Fields = censoredFields;
-                }
-
                 persisted = (await _builderFactory.Builder<UserBuilder>()
-                    .Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [.. lookup.Fields]))
+                    .Build([workingUser], buildFields ?? new List<String> { nameof(Models.User.User.FullName) }))
                     .FirstOrDefault();
             }
 
@@ -717,15 +701,8 @@ namespace Pawfect_API.Services.UserServices
             Models.User.User persisted = new Models.User.User();
 			if (buildDto)
 			{
-				// Return dto model
-				UserLookup lookup = new UserLookup();
-				lookup.Ids = new List<String> { workingUser.Id };
-				lookup.Fields = buildFields ?? new List<String> { nameof(Models.User.User.FullName) };
-				lookup.Offset = 0;
-				lookup.PageSize = 1;
-
                 persisted = (await _builderFactory.Builder<UserBuilder>()
-                    .Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [.. lookup.Fields]))
+					.Build([workingUser], buildFields ?? new List<String> { nameof(Models.User.User.FullName) }))
                     .FirstOrDefault();
             }
 
@@ -770,18 +747,11 @@ namespace Pawfect_API.Services.UserServices
 
             await this.PersistProfilePhoto(user.ProfilePhotoId, workingUser.ProfilePhotoId, workingUser.Id, justCreated: true);
 
-            Models.User.User persisted = new Models.User.User();
+            Models.User.User persisted = null;
 			if (buildDto)
 			{
-				// Return dto model
-				UserLookup lookup = new UserLookup();
-				lookup.Ids = new List<String> { workingUser.Id };
-				lookup.Fields = buildFields ?? new List<String> { "*", nameof(Models.Shelter.Shelter) + ".*" };
-				lookup.Offset = 0;
-				lookup.PageSize = 1;
-
                 persisted = (await _builderFactory.Builder<UserBuilder>()
-					.Build(await lookup.EnrichLookup(_queryFactory).CollectAsync(), [..lookup.Fields]))
+					.Build([workingUser], buildFields ?? new List<String> { "*", nameof(Models.Shelter.Shelter) + ".*" }))
 					.FirstOrDefault();
             }
 

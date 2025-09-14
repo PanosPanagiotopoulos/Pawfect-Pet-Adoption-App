@@ -34,3 +34,16 @@
     transform: translateY(0) scale(1);
   }
 }
+
+/* Mobile overflow prevention */
+@media (max-width: 768px) {
+  .app-wrapper {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .min-h-screen {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}

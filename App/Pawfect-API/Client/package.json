@@ -21,6 +21,7 @@
     "@angular/platform-browser": "^18.2.9",
     "@angular/platform-browser-dynamic": "^18.2.9",
     "@angular/router": "^18.2.9",
+    "@microsoft/signalr": "^9.0.6",
     "@ng-icons/core": "^29.5.2",
     "@ng-icons/heroicons": "^29.5.2",
     "@ng-icons/lucide": "^29.5.2",

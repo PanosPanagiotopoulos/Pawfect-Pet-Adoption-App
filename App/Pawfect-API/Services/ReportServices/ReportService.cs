@@ -1,16 +1,11 @@
 ﻿using AutoMapper;
-
 using Pawfect_API.Builders;
 using Pawfect_API.Censors;
-using Pawfect_API.Data.Entities;
 using Pawfect_API.Data.Entities.Types.Authorization;
 using Pawfect_API.Exceptions;
-using Pawfect_API.Models.AdoptionApplication;
 using Pawfect_API.Models.Lookups;
 using Pawfect_API.Models.Report;
 using Pawfect_API.Query;
-using Pawfect_API.Query.Queries;
-using Pawfect_API.Repositories.Implementations;
 using Pawfect_API.Repositories.Interfaces;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.Convention;
@@ -78,15 +73,15 @@ namespace Pawfect_API.Services.ReportServices
 				data.UpdatedAt = DateTime.UtcNow;
 			}
 
-			if (isUpdate) dataId = await _reportRepository.UpdateAsync(data);
-			else dataId = await _reportRepository.AddAsync(data);
+			if (isUpdate) data.Id = await _reportRepository.UpdateAsync(data);
+			else data.Id = await _reportRepository.AddAsync(data);
 
-			if (String.IsNullOrEmpty(dataId))
+			if (String.IsNullOrEmpty(data.Id))
 				throw new InvalidOperationException("Failed to persist report");
 
 			// Return dto model
 			ReportLookup lookup = new ReportLookup();
-			lookup.Ids = new List<String> { dataId };
+			lookup.Ids = new List<String> { data.Id };
 			lookup.Fields = fields;
 			lookup.Offset = 0;
 			lookup.PageSize = 1;
@@ -97,7 +92,7 @@ namespace Pawfect_API.Services.ReportServices
 
             lookup.Fields = censoredFields;
             return (await _builderFactory.Builder<ReportBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
-					.Build(await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync(), censoredFields))
+					.Build([data], censoredFields))
 					.FirstOrDefault();
         }
 

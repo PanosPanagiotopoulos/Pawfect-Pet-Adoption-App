@@ -3,6 +3,7 @@ import { File } from '../file/file.model';
 import { AuthProvider } from 'src/app/common/enum/auth-provider.enum';
 import { UserRole } from 'src/app/common/enum/user-role.enum';
 import { AdoptionApplication } from '../adoption-application/adoption-application.model';
+import { UserStatus } from 'src/app/common/enum/user-status.enum';
 
 export interface User {
   id?: string;
@@ -38,13 +39,18 @@ export interface UserPersist {
   hasEmailVerified: boolean;
 }
 
-
 export interface UserUpdate {
   id: string;
   fullName: string;
   email: string;
   phone: string;
   profilePhotoId?: string;
+}
+
+
+export interface UserPresence {
+  userId?: string;
+  status?: UserStatus;
 }
 
 // Shared Models

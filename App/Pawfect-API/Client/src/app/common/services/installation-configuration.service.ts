@@ -22,6 +22,10 @@ export class InstallationConfigurationService {
     return this.config.notificationsServiceAddress;
   }
 
+  get messengerServiceAddress(): string {
+    return this.config.messengerServiceAddress;
+  }
+
   get disableAuth(): boolean {
     return this.config.disableAuth;
   }
@@ -71,6 +75,7 @@ export class InstallationConfigurationService {
     this.config = {
       appServiceAddress: selectedEnv.appServiceAddress,
       notificationsServiceAddress: selectedEnv.notificationsServiceAddress,
+      messengerServiceAddress: selectedEnv.messengerServiceAddress,
       disableAuth: selectedEnv.disableAuth,
       googleClientId: selectedEnv.googleClientId,
       baseGoogleEndpoint: selectedEnv.baseGoogleEndpoint,
@@ -88,6 +93,7 @@ export class InstallationConfigurationService {
         selectedEnvironment: isProduction ? 'Production' : 'Development',
         appServiceAddress: this.config.appServiceAddress,
         notificationsServiceAddress: this.config.notificationsServiceAddress,
+        messengerServiceAddress: this.config.messengerServiceAddress,
         disableAuth: this.config.disableAuth
       });
     }

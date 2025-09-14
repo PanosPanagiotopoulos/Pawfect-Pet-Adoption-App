@@ -52,13 +52,6 @@ namespace Pawfect_Messenger.Models.Message
                     .WithMessage("The message content must be between 1 and 5000 characters.");
             });
 
-            // The message status is required and must be valid enum
-            RuleFor(message => message.Status)
-                .Cascade(CascadeMode.Stop)
-                .NotNull()
-                .WithMessage("The message status is not valid.")
-                .IsInEnum()
-                .WithMessage("The message status is not valid.");
         }
     }
 

@@ -69,7 +69,7 @@ namespace Pawfect_Messenger.Services.AuthenticationServices
             Boolean isAuthorised = await AuthorizeAsync(permissions);
             if (isAuthorised) return true;
 
-            Boolean isAffiliated = await AuthorizeAffiliatedAsync(resource);
+            Boolean isAffiliated = await AuthorizeAffiliatedAsync(resource, permissions);
             return isAffiliated;
         }
 

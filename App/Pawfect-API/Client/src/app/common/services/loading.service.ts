@@ -84,9 +84,6 @@ export class LoadingService {
     }
 
     const requestId = `route-${route}-${Date.now()}`;
-    this.logService.logFormatted(
-      `Starting route loading for: ${route} (${config.timeoutMs}ms)`
-    );
 
     this.startLoading(requestId);
 
@@ -97,9 +94,7 @@ export class LoadingService {
 
     // Set timeout to stop loading
     const timeoutId = setTimeout(() => {
-      this.logService.logFormatted(
-        `Route loading timeout completed for: ${route}`
-      );
+     
       this.stopLoading(requestId);
       this.routeTimeouts.delete(route);
     }, config.timeoutMs);
@@ -111,9 +106,7 @@ export class LoadingService {
     if (this.routeTimeouts.has(route)) {
       clearTimeout(this.routeTimeouts.get(route));
       this.routeTimeouts.delete(route);
-      this.logService.logFormatted(
-        `Route loading manually stopped for: ${route}`
-      );
+      
     }
   }
 
@@ -129,7 +122,6 @@ export class LoadingService {
         ...this.routeLoadingConfigs[index],
         ...config,
       };
-      this.logService.logFormatted(`Updated route config for: ${route}`);
     }
   }
 
@@ -142,7 +134,6 @@ export class LoadingService {
     } else {
       this.routeLoadingConfigs.push(config);
     }
-    this.logService.logFormatted(`Added route config for: ${config.route}`);
   }
 
   removeRouteConfig(route: string): void {
@@ -150,7 +141,6 @@ export class LoadingService {
     if (index !== -1) {
       this.routeLoadingConfigs.splice(index, 1);
       this.stopRouteLoading(route);
-      this.logService.logFormatted(`Removed route config for: ${route}`);
     }
   }
 
@@ -168,36 +158,22 @@ export class LoadingService {
 
   shouldShowRouteLoading(route: string): boolean {
     const config = this.getRouteConfig(route);
-    this.logService.logFormatted(
-      `Route config lookup for '${route}': ${
-        config
-          ? `found (${config.route}, enabled: ${config.enabled})`
-          : 'not found'
-      }`
-    );
+   
     return config ? config.enabled : false;
   }
 
-  /**
-   * Force stop all loading states - useful for emergency situations
-   * where loading states might get stuck
-   */
   forceStopLoading(): void {
-    this.logService.logFormatted('Force stopping all loading states');
-    
     // Clear all active requests
     this.activeRequests.clear();
     
     // Clear all route timeouts
     this.routeTimeouts.forEach((timeoutId, route) => {
       clearTimeout(timeoutId);
-      this.logService.logFormatted(`Cleared timeout for route: ${route}`);
     });
     this.routeTimeouts.clear();
     
     // Force update loading state to false
     this.loadingSubject.next(false);
     
-    this.logService.logFormatted('All loading states forcefully stopped');
   }
 }

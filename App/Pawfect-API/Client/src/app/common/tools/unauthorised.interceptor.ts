@@ -34,7 +34,7 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
     '/auth/verified/shelter',
     '/auth/reset-password-request',
     '/auth/reset-password',
-    '/search'
+    '/search',
   ];
   private readonly LANG_STORAGE_KEY = 'pawfect-language';
 
@@ -65,13 +65,19 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
         const failedRequestUrl = request.url.split('?')[0];
         const currentRoute = window.location.pathname;
         // Handle 403 Forbidden errors - redirect to unauthorized page
-        if (error.status === 403 && !this.excludedRoutes.includes(currentRoute)) {
-          const attemptedUrl = window.location.pathname + window.location.search + window.location.hash;
+        if (
+          error.status === 403 &&
+          !this.excludedRoutes.includes(currentRoute)
+        ) {
+          const attemptedUrl =
+            window.location.pathname +
+            window.location.search +
+            window.location.hash;
           this.router.navigate(['/unauthorized'], {
             queryParams: {
               message: 'You do not have permission to access this resource.',
-              returnUrl: attemptedUrl
-            }
+              returnUrl: attemptedUrl,
+            },
           });
           return throwError(() => error);
         }
@@ -79,8 +85,7 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
         // Handle 401 Unauthorized errors
         if (
           error.status !== 401 ||
-          failedRequestUrl.includes('/auth/refresh') ||
-          this.excludedRoutes.includes(currentRoute)
+          failedRequestUrl.includes('/auth/refresh')
         ) {
           return throwError(() => error);
         }
@@ -95,14 +100,16 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
               subMessage: this.getFallbackMessage('redirectMessage'),
             });
 
-            const attemptedUrl =
-              window.location.pathname +
-              window.location.search +
-              window.location.hash;
+            if (!this.excludedRoutes.includes(currentRoute)) {
+              const attemptedUrl =
+                window.location.pathname +
+                window.location.search +
+                window.location.hash;
 
-            this.router.navigate(['/auth/login'], {
-              queryParams: { returnUrl: attemptedUrl },
-            });
+              this.router.navigate(['/auth/login'], {
+                queryParams: { returnUrl: attemptedUrl },
+              });
+            }
 
             return throwError(() => refreshError);
           })

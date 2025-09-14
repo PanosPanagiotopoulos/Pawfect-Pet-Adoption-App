@@ -49,7 +49,6 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
         
         [HttpPost("query")]
         [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryBreeds([FromBody] BreedLookup breedLookup)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -79,7 +78,6 @@ namespace Pawfect_Pet_Adoption_App_API.Controllers
 
         [HttpGet("{id}")]
         [Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> GetBreed(String id, [FromQuery] List<String> fields)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
