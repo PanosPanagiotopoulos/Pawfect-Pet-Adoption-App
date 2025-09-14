@@ -77,6 +77,16 @@
       "WHY_ADOPT_HINT": "Describe why you believe you are the right person to adopt this pet",
       "SUPPORTING_DOCUMENTS": "Supporting Documents",
       "SUPPORTING_DOCUMENTS_HINT": "Add documents that support your application (optional)",
+      "APPLICATION_APPROVED_TITLE": "Application Approved",
+      "APPLICATION_APPROVED_MESSAGE": "This adoption application has been approved and can no longer be modified.",
+      "APPLICATION_APPROVED_STATUS_MESSAGE": "This application has been approved and cannot be changed.",
+      "APPLICATION_APPROVED_READONLY_HINT": "This field cannot be modified because the application has been approved.",
+      "NO_SUPPORTING_DOCUMENTS": "No supporting documents were provided.",
+      "DOWNLOAD_FILE": "Download file",
+      "DUPLICATE_APPLICATION_WARNING": "You have already submitted an adoption application for this pet.",
+      "REDIRECTING_TO_EXISTING_APPLICATION": "Redirecting you to your existing application...",
+      "REDIRECTING_TO_PROFILE": "Redirecting you to your profile page.",
+      "VIEW_APPLICATION_IN_PROFILE": "You can view and edit your application from there.",
       "ERROR_SUMMARY_TITLE": "Please correct the following errors:",
       "ERRORS": {
         "PET_NOT_FOUND_TITLE": "Pet not found",
@@ -192,7 +202,8 @@
       "MESSAGE_SENDING": "Sending",
       "MESSAGE_DELIVERED": "Delivered",
       "MESSAGE_FAILED": "Failed",
-      "MESSAGE_READ": "Read"
+      "MESSAGE_READ": "Read",
+      "VIEW_PROFILE": "View profile"
     },
     "AUTH": {
       "LOGIN": {
@@ -1163,7 +1174,8 @@
       "MESSAGE_DELIVERED": "Delivered",
       "MESSAGE_READ": "Read",
       "MESSAGE_FAILED": "Failed to send",
-      "CREATING_CONVERSATION": "Creating conversation..."
+      "CREATING_CONVERSATION": "Creating conversation...",
+      "VIEW_PROFILE": "View profile"
     }
   }
 } 

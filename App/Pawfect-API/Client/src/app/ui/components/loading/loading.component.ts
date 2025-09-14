@@ -60,24 +60,20 @@ export class LoadingComponent implements OnInit, OnDestroy {
   }
 
   onGifLoad(): void {
-    console.log('GIF loaded successfully:', this.currentGifSrc);
     this.gifError = false;
   }
 
   onGifError(event: Event): void {
-    console.warn('GIF failed to load:', this.currentGifSrc, event);
 
     // Try next GIF source
     this.currentGifIndex++;
 
     if (this.currentGifIndex < this.gifSources.length) {
-      console.log('Trying next GIF source...');
       this.currentGifSrc = this.addCacheBuster(
         this.gifSources[this.currentGifIndex]
       );
       this.gifError = false;
     } else {
-      console.log('All GIF sources failed, showing CSS fallback');
       this.gifError = true;
     }
   }

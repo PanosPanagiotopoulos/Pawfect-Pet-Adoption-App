@@ -34,7 +34,8 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
         [class]="inputClass"
         class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white 
                placeholder-gray-500 focus:border-primary-500/50 focus:ring-2 
-               focus:ring-primary-500/20 focus:outline-none transition-all duration-300"
+               focus:ring-primary-500/20 focus:outline-none transition-all duration-300
+               disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-gray-500/10"
         [placeholder]="placeholder | translate"
         [rows]="rows"
         (input)="onInputChange($event)"
@@ -59,7 +60,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
       </app-validation-message>
 
       <!-- Hint text -->
-      <p *ngIf="hint && !isInvalid" class="mt-2 text-sm text-gray-400">
+      <p *ngIf="hint && !isInvalid" class="mt-2 text-sm" [class.text-gray-500]="isDisabled" [class.text-gray-400]="!isDisabled">
         {{ hint | translate }}
       </p>
     </div>
@@ -78,6 +79,11 @@ export class TextAreaInputComponent {
   get isInvalid(): boolean {
     const control = this.form.get(this.controlName);
     return !!(control?.invalid && (control?.touched || control?.dirty));
+  }
+
+  get isDisabled(): boolean {
+    const control = this.form.get(this.controlName);
+    return !!(control?.disabled);
   }
 
   get inputClass(): string {

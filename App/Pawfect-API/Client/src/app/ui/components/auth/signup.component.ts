@@ -205,7 +205,6 @@ export class SignupComponent
           const maxAge = 5 * 60 * 1000; // 5 minutes
   
           if (dataAge > maxAge) {
-            console.error('Google auth data is too old');
             this.error = {
               title: 'Authentication Expired',
               message: 'The Google authentication session has expired. Please try again.',
@@ -228,7 +227,6 @@ export class SignupComponent
             }, 100);
           }
         } else {
-          console.error('No Google auth data found or invalid data');
           this.error = {
             title: 'Authentication Error',
             message: 'Google authentication data not found. Please try signing up with Google again.',
@@ -758,7 +756,6 @@ export class SignupComponent
         this.error = undefined;
       },
       error: (error: HttpErrorResponse) => {
-        console.error('Google signup error:', error);
         this.isExternalProviderLoading = false;
         // Force stop any stuck loading states after Google signup error
         this.loadingService.forceStopLoading();
@@ -846,7 +843,6 @@ export class SignupComponent
 
   onSubmitRegistration(): void {
     this.markFormGroupTouched(this.registrationForm);
-    this.logService.logFormatted(this.registrationForm.getRawValue());
     if (this.registrationForm.valid) {
       this.isLoading = true;
       this.isSubmitting = true;
@@ -914,7 +910,6 @@ export class SignupComponent
           this.error = undefined;
         },
         error: (error) => {
-          console.error('Registration error:', error);
           this.isLoading = false;
           this.isSubmitting = false;
           this.error = this.errorHandler.handleAuthError(error);
@@ -1053,7 +1048,6 @@ export class SignupComponent
               ),
               type: 'error',
             };
-            console.error('OTP verification error:', error);
           },
         });
     }
@@ -1090,7 +1084,6 @@ export class SignupComponent
           ),
           type: 'error',
         };
-        console.error('Resend OTP error:', error);
       },
     });
   }
@@ -1124,7 +1117,6 @@ export class SignupComponent
           ),
           type: 'error',
         };
-        console.error('Resend email verification error:', error);
       },
     });
   }

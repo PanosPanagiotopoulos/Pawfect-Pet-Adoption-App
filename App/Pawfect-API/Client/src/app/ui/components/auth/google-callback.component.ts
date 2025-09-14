@@ -106,7 +106,6 @@ export class GoogleCallbackComponent implements OnInit {
       const state = queryParams.get('state');
   
       if (!code || !state) {
-        console.error('Missing required parameters:', { code: !!code, state: !!state });
         this.error = this.translationService.translate('APP.AUTH.GOOGLE.INVALID_RESPONSE');
         return;
       }
@@ -148,22 +147,18 @@ export class GoogleCallbackComponent implements OnInit {
           }).then(
             (success) => {
               if (!success) {
-                console.error('Navigation failed to:', targetRoute);
                 this.error = 'Navigation failed. Please try again.';
               }
             }
           ).catch((error) => {
-            console.error('Navigation error:', error);
             this.error = 'Navigation error. Please try again.';
           });
             
         } catch (callbackError) {
-          console.error('Error in handleAuthCallback:', callbackError);
           this.error = this.translationService.translate('APP.AUTH.GOOGLE.PROCESSING_ERROR');
         }
           
       } catch (e) {
-        console.error('Error processing callback:', e);
         this.error = this.translationService.translate('APP.AUTH.GOOGLE.PROCESSING_ERROR');
       }
     }, 200); // Increased delay to ensure everything is ready

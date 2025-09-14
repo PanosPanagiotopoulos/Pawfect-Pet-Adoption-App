@@ -112,10 +112,6 @@ export class EditAnimalsComponent
       label: 'APP.ANIMALS.ADOPTION_STATUS.AVAILABLE',
     },
     {
-      value: AdoptionStatus.Pending,
-      label: 'APP.ANIMALS.ADOPTION_STATUS.PENDING',
-    },
-    {
       value: AdoptionStatus.Adopted,
       label: 'APP.ANIMALS.ADOPTION_STATUS.ADOPTED',
     },

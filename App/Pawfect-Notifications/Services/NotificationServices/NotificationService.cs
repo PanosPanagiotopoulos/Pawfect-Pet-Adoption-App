@@ -132,7 +132,7 @@ namespace Pawfect_Notifications.Services.NotificationServices
             lookup.Fields = censoredFields;
 
             return await _builderFactory.Builder<NotificationBuilder>().Authorise(AuthorizationFlags.OwnerOrPermission).Build(
-                await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermission).CollectAsync(),
+                notifications,
                 censoredFields
             );
         }

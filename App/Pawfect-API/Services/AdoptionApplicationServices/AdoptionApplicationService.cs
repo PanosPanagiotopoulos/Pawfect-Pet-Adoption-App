@@ -94,6 +94,8 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                 if (!await AuthoriseAdoptionApplication(data, Permission.EditAdoptionApplications))
                     throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.AdoptionApplication), Permission.EditAdoptionApplications);
 
+                if (data.Status == ApplicationStatus.Approved) throw new InvalidOperationException("Cannot change accepted application");
+
                 String userShelterId = await _authorizationContentResolver.CurrentPrincipalShelter();
                 if (String.IsNullOrEmpty(userShelterId))
                 {
@@ -102,6 +104,23 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                     if (data.AnimalId != persist.AnimalId) throw new ForbiddenException("Not allowed action");
                     if (data.ShelterId != persist.ShelterId) throw new ForbiddenException("Not allowed action");
                 }
+
+                if (await _animalRepository.ExistsAsync(animal => animal.Id == data.AnimalId && animal.AdoptionStatus == AdoptionStatus.Adopted))
+                {
+                    // TODO
+                    // Handle someone else management to adopt this animal first even though you had an application
+                }
+
+                // Make animal flag set to "Adopted"
+                Data.Entities.Animal animal = await _animalRepository.FindAsync(animal => animal.Id == data.AnimalId);
+                animal.AdoptionStatus = AdoptionStatus.Adopted;
+                animal.UpdatedAt = DateTime.UtcNow;
+                if (String.IsNullOrEmpty(await _animalRepository.UpdateAsync(animal)))
+                {
+                    _logger.LogError("Failed to update availability of the animal after beeing adopted");
+                    throw new InvalidOperationException("Failed to update availability of the animal after beeing adopted");
+                }
+                    
 
                 prevFileIds = data.AttachedFilesIds;
 
@@ -119,8 +138,11 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                 if (!String.IsNullOrEmpty(await _authorizationContentResolver.CurrentPrincipalShelter()))
                     throw new InvalidOperationException("Shelter cannot adopt an animal");
 
-                if (await _adoptionApplicationRepository.ExistsAsync(application => application.UserId.Equals(userId) && application.AnimalId.Equals(persist.AnimalId)))
+                if (!String.IsNullOrEmpty(await this.AdoptionRequestExists(persist.AnimalId)))
                     throw new InvalidOperationException("You have already tried to adopt this animal");
+
+                if (await _animalRepository.ExistsAsync(animal => animal.Id == data.AnimalId && animal.AdoptionStatus == AdoptionStatus.Adopted))
+                    throw new InvalidOperationException("Cannot adopt already adopted animal");
 
                 data.Id = null;
                 data.UserId = userId;
@@ -160,6 +182,15 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             return (await _builderFactory.Builder<AdoptionApplicationBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
                 .Build([data], censoredFields))
                 .FirstOrDefault();
+        }
+
+        public async Task<String> AdoptionRequestExists(String animalId) 
+        {
+            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No authenticated user found");
+
+            return (await _adoptionApplicationRepository.FindAsync(application => application.UserId.Equals(userId) && application.AnimalId.Equals(animalId), [nameof(Data.Entities.AdoptionApplication.Id)]))?.Id;
         }
 
         private async Task<Boolean> AuthoriseAdoptionApplication(Data.Entities.AdoptionApplication data, String permission)

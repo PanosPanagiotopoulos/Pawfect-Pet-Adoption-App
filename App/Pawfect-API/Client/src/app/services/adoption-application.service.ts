@@ -23,21 +23,27 @@ export class AdoptionApplicationService {
     return `${this.installationConfiguration.appServiceAddress}api/adoption-applications`;
   }
 
-  query(q: AdoptionApplicationLookup): Observable<QueryResult<AdoptionApplication>> {
+  query(
+    q: AdoptionApplicationLookup
+  ): Observable<QueryResult<AdoptionApplication>> {
     const url = `${this.apiBase}/query`;
     return this.http
       .post<QueryResult<AdoptionApplication>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  queryMineRequested(q: AdoptionApplicationLookup): Observable<QueryResult<AdoptionApplication>> {
+  queryMineRequested(
+    q: AdoptionApplicationLookup
+  ): Observable<QueryResult<AdoptionApplication>> {
     const url = `${this.apiBase}/query/mine/requested`;
     return this.http
       .post<QueryResult<AdoptionApplication>>(url, q)
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  queryMineReceived(q: AdoptionApplicationLookup): Observable<QueryResult<AdoptionApplication>> {
+  queryMineReceived(
+    q: AdoptionApplicationLookup
+  ): Observable<QueryResult<AdoptionApplication>> {
     const url = `${this.apiBase}/query/mine/received`;
     return this.http
       .post<QueryResult<AdoptionApplication>>(url, q)
@@ -50,9 +56,9 @@ export class AdoptionApplicationService {
   ): Observable<AdoptionApplication> {
     const url = `${this.apiBase}/${id}`;
     let params = new HttpParams();
-        reqFields.forEach(field => {
-          params = params.append('fields', field);
-        });
+    reqFields.forEach((field) => {
+      params = params.append('fields', field);
+    });
     const options = { params };
 
     return this.http
@@ -60,10 +66,13 @@ export class AdoptionApplicationService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
-  persist(item: AdoptionApplicationPersist, reqFields: string[] = []): Observable<AdoptionApplication> {
+  persist(
+    item: AdoptionApplicationPersist,
+    reqFields: string[] = []
+  ): Observable<AdoptionApplication> {
     const url = `${this.apiBase}/persist`;
     let params = new HttpParams();
-    reqFields.forEach(field => {
+    reqFields.forEach((field) => {
       params = params.append('fields', field);
     });
     const options = { params };
@@ -77,6 +86,14 @@ export class AdoptionApplicationService {
 
     return this.http
       .post<boolean>(url)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
+  adoptionRequestExists(animalId: string): Observable<string> {
+    const url = `${this.apiBase}/adoption-request-exists/${animalId}`;
+
+    return this.http
+      .post<string>(url, {})
       .pipe(catchError((error: any) => throwError(error)));
   }
 

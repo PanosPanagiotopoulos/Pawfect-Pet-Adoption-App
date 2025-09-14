@@ -84,18 +84,5 @@ export class InstallationConfigurationService {
       encryptKey: selectedEnv.encryptKey,
       mainAppApiKey: selectedEnv.mainAppApiKey
     };
-
-    // Log configuration in development only
-    if (isDevMode()) {
-      console.log('Configuration initialized:', {
-        isDevMode: isDevMode(),
-        isProduction: isProduction,
-        selectedEnvironment: isProduction ? 'Production' : 'Development',
-        appServiceAddress: this.config.appServiceAddress,
-        notificationsServiceAddress: this.config.notificationsServiceAddress,
-        messengerServiceAddress: this.config.messengerServiceAddress,
-        disableAuth: this.config.disableAuth
-      });
-    }
   }
 }

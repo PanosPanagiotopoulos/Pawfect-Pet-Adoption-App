@@ -1,10 +1,17 @@
-import { Component, OnInit, ViewChild, HostListener, AfterViewInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  HostListener,
+  AfterViewInit,
+  OnDestroy,
+} from '@angular/core';
 import { Observable } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BaseComponent } from 'src/app/common/ui/base-component';
 import { AnimalService } from 'src/app/services/animal.service';
 import { AdoptionApplicationService } from 'src/app/services/adoption-application.service';
-import { ShelterService } from 'src/app/services/shelter.service';
+
 import { ErrorHandlerService } from 'src/app/common/services/error-handler.service';
 import { TranslationService } from 'src/app/common/services/translation.service';
 import { AuthService } from 'src/app/services/auth.service';
@@ -518,8 +525,6 @@ export class AdoptComponent
   isShelterInfoOpen = true;
   isEditMode = false;
   canEditApplication = false;
-  currentUserId?: string;
-  currentUserShelterId?: string;
   isDeletingApplication = false;
   canDeleteApp = false;
   isLoadingDeletePermission = true;
@@ -539,7 +544,6 @@ export class AdoptComponent
     private adoptionApplicationService: AdoptionApplicationService,
     private errorHandler: ErrorHandlerService,
     private translationService: TranslationService,
-    private shelterService: ShelterService,
     private location: Location,
     private authService: AuthService,
     private snackbarService: SnackbarService,
@@ -575,7 +579,8 @@ export class AdoptComponent
         }
 
         this.isEditMode = false;
-        this.loadAnimal(animalId);
+        // Check for duplicate application BEFORE loading animal
+        this.checkForDuplicateApplication(animalId);
       } else {
         this.router.navigate(['/404']);
       }
@@ -614,6 +619,82 @@ export class AdoptComponent
       });
   }
 
+  private checkForDuplicateApplication(animalId: string): void {
+    if (!animalId) {
+      this.loadAnimal(animalId);
+      return;
+    }
+
+    // Set loading state immediately
+    this.isLoading = true;
+    this.error = undefined;
+
+    // Check if user already has an application for this animal
+    this.adoptionApplicationService.adoptionRequestExists(animalId).subscribe({
+      next: (existingApplicationId) => {
+        if (
+          existingApplicationId &&
+          typeof existingApplicationId === 'string' &&
+          existingApplicationId.trim() !== ''
+        ) {
+          // Stop loading immediately
+          this.isLoading = false;
+
+          // Show warning message
+          this.snackbarService.showWarning({
+            message: this.translationService.translate(
+              'APP.ADOPT.DUPLICATE_APPLICATION_WARNING'
+            ),
+            subMessage: this.translationService.translate(
+              'APP.ADOPT.REDIRECTING_TO_EXISTING_APPLICATION'
+            ),
+          });
+
+          // Check if user has permission to view adoption applications
+          const hasViewPermission = this.authService.hasPermission(
+            Permission.CanViewAdoptionApplications
+          );
+
+          if (hasViewPermission) {
+            // User has permission to access edit route directly
+            this.router
+              .navigate(['/adopt/edit', existingApplicationId])
+              .catch(() => {
+                window.location.href = `/adopt/edit/${existingApplicationId}`;
+              });
+          } else {
+            // User doesn't have permission for edit route, redirect to profile page
+            this.snackbarService.showWarning({
+              message: this.translationService.translate(
+                'APP.ADOPT.REDIRECTING_TO_PROFILE'
+              ),
+              subMessage: this.translationService.translate(
+                'APP.ADOPT.VIEW_APPLICATION_IN_PROFILE'
+              ),
+            });
+
+            this.router
+              .navigate(['/profile'], {
+                queryParams: { tab: 'adoption-applications' },
+              })
+              .catch(() => {
+                window.location.href = '/profile?tab=adoption-applications';
+              });
+          }
+          return;
+        }
+
+        // No existing application, proceed with loading animal
+        this.loadAnimal(animalId);
+      },
+      error: (error) => {
+        // If check fails, proceed with normal flow (fail gracefully)
+        console.warn('Failed to check for existing application:', error);
+        this.loadAnimal(animalId);
+      },
+    });
+  }
+
   loadAnimal(id: string = '') {
     id = !id ? this.route.snapshot.params['id'] : id;
     if (!id) {
@@ -635,6 +716,7 @@ export class AdoptComponent
     this.isLoadingDeletePermission = false; // No delete permission needed for new applications
     this.canDeleteApp = false; // Reset delete permission for new applications
 
+    // Load animal data (duplicate check is now done before this method is called)
     this.animalService.getSingle(id, this.getAnimalFields()).subscribe({
       next: (animal) => {
         this.animal = animal;
@@ -665,8 +747,6 @@ export class AdoptComponent
       }
     }
   }
-
-
 
   openDialog(): void {
     this.isDialogOpen = true;
@@ -709,12 +789,8 @@ export class AdoptComponent
     const shelterId: string | null = this.authService.getUserShelterId();
     const userId: string | null = this.authService.getUserId();
 
-    this.currentUserId = userId ?? undefined;
-    this.currentUserShelterId = shelterId ?? undefined;
-
     // Check if user can edit: either they own the application or they're from the same shelter
-    const isApplicationOwner =
-      this.adoptionApplication?.user?.id === this.currentUserId;
+    const isApplicationOwner = this.adoptionApplication?.user?.id === userId;
     const isShelterUser = shelterId === applicationShelterId;
 
     this.canEditApplication = isApplicationOwner || isShelterUser;
@@ -731,7 +807,6 @@ export class AdoptComponent
           this.isLoading = false; // Now we can finish loading
         },
         error: (error) => {
-          console.error('Error checking delete permission:', error);
           this.canDeleteApp = false;
           this.isLoadingDeletePermission = false;
           this.isLoading = false; // Finish loading even on error
@@ -1023,17 +1098,25 @@ export class AdoptComponent
 
     const dialogRef = this.dialog.open(FormLeaveConfirmationDialogComponent, {
       data: {
-        title: this.translationService.translate('APP.COMMONS.FORM_GUARD.TITLE'),
-        message: this.translationService.translate('APP.COMMONS.FORM_GUARD.MESSAGE'),
-        confirmText: this.translationService.translate('APP.COMMONS.FORM_GUARD.LEAVE'),
-        cancelText: this.translationService.translate('APP.COMMONS.FORM_GUARD.STAY')
+        title: this.translationService.translate(
+          'APP.COMMONS.FORM_GUARD.TITLE'
+        ),
+        message: this.translationService.translate(
+          'APP.COMMONS.FORM_GUARD.MESSAGE'
+        ),
+        confirmText: this.translationService.translate(
+          'APP.COMMONS.FORM_GUARD.LEAVE'
+        ),
+        cancelText: this.translationService.translate(
+          'APP.COMMONS.FORM_GUARD.STAY'
+        ),
       },
       disableClose: false,
       width: '28rem',
       panelClass: 'form-guard-panel',
       backdropClass: 'form-guard-backdrop',
       autoFocus: false,
-      hasBackdrop: true
+      hasBackdrop: true,
     });
 
     return dialogRef.afterClosed();
@@ -1043,7 +1126,9 @@ export class AdoptComponent
   @HostListener('window:beforeunload', ['$event'])
   unloadNotification($event: any): void {
     if (this.hasUnsavedChanges()) {
-      $event.returnValue = this.translationService.translate('APP.COMMONS.FORM_GUARD.MESSAGE');
+      $event.returnValue = this.translationService.translate(
+        'APP.COMMONS.FORM_GUARD.MESSAGE'
+      );
     }
   }
 

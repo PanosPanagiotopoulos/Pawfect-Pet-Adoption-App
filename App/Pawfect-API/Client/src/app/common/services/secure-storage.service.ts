@@ -19,7 +19,6 @@ export class SecureStorageService {
       const encryptedData = CryptoJS.AES.encrypt(jsonString, this.installationConfiguration.encryptKey).toString();
       sessionStorage.setItem(key, encryptedData);
     } catch (error) {
-      console.error('Error encrypting and storing data:', error);
       throw new Error('Failed to store data securely');
     }
   }
@@ -37,7 +36,6 @@ export class SecureStorageService {
       const decryptedData = CryptoJS.AES.decrypt(encryptedData, this.installationConfiguration.encryptKey).toString(CryptoJS.enc.Utf8);
       return JSON.parse(decryptedData) as T;
     } catch (error) {
-      console.error('Error decrypting data:', error);
       return null;
     }
   }
@@ -50,7 +48,6 @@ export class SecureStorageService {
     try {
       sessionStorage.removeItem(key);
     } catch (error) {
-      console.error('Error removing data:', error);
       throw new Error('Failed to remove data');
     }
   }
@@ -62,7 +59,6 @@ export class SecureStorageService {
     try {
       sessionStorage.clear();
     } catch (error) {
-      console.error('Error clearing storage:', error);
       throw new Error('Failed to clear storage');
     }
   }

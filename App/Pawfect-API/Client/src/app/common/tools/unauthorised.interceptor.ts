@@ -67,7 +67,8 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
         // Handle 403 Forbidden errors - redirect to unauthorized page
         if (
           error.status === 403 &&
-          !this.excludedRoutes.includes(currentRoute)
+          !this.excludedRoutes.includes(currentRoute) &&
+          !failedRequestUrl.includes('/auth/refresh')
         ) {
           const attemptedUrl =
             window.location.pathname +

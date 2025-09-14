@@ -201,7 +201,6 @@ export class NotificationsDropdownComponent
           this.isMarkingAsRead = false;
         },
         error: (error) => {
-          console.error('Error marking notification as read:', error);
           this.hasError = true;
           this.snackbarService.showError({
             message: this.translateService.translate(
@@ -242,7 +241,6 @@ export class NotificationsDropdownComponent
           this.isMarkingAsRead = false;
         },
         error: (error) => {
-          console.error('Error marking all notifications as read:', error);
           this.hasError = true;
           this.snackbarService.showError({
             message: this.translateService.translate(

@@ -151,26 +151,23 @@ namespace Pawfect_API.Controllers
 
                 // Extract token ID (jti)
                 String? tokenId = jwtToken.Id;
-                if (String.IsNullOrEmpty(tokenId))
-                    return BadRequest("Failed to find token ID in access token");
+                if (String.IsNullOrEmpty(tokenId)) return Forbid("Failed to find token ID in access token");
 
                 if (!_jwtService.IsTokenRevoked(jwtToken)) return Ok();
 
                 // Extract expiration
                 DateTime? expiration = jwtToken.ValidTo;
-                if (!expiration.HasValue)
-                    return BadRequest("Failed to find expiration date in access token");
+                if (!expiration.HasValue) return Forbid("Failed to find expiration date in access token");
 
                 _jwtService.RevokeToken(tokenId, expiration.Value);
             }
             catch (Exception) {}
 
             String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);
-            if (String.IsNullOrEmpty(refreshTokenString))
-                return Forbid("Refresh token is missing");
+            if (String.IsNullOrEmpty(refreshTokenString)) return Forbid("Refresh token is missing");
 
             RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token.Equals(refreshTokenString) && rt.ExpiresAt > DateTime.UtcNow);
-            if (refreshToken == null) return BadRequest("Invalid or expired refresh token");
+            if (refreshToken == null) return Forbid("Invalid or expired refresh token");
 
             // ** ACCOUNT ** //
             String userId = refreshToken.LinkedTo;
@@ -181,8 +178,7 @@ namespace Pawfect_API.Controllers
             List<String> userRoles = [.. user.Roles.Select(roleEnum => roleEnum.ToString())];
 
             String newAccessToken = _jwtService.GenerateJwtToken(user.Id, user.Email, userRoles, user.IsVerified);
-            if (String.IsNullOrEmpty(newAccessToken))
-                throw new InvalidOperationException("Failed to create token");
+            if (String.IsNullOrEmpty(newAccessToken)) throw new Exception("Failed to create token");
 
             // ** COOKIES ** //
             _cookiesService.DeleteCookie(JwtService.ACCESS_TOKEN);

@@ -299,8 +299,6 @@ export class ViewAnimalsComponent implements OnInit, OnDestroy {
     switch (status) {
       case AdoptionStatus.Available:
         return 'APP.PROFILE-PAGE.ADOPTION_STATUS.AVAILABLE';
-      case AdoptionStatus.Pending:
-        return 'APP.PROFILE-PAGE.ADOPTION_STATUS.PENDING';
       case AdoptionStatus.Adopted:
         return 'APP.PROFILE-PAGE.ADOPTION_STATUS.ADOPTED';
       default:
@@ -312,8 +310,6 @@ export class ViewAnimalsComponent implements OnInit, OnDestroy {
     switch (status) {
       case AdoptionStatus.Available:
         return 'bg-green-500/25 text-green-400';
-      case AdoptionStatus.Pending:
-        return 'bg-amber-500/25 text-amber-400';
       case AdoptionStatus.Adopted:
         return 'bg-blue-500/25 text-blue-400';
       default:
@@ -325,8 +321,6 @@ export class ViewAnimalsComponent implements OnInit, OnDestroy {
     switch (status) {
       case AdoptionStatus.Available:
         return 'lucideCheck';
-      case AdoptionStatus.Pending:
-        return 'lucideClock';
       case AdoptionStatus.Adopted:
         return 'lucideHeart';
       default:

@@ -203,8 +203,7 @@ export class SearchComponent
 
       // Store current filters for pagination
       this.currentFilters = {
-        adoptionStatuses: [AdoptionStatus.Available, AdoptionStatus.Pending],
-        // Add other filters here as needed
+        adoptionStatuses: [AdoptionStatus.Available],
       };
 
       this.loadAnimalsWithCurrentSettings();
@@ -240,6 +239,7 @@ export class SearchComponent
       offset: this.currentOffset,
       pageSize: this.pageSize,
       query: this.currentSearchQuery,
+      adoptionStatuses: [AdoptionStatus.Available],
       ...this.currentFilters,
       fields: [
         nameof<Animal>((x) => x.id),

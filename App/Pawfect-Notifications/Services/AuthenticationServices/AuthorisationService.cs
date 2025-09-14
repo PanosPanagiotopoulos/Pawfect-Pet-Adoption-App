@@ -69,7 +69,7 @@ namespace Pawfect_Notifications.Services.AuthenticationServices
             Boolean isAuthorised = await this.AuthorizeAsync(permissions);
             if (isAuthorised) return true;
 
-            Boolean isAffiliated = await this.AuthorizeAffiliatedAsync(resource);
+            Boolean isAffiliated = await this.AuthorizeAffiliatedAsync(resource, permissions);
             return isAffiliated;
         }
 

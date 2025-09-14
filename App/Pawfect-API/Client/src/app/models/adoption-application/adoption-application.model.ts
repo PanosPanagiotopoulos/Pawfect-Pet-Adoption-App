@@ -27,7 +27,7 @@ export interface AdoptionApplicationPersist {
 
 // Enums
 export enum ApplicationStatus {
-  Pending = 1,
-  Available = 2,
+  Approved = 1,
+  Pending = 2,
   Rejected = 3,
 }

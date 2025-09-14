@@ -58,8 +58,6 @@ public class Seeder
         await SeedAnimals();
         await SeedFiles();
         SeedAdoptionApplications();
-		SeedConversations();
-		SeedMessages();
 		SeedReports();
 		return;
 	}

@@ -231,7 +231,6 @@ export class HeaderComponent extends BaseComponent {
         this.isSearching = false;
       },
       error: (error) => {
-        console.error('Shelter search error:', error);
         this.shelterSearchResults = [];
         this.showShelterDropdown = false;
         this.isSearching = false;
@@ -340,7 +339,6 @@ export class HeaderComponent extends BaseComponent {
           this.isSearching = false;
         },
         error: (error) => {
-          console.error('Shelter search error:', error);
           this.shelterSearchResults = [];
           this.showShelterDropdown = true; // Show to display "no results" message
           this.isSearching = false;
@@ -507,7 +505,6 @@ export class HeaderComponent extends BaseComponent {
           });
         },
         error: (error) => {
-          console.error('Logout error:', error);
           this.router.navigate(['/']).then(() => {
             window.location.reload();
           });

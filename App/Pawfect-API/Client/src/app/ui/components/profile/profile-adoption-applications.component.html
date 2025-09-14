@@ -439,7 +439,7 @@
         [ngClass]="{
           'border-amber-400': application.status === ApplicationStatus.Pending,
           'border-green-500':
-            application.status === ApplicationStatus.Available,
+            application.status === ApplicationStatus.Approved,
           'border-red-500': application.status === ApplicationStatus.Rejected
         }"
         (click)="onEditApplication(application)"

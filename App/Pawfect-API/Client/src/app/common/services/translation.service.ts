@@ -77,7 +77,6 @@ export class TranslationService {
         return true;
       }),
       catchError((error) => {
-        console.error(`[TranslationService] Failed to initialize:`, error);
         this.translations = {};
         this.isInitialized = true;
         return of(false);

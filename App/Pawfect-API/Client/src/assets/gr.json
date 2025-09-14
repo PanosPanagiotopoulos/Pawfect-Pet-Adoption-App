@@ -75,6 +75,16 @@
       "WHY_ADOPT_HINT": "Περιγράψτε γιατί πιστεύετε ότι είστε το κατάλληλο πρόσωπο για να υιοθετήσετε αυτό το κατοικίδιο",
       "SUPPORTING_DOCUMENTS": "Υποστηρικτικά Έγγραφα",
       "SUPPORTING_DOCUMENTS_HINT": "Προσθέστε έγγραφα που υποστηρίζουν την αίτησή σας (προαιρετικό)",
+      "APPLICATION_APPROVED_TITLE": "Αίτηση Εγκρίθηκε",
+      "APPLICATION_APPROVED_MESSAGE": "Αυτή η αίτηση υιοθεσίας έχει εγκριθεί και δεν μπορεί πλέον να τροποποιηθεί.",
+      "APPLICATION_APPROVED_STATUS_MESSAGE": "Αυτή η αίτηση έχει εγκριθεί και δεν μπορεί να αλλάξει.",
+      "APPLICATION_APPROVED_READONLY_HINT": "Αυτό το πεδίο δεν μπορεί να τροποποιηθεί επειδή η αίτηση έχει εγκριθεί.",
+      "NO_SUPPORTING_DOCUMENTS": "Δεν παρέχονται υποστηρικτικά έγγραφα.",
+      "DOWNLOAD_FILE": "Λήψη αρχείου",
+      "DUPLICATE_APPLICATION_WARNING": "Έχετε ήδη υποβάλει αίτηση υιοθεσίας για αυτό το κατοικίδιο.",
+      "REDIRECTING_TO_EXISTING_APPLICATION": "Σας ανακατευθύνουμε στην υπάρχουσα αίτησή σας...",
+      "REDIRECTING_TO_PROFILE": "Σας ανακατευθύνουμε στη σελίδα του προφίλ σας.",
+      "VIEW_APPLICATION_IN_PROFILE": "Μπορείτε να δείτε και να επεξεργαστείτε την αίτησή σας από εκεί.",
       "ERROR_SUMMARY_TITLE": "Παρακαλούμε διορθώστε τα παρακάτω σφάλματα:",
       "ERRORS": {
         "PET_NOT_FOUND_TITLE": "Το κατοικίδιο δεν βρέθηκε",
@@ -190,7 +200,8 @@
       "MESSAGE_SENDING": "Αποστολή",
       "MESSAGE_DELIVERED": "Παραδόθηκε",
       "MESSAGE_FAILED": "Απέτυχε",
-      "MESSAGE_READ": "Διαβάστηκε"
+      "MESSAGE_READ": "Διαβάστηκε",
+      "VIEW_PROFILE": "Προβολή προφίλ"
     },
     "AUTH": {
       "LOGIN": {
@@ -1157,7 +1168,8 @@
       "MESSAGE_DELIVERED": "Παραδόθηκε",
       "MESSAGE_READ": "Διαβάστηκε",
       "MESSAGE_FAILED": "Αποτυχία αποστολής",
-      "CREATING_CONVERSATION": "Δημιουργία συνομιλίας..."
+      "CREATING_CONVERSATION": "Δημιουργία συνομιλίας...",
+      "VIEW_PROFILE": "Προβολή προφίλ"
     }
   }
 }

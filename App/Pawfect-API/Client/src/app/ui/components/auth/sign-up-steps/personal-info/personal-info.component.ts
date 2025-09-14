@@ -548,16 +548,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
   isPhotoUploading(): boolean {
     // Check if profile photo is currently uploading
     const isUploading = this.isPhotoLoading || this.hasUploadingFiles() || this.isFileActuallyUploading();
-    
-    // Debug logging
-    console.log('Photo upload state check:', {
-      isPhotoLoading: this.isPhotoLoading,
-      hasUploadingFiles: this.hasUploadingFiles(),
-      isFileActuallyUploading: this.isFileActuallyUploading(),
-      currentUploadingFile: this.currentUploadingFile,
-      result: isUploading
-    });
-    
     return isUploading;
   }
 
@@ -1130,8 +1120,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
             this.cdr.markForCheck();
           },
           error: (error) => {
-            console.error('Error checking Google data availability:', error);
-            
             // On error, revert Google signup process to prevent issues
             this.revertGoogleSignupProcess();
             
@@ -1255,7 +1243,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.emailAvailability = { isChecking: false };
-        console.error('Error checking email availability:', error);
         this.cdr.markForCheck();
       }
     });
@@ -1281,7 +1268,6 @@ export class PersonalInfoComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.phoneAvailability = { isChecking: false };
-        console.error('Error checking phone availability:', error);
         this.cdr.markForCheck();
       }
     });

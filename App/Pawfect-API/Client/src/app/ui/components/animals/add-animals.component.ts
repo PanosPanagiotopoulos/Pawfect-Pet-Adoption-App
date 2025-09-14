@@ -117,10 +117,6 @@ export class AddAnimalsComponent
       label: 'APP.ANIMALS.ADOPTION_STATUS.AVAILABLE',
     },
     {
-      value: AdoptionStatus.Pending,
-      label: 'APP.ANIMALS.ADOPTION_STATUS.PENDING',
-    },
-    {
       value: AdoptionStatus.Adopted,
       label: 'APP.ANIMALS.ADOPTION_STATUS.ADOPTED',
     },
@@ -682,7 +678,6 @@ export class AddAnimalsComponent
         saveAs(response.body!, filename);
       },
       error: (err) => {
-        console.error('Failed to download template:', err);
       },
     });
   }

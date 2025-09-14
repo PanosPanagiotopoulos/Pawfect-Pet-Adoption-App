@@ -132,7 +132,6 @@ export class VerifiedComponent implements OnInit {
       (error) => {
         this.isVerified = false;
         this.isLoading = false;
-        console.error('Email verification error:', error);
         this.error = this.translationService.translate('APP.AUTH.VERIFIED.INVALID_TOKEN');
       }
     );
@@ -159,7 +158,6 @@ export class VerifiedComponent implements OnInit {
       (error) => {
         this.isVerified = false;
         this.isLoading = false;
-        console.error('Email verification error:', error);
         this.error = this.translationService.translate('APP.AUTH.VERIFIED.USER_VERIFY_ERROR');
       }
     );

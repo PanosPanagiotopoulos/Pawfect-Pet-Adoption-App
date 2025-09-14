@@ -84,13 +84,11 @@ export class GoogleAuthService {
     const error = params.get('error');
 
     if (error) {
-      console.error('Google OAuth error:', error);
       this.router.navigate(['/auth/login']);
       return;
     }
 
     if (!code || !state) {
-      console.error('Invalid OAuth callback');
       this.router.navigate(['/auth/login']);
       return;
     }
@@ -111,7 +109,6 @@ export class GoogleAuthService {
         }
       );
     } catch (e) {
-      console.error('Invalid state parameter:', e);
       this.router.navigate(['/auth/login']);
     }
   }

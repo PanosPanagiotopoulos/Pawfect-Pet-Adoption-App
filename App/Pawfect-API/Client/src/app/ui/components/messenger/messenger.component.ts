@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
 import {
   takeUntil,
   debounceTime,
@@ -56,6 +57,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
   isSendingMessage = false;
   isCreatingConversation = false;
   isUserLoggedIn = false;
+  isInitializingAuth = true; // Track if auth initialization is in progress
 
   // Current user
   currentUser?: User;
@@ -102,7 +104,8 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     private messengerHubService: MessengerHubService,
     private authService: AuthService,
     private userService: UserService,
-    private logService: LogService
+    private logService: LogService,
+    private router: Router
   ) {
     super();
   }
@@ -114,11 +117,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
 
     // Initialize hub service
     this.messengerHubService.init();
-    
-    // Ensure button visibility by checking login status immediately
-    this.authService.isLoggedIn().pipe(take(1)).subscribe(isLoggedIn => {
-      this.isUserLoggedIn = isLoggedIn;
-    });
   }
 
   override ngOnDestroy(): void {
@@ -142,6 +140,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
   }
 
   private initializeCurrentUser(): void {
+    this.isInitializingAuth = true;
     this.authService
       .isLoggedIn()
       .pipe(takeUntil(this._destroyed))
@@ -154,6 +153,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           } else {
             this.currentUser = undefined;
             this.unreadMessagesCount = 0;
+            this.isInitializingAuth = false; // Auth initialization complete
             // Clear unread counter interval and timeout
             if (this.unreadCountInterval) {
               clearInterval(this.unreadCountInterval);
@@ -170,6 +170,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
         },
         error: (error) => {
           this.isUserLoggedIn = false;
+          this.isInitializingAuth = false; // Auth initialization complete (with error)
         },
       });
   }
@@ -189,12 +190,10 @@ export class MessengerComponent extends BaseComponent implements OnInit {
       .subscribe({
         next: (user: User) => {
           this.currentUser = user;
+          this.isInitializingAuth = false; // Auth initialization complete with user loaded
         },
         error: (error) => {
-          this.logService.logFormatted({
-            error: 'Failed to load current user',
-            details: error,
-          });
+          this.isInitializingAuth = false; // Auth initialization complete (with error)
         },
       });
   }
@@ -345,10 +344,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           this.isSearching = false;
         },
         error: (error) => {
-          this.logService.logFormatted({
-            error: 'Search error',
-            details: error,
-          });
           this.shelterSearchResults = [];
           this.userSearchResults = [];
           this.showShelterDropdown = false;
@@ -437,7 +432,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
             conversation.lastMessagePreview?.id === readMessage.id
           ) {
             conversation.lastMessagePreview!.readBy = readMessage.readBy;
-            
+
             // Refresh unread count when message is read
             if (readMessage.sender?.id !== this.currentUser?.id) {
               this.debouncedLoadUnreadCount();
@@ -468,20 +463,21 @@ export class MessengerComponent extends BaseComponent implements OnInit {
       )
       .subscribe((presence) => {
         if (presence && presence.userId) {
-          this.logService.logFormatted({
-            message: 'User presence changed',
-            details: {
-              userId: presence.userId,
-              status: presence.status,
-              isOnline: presence.status === UserStatus.Online,
-            },
-          });
           this.userPresences.set(presence.userId, presence);
         }
       });
   }
 
   toggleMessenger(): void {
+    // Prevent toggling if auth is still initializing or user is not logged in
+    if (
+      this.isInitializingAuth ||
+      !this.isUserLoggedIn ||
+      !this.currentUser?.id
+    ) {
+      return;
+    }
+
     this.isMessengerOpen = !this.isMessengerOpen;
     if (this.isMessengerOpen) {
       this.loadConversations();
@@ -585,24 +581,13 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           this.openConversation(conversation);
         },
         error: (error) => {
-          this.logService.logFormatted({
-            error: 'Failed to create conversation',
-            details: error,
-          });
+          
           this.isCreatingConversation = false;
         },
       });
   }
 
   openConversation(conversation: Conversation): void {
-    this.logService.logFormatted({
-      message: 'Opening conversation',
-      details: {
-        conversationId: conversation.id,
-        conversation: conversation,
-      },
-    });
-
     // Leave previous conversation if one is open
     if (
       this.selectedConversation?.id &&
@@ -675,15 +660,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
         next: (result) => {
           const newMessages = (result.items || []).reverse();
 
-          this.logService.logFormatted({
-            message: 'Messages loaded',
-            details: {
-              conversationId: this.selectedConversation?.id,
-              messageCount: newMessages.length,
-              messages: newMessages,
-            },
-          });
-
           if (this.messagesOffset === 0) {
             // Initial load
             this.messages = newMessages;
@@ -700,10 +676,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           this.isLoadingMessages = false;
         },
         error: (error) => {
-          this.logService.logFormatted({
-            error: 'Failed to load messages',
-            details: error,
-          });
           this.isLoadingMessages = false;
         },
       });
@@ -754,10 +726,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           this.isLoadingMoreMessages = false;
         },
         error: (error) => {
-          this.logService.logFormatted({
-            error: 'Failed to load more messages',
-            details: error,
-          });
+         
           this.isLoadingMoreMessages = false;
         },
       });
@@ -810,10 +779,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           // Note: scrollToBottom and loadConversations will be handled by SignalR events
         },
         error: (error) => {
-          this.logService.logFormatted({
-            error: 'Failed to send message',
-            details: error,
-          });
           this.isSendingMessage = false;
         },
       });
@@ -868,6 +833,13 @@ export class MessengerComponent extends BaseComponent implements OnInit {
 
   trackByUser(index: number, user: User): string {
     return user.id || index.toString();
+  }
+
+  // Helper method to check if messenger is ready to be used
+  get isMessengerReady(): boolean {
+    return (
+      !this.isInitializingAuth && this.isUserLoggedIn && !!this.currentUser?.id
+    );
   }
 
   getOtherParticipant(conversation: Conversation): User | undefined {
@@ -1053,10 +1025,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.logService.logFormatted({
-            error: 'Failed to mark messages as read',
-            details: error,
-          });
         },
       });
   }
@@ -1109,7 +1077,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
             conversation.lastMessagePreview?.id === message.id
           ) {
             conversation.lastMessagePreview!.readBy = message.readBy;
-            
+
             // Decrease unread counter since we just read a message
             if (this.unreadMessagesCount > 0) {
               this.unreadMessagesCount--;
@@ -1117,10 +1085,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.logService.logFormatted({
-            error: 'Failed to mark message as read',
-            details: error,
-          });
         },
       });
   }
@@ -1207,10 +1171,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
         }
       },
       error: (error) => {
-        this.logService.logFormatted({
-          error: 'Failed to load unread messages count',
-          details: error,
-        });
       },
     });
   }
@@ -1220,7 +1180,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     if (this.unreadCountRefreshTimeout) {
       clearTimeout(this.unreadCountRefreshTimeout);
     }
-    
+
     // Set new timeout to avoid too many server calls
     this.unreadCountRefreshTimeout = setTimeout(() => {
       this.loadUnreadMessagesCount();
@@ -1232,5 +1192,15 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     this.unreadMessagesCount = 0;
     // Also refresh from server to ensure accuracy (debounced)
     this.debouncedLoadUnreadCount();
+  }
+
+  // Navigate to user profile
+  navigateToUserProfile(userId: string): void {
+    if (userId) {
+      // Force navigation even if we're already on the profile route with different ID
+      this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+        this.router.navigate(['/profile', userId]);
+      });
+    }
   }
 }

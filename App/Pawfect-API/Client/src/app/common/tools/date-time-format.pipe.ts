@@ -57,7 +57,6 @@ export class DateTimeFormatPipe implements PipeTransform {
     try {
       return this.datePipe.transform(value, format, timezone, locale);
     } catch (error) {
-      console.error('DateTimeFormatPipe error:', error);
       return null;
     }
   }

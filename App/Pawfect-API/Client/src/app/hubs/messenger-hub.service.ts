@@ -132,7 +132,6 @@ export class MessengerHubService {
   }
 
   private handleConnectionError(error: any): void {
-    console.error('Messenger hub connection error:', error);
     if (error?.statusCode === 401 || error?.message?.includes('401')) {
       this.handleUnauthorizedError();
     } else {

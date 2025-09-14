@@ -153,7 +153,6 @@ export class ResetPasswordRequestComponent extends BaseComponent {
           error: (error) => {
             this.isLoading = false;
             this.errorMessage = this.translationService.translate('APP.AUTH.RESET_PASSWORD_REQUEST.ERROR');
-            console.error('Reset password request error:', error);
           },
         });
     }

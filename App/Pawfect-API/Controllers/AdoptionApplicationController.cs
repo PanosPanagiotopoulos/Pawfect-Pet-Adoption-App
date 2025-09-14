@@ -216,6 +216,20 @@ namespace Pawfect_API.Controllers
 			return Ok(adoptionApplication);
 		}
 
+        [HttpPost("adoption-request-exists/{animalId}")]
+        [RateLimit(RateLimitLevel.Restrictive)]
+        [Authorize]
+        public async Task<IActionResult> AdoptionRequestExists([FromRoute] String animalId)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            if (!_conventionService.IsValidId(animalId)) return BadRequest("No animalId id found");
+
+            String result = await _adoptionApplicationService.AdoptionRequestExists(animalId);
+
+            return Ok(result);
+        }
+
         [HttpPost("permission/delete/{applicationId}")]
         [Authorize]
         [ServiceFilter(typeof(MongoTransactionFilter))]

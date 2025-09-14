@@ -58,7 +58,6 @@ namespace Pawfect_Notifications.Controllers
 
         [HttpPost("query/mine/unread")]
 		[Authorize]
-        [ServiceFilter(typeof(MongoTransactionFilter))]
         public async Task<IActionResult> QueryNotifications([FromBody] NotificationLookup notificationLookup)
 		{
 			if (!ModelState.IsValid) return BadRequest(ModelState);

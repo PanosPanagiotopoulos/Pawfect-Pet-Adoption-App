@@ -189,7 +189,6 @@ export class ResetPasswordComponent implements OnInit {
       },
       (error) => {
         this.isLoading = false;
-        console.error('Email verification error:', error);
         this.errorMessage = this.translationService.translate('APP.AUTH.RESET_PASSWORD.ERROR');
       }
     );
@@ -210,7 +209,6 @@ export class ResetPasswordComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           this.errorMessage = this.translationService.translate('APP.AUTH.RESET_PASSWORD.ERROR');
-          console.error('Reset password error:', error);
         },
       });
     }

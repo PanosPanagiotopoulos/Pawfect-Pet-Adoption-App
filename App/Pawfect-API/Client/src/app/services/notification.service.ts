@@ -84,7 +84,6 @@ export class NotificationService implements OnDestroy {
           this.notificationCountSubject.next(combinedNotifications.length);
         },
         error: (error) => {
-          console.error('Error in notification polling:', error);
           // Continue polling even on error
         },
       });
@@ -125,7 +124,6 @@ export class NotificationService implements OnDestroy {
         this.isLoadingSubject.next(false);
       },
       error: (error) => {
-        console.error('Error loading notifications:', error);
         this.isLoadingSubject.next(false);
       },
     });
@@ -152,7 +150,6 @@ export class NotificationService implements OnDestroy {
 
     return this.queryMineUnread(lookup).pipe(
       catchError((error) => {
-        console.error('Error fetching notifications:', error);
         return throwError(() => error);
       }),
       tap(() => this.isLoadingSubject.next(false))

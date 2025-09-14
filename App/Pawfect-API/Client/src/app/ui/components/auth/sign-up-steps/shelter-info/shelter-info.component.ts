@@ -735,7 +735,6 @@ export class ShelterInfoComponent implements OnInit {
           }
         }
       } catch (error) {
-        console.error('Error scrolling to invalid field:', error);
         if (this.formContainer) {
           this.formContainer.nativeElement.scrollIntoView({
             behavior: 'smooth',

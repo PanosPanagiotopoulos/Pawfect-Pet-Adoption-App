@@ -113,10 +113,6 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
       label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.AVAILABLE',
     },
     {
-      value: AdoptionStatus.Pending,
-      label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.PENDING',
-    },
-    {
       value: AdoptionStatus.Adopted,
       label: 'APP.PROFILE-PAGE.ADOPTION_STATUS.ADOPTED',
     },
@@ -387,8 +383,6 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     switch (status) {
       case AdoptionStatus.Available:
         return 'bg-green-200/80 text-green-900';
-      case AdoptionStatus.Pending:
-        return 'bg-amber-200/80 text-amber-900';
       case AdoptionStatus.Adopted:
         return 'bg-blue-200/80 text-blue-900';
       default:
@@ -400,8 +394,6 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     switch (status) {
       case AdoptionStatus.Available:
         return 'lucideCheck';
-      case AdoptionStatus.Pending:
-        return 'lucideClock';
       case AdoptionStatus.Adopted:
         return 'lucideHeart';
       default:
@@ -413,8 +405,6 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     switch (status) {
       case AdoptionStatus.Available:
         return 'APP.PROFILE-PAGE.ADOPTION_STATUS.AVAILABLE';
-      case AdoptionStatus.Pending:
-        return 'APP.PROFILE-PAGE.ADOPTION_STATUS.PENDING';
       case AdoptionStatus.Adopted:
         return 'APP.PROFILE-PAGE.ADOPTION_STATUS.ADOPTED';
       default:

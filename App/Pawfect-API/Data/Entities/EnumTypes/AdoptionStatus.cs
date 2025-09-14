@@ -6,7 +6,6 @@
     public enum AdoptionStatus
     {
         Available = 1,
-        Pending = 2,
-        Adopted = 3
+        Adopted = 2
     }
 }

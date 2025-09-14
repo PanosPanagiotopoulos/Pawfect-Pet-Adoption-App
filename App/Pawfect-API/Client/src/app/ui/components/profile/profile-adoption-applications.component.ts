@@ -100,7 +100,7 @@ export class ProfileAdoptionApplicationsComponent
       label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.PENDING',
     },
     {
-      value: ApplicationStatus.Available,
+      value: ApplicationStatus.Approved,
       label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.APPROVED',
     },
     {
@@ -262,7 +262,7 @@ export class ProfileAdoptionApplicationsComponent
     switch (status) {
       case ApplicationStatus.Pending:
         return 'APP.PROFILE-PAGE.APPLICATION_STATUS.PENDING';
-      case ApplicationStatus.Available:
+      case ApplicationStatus.Approved:
         return 'APP.PROFILE-PAGE.APPLICATION_STATUS.APPROVED';
       case ApplicationStatus.Rejected:
         return 'APP.PROFILE-PAGE.APPLICATION_STATUS.REJECTED';
@@ -275,7 +275,7 @@ export class ProfileAdoptionApplicationsComponent
     switch (status) {
       case ApplicationStatus.Pending:
         return 'bg-amber-200/80 text-amber-900';
-      case ApplicationStatus.Available:
+      case ApplicationStatus.Approved:
         return 'bg-green-200/80 text-green-900';
       case ApplicationStatus.Rejected:
         return 'bg-red-200/80 text-red-900';
@@ -288,7 +288,7 @@ export class ProfileAdoptionApplicationsComponent
     switch (status) {
       case ApplicationStatus.Pending:
         return 'lucideClock';
-      case ApplicationStatus.Available:
+      case ApplicationStatus.Approved:
         return 'lucideCheck';
       case ApplicationStatus.Rejected:
         return 'lucideX';

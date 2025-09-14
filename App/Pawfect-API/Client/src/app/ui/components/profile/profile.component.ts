@@ -210,7 +210,6 @@ export class ProfileComponent
           this.error = this.translationService.translate(
             'APP.PROFILE-PAGE.ERRORS.PROFILE_LOAD_ERROR'
           );
-          console.error('Failed to load profile', error);
         },
       });
   }
@@ -238,7 +237,6 @@ export class ProfileComponent
           this.error = this.translationService.translate(
             'APP.PROFILE-PAGE.ERRORS.PROFILE_LOAD_ERROR'
           );
-          console.error('Failed to load current user profile', error);
         },
       });
   }
@@ -425,7 +423,7 @@ export class ProfileComponent
     switch (status) {
       case ApplicationStatus.Pending:
         return 'bg-yellow-100 text-yellow-800';
-      case ApplicationStatus.Available:
+      case ApplicationStatus.Approved:
         return 'bg-green-100 text-green-800';
       case ApplicationStatus.Rejected:
         return 'bg-red-100 text-red-800';
@@ -783,7 +781,6 @@ export class ProfileComponent
       // Force change detection to update the UI
       this.cdr.detectChanges();
     } catch (error) {
-      console.error('Error saving profile changes:', error);
       this.snackbarService.showError({
         message: this.translationService.translate(
           'APP.PROFILE-PAGE.EDIT.SAVE_ERROR'
@@ -969,7 +966,7 @@ export class ProfileComponent
         return this.translationService.translate(
           'APP.PROFILE-PAGE.APPLICATION_STATUS.PENDING'
         );
-      case ApplicationStatus.Available:
+      case ApplicationStatus.Approved:
         return this.translationService.translate(
           'APP.PROFILE-PAGE.APPLICATION_STATUS.APPROVED'
         );

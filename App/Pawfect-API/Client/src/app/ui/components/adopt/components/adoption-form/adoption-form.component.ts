@@ -67,8 +67,30 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
         #formContainer
       >
         <div class="space-y-6">
+          <!-- Approved Application Notice -->
           <div
-            *ngIf="isEditMode"
+            *ngIf="isApplicationApproved"
+            class="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg"
+          >
+            <div class="flex items-start space-x-3">
+              <ng-icon
+                name="lucideCheck"
+                [size]="'20'"
+                class="text-green-400 mt-0.5 flex-shrink-0"
+              ></ng-icon>
+              <div>
+                <h4 class="text-green-300 font-medium mb-1">
+                  {{ 'APP.ADOPT.APPLICATION_APPROVED_TITLE' | translate }}
+                </h4>
+                <p class="text-green-300/80 text-sm">
+                  {{ 'APP.ADOPT.APPLICATION_APPROVED_MESSAGE' | translate }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            *ngIf="isEditMode && !isApplicationApproved"
             class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg"
           >
             <div class="flex items-start space-x-3">
@@ -93,10 +115,47 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
             controlName="applicationDetails"
             [label]="'APP.ADOPT.WHY_ADOPT_QUESTION' | translate"
             [rows]="4"
-            [hint]="'APP.ADOPT.WHY_ADOPT_HINT' | translate"
+            [hint]="isApplicationApproved ? ('APP.ADOPT.APPLICATION_APPROVED_READONLY_HINT' | translate) : ('APP.ADOPT.WHY_ADOPT_HINT' | translate)"
           ></app-text-area-input>
 
+          <!-- Read-only file display for approved applications -->
+          <div *ngIf="isApplicationApproved" class="mb-10">
+            <label class="block text-sm font-medium text-gray-400 mb-2">
+              {{ 'APP.ADOPT.SUPPORTING_DOCUMENTS' | translate }}
+            </label>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+              <div *ngIf="existingFiles.length > 0; else noFiles" class="space-y-2">
+                <div *ngFor="let file of existingFiles" class="flex items-center justify-between p-2 bg-white/5 rounded-lg">
+                  <div class="flex items-center space-x-3">
+                    <ng-icon name="lucideFile" [size]="'16'" class="text-gray-400"></ng-icon>
+                    <span class="text-sm text-gray-300">{{ file.filename }}</span>
+                    <span class="text-xs text-gray-500">({{ formatFileSize(file.size || 0) }})</span>
+                  </div>
+                  <button
+                    *ngIf="file.sourceUrl"
+                    type="button"
+                    (click)="downloadFile(file)"
+                    class="text-primary-400 hover:text-primary-300 transition-colors"
+                    [title]="'APP.ADOPT.DOWNLOAD_FILE' | translate"
+                  >
+                    <ng-icon name="lucideDownload" [size]="'16'"></ng-icon>
+                  </button>
+                </div>
+              </div>
+              <ng-template #noFiles>
+                <p class="text-sm text-gray-500 text-center py-4">
+                  {{ 'APP.ADOPT.NO_SUPPORTING_DOCUMENTS' | translate }}
+                </p>
+              </ng-template>
+            </div>
+            <p class="mt-2 text-sm text-gray-400">
+              {{ 'APP.ADOPT.APPLICATION_APPROVED_READONLY_HINT' | translate }}
+            </p>
+          </div>
+
+          <!-- Editable file drop area for non-approved applications -->
           <app-file-drop-area
+            *ngIf="!isApplicationApproved"
             [form]="applicationForm"
             controlName="attachedFiles"
             [label]="'APP.ADOPT.SUPPORTING_DOCUMENTS' | translate"
@@ -152,7 +211,7 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
                 </div>
               </div>
 
-              <div class="space-y-3">
+              <div class="space-y-3" *ngIf="!isApplicationApproved">
                 <label class="block text-sm font-medium text-gray-400">{{
                   'APP.ADOPT.UPDATE_STATUS' | translate
                 }}</label>
@@ -178,6 +237,23 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
               </div>
 
               <div
+                *ngIf="isApplicationApproved"
+                class="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg"
+              >
+                <div class="flex items-start space-x-2">
+                  <ng-icon
+                    name="lucideCheck"
+                    [size]="'16'"
+                    class="text-green-400 mt-0.5 flex-shrink-0"
+                  ></ng-icon>
+                  <p class="text-sm text-green-300">
+                    {{ 'APP.ADOPT.APPLICATION_APPROVED_STATUS_MESSAGE' | translate }}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                *ngIf="!isApplicationApproved"
                 class="mt-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg"
               >
                 <div class="flex items-start space-x-2">
@@ -195,7 +271,7 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
           </div>
 
           <div
-            *ngIf="!isEditMode || canEdit"
+            *ngIf="(!isEditMode || canEdit) && !isApplicationApproved"
             class="flex flex-col sm:flex-row gap-3 justify-end pt-6"
           >
             <button
@@ -299,13 +375,34 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
   canManageApplicationStatus = false;
   isCurrentUserShelter = false;
 
+  // Computed property to check if application is approved and should be read-only
+  get isApplicationApproved(): boolean {
+    return this.isEditMode && this.adoptionApplication?.status === ApplicationStatus.Approved;
+  }
+
+  // Helper method to format file size
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  // Helper method to download file
+  downloadFile(file: File): void {
+    if (file.sourceUrl) {
+      window.open(file.sourceUrl, '_blank');
+    }
+  }
+
   readonly statusOptions = [
     {
       value: ApplicationStatus.Pending,
       label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.PENDING',
     },
     {
-      value: ApplicationStatus.Available,
+      value: ApplicationStatus.Approved,
       label: 'APP.PROFILE-PAGE.APPLICATION_STATUS.APPROVED',
     },
     {
@@ -346,7 +443,7 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
     switch (status) {
       case ApplicationStatus.Pending:
         return 'APP.PROFILE-PAGE.APPLICATION_STATUS.PENDING';
-      case ApplicationStatus.Available:
+      case ApplicationStatus.Approved:
         return 'APP.PROFILE-PAGE.APPLICATION_STATUS.APPROVED';
       case ApplicationStatus.Rejected:
         return 'APP.PROFILE-PAGE.APPLICATION_STATUS.REJECTED';
@@ -359,7 +456,7 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
     switch (status) {
       case ApplicationStatus.Pending:
         return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
-      case ApplicationStatus.Available:
+      case ApplicationStatus.Approved:
         return 'bg-green-500/20 text-green-300 border-green-500/30';
       case ApplicationStatus.Rejected:
         return 'bg-red-500/20 text-red-300 border-red-500/30';
@@ -369,16 +466,31 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
   }
 
   onFilesChange(files: FileItem[]) {
+    // Don't update form if application is approved
+    if (this.isApplicationApproved) {
+      return;
+    }
+    
     const fileIds = files.map((f) => f.persistedId!).filter((id) => id);
     this.applicationForm.get('attachedFiles')?.setValue(fileIds);
   }
 
   onFileUploadStateChange(isUploading: boolean) {
+    // Don't update upload state if application is approved
+    if (this.isApplicationApproved) {
+      return;
+    }
+    
     this.isUploadingFiles = isUploading;
     this.fileUploadStateChange.emit(isUploading);
   }
 
   onSubmit() {
+    // Prevent submission if application is approved
+    if (this.isApplicationApproved) {
+      return;
+    }
+
     this.validationErrors = [];
     this.showErrorSummary = false;
     this.error = undefined;
@@ -472,7 +584,8 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
         currentUserEmail === this.animal.shelter.user?.email;
     }
 
-    if (this.canManageApplicationStatus && this.isCurrentUserShelter) {
+    // Only enable status control if user has permission, is shelter user, and application is not approved
+    if (this.canManageApplicationStatus && this.isCurrentUserShelter && !this.isApplicationApproved) {
       this.applicationForm.get('status')?.enable();
     }
   }
@@ -493,6 +606,16 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
 
       this.applicationForm.get('attachedFiles')?.setValue(existingFileIds);
       this.initializePermissions();
+
+      // Disable form controls if application is approved
+      if (this.isApplicationApproved) {
+        this.applicationForm.get('applicationDetails')?.disable();
+        this.applicationForm.get('attachedFiles')?.disable();
+        // Keep status control enabled for shelter users if they have permission
+        if (!this.canManageApplicationStatus || !this.isCurrentUserShelter) {
+          this.applicationForm.get('status')?.disable();
+        }
+      }
       
       // Use setTimeout to ensure all child components have finished initializing
       setTimeout(() => {

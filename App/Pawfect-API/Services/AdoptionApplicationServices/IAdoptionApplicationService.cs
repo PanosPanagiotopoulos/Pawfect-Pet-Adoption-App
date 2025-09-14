@@ -8,6 +8,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 		// Συνάρτηση για query στα animals
 		Task<AdoptionApplication?> Persist(AdoptionApplicationPersist persist, List<String> fields);
 		Task<Boolean> CanDeleteApplication(String applicationId);
+        Task<String> AdoptionRequestExists(String animalId);
         Task Delete(String id);
         Task DeleteFromAnimal(String id);
         Task DeleteFromAnimals(List<String> ids);

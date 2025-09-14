@@ -154,7 +154,6 @@ export class ShelterVerifiedComponent implements OnInit {
       (error) => {
         this.isVerified = false;
         this.isLoading = false;
-        console.error('Shelter verification error:', error);
         
         // Handle specific error cases
         if (error.status === 400) {

@@ -3,13 +3,29 @@
   *ngIf="!isMessengerOpen && isUserLoggedIn"
   type="button"
   (click)="toggleMessenger()"
-  class="messenger-button fixed bg-primary-600 hover:bg-primary-700 text-white transition-all duration-300 focus:outline-none"
+  [disabled]="!isMessengerReady"
+  class="messenger-button fixed transition-all duration-300 focus:outline-none"
+  [class.bg-primary-600]="isMessengerReady"
+  [class.hover:bg-primary-700]="isMessengerReady"
+  [class.bg-gray-400]="!isMessengerReady"
+  [class.cursor-not-allowed]="!isMessengerReady"
+  [class.cursor-pointer]="isMessengerReady"
+  [class.text-white]="isMessengerReady"
+  [class.text-gray-300]="!isMessengerReady"
   [attr.aria-label]="'APP.MESSENGER.OPEN_MESSENGER' | translate"
   style="position: fixed !important; bottom: 24px !important; left: 24px !important; z-index: 10000 !important; width: 56px !important; height: 56px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important;"
 >
+  <!-- Loading spinner when initializing -->
+  <div
+    *ngIf="isInitializingAuth"
+    class="animate-spin rounded-full h-6 w-6 border-2 border-gray-300 border-t-white"
+  ></div>
+  
+  <!-- Message icon when ready -->
   <ng-icon
+    *ngIf="!isInitializingAuth"
     name="lucideMessageCircle"
-    class="text-white group-hover:rotate-12 transition-all duration-300"
+    class="group-hover:rotate-12 transition-all duration-300"
     [size]="'24'"
   ></ng-icon>
   
@@ -25,7 +41,7 @@
 
 <!-- Messenger Window -->
 <div
-  *ngIf="isMessengerOpen && isUserLoggedIn && currentUser"
+  *ngIf="isMessengerOpen && isMessengerReady"
   class="fixed bottom-6 left-6 z-50 w-80 h-96 bg-white rounded-xl shadow-2xl border-2 border-gray-300 flex flex-col overflow-hidden messenger-window"
 >
   <!-- Messenger Header -->
@@ -382,8 +398,11 @@
       <!-- Other Participant Info -->
       <div class="flex items-center flex-1">
         <div class="relative mr-3">
-          <div
-            class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
+          <button
+            type="button"
+            (click)="navigateToUserProfile(getOtherParticipant(selectedConversation)?.id || '')"
+            class="w-8 h-8 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:ring-2 hover:ring-primary-400 hover:ring-opacity-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-opacity-50"
+            [title]="'APP.MESSENGER.VIEW_PROFILE' | translate"
           >
             <img
               *ngIf="
@@ -410,7 +429,7 @@
                 class="w-8 h-8 rounded-full object-cover"
               />
             </ng-template>
-          </div>
+          </button>
           <!-- Active indicator -->
           <div
             class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-white"
@@ -418,9 +437,14 @@
             [class.bg-gray-400]="!isUserOnline(getOtherParticipant(selectedConversation)?.id || '')"
           ></div>
         </div>
-        <h4 class="text-sm font-medium text-gray-900 truncate">
+        <button
+          type="button"
+          (click)="navigateToUserProfile(getOtherParticipant(selectedConversation)?.id || '')"
+          class="text-sm font-medium text-gray-900 truncate hover:text-primary-600 transition-colors duration-200 focus:outline-none focus:text-primary-600"
+          [title]="'APP.MESSENGER.VIEW_PROFILE' | translate"
+        >
           {{ getOtherParticipant(selectedConversation)?.fullName }}
-        </h4>
+        </button>
       </div>
     </div>
 
@@ -461,8 +485,11 @@
       >
         <!-- Profile Picture -->
         <div class="flex-shrink-0 mb-1 relative">
-          <div
-            class="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center"
+          <button
+            type="button"
+            (click)="navigateToUserProfile(message.sender?.id || '')"
+            class="w-6 h-6 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center hover:ring-2 hover:ring-primary-400 hover:ring-opacity-50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-opacity-50"
+            [title]="'APP.MESSENGER.VIEW_PROFILE' | translate"
           >
             <img
               *ngIf="
@@ -481,7 +508,7 @@
                 class="w-6 h-6 rounded-full object-cover"
               />
             </ng-template>
-          </div>
+          </button>
           <!-- Active indicator for message sender -->
           <div
             *ngIf="!isMessageFromCurrentUser(message)"
