@@ -23,6 +23,8 @@
         // Λίστα από IDs παραληπτών για φιλτράρισμα
         public List<MessageType> Types { get; set; }
         public List<String> ReadyBy { get; set; }
+
+        public List<String> NotReadyBy { get; set; }
         public List<MessageStatus> Statuses { get; set; }
 
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
@@ -41,6 +43,7 @@
             if (ConversationIds != null && ConversationIds.Count != 0) messageQuery.ConversationIds = ConversationIds;
             if (SenderIds != null && SenderIds.Count != 0) messageQuery.SenderIds = SenderIds;
             if (ReadyBy != null && ReadyBy.Count != 0) messageQuery.ReadyBy = ReadyBy;
+            if (NotReadyBy != null && NotReadyBy.Count != 0) messageQuery.NotReadyBy = NotReadyBy;
             if (Types != null && Types.Count != 0) messageQuery.Types = Types;
             if (Statuses != null && Statuses.Count != 0) messageQuery.Statuses = Statuses;
             if (CreateFrom.HasValue) messageQuery.CreateFrom = CreateFrom;

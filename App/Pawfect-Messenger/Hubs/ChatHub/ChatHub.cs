@@ -45,7 +45,6 @@ namespace Pawfect_Messenger.Hubs.ChatHub
 
                 Models.User.UserPresence me = await _presenceService.GetPresence(userId);
 
-
                 await Clients.User(userId).PresenceChanged(me);
             }
             await base.OnConnectedAsync();
@@ -81,9 +80,11 @@ namespace Pawfect_Messenger.Hubs.ChatHub
 
             await Groups.AddToGroupAsync(Context.ConnectionId, ConversationGroup(conversationId));
 
-            Models.User.UserPresence connectedUserPresence = await _presenceService.GetPresence(userId);
-
-            await Clients.Group(ConversationGroup(conversationId)).PresenceChanged(connectedUserPresence);
+            await Clients.Group(ConversationGroup(conversationId)).PresenceChanged(new Models.User.UserPresence()
+            {
+                Status = Data.Entities.EnumTypes.UserStatus.Online,
+                UserId = userId
+            });
 
         }
 
@@ -94,9 +95,11 @@ namespace Pawfect_Messenger.Hubs.ChatHub
             String userId = _claimsExtractor.CurrentUserId(Context.User);
             if (!_conventionService.IsValidId(userId)) throw new HubException("User is not authenticated.");
 
-            Models.User.UserPresence connectedUserPresence = await _presenceService.GetPresence(userId);
-
-            await Clients.Group(ConversationGroup(conversationId)).PresenceChanged(connectedUserPresence);
+            await Clients.Group(ConversationGroup(conversationId)).PresenceChanged(new Models.User.UserPresence()
+            {
+                Status = Data.Entities.EnumTypes.UserStatus.Offline,
+                UserId = userId
+            });
         }    
             
     }

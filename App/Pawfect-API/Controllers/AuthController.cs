@@ -169,9 +169,8 @@ namespace Pawfect_API.Controllers
             if (String.IsNullOrEmpty(refreshTokenString))
                 return Forbid("Refresh token is missing");
 
-            RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token == refreshTokenString && rt.ExpiresAt > DateTime.UtcNow);
-            if (refreshToken == null)
-                return BadRequest("Invalid or expired refresh token");
+            RefreshToken refreshToken = await _refreshTokenRepository.FindAsync(rt => rt.Token.Equals(refreshTokenString) && rt.ExpiresAt > DateTime.UtcNow);
+            if (refreshToken == null) return BadRequest("Invalid or expired refresh token");
 
             // ** ACCOUNT ** //
             String userId = refreshToken.LinkedTo;

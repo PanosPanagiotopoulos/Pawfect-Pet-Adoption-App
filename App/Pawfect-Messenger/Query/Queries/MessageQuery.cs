@@ -35,6 +35,8 @@ namespace Pawfect_Messenger.Query.Queries
 		// Λίστα από IDs παραληπτών για φιλτράρισμα
 		public List<MessageType> Types { get; set; }
         public List<String> ReadyBy { get; set; }
+
+        public List<String> NotReadyBy { get; set; }
         public List<MessageStatus> Statuses { get; set; }
 
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
@@ -103,6 +105,15 @@ namespace Pawfect_Messenger.Query.Queries
 
                 // Ensure that only valid ObjectId values are passed in the filter
                 filter &= builder.In(nameof(Data.Entities.Message.ReadBy), referenceIds.Where(id => id != ObjectId.Empty));
+            }
+
+            if (NotReadyBy != null && NotReadyBy.Any())
+            {
+                // Convert String IDs to ObjectId for comparison
+                IEnumerable<ObjectId> referenceIds = NotReadyBy.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.Nin(nameof(Data.Entities.Message.ReadBy), referenceIds.Where(id => id != ObjectId.Empty));
             }
 
             // Εφαρμόζει φίλτρο για IDs παραληπτών

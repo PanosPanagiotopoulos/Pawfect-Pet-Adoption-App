@@ -75,6 +75,13 @@ export class MessageService {
       .pipe(catchError((error: any) => throwError(error)));
   }
 
+  countUnread(): Observable<number> {
+    const url = `${this.apiBase}/count-unread`;
+    return this.http
+      .get<number>(url)
+      .pipe(catchError((error: any) => throwError(error)));
+  }
+
   delete(id: string): Observable<void> {
     const url = `${this.apiBase}/delete/${id}`;
     return this.http

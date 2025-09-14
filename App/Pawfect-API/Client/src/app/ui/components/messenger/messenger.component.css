@@ -27,7 +27,8 @@
   animation: slideInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transform-origin: bottom left;
   border: 2px solid #d1d5db;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 @keyframes slideInUp {
@@ -218,7 +219,10 @@
 }
 
 /* Remove all default focus styles */
-input:focus, textarea:focus, button:focus, div:focus {
+input:focus,
+textarea:focus,
+button:focus,
+div:focus {
   outline: none !important;
 }
 
@@ -311,10 +315,52 @@ input:focus, textarea:focus, button:focus, div:focus {
 /* Floating button specific styles */
 .messenger-button.fixed {
   border: 2px solid rgba(255, 255, 255, 0.2);
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 24px !important;
+  z-index: 9999 !important;
+  width: 56px !important;
+  height: 56px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.messenger-button.fixed:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
 }
 
 .messenger-button.fixed:focus {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Ensure the floating button is always visible */
+app-messenger .messenger-button.fixed {
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 24px !important;
+  z-index: 10000 !important;
+}
+
+/* Override any parent container styles that might interfere */
+:host {
+  position: relative !important;
+  z-index: 9999 !important;
+  pointer-events: none !important;
+}
+
+:host .messenger-button {
+  pointer-events: auto !important;
+}
+
+:host .messenger-window {
+  pointer-events: auto !important;
 }
 
 /* Loading states */
@@ -356,7 +402,7 @@ input:focus, textarea:focus, button:focus, div:focus {
     left: 1rem;
     right: 1rem;
   }
-  
+
   .message-item {
     animation-duration: 0.2s;
   }

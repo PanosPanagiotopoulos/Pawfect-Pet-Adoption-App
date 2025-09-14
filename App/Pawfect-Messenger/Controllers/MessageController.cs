@@ -93,6 +93,38 @@ namespace Pawfect_Messenger.Controllers
             });
         }
 
+        [HttpGet("count-unread")]
+        [Authorize]
+        public async Task<IActionResult> CountUnread()
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            ClaimsPrincipal currentUser = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(currentUser);
+            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("User is not authenticated.");
+
+            ConversationLookup conversationLookup = new ConversationLookup();
+            conversationLookup.Participants = [userId];
+            conversationLookup.PageSize = 50;
+            conversationLookup.Offset = 0;
+            conversationLookup.Fields = [nameof(Models.Conversation.Conversation.Id)];
+            conversationLookup.SortBy = [nameof(Models.Conversation.Conversation.LastMessageAt)];
+            conversationLookup.SortDescending = true;
+
+            List<String> conversationIds = (await conversationLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync()).Select(x => x.Id).ToList();
+            if (conversationIds == null || conversationIds.Count == 0) return Ok(0);
+
+            MessageLookup messageLookup = new MessageLookup();
+            messageLookup.ConversationIds = conversationIds;
+            messageLookup.NotReadyBy = [userId];
+            messageLookup.Offset = 0;
+            messageLookup.PageSize = 1000000000;
+
+            Int64 count = await messageLookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CountAsync();
+
+            return Ok(count);
+        }
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<IActionResult> GetMessage(String id, [FromQuery] List<String> fields)

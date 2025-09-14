@@ -94,6 +94,14 @@ export class MessengerHubService {
     try {
       await this.connection!.invoke('JoinConversation', conversationId);
       this.joinedConversations.add(conversationId);
+      
+      // Request current presence status for conversation participants
+      try {
+        await this.connection!.invoke('RequestPresenceUpdate', conversationId);
+      } catch (presenceError) {
+        console.warn('Failed to request presence update:', presenceError);
+        // Don't fail the join if presence request fails
+      }
     } catch (err) {
       this.handleConnectionError(err);
     }
@@ -124,7 +132,7 @@ export class MessengerHubService {
   }
 
   private handleConnectionError(error: any): void {
-    debugger;
+    console.error('Messenger hub connection error:', error);
     if (error?.statusCode === 401 || error?.message?.includes('401')) {
       this.handleUnauthorizedError();
     } else {
@@ -157,10 +165,29 @@ export class MessengerHubService {
     }
   }
 
+  async requestPresenceUpdate(conversationId: string): Promise<void> {
+    if (!this.connection || !conversationId) return;
+    try {
+      await this.connection.invoke('RequestPresenceUpdate', conversationId);
+    } catch (error) {
+      console.warn('Failed to request presence update:', error);
+    }
+  }
+
   async disconnect(): Promise<void> {
     if (!this.connection) return;
 
     try {
+      // Leave all joined conversations before disconnecting
+      const conversationIds = Array.from(this.joinedConversations);
+      for (const conversationId of conversationIds) {
+        try {
+          await this.connection.invoke('LeaveConversation', conversationId);
+        } catch {
+          // Ignore errors when leaving conversations during disconnect
+        }
+      }
+
       // Remove handlers (optional but clean)
       this.connection.off(MessengerEvents.MessageReceivedEvent);
       this.connection.off(MessengerEvents.MessageStatusChangedEvent);

@@ -3,19 +3,29 @@
   *ngIf="!isMessengerOpen && isUserLoggedIn"
   type="button"
   (click)="toggleMessenger()"
-  class="fixed bottom-6 left-6 z-50 w-14 h-14 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 flex items-center justify-center group messenger-button focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50"
+  class="messenger-button fixed bg-primary-600 hover:bg-primary-700 text-white transition-all duration-300 focus:outline-none"
   [attr.aria-label]="'APP.MESSENGER.OPEN_MESSENGER' | translate"
+  style="position: fixed !important; bottom: 24px !important; left: 24px !important; z-index: 10000 !important; width: 56px !important; height: 56px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important;"
 >
   <ng-icon
     name="lucideMessageCircle"
     class="text-white group-hover:rotate-12 transition-all duration-300"
     [size]="'24'"
   ></ng-icon>
+  
+  <!-- Unread Messages Counter Badge -->
+  <div
+    *ngIf="unreadMessagesCount > 0"
+    class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 shadow-lg animate-pulse"
+  >
+    <span *ngIf="unreadMessagesCount <= 99">{{ unreadMessagesCount }}</span>
+    <span *ngIf="unreadMessagesCount > 99">99+</span>
+  </div>
 </button>
 
 <!-- Messenger Window -->
 <div
-  *ngIf="isMessengerOpen && isUserLoggedIn"
+  *ngIf="isMessengerOpen && isUserLoggedIn && currentUser"
   class="fixed bottom-6 left-6 z-50 w-80 h-96 bg-white rounded-xl shadow-2xl border-2 border-gray-300 flex flex-col overflow-hidden messenger-window"
 >
   <!-- Messenger Header -->
@@ -319,7 +329,7 @@
             </span>
           </div>
           <p
-            *ngIf="conversation.lastMessagePreview?.content"
+            *ngIf="shouldShowMessagePreview(conversation)"
             class="text-xs text-gray-500 truncate"
             [class.font-semibold]="hasUnreadMessages(conversation)"
             [class.text-gray-700]="hasUnreadMessages(conversation)"
@@ -327,6 +337,12 @@
             [class.text-gray-800]="hasUnseenLastMessage(conversation)"
           >
             {{ conversation.lastMessagePreview?.content }}
+          </p>
+          <p
+            *ngIf="!shouldShowMessagePreview(conversation)"
+            class="text-xs text-gray-400 italic"
+          >
+            {{ 'APP.MESSENGER.NO_MESSAGES_YET' | translate }}
           </p>
         </div>
 

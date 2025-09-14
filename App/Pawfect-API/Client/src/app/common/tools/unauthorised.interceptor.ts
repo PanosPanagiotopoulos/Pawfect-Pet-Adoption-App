@@ -95,12 +95,11 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
             return next.handle(request.clone());
           }),
           catchError((refreshError) => {
-            this.snackbarService.showError({
-              message: this.getFallbackMessage('loginRequired'),
-              subMessage: this.getFallbackMessage('redirectMessage'),
-            });
-
             if (!this.excludedRoutes.includes(currentRoute)) {
+              this.snackbarService.showError({
+                message: this.getFallbackMessage('loginRequired'),
+                subMessage: this.getFallbackMessage('redirectMessage'),
+              });
               const attemptedUrl =
                 window.location.pathname +
                 window.location.search +

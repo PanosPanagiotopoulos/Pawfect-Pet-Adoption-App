@@ -8,7 +8,7 @@ import {
   filter,
   take,
 } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, interval } from 'rxjs';
 import { BaseComponent } from '../../../common/ui/base-component';
 import { ConversationService } from '../../../services/conversation.service';
 import { MessageService } from '../../../services/message.service';
@@ -67,6 +67,11 @@ export class MessengerComponent extends BaseComponent implements OnInit {
   // User presence tracking
   userPresences = new Map<string, UserPresence>();
 
+  // Unread messages counter
+  unreadMessagesCount = 0;
+  private unreadCountInterval?: any;
+  private unreadCountRefreshTimeout?: any;
+
   // Messages
   messages: Message[] = [];
   messagesPageSize = 50;
@@ -109,9 +114,30 @@ export class MessengerComponent extends BaseComponent implements OnInit {
 
     // Initialize hub service
     this.messengerHubService.init();
+    
+    // Ensure button visibility by checking login status immediately
+    this.authService.isLoggedIn().pipe(take(1)).subscribe(isLoggedIn => {
+      this.isUserLoggedIn = isLoggedIn;
+    });
   }
 
   override ngOnDestroy(): void {
+    // Leave conversation when component is destroyed
+    if (this.selectedConversation?.id) {
+      this.messengerHubService.leaveConversation(this.selectedConversation.id);
+    }
+
+    // Clear unread messages counter interval and timeout
+    if (this.unreadCountInterval) {
+      clearInterval(this.unreadCountInterval);
+    }
+    if (this.unreadCountRefreshTimeout) {
+      clearTimeout(this.unreadCountRefreshTimeout);
+    }
+
+    // Disconnect from hub when component is destroyed
+    this.messengerHubService.disconnect();
+
     super.ngOnDestroy();
   }
 
@@ -124,8 +150,17 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           this.isUserLoggedIn = isLoggedIn;
           if (isLoggedIn) {
             this.loadCurrentUser();
+            this.setupUnreadMessagesCounter();
           } else {
             this.currentUser = undefined;
+            this.unreadMessagesCount = 0;
+            // Clear unread counter interval and timeout
+            if (this.unreadCountInterval) {
+              clearInterval(this.unreadCountInterval);
+            }
+            if (this.unreadCountRefreshTimeout) {
+              clearTimeout(this.unreadCountRefreshTimeout);
+            }
             // Close messenger if user logs out
             if (this.isMessengerOpen) {
               this.isMessengerOpen = false;
@@ -334,6 +369,14 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           // Update conversation preview without re-querying
           this.updateConversationPreview(message);
 
+          // Refresh unread count when new message arrives from another user
+          if (message.sender?.id !== this.currentUser?.id) {
+            if (this.selectedConversation?.id !== message.conversation?.id) {
+              // Refresh count from server to ensure accuracy (debounced)
+              this.debouncedLoadUnreadCount();
+            }
+          }
+
           // Add message to current conversation if it's open
           if (this.selectedConversation?.id === message.conversation?.id) {
             this.messages.push(message);
@@ -394,6 +437,11 @@ export class MessengerComponent extends BaseComponent implements OnInit {
             conversation.lastMessagePreview?.id === readMessage.id
           ) {
             conversation.lastMessagePreview!.readBy = readMessage.readBy;
+            
+            // Refresh unread count when message is read
+            if (readMessage.sender?.id !== this.currentUser?.id) {
+              this.debouncedLoadUnreadCount();
+            }
           }
         }
       });
@@ -419,8 +467,15 @@ export class MessengerComponent extends BaseComponent implements OnInit {
         filter((presence) => !!presence)
       )
       .subscribe((presence) => {
-        debugger;
         if (presence && presence.userId) {
+          this.logService.logFormatted({
+            message: 'User presence changed',
+            details: {
+              userId: presence.userId,
+              status: presence.status,
+              isOnline: presence.status === UserStatus.Online,
+            },
+          });
           this.userPresences.set(presence.userId, presence);
         }
       });
@@ -431,7 +486,10 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     if (this.isMessengerOpen) {
       this.loadConversations();
       this.recentQueries = this.searchCacheService.getRecentQueries(5);
+      // Reset unread counter when opening messenger
+      this.resetUnreadCounter();
     } else {
+      // Close conversation when messenger is closed
       this.closeConversation();
       this.showShelterDropdown = false;
       this.shelterSearchControl.setValue('');
@@ -545,6 +603,14 @@ export class MessengerComponent extends BaseComponent implements OnInit {
       },
     });
 
+    // Leave previous conversation if one is open
+    if (
+      this.selectedConversation?.id &&
+      this.selectedConversation.id !== conversation.id
+    ) {
+      this.messengerHubService.leaveConversation(this.selectedConversation.id);
+    }
+
     this.selectedConversation = conversation;
     this.isConversationOpen = true;
     this.messages = [];
@@ -554,9 +620,20 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     this.loadMessages();
 
     // Join conversation group for presence updates
-    debugger;
     if (conversation.id) {
       this.messengerHubService.joinConversation(conversation.id);
+
+      // Initialize presence for other participant as offline until we get updates
+      const otherParticipant = this.getOtherParticipant(conversation);
+      if (
+        otherParticipant?.id &&
+        !this.userPresences.has(otherParticipant.id)
+      ) {
+        this.userPresences.set(otherParticipant.id, {
+          userId: otherParticipant.id,
+          status: UserStatus.Offline,
+        });
+      }
     }
 
     // Focus message input after opening
@@ -1032,6 +1109,11 @@ export class MessengerComponent extends BaseComponent implements OnInit {
             conversation.lastMessagePreview?.id === message.id
           ) {
             conversation.lastMessagePreview!.readBy = message.readBy;
+            
+            // Decrease unread counter since we just read a message
+            if (this.unreadMessagesCount > 0) {
+              this.unreadMessagesCount--;
+            }
           }
         },
         error: (error) => {
@@ -1048,8 +1130,12 @@ export class MessengerComponent extends BaseComponent implements OnInit {
   }
 
   isUserOnline(userId: string): boolean {
+    if (!userId) return false;
+
     const presence = this.userPresences.get(userId);
-    return presence?.status === UserStatus.Online;
+    const isOnline = presence?.status === UserStatus.Online;
+
+    return isOnline;
   }
 
   onMessageClick(message: Message): void {
@@ -1088,5 +1174,63 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     return !conversation.lastMessagePreview.readBy?.some(
       (user) => user.id === this.currentUser?.id
     );
+  }
+
+  // Always show message preview regardless of read status
+  shouldShowMessagePreview(conversation: Conversation): boolean {
+    return !!conversation.lastMessagePreview?.content;
+  }
+
+  private setupUnreadMessagesCounter(): void {
+    // Clear any existing interval first
+    if (this.unreadCountInterval) {
+      clearInterval(this.unreadCountInterval);
+    }
+
+    // Initial count
+    this.loadUnreadMessagesCount();
+
+    // Set up interval to check every 10 seconds
+    this.unreadCountInterval = setInterval(() => {
+      this.loadUnreadMessagesCount();
+    }, 25000);
+  }
+
+  private loadUnreadMessagesCount(): void {
+    if (!this.isUserLoggedIn) return;
+
+    this.messageService.countUnread().subscribe({
+      next: (count) => {
+        // Only update if the count is different to avoid unnecessary UI updates
+        if (this.unreadMessagesCount !== count) {
+          this.unreadMessagesCount = count;
+        }
+      },
+      error: (error) => {
+        this.logService.logFormatted({
+          error: 'Failed to load unread messages count',
+          details: error,
+        });
+      },
+    });
+  }
+
+  private debouncedLoadUnreadCount(): void {
+    // Clear existing timeout
+    if (this.unreadCountRefreshTimeout) {
+      clearTimeout(this.unreadCountRefreshTimeout);
+    }
+    
+    // Set new timeout to avoid too many server calls
+    this.unreadCountRefreshTimeout = setTimeout(() => {
+      this.loadUnreadMessagesCount();
+    }, 500);
+  }
+
+  // Reset unread counter when opening messenger
+  private resetUnreadCounter(): void {
+    this.unreadMessagesCount = 0;
+    // Also refresh from server to ensure accuracy (debounced)
+    this.debouncedLoadUnreadCount();
   }
 }
