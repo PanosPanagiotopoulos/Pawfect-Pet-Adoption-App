@@ -95,7 +95,8 @@
 				"Extensions": [ ".doc" ]
 			}
 		],
-		"PrivateFileTypes": [ "PDF, EXCEL" ],
+
+		"PrivateFileTypes": [ "PDF", "WORD", "WORD_OLD", "EXCEL" ],
 
 		"ExcelExtractorConfig": {
 			"Headers": [

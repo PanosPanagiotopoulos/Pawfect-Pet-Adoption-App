@@ -359,27 +359,6 @@ public class Seeder
             adoptionApplicationCollection.InsertMany(adoptionApplications);
         }
     }
-
-    private void SeedConversations()
-    {
-        IMongoCollection<Conversation> conversationsCollection = this._dbService.GetCollection<Conversation>();
-        if (conversationsCollection.CountDocuments(FilterDefinition<Conversation>.Empty) == 0)
-        {
-            List<Conversation> conversations = ReadFromJson<Conversation>("conversations.json");
-            conversationsCollection.InsertMany(conversations);
-        }
-    }
-
-    private void SeedMessages()
-    {
-        IMongoCollection<Message> messagesCollection = this._dbService.GetCollection<Message>();
-        if (messagesCollection.CountDocuments(FilterDefinition<Message>.Empty) == 0)
-        {
-            List<Message> messages = ReadFromJson<Message>("messages.json");
-            messagesCollection.InsertMany(messages);
-        }
-    }
-
     private void SeedReports()
     {
         IMongoCollection<Report> reportsCollection = this._dbService.GetCollection<Report>();

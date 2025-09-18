@@ -23,7 +23,7 @@ namespace Pawfect_API.Models.Lookups
 
         public List<String>? ShelterIds { get; set; }
         // Λίστα με τις καταστάσεις υιοθεσίας
-        public List<AdoptionStatus>? Status { get; set; }
+        public List<ApplicationStatus>? Status { get; set; }
         // Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
         public DateTime? CreatedFrom { get; set; }
 

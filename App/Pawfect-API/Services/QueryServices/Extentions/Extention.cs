@@ -23,8 +23,6 @@ namespace Pawfect_API.Services.QueryServices.Extentions
 				typeof(AutoUserBuilder),
 				typeof(AutoShelterBuilder),
 				typeof(AutoReportBuilder),
-				typeof(AutoMessageBuilder),
-				typeof(AutoConversationBuilder),
 				typeof(AutoAnimalTypeBuilder),
 				typeof(AutoBreedBuilder),
 				typeof(AutoAnimalBuilder),
@@ -41,8 +39,6 @@ namespace Pawfect_API.Services.QueryServices.Extentions
 			services.AddScoped<IBreedRepository, BreedRepository>();
 			services.AddScoped<IAdoptionApplicationRepository, AdoptionApplicationRepository>();
 			services.AddScoped<IReportRepository, ReportRepository>();
-			services.AddScoped<IMessageRepository, MessageRepository>();
-			services.AddScoped<IConversationRepository, ConversationRepository>();
 			services.AddScoped<IFileRepository, FileRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 

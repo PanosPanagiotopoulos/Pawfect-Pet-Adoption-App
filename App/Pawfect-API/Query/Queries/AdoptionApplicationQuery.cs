@@ -1,15 +1,12 @@
 ﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 using Pawfect_API.Data.Entities.EnumTypes;
 using Pawfect_API.Data.Entities.Types.Authorization;
 using Pawfect_API.DevTools;
 using Pawfect_API.Exceptions;
-using Pawfect_API.Models.Lookups;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.Convention;
-using Pawfect_API.Services.FilterServices;
 using Pawfect_API.Services.MongoServices;
 using System.Security.Claims;
 
@@ -51,7 +48,7 @@ namespace Pawfect_API.Query.Queries
 		public List<String>? ShelterIds { get; set; }
 
 		// Λίστα με τα καταστήματα υιοθεσίας για φιλτράρισμα
-		public List<AdoptionStatus>? Status { get; set; }
+		public List<ApplicationStatus>? Status { get; set; }
 
 		// Ημερομηνία έναρξης για φιλτράρισμα (δημιουργήθηκε από)
 		public DateTime? CreatedFrom { get; set; }

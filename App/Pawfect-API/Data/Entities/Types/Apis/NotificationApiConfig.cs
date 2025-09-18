@@ -14,7 +14,10 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis
         public AdoptionApplicationChangedUserPlaceholders AdoptionApplicationChangedUserPlaceholders { get; set; }
         public AdoptionApplicationChangedShelterPlaceholders AdoptionApplicationChangedShelterPlaceholders { get; set; }
         public AdoptionApplicationReceivedPlaceholders AdoptionApplicationReceivedPlaceholders { get; set; }
-        public VerifyUserPlaceholders VerifyUserPlaceholders { get; set; } 
+        public VerifyUserPlaceholders VerifyUserPlaceholders { get; set; }
+
+        public AdoptionApplicationAutoRejectedUserPlaceholders AdoptionApplicationAutoRejectedUserPlaceholders { get; set; }
+
     }
     public class VerificationEmailPlaceholders
     {
@@ -81,5 +84,15 @@ namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis
         public String OperatingHoursFriday { get; set; }
         public String OperatingHoursSaturday { get; set; }
         public String OperatingHoursSunday { get; set; }
+    }
+
+    public class AdoptionApplicationAutoRejectedUserPlaceholders
+    {
+        public Guid TemplateId { get; set; }
+        public String UserFirstName { get; set; }
+        public String AnimalName { get; set; }
+        public String ShelterName { get; set; }
+        public String ApplicationId { get; set; }
+        public String Reason { get; set; } 
     }
 }

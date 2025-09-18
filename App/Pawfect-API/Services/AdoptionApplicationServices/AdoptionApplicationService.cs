@@ -78,6 +78,8 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             _notificationConfig = notificationOptions.Value;
             _claimsExtractor = claimsExtractor;
         }
+
+        #region Persist
         public async Task<Models.AdoptionApplication.AdoptionApplication> Persist(AdoptionApplicationPersist persist, List<String> fields)
         {
             Boolean isUpdate = _conventionService.IsValidId(persist.Id);
@@ -106,21 +108,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                 }
 
                 if (await _animalRepository.ExistsAsync(animal => animal.Id == data.AnimalId && animal.AdoptionStatus == AdoptionStatus.Adopted))
-                {
-                    // TODO
-                    // Handle someone else management to adopt this animal first even though you had an application
-                }
-
-                // Make animal flag set to "Adopted"
-                Data.Entities.Animal animal = await _animalRepository.FindAsync(animal => animal.Id == data.AnimalId);
-                animal.AdoptionStatus = AdoptionStatus.Adopted;
-                animal.UpdatedAt = DateTime.UtcNow;
-                if (String.IsNullOrEmpty(await _animalRepository.UpdateAsync(animal)))
-                {
-                    _logger.LogError("Failed to update availability of the animal after beeing adopted");
-                    throw new InvalidOperationException("Failed to update availability of the animal after beeing adopted");
-                }
-                    
+                    throw new InvalidOperationException("Animal already is adopted. We are very sorry for the inconvinience");                   
 
                 prevFileIds = data.AttachedFilesIds;
 
@@ -154,11 +142,11 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
             _mapper.Map(persist, data);
 
-            if (isUpdate) dataId = await _adoptionApplicationRepository.UpdateAsync(data);
-            else dataId = await _adoptionApplicationRepository.AddAsync(data);
-
             // Set files to permanent
             await this.PersistFiles(persist.AttachedFilesIds, prevFileIds, dataId);
+
+            if (isUpdate) dataId = await _adoptionApplicationRepository.UpdateAsync(data);
+            else dataId = await _adoptionApplicationRepository.AddAsync(data);
 
             if (String.IsNullOrEmpty(dataId))
                 throw new InvalidOperationException("Failed to persist Adoption Application");
@@ -166,6 +154,21 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             data.Id = dataId;
 
             await this.NotifyAffiated(data, statusChanged, isUpdate);
+
+            // Make animal flag set to "Adopted"
+            if (persist.Status == ApplicationStatus.Approved)
+            {
+                Data.Entities.Animal animal = await _animalRepository.FindAsync(animal => animal.Id == data.AnimalId);
+                animal.AdoptionStatus = AdoptionStatus.Adopted;
+                animal.UpdatedAt = DateTime.UtcNow;
+                if (String.IsNullOrEmpty(await _animalRepository.UpdateAsync(animal)))
+                {
+                    _logger.LogError("Failed to update availability of the animal after beeing adopted");
+                    throw new InvalidOperationException("Failed to update availability of the animal after beeing adopted");
+                }
+
+                await this.RejectOtherAdoptersRequests(data.AnimalId, data.ShelterId);
+            }
 
             // Return dto model
             AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
@@ -182,15 +185,6 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             return (await _builderFactory.Builder<AdoptionApplicationBuilder>().Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation)
                 .Build([data], censoredFields))
                 .FirstOrDefault();
-        }
-
-        public async Task<String> AdoptionRequestExists(String animalId) 
-        {
-            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
-            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No authenticated user found");
-
-            return (await _adoptionApplicationRepository.FindAsync(application => application.UserId.Equals(userId) && application.AnimalId.Equals(animalId), [nameof(Data.Entities.AdoptionApplication.Id)]))?.Id;
         }
 
         private async Task<Boolean> AuthoriseAdoptionApplication(Data.Entities.AdoptionApplication data, String permission)
@@ -218,6 +212,36 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             }
 
             return false;
+        }
+
+        private async Task RejectOtherAdoptersRequests(String animalId, String shelterId)
+        {
+            // Reject all applications for this animal that are pending since , if one got accepted then the rest should be rejected
+            AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
+            lookup.AnimalIds = new List<String> { animalId };
+            lookup.ShelterIds = new List<String> { shelterId };
+            lookup.Status = new List<ApplicationStatus>() { ApplicationStatus.Pending };
+            lookup.Offset = 0;
+            lookup.PageSize = 10000;
+            
+            List<Data.Entities.AdoptionApplication> datas = await lookup.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync();
+            if (datas == null || !datas.Any()) return;
+           
+            foreach (Data.Entities.AdoptionApplication data in datas)
+            {
+                data.Status = ApplicationStatus.Rejected;
+                data.UpdatedAt = DateTime.UtcNow;
+            }
+
+            if ((await _adoptionApplicationRepository.UpdateManyAsync(datas)).Count != datas.Count)
+            {
+                _logger.LogError("Failed to reject other adoption applications after one beeing accepted");
+                throw new Exception("Failed to reject connected adoption applications");
+            }
+
+            // Notify the adopters for the change in their application status
+            await NotifyRejected(datas);
+
         }
 
         private async Task PersistFiles(List<String> attachedFilesIds, List<String> currentFileIds, String applicationId)
@@ -269,6 +293,9 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             );
         }
 
+        #endregion
+
+        #region Notifiers
         private async Task NotifyAffiated(Data.Entities.AdoptionApplication data, Boolean statusChanged, Boolean isUpdate)
         {
             if (String.IsNullOrEmpty(data.Id)) throw new InvalidOperationException("No adoption application id found");
@@ -278,9 +305,9 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             Data.Entities.User user = await _userRepository.FindAsync(user => user.Id == data.UserId, [nameof(Models.User.User.FullName)]);
             String userFirstName = UserDataHelper.GetFirstNameFormatted(user.FullName);
 
-            Data.Entities.Shelter receivingShelter = await _shelterRepository.FindAsync(shelter => shelter.Id == data.ShelterId, [nameof(Data.Entities.Shelter.ShelterName), nameof(Data.Entities.Shelter.UserId)]);
+            Data.Entities.Shelter receivingShelter = await _shelterRepository.FindAsync(shelter => shelter.Id == data.ShelterId, new List<String> { nameof(Data.Entities.Shelter.ShelterName) });
 
-            Data.Entities.Animal referedAnimal = await _animalRepository.FindAsync(animal => animal.Id == data.AnimalId, [nameof(Data.Entities.Animal.Name)]);
+            Data.Entities.Animal referedAnimal = await _animalRepository.FindAsync(animal => animal.Id == data.AnimalId, new List<String> { nameof(Data.Entities.Animal.Name) });
 
             Boolean changeMadeByUser = String.IsNullOrEmpty(await _authorizationContentResolver.CurrentPrincipalShelter());
 
@@ -353,6 +380,63 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             if (generatedEvents.Count > 0) await _notificationApiClient.NotificationEvent(generatedEvents);
         }
 
+        private async Task NotifyRejected(List<Data.Entities.AdoptionApplication> rejectedApplications)
+        {
+            if (rejectedApplications == null || rejectedApplications.Count == 0) return;
+
+            List<NotificationEvent> events = new List<NotificationEvent>();
+
+            Data.Entities.Shelter shelter = await _shelterRepository.FindAsync(s => s.Id == rejectedApplications.FirstOrDefault().ShelterId, new List<String> { nameof(Data.Entities.Shelter.ShelterName) });
+            if (shelter == null) throw new NotFoundException("Shelter to send notification from not found");
+
+            Data.Entities.Animal animal = await _animalRepository.FindAsync(a => a.Id == rejectedApplications.FirstOrDefault().AnimalId, new List<String> { nameof(Data.Entities.Animal.Name) });
+            if (animal == null) throw new NotFoundException("Refering animal from rejected applications not found");
+
+            foreach (Data.Entities.AdoptionApplication app in rejectedApplications)
+            {
+                Data.Entities.User user = await _userRepository.FindAsync(u => u.Id == app.UserId, new List<String> { nameof(Data.Entities.User.FullName) });
+                if (user == null) continue;
+
+                String userFirstName = UserDataHelper.GetFirstNameFormatted(user.FullName);
+
+                // Reuse the "application changed (user)" template; embed the reason in the status text
+                NotificationEvent ev = new NotificationEvent
+                {
+                    UserId = app.UserId,
+                    TeplateId = _notificationConfig.AdoptionApplicationChangedUserPlaceholders.TemplateId,
+                    Type = NotificationType.InApp,
+                    TitleMappings = new Dictionary<String, String>(),
+                    ContentMappings = new Dictionary<String, String>
+                    {
+                        { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.UserFirstName, userFirstName },
+                        { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ShelterName, shelter.ShelterName },
+                        { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ApplicationId, app.Id },
+                        { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.AnimalName, animal.Name },
+                        { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ApplicationStatus, "Rejected : the animal has been adopted by another applicant" }
+                    }
+                };
+
+                events.Add(ev);
+            }
+
+            await _notificationApiClient.NotificationEvent(events);
+        }
+
+        #endregion
+
+        #region Request Exists
+        public async Task<String> AdoptionRequestExists(String animalId)
+        {
+            ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
+            String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException("No authenticated user found");
+
+            return (await _adoptionApplicationRepository.FindAsync(application => application.UserId.Equals(userId) && application.AnimalId.Equals(animalId), new List<String> { nameof(Data.Entities.AdoptionApplication.Id) }))?.Id;
+        }
+        #endregion
+
+        #region Delete
+
         public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
 
         public async Task Delete(List<String> ids)
@@ -417,6 +501,8 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
             return await _authorizationService.AuthorizeOrOwnedOrAffiliated(context, Permission.DeleteAdoptionApplications);
         }
+
+        #endregion
 
     }
 }

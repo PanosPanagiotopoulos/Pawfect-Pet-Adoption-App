@@ -51,26 +51,6 @@
         public const String EditFiles = "EditFiles";
         public const String DeleteFiles = "DeleteFiles";
 
-        // Conversations
-        public const String CanViewConversations = "CanViewConversations";
-        public const String CreateConversations = "CreateConversations";
-        public const String BrowseConversations = "BrowseConversations";
-        public const String EditConversations = "EditConversations";
-        public const String DeleteConversations = "DeleteConversations";
-
-        // Messages
-        public const String CanViewMessages = "CanViewMessages";
-        public const String CreateMessages = "CreateMessages";
-        public const String BrowseMessages = "BrowseMessages";
-        public const String EditMessages = "EditMessages";
-        public const String DeleteMessages = "DeleteMessages";
-
-        // Notifications
-        public const String CanViewNotifications = "CanViewNotifications";
-        public const String BrowseNotifications = "BrowseNotifications";
-        public const String EditNotifications = "EditNotifications";
-        public const String DeleteNotifications = "DeleteNotifications";
-
         // Reports
         public const String CanViewReports = "CanViewReports";
         public const String CreateReports = "CreateReports";

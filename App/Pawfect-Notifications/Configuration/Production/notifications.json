@@ -15,21 +15,8 @@
   },
   "NotificationTemplates": {
     "Templates": [
-      {
-        "TemplateId": "4E84F930-A93A-470F-9CFA-58AD31240DCF",
-        "TitlePath": "Templates/Emails/Verification/Verification.Title.html",
-        "ContentPath": "Templates/Emails/Verification/Verification.Content.html"
-      },
-      {
-        "TemplateId": "529FADA1-9C2F-4F3B-A870-7337D2D154F4",
-        "TitlePath": "Templates/Emails/Reset_Password/Reset_Password.Title.html",
-        "ContentPath": "Templates/Emails/Reset_Password/Reset_Password.Content.html"
-      },
-      {
-        "TemplateId": "321BEF42-3FA6-402B-8D28-4F1435273DD7",
-        "TitlePath": "Templates/SMS/OTP/Otp.Title.html",
-        "ContentPath": "Templates/SMS/OTP/Otp.Content.html"
-      },
+
+      // In-App
       {
         "TemplateId": "53CA00F9-F819-425A-A7DE-FE5153C2E743",
         "TitlePath": "Templates/InApp/AdoptionApplicationReceived/Adoption_Application_Received.Title.html",
@@ -44,6 +31,35 @@
         "TemplateId": "912BC173-1342-4568-9D64-E26850AF47ED",
         "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Title.html",
         "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Content.html"
+      },
+      {
+        "TemplateId": "E5229D0D-3936-4B87-8DDC-E4FF3F5FBFCC",
+        "TitlePath": "Templates/InApp/Notify_Rejected_Applicants/Notify_Rejected_Applicants.Title.html",
+        "ContentPath": "Templates/InApp/Notify_Rejected_Applicants/Notify_Rejected_Applicants.Content.html"
+      },
+
+      // Email
+      {
+        "TemplateId": "9E18EB46-89EE-40E4-9FC1-E324635F4186",
+        "TitlePath": "Templates/Emails/Verify_Shelter/Verify_Shelter.Title.html",
+        "ContentPath": "Templates/Emails/Verify_Shelter/Verify_Shelter.Content.html"
+      },
+      {
+        "TemplateId": "4E84F930-A93A-470F-9CFA-58AD31240DCF",
+        "TitlePath": "Templates/Emails/Verification/Verification.Title.html",
+        "ContentPath": "Templates/Emails/Verification/Verification.Content.html"
+      },
+      {
+        "TemplateId": "529FADA1-9C2F-4F3B-A870-7337D2D154F4",
+        "TitlePath": "Templates/Emails/Reset_Password/Reset_Password.Title.html",
+        "ContentPath": "Templates/Emails/Reset_Password/Reset_Password.Content.html"
+      },
+
+      // SMS
+      {
+        "TemplateId": "321BEF42-3FA6-402B-8D28-4F1435273DD7",
+        "TitlePath": "Templates/SMS/OTP/Otp.Title.html",
+        "ContentPath": "Templates/SMS/OTP/Otp.Content.html"
       }
     ]
   }

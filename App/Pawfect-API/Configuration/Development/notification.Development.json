@@ -60,6 +60,15 @@
       "AnimalName": "{AnimalName}",
       "UserName": "{UserName}",
       "ApplicationId": "{ApplicationId}"
+    },
+
+    "AdoptionApplicationAutoRejectedUserPlaceholders": {
+      "TemplateId": "E5229D0D-3936-4B87-8DDC-E4FF3F5FBFCC",
+      "UserFirstName": "{UserFirstName}",
+      "AnimalName": "{AnimalName}",
+      "ShelterName": "{ShelterName}",
+      "ApplicationId": "{ApplicationId}",
+      "Reason": "{Reason}"
     }
   }
 }

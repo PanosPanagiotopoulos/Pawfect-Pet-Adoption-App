@@ -18,12 +18,10 @@ using Pawfect_API.Services.AuthenticationServices.Extentions;
 using Pawfect_API.Services.AwsServices.Extention;
 using Pawfect_API.Services.BreedServices.Extention;
 using Pawfect_API.Services.Convention.Extention;
-using Pawfect_API.Services.ConversationServices.Extention;
 using Pawfect_API.Services.CookiesServices.Extensions;
 using Pawfect_API.Services.FileServices.Extention;
 using Pawfect_API.Services.FilterServices.Extensions;
 using Pawfect_API.Services.HttpServices.Extentions;
-using Pawfect_API.Services.MessageServices.Extentions;
 using Pawfect_API.Services.MongoServices.Extentions;
 using Pawfect_API.Services.NotificationServices.Extention;
 using Pawfect_API.Services.QueryServices.Extentions;
@@ -200,9 +198,7 @@ public class Program
 		.AddAnimalTypeServices()
 		.AddBreedServices()
 		.AddAuthenticationServices(builder.Configuration.GetSection("Authentication"), builder.Configuration.GetSection("PermissionConfig"))
-		.AddConversationServices()
 		.AddHttpServices()
-		.AddMessageServices()
 		.AddMongoServices()
 		.AddNotificationServices(builder.Configuration.GetSection("Notifications"))
 		.AddReportServices()
