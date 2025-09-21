@@ -1,6 +1,6 @@
 ﻿using Pawfect_API.Data.Entities;
 
-namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Animals
+namespace Pawfect_API.Data.Entities.Types.Animals
 {
     public class AnimalSearchResult
     {

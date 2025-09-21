@@ -1,9 +1,9 @@
 ﻿
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
-using Pawfect_Pet_Adoption_App_API.Models.Animal;
-using Pawfect_Pet_Adoption_App_API.Services.TranslationServices;
+using Pawfect_API.Data.Entities.Types.Translation;
+using Pawfect_API.Models.Animal;
+using Pawfect_API.Services.TranslationServices;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.AnimalEmbeddingValueExtractors
+namespace Pawfect_API.Services.EmbeddingServices.AnimalEmbeddingValueExtractors
 {
     public class AnimalEmbeddingValueExtractor : IAnimalEmbeddingValueExtractor
     {

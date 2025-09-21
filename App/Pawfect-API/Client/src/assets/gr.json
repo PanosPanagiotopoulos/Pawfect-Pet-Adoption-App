@@ -872,7 +872,7 @@
         "ADOPTION_APPLICATIONS": "Αιτήσεις Υιοθεσίας",
         "SHELTER_INFO": "Πληροφορίες Καταφυγίου",
         "RECEIVED_APPLICATIONS": "Ληφθείσες Αιτήσεις",
-        "MY_ANIMALS": "Οι Αγαπημένοι μας Σύντροφοι",
+        "MY_ANIMALS": "Οι φίλοι μας",
         "ADD_ANIMAL": "Προσθήκη Ζώου",
         "USER_INFO": "Πληροφορίες Χρήστη"
       },
@@ -890,19 +890,20 @@
         "HIDE_MAP": "Απόκρυψη Χάρτη"
       },
       "ADOPTION_APPLICATIONS": {
-        "NO_APPLICATIONS_TITLE": "No Applications Yet",
-        "NO_APPLICATIONS_SUBTEXT": "You haven't submitted any adoption applications yet. Start by searching for pets you'd like to adopt!",
-        "NO_APPLICATIONS_CTA": "Search for Pets",
-        "NO_RECEIVED_APPLICATIONS_TITLE": "No Received Applications",
-        "NO_RECEIVED_APPLICATIONS_SUBTEXT": "No one has submitted adoption applications to your shelter yet.",
-        "LOAD_ERROR": "Failed to load applications",
-        "EDIT_APPLICATION": "Edit Application",
-        "ANIMAL": "Animal",
-        "BREED": "Breed",
-        "APPLICANT": "Applicant",
-        "STATUS": "Status",
-        "SEARCH_LABEL": "Search",
-        "SEARCH_PLACEHOLDER": "Search by applicant name, animal name, etc."
+        "NO_APPLICATIONS_TITLE": "Δεν Υπάρχουν Αιτήσεις Ακόμα",
+        "NO_APPLICATIONS_SUBTEXT": "Δεν έχετε υποβάλει καμία αίτηση υιοθεσίας ακόμα. Ξεκινήστε αναζητώντας κατοικίδια που θα θέλατε να υιοθετήσετε!",
+        "NO_APPLICATIONS_CTA": "Αναζήτηση Κατοικιδίων",
+        "NO_RECEIVED_APPLICATIONS_TITLE": "Δεν Υπάρχουν Ληφθείσες Αιτήσεις",
+        "NO_RECEIVED_APPLICATIONS_SUBTEXT": "Κανείς δεν έχει υποβάλει ακόμα αίτηση υιοθεσίας στο καταφύγιό σας.",
+        "LOAD_ERROR": "Αποτυχία φόρτωσης αιτήσεων",
+        "EDIT_APPLICATION": "Επεξεργασία Αίτησης",
+        "ANIMAL": "Ζώο",
+        "BREED": "Φυλή",
+        "APPLICANT": "Αιτών",
+        "STATUS": "Κατάσταση",
+        "SEARCH_LABEL": "Αναζήτηση",
+        "SEARCH_PLACEHOLDER": "Αναζήτηση με όνομα αιτούντα, όνομα ζώου, κ.λπ.",
+        "SHELTER": "Καταφύγιο"
       },
       "SHELTER_INFO": {
         "TITLE": "Πληροφορίες Καταφυγίου",

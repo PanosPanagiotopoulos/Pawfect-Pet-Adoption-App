@@ -5,7 +5,7 @@
     <Nullable>disable</Nullable>
 	  <NoWarn>CS8632</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Pawfect_Pet_Adoption_App_API</RootNamespace>
+    <RootNamespace>Pawfect_API</RootNamespace>
     <UserSecretsId>60a28f3a-d002-473e-8d50-e0841f31106a</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
@@ -58,8 +58,8 @@
   <ItemGroup>
     <Folder Include="logs\" />
     <Folder Include="Client\" />
+    <Folder Include="Seeders\TestData\Files\Animals\" />
     <Folder Include="wwwroot\" />
-    <Folder Include="Seeders\TestData\Files\UserProfilePictures\" />
   </ItemGroup>
 
 </Project>

@@ -7,16 +7,11 @@ using Pawfect_API.DevTools;
 using Pawfect_API.Services.AwsServices;
 using Pawfect_API.Services.Convention;
 using Pawfect_API.Services.MongoServices;
-using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices;
-using Pawfect_Pet_Adoption_App_API.Models.Animal;
-using Microsoft.Extensions.AI;
+using Pawfect_API.Services.EmbeddingServices;
 using Microsoft.Extensions.Options;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.AnimalEmbeddingValueExtractors;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Embedding;
-using Amazon.Runtime.Internal.Util;
-using System.IO.Abstractions;
+using Pawfect_API.Data.Entities.Types.Mongo;
+using Pawfect_API.Services.EmbeddingServices.AnimalEmbeddingValueExtractors;
+using Pawfect_API.Data.Entities.Types.Embedding;
 
 public class Seeder
 {
@@ -57,8 +52,6 @@ public class Seeder
         SeedUsersAndShelters();
         await SeedAnimals();
         await SeedFiles();
-        SeedAdoptionApplications();
-		SeedReports();
 		return;
 	}
 
@@ -104,22 +97,6 @@ public class Seeder
 
             List<Shelter> shelters = ReadFromJson<Shelter>("shelters.json");
 
-            // Get users with UserRole.Shelter
-            List<User> shelterUsers = users.Where(u => u.Roles.Contains(UserRole.Shelter)).ToList();
-
-            // Pair each shelter with a shelter-role user
-            for (int i = 0; i < shelters.Count && i < shelterUsers.Count; i++)
-            {
-                Shelter shelter = shelters[i];
-                User user = shelterUsers[i];
-
-                // Update shelter's UserId to match the user's _id
-                shelter.UserId = user.Id;
-
-                // Update user's ShelterId to match the shelter's _id
-                user.ShelterId = shelter.Id;
-            }
-
             // Insert all users and shelters into collections
             usersCollection.InsertMany(users);
             sheltersCollection.InsertMany(shelters);
@@ -129,157 +106,132 @@ public class Seeder
     private async Task SeedFiles()
     {
         // Collections
-        var animalsCollection = _dbService.GetCollection<Animal>();
-        var sheltersCollection = _dbService.GetCollection<Shelter>();
-        var usersCollection = _dbService.GetCollection<User>();
-        var filesCollection = _dbService.GetCollection<Pawfect_API.Data.Entities.File>();
+        IMongoCollection<Animal> animalsCollection = _dbService.GetCollection<Animal>();
+        IMongoCollection<User> usersCollection = _dbService.GetCollection<User>();
+        IMongoCollection<Shelter> sheltersCollection = _dbService.GetCollection<Shelter>();
+        IMongoCollection<Pawfect_API.Data.Entities.File> filesCollection = _dbService.GetCollection<Pawfect_API.Data.Entities.File>();
 
-        var animals = animalsCollection.Find(FilterDefinition<Animal>.Empty).ToList();
-        if (animals.Count == 0)
+        List<Animal> animals = animalsCollection.Find(FilterDefinition<Animal>.Empty).ToList();
+        List<User> users = usersCollection.Find(FilterDefinition<User>.Empty).ToList();
+        List<Shelter> shelters = sheltersCollection.Find(FilterDefinition<Shelter>.Empty).ToList();
+
+        if (!animals.Any())
             throw new Exception("No animals found to assign photos.");
+        if (!users.Any())
+            throw new Exception("No users found to assign profile pictures.");
+        if (!shelters.Any())
+            throw new Exception("No shelters found.");
 
-        var shelters = sheltersCollection.Find(FilterDefinition<Shelter>.Empty).ToList();
-        var shelterUserIds = shelters.ToDictionary(s => s.Id, s => s.UserId);
+        // Map ShelterId -> UserId
+        Dictionary<String, String> shelterUserIds = shelters.ToDictionary(s => s.Id, s => s.UserId);
 
-        var random = new Random();
-        var fileEntities = new List<Pawfect_API.Data.Entities.File>();
+        List<Pawfect_API.Data.Entities.File> fileEntities = new List<Pawfect_API.Data.Entities.File>();
 
-        string animalFilesDirectory = Path.Combine("Seeders/TestData", "Files", "Animals");
-        string[] animalFilePaths = Directory.GetFiles(animalFilesDirectory);
+        // Directories
+        String animalFilesDirectory = Path.Combine("Seeders/TestData", "Files", "Animals");
+        String userFilesDirectory = Path.Combine("Seeders/TestData", "Files", "UserProfilePictures");
 
-        var uploadedAnimalFiles = new List<Pawfect_API.Data.Entities.File>();
-
-        foreach (string filePath in animalFilePaths)
+        // 1. Animals
+        foreach (Animal animal in animals)
         {
-            string fileName = Path.GetFileName(filePath);
-            string fileId = ObjectId.GenerateNewId().ToString();
-            string extension = Path.GetExtension(fileName).ToLowerInvariant();
-            string mimeType = _conventionService.ToMimeType(extension);
-            string fileType = _conventionService.ToFileType(extension).ToString();
-
-            byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-
-            using MemoryStream memoryStream = new MemoryStream(fileBytes);
-            FormFile formFile = new FormFile(memoryStream, 0, fileBytes.Length, null, fileName)
+            if (!shelterUserIds.TryGetValue(animal.ShelterId, out String ownerId))
             {
-                Headers = new HeaderDictionary(),
-                ContentType = mimeType
-            };
-
-            string key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
-            string sourceUrl = await _awsService.UploadAsync(formFile, key);
-
-            var fileEntity = new Pawfect_API.Data.Entities.File
-            {
-                Id = fileId,
-                Filename = fileName,
-                Size = fileBytes.Length,
-                OwnerId = null, 
-                MimeType = mimeType,
-                FileType = fileType,
-                SourceUrl = sourceUrl,
-                AwsKey = key,
-                AccessType = FileAccessType.Public,
-                ContextId = null,
-                ContextType = null,
-                FileSaveStatus = FileSaveStatus.Permanent,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            uploadedAnimalFiles.Add(fileEntity);
-        }
-
-        fileEntities.AddRange(uploadedAnimalFiles);
-
-        var animalPhotoIds = new Dictionary<string, List<string>>();
-
-        foreach (var animal in animals)
-        {
-            if (!shelterUserIds.TryGetValue(animal.ShelterId, out string ownerId))
-                throw new Exception($"No shelter found for animal {animal.Id} with ShelterId {animal.ShelterId}.");
-
-            // Pick 2 random photos per animal
-            var photos = uploadedAnimalFiles.OrderBy(_ => random.Next()).Take(2).ToList();
-
-            foreach (var photo in photos)
-            {
-                // update OwnerId only when assigned
-                photo.OwnerId ??= ownerId;
+                Console.WriteLine($"No shelter user found for animal {animal.Name}, skipping.");
+                continue;
             }
 
-            animalPhotoIds[animal.Id] = photos.Select(p => p.Id).ToList();
+            // Look for file <animal.Name>.<ext>
+            String[] matches = Directory.GetFiles(animalFilesDirectory, $"{animal.Name}.*");
+            if (!matches.Any())
+            {
+                Console.WriteLine($"No image found for animal {animal.Name}, skipping.");
+                continue;
+            }
+
+            List<String> photos = new List<String>();
+            foreach (String filePath in matches)
+            {
+                String fileId = ObjectId.GenerateNewId().ToString();
+                Pawfect_API.Data.Entities.File fileEntity = await this.UploadFile(filePath, fileId, ownerId);
+
+                fileEntities.Add(fileEntity);
+                photos.Add(fileEntity.Id);
+            }
+
+            // Update animal with photo IDs
+            UpdateDefinition<Pawfect_API.Data.Entities.Animal> update = Builders<Pawfect_API.Data.Entities.Animal>.Update.Set(a => a.PhotosIds, photos);
+            await animalsCollection.UpdateOneAsync(a => a.Id == animal.Id, update);
         }
 
-        var users = usersCollection.Find(FilterDefinition<User>.Empty).ToList();
-        if (users.Count < 5)
-            throw new Exception($"Not enough users in the database. Need at least 5, found {users.Count}.");
-
-        string userFilesDirectory = Path.Combine("Seeders/TestData", "Files", "UserProfilePictures");
-        string[] userFilePaths = Directory.GetFiles(userFilesDirectory);
-        if (userFilePaths.Length < 5)
-            throw new Exception($"Not enough profile pictures in {userFilesDirectory}. Need at least 5, found {userFilePaths.Length}.");
-
-        var selectedUsers = users.OrderBy(x => random.Next()).Take(5).ToList();
-        int userFileIndex = 0;
-
-        foreach (var user in selectedUsers)
+        // 2. Users
+        foreach (User user in users)
         {
-            string filePath = userFilePaths[userFileIndex % userFilePaths.Length];
-            userFileIndex++;
-
-            string fileName = Path.GetFileName(filePath);
-            string fileId = ObjectId.GenerateNewId().ToString();
-            string extension = Path.GetExtension(fileName).ToLowerInvariant();
-            string mimeType = _conventionService.ToMimeType(extension);
-            string fileType = _conventionService.ToFileType(extension).ToString();
-
-            byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
-
-            using MemoryStream memoryStream = new MemoryStream(fileBytes);
-            FormFile formFile = new FormFile(memoryStream, 0, fileBytes.Length, null, fileName)
+            // Look for file <user.FullName>.<ext>
+            String[] matches = Directory.GetFiles(userFilesDirectory, $"{user.FullName}.*");
+            if (!matches.Any())
             {
-                Headers = new HeaderDictionary(),
-                ContentType = mimeType
-            };
+                Console.WriteLine($"No image found for user {user.FullName}, skipping.");
+                continue;
+            }
 
-            string key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
-            string sourceUrl = await _awsService.UploadAsync(formFile, key);
+            // Use first match (1 profile photo per user)
+            String filePath = matches.First();
+            String fileId = ObjectId.GenerateNewId().ToString();
 
-            var fileEntity = new Pawfect_API.Data.Entities.File
-            {
-                Id = fileId,
-                Filename = fileName,
-                Size = fileBytes.Length,
-                OwnerId = user.Id,
-                MimeType = mimeType,
-                FileType = fileType,
-                SourceUrl = sourceUrl,
-                AwsKey = key,
-                AccessType = FileAccessType.Public,
-                ContextId = null,
-                ContextType = null,
-                FileSaveStatus = FileSaveStatus.Permanent,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
+            Pawfect_API.Data.Entities.File fileEntity = await this.UploadFile(filePath, fileId, ownerId: user.Id);
             fileEntities.Add(fileEntity);
 
-            var update = Builders<User>.Update.Set(u => u.ProfilePhotoId, fileId);
+            // Update user with profile photo ID
+            UpdateDefinition<User> update = Builders<User>.Update.Set(u => u.ProfilePhotoId, fileId);
             await usersCollection.UpdateOneAsync(u => u.Id == user.Id, update);
         }
 
-        // 🔹 Step 4: Save everything
+        // 3. Insert all files
         if (fileEntities.Any())
             await filesCollection.InsertManyAsync(fileEntities);
-
-        foreach (var animal in animalPhotoIds)
-        {
-            var update = Builders<Animal>.Update.Set(a => a.PhotosIds, animal.Value);
-            await animalsCollection.UpdateOneAsync(a => a.Id == animal.Key, update);
-        }
     }
+
+    /// <summary>
+    /// Upload a file to AWS and return File entity.
+    /// </summary>
+    private async Task<Pawfect_API.Data.Entities.File> UploadFile(String filePath, String fileId, String ownerId)
+    {
+        String fileName = Path.GetFileName(filePath);
+        String extension = Path.GetExtension(fileName).ToLowerInvariant();
+        String mimeType = _conventionService.ToMimeType(extension);
+        String fileType = _conventionService.ToFileType(extension).ToString();
+
+        Byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+
+        using MemoryStream memoryStream = new MemoryStream(fileBytes);
+        IFormFile formFile = new FormFile(memoryStream, 0, fileBytes.Length, null, fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = mimeType,
+        };
+
+        String key = _awsService.ConstructAwsKey(fileName, Guid.NewGuid().ToString());
+        String sourceUrl = await _awsService.UploadAsync(formFile, key);
+
+        return new Pawfect_API.Data.Entities.File
+        {
+            Id = fileId,
+            Filename = fileName,
+            Size = fileBytes.Length,
+            OwnerId = ownerId,
+            MimeType = mimeType,
+            FileType = fileType,
+            SourceUrl = sourceUrl,
+            AwsKey = key,
+            AccessType = FileAccessType.Public,
+            ContextId = null,
+            ContextType = null,
+            FileSaveStatus = FileSaveStatus.Permanent,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+
 
     private async Task SeedAnimals()
     {
@@ -313,7 +265,7 @@ public class Seeder
                     : new AnimalType { Name = "Unknown", Description = "No animal type information available" };
 
                 // Create enhanced embedding with all information
-                AnimalSearchDataModel animalSearchingModel = new AnimalSearchDataModel(
+                Pawfect_API.Models.Animal.AnimalSearchDataModel animalSearchingModel = new Pawfect_API.Models.Animal.AnimalSearchDataModel(
                         _config,
                         animal.Age,
                         animal.Gender,
@@ -327,7 +279,7 @@ public class Seeder
                 );
 
                 IEmbeddingValueExtractorAbstraction embeddingValueExtractorAbstracted = _embeddingValueExtractorFactory.ExtractorSafe(EmbeddingValueExtractorType.Animal);
-                if (!(embeddingValueExtractorAbstracted is IEmbeddingValueExtractor<AnimalSearchDataModel, String, String> &&
+                if (!(embeddingValueExtractorAbstracted is IEmbeddingValueExtractor<Pawfect_API.Models.Animal.AnimalSearchDataModel, String, String> &&
                     embeddingValueExtractorAbstracted is IAnimalEmbeddingValueExtractor animalEmbeddingValueExtractor))
                 {
                     throw new InvalidOperationException("Invalid embedding value extractor for Animal type.");
@@ -347,25 +299,6 @@ public class Seeder
             }
 
             animalsCollection.InsertMany(animals);
-        }
-    }
-
-    private void SeedAdoptionApplications()
-	{
-        IMongoCollection<AdoptionApplication> adoptionApplicationCollection = this._dbService.GetCollection<AdoptionApplication>();
-        if (adoptionApplicationCollection.CountDocuments(FilterDefinition<AdoptionApplication>.Empty) == 0)
-        {
-            List<AdoptionApplication> adoptionApplications = ReadFromJson<AdoptionApplication>("adoption-applications.json");
-            adoptionApplicationCollection.InsertMany(adoptionApplications);
-        }
-    }
-    private void SeedReports()
-    {
-        IMongoCollection<Report> reportsCollection = this._dbService.GetCollection<Report>();
-        if (reportsCollection.CountDocuments(FilterDefinition<Report>.Empty) == 0)
-        {
-            List<Report> reports = ReadFromJson<Report>("reports.json");
-            reportsCollection.InsertMany(reports);
         }
     }
 

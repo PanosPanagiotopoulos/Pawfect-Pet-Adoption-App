@@ -34,14 +34,14 @@ namespace Pawfect_Notifications.Services.AuthenticationServices
         public Boolean HasPermission(IEnumerable<String> userRoles, String permission)
         {
             Policy policy = this.FindPolicy(permission);
-            return policy != null && policy.Roles.Concat(policy.AffiliatedRoles ?? []).Any(r => userRoles.Contains(r));
+            return policy != null && policy.Roles.Any(r => userRoles.Contains(r));
         }
 
         public Boolean HasAnyPermission(IEnumerable<String> userRoles, IEnumerable<String> permissions)
         {
             return _config.Policies
                 .Where(p => permissions.Contains(p.Permission))
-                .Any(p => p.Roles.Concat(p.AffiliatedRoles ?? []).Any(r => userRoles.Contains(r)));
+                .Any(p => p.Roles.Any(r => userRoles.Contains(r)));
         }
 
         public IEnumerable<String> GetPermissionsAndAffiliatedForRoles(IEnumerable<String> userRoles)

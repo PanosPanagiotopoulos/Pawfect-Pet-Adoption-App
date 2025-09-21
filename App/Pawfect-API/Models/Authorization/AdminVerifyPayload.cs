@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.Authorization
+namespace Pawfect_API.Models.Authorization
 {
     public class AdminVerifyPayload
     {

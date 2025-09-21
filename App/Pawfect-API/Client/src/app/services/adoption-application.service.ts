@@ -92,9 +92,11 @@ export class AdoptionApplicationService {
   adoptionRequestExists(animalId: string): Observable<string> {
     const url = `${this.apiBase}/adoption-request-exists/${animalId}`;
 
-    return this.http
-      .post<string>(url, {})
-      .pipe(catchError((error: any) => throwError(error)));
+    return this.http.post<string>(url, {}, { responseType: 'text' as const }).pipe(
+      catchError((error: any) => {
+          return throwError(() => error);
+        })
+      );
   }
 
   delete(id: string): Observable<void> {

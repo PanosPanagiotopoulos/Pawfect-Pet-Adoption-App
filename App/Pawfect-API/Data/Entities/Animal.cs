@@ -6,7 +6,7 @@
 	using Pawfect_API.Data.Entities.EnumTypes;
 
 	using System;
-    using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Embedding;
+    using Pawfect_API.Data.Entities.Types.Embedding;
 
     /// <summary>
     /// Το μοντέλο ενός ζώου στο σύστημα

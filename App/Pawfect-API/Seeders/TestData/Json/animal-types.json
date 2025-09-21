@@ -2,36 +2,15 @@
 	{
 		"Id": "507f1f77bcf86cd799439011",
 		"Name": "Dog",
-		"Description": "Domestic dogs are loyal companion animals known for their intelligence and trainability. They come in various sizes and temperaments, making excellent family pets. Dogs require daily exercise, socialization, and consistent training for optimal well-being.",
-		"CreatedAt": "2023-01-01T00:00:00Z",
-		"UpdatedAt": "2023-01-01T00:00:00Z"
+		"Description": "Domestic dogs are loyal companion animals known for their intelligence, protective instincts, and trainability. They come in many sizes and temperaments, ranging from working breeds to lap dogs.",
+		"CreatedAt": "2025-01-01T00:00:00Z",
+		"UpdatedAt": "2025-01-01T00:00:00Z"
 	},
 	{
 		"Id": "507f1f77bcf86cd799439012",
 		"Name": "Cat",
-		"Description": "Domestic cats are independent yet affectionate companion animals with natural hunting instincts. They are known for their agility, cleanliness, and ability to form strong bonds with their owners. Cats require mental stimulation, proper nutrition, and regular veterinary care.",
-		"CreatedAt": "2023-01-01T00:00:00Z",
-		"UpdatedAt": "2023-01-01T00:00:00Z"
-	},
-	{
-		"Id": "507f1f77bcf86cd799439013",
-		"Name": "Bird",
-		"Description": "Pet birds are intelligent, social creatures that can form strong bonds with their owners. Many species are capable of mimicking speech and learning tricks. Birds require specialized diets, mental enrichment, and safe flight opportunities.",
-		"CreatedAt": "2023-01-01T00:00:00Z",
-		"UpdatedAt": "2023-01-01T00:00:00Z"
-	},
-	{
-		"Id": "507f1f77bcf86cd799439014",
-		"Name": "Rabbit",
-		"Description": "Domestic rabbits are quiet, gentle animals that can be litter-trained and enjoy human companionship. They are herbivores requiring a diet high in fiber and hay. Rabbits need space to hop and explore, along with protection from temperature extremes.",
-		"CreatedAt": "2023-01-01T00:00:00Z",
-		"UpdatedAt": "2023-01-01T00:00:00Z"
-	},
-	{
-		"Id": "507f1f77bcf86cd799439015",
-		"Name": "Hamster",
-		"Description": "Hamsters are small, nocturnal rodents that make popular first pets for children. They are relatively low-maintenance but require proper housing with bedding and exercise wheels. Hamsters are solitary animals that prefer living alone in their enclosures.",
-		"CreatedAt": "2023-01-01T00:00:00Z",
-		"UpdatedAt": "2023-01-01T00:00:00Z"
+		"Description": "Domestic cats are agile, independent, and affectionate pets with natural hunting instincts. They thrive in both urban and rural environments, forming strong bonds with their owners.",
+		"CreatedAt": "2025-01-01T00:00:00Z",
+		"UpdatedAt": "2025-01-01T00:00:00Z"
 	}
 ]

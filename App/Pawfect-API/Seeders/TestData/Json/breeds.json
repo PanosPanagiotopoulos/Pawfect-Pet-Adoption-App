@@ -1,58 +1,50 @@
 [
   {
     "Id": "608f2f88cdf97ce800439021",
-    "Name": "Labrador Retriever",
+    "Name": "Siberian Husky",
     "AnimalTypeId": "507f1f77bcf86cd799439011",
-    "Description": "Labrador Retrievers are medium to large-sized dogs known for their friendly, outgoing nature and high energy levels. Originally bred as fishing dogs in Newfoundland, they excel at retrieving and water activities. Labs are excellent family pets, highly trainable, and great with children.",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
+    "Description": "The Siberian Husky is a medium-sized working dog breed originally bred by the Chukchi people of Siberia to pull sleds over long distances. They are known for their endurance, striking blue or multicolored eyes, and thick double coat. Huskies are energetic, friendly, and require regular exercise and mental stimulation.",
+    "CreatedAt": "2025-01-01T00:00:00Z",
+    "UpdatedAt": "2025-01-01T00:00:00Z"
   },
   {
     "Id": "608f2f88cdf97ce800439022",
-    "Name": "German Shepherd",
+    "Name": "Bernese Mountain Dog",
     "AnimalTypeId": "507f1f77bcf86cd799439011",
-    "Description": "German Shepherds are large, intelligent working dogs originally bred for herding sheep in Germany. They are known for their loyalty, courage, and versatility in various working roles including police and military service. These dogs require experienced owners who can provide consistent training and mental stimulation.",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
+    "Description": "The Bernese Mountain Dog is a large, sturdy breed from the Swiss Alps, historically used as a farm dog for herding cattle and pulling carts. They are known for their tri-colored coat, calm temperament, and devotion to their families. Bernese Mountain Dogs thrive in active households and enjoy cold climates.",
+    "CreatedAt": "2025-01-01T00:00:00Z",
+    "UpdatedAt": "2025-01-01T00:00:00Z"
   },
   {
     "Id": "608f2f88cdf97ce800439023",
-    "Name": "Persian",
+    "Name": "Maine Coon",
     "AnimalTypeId": "507f1f77bcf86cd799439012",
-    "Description": "Persian cats are a long-haired breed known for their flat faces, round eyes, and luxurious coats. They have a calm, gentle temperament and prefer quiet, stable environments. Persians require daily grooming to prevent matting and regular eye cleaning due to their facial structure.",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
+    "Description": "The Maine Coon is one of the largest domestic cat breeds, originating in the northeastern United States. They have long, shaggy fur, tufted ears, and bushy tails designed for cold climates. Maine Coons are gentle, sociable, and often described as 'dog-like' due to their playful loyalty and friendliness.",
+    "CreatedAt": "2025-01-01T00:00:00Z",
+    "UpdatedAt": "2025-01-01T00:00:00Z"
   },
   {
     "Id": "608f2f88cdf97ce800439024",
-    "Name": "Siamese",
+    "Name": "British Shorthair",
     "AnimalTypeId": "507f1f77bcf86cd799439012",
-    "Description": "Siamese cats are an ancient breed from Thailand, known for their distinctive color-point pattern and striking blue eyes. They are highly vocal, social, and intelligent cats that form strong bonds with their owners. Siamese cats are active and playful, requiring interactive toys and mental stimulation.",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
+    "Description": "The British Shorthair is a stocky, medium-to-large cat breed from the United Kingdom, best known for its round face, dense coat, and calm personality. They are affectionate but not overly demanding, making them ideal for families. Their plush 'teddy bear' appearance and quiet demeanor make them one of the most popular cat breeds worldwide.",
+    "CreatedAt": "2025-01-01T00:00:00Z",
+    "UpdatedAt": "2025-01-01T00:00:00Z"
   },
   {
     "Id": "608f2f88cdf97ce800439025",
-    "Name": "Parakeet",
-    "AnimalTypeId": "507f1f77bcf86cd799439013",
-    "Description": "Parakeets, also known as budgerigars, are small, colorful birds native to Australia. They are social, intelligent birds capable of learning words and tricks with proper training. Parakeets are relatively easy to care for and make excellent starter birds for new bird owners.",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
+    "Name": "Mixed / Unknown Dog",
+    "AnimalTypeId": "507f1f77bcf86cd799439011",
+    "Description": "Many shelter dogs are mixed breeds with uncertain ancestry. Mixed-breed dogs often combine the traits of multiple breeds, making them unique in appearance and temperament. They are known for their resilience, adaptability, and can be excellent family companions.",
+    "CreatedAt": "2025-01-01T00:00:00Z",
+    "UpdatedAt": "2025-01-01T00:00:00Z"
   },
   {
     "Id": "608f2f88cdf97ce800439026",
-    "Name": "Holland Lop",
-    "AnimalTypeId": "507f1f77bcf86cd799439014",
-    "Description": "Holland Lops are small rabbits characterized by their distinctive drooping ears and compact, rounded body shape. They typically weigh 2-4 pounds and have gentle, friendly temperaments that make them popular pets. These rabbits require hay-based diets and benefit from supervised exercise time outside their enclosures.",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "608f2f88cdf97ce800439027",
-    "Name": "Syrian Hamster",
-    "AnimalTypeId": "507f1f77bcf86cd799439015",
-    "Description": "Syrian hamsters, also known as golden hamsters, are the largest and most common pet hamster species. They are solitary animals that must be housed alone and are known for their cheek pouches used for storing food. Syrian hamsters are nocturnal and require wheels for exercise and enrichment activities.",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
+    "Name": "Mixed / Unknown Cat",
+    "AnimalTypeId": "507f1f77bcf86cd799439012",
+    "Description": "Most shelter cats are domestic short-haired or long-haired mixes with no specific breed lineage. These cats vary in size, coat length, and personality, offering a wide range of wonderful companions for adopters.",
+    "CreatedAt": "2025-01-01T00:00:00Z",
+    "UpdatedAt": "2025-01-01T00:00:00Z"
   }
 ]

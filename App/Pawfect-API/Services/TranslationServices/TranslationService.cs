@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
+using Pawfect_API.Data.Entities.Types.Translation;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices
+namespace Pawfect_API.Services.TranslationServices
 {
     public class TranslationService : ITranslationService
     {

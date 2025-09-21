@@ -109,11 +109,11 @@ namespace Pawfect_API.Services.AuthenticationServices
                         FilterDefinitionBuilder<AdoptionApplication> builder = Builders<AdoptionApplication>.Filter;
                         FilterDefinition<AdoptionApplication> filter = builder.Empty;
 
-                        filter |= builder.In(nameof(AdoptionApplication.UserId), [new ObjectId(userId)]);
+                        filter = builder.In(nameof(AdoptionApplication.UserId), [new ObjectId(userId)]);
 
                         if (!String.IsNullOrEmpty(shelterId))
                         {
-                            filter |= builder.In(nameof(AdoptionApplication.ShelterId), [new ObjectId(shelterId)]);
+                            filter = builder.Or(filter , builder.In(nameof(AdoptionApplication.ShelterId), [new ObjectId(shelterId)]));
                         }
 
                         finalFilter = MongoHelper.ToBsonFilter<AdoptionApplication>(filter);

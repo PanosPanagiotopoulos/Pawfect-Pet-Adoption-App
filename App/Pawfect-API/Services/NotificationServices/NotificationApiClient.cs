@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Pawfect_API.DevTools;
 using Pawfect_API.Models.Notification;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Pawfect_API.Data.Entities.Types.Apis;
 using System.Security.Cryptography;
 using System.Text;
 

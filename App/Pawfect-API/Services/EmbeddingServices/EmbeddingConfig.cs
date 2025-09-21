@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
+﻿namespace Pawfect_API.Services.EmbeddingServices
 {
     public class EmbeddingConfig
     {

@@ -497,11 +497,15 @@
             ></ng-icon>
             <span class="font-medium text-gray-700"
               >{{
-                "APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.APPLICANT" | translate
+                tabType === 'received-applications' 
+                  ? ("APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.APPLICANT" | translate)
+                  : ("APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.SHELTER" | translate)
               }}:</span
             >
             <span class="text-gray-800">{{
-              application.user?.fullName || "-"
+              tabType === 'received-applications' 
+                ? (application.user?.fullName || "-")
+                : (application.animal?.shelter?.shelterName || "-")
             }}</span>
           </div>
         </div>
@@ -541,7 +545,9 @@
               class="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider"
             >
               {{
-                "APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.APPLICANT" | translate
+                tabType === 'received-applications' 
+                  ? ("APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.APPLICANT" | translate)
+                  : ("APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.SHELTER" | translate)
               }}
             </th>
             <th
@@ -579,7 +585,9 @@
             </td>
             <td class="px-4 py-3 whitespace-nowrap">
               <span class="text-gray-700">{{
-                application.user?.fullName || "-"
+                tabType === 'received-applications' 
+                  ? (application.user?.fullName || "-")
+                  : (application.animal?.shelter?.shelterName || "-")
               }}</span>
             </td>
             <td class="px-4 py-3 whitespace-nowrap">

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis
+namespace Pawfect_API.Data.Entities.Types.Apis
 {
     public class NotificationApiConfig
     {

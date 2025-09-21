@@ -565,22 +565,8 @@ export class AdoptComponent
         this.isEditMode = true;
         this.loadAdoptionApplication(applicationId);
       } else if (animalId) {
-        // Check if user is a shelter - shelters cannot access /adopt/new page
-        const userShelterId = this.authService.getUserShelterId();
-        if (userShelterId && !this.isEditMode) {
-          // Redirect shelters to unauthorized page
-          this.router.navigate(['/unauthorized'], {
-            queryParams: {
-              message: 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.FORBIDDEN',
-              returnUrl: '/profile?tab=received-applications',
-            },
-          });
-          return;
-        }
-
         this.isEditMode = false;
-        // Check for duplicate application BEFORE loading animal
-        this.checkForDuplicateApplication(animalId);
+        this.loadAnimal(animalId);
       } else {
         this.router.navigate(['/404']);
       }
@@ -619,82 +605,6 @@ export class AdoptComponent
       });
   }
 
-  private checkForDuplicateApplication(animalId: string): void {
-    if (!animalId) {
-      this.loadAnimal(animalId);
-      return;
-    }
-
-    // Set loading state immediately
-    this.isLoading = true;
-    this.error = undefined;
-
-    // Check if user already has an application for this animal
-    this.adoptionApplicationService.adoptionRequestExists(animalId).subscribe({
-      next: (existingApplicationId) => {
-        if (
-          existingApplicationId &&
-          typeof existingApplicationId === 'string' &&
-          existingApplicationId.trim() !== ''
-        ) {
-          // Stop loading immediately
-          this.isLoading = false;
-
-          // Show warning message
-          this.snackbarService.showWarning({
-            message: this.translationService.translate(
-              'APP.ADOPT.DUPLICATE_APPLICATION_WARNING'
-            ),
-            subMessage: this.translationService.translate(
-              'APP.ADOPT.REDIRECTING_TO_EXISTING_APPLICATION'
-            ),
-          });
-
-          // Check if user has permission to view adoption applications
-          const hasViewPermission = this.authService.hasPermission(
-            Permission.CanViewAdoptionApplications
-          );
-
-          if (hasViewPermission) {
-            // User has permission to access edit route directly
-            this.router
-              .navigate(['/adopt/edit', existingApplicationId])
-              .catch(() => {
-                window.location.href = `/adopt/edit/${existingApplicationId}`;
-              });
-          } else {
-            // User doesn't have permission for edit route, redirect to profile page
-            this.snackbarService.showWarning({
-              message: this.translationService.translate(
-                'APP.ADOPT.REDIRECTING_TO_PROFILE'
-              ),
-              subMessage: this.translationService.translate(
-                'APP.ADOPT.VIEW_APPLICATION_IN_PROFILE'
-              ),
-            });
-
-            this.router
-              .navigate(['/profile'], {
-                queryParams: { tab: 'adoption-applications' },
-              })
-              .catch(() => {
-                window.location.href = '/profile?tab=adoption-applications';
-              });
-          }
-          return;
-        }
-
-        // No existing application, proceed with loading animal
-        this.loadAnimal(animalId);
-      },
-      error: (error) => {
-        // If check fails, proceed with normal flow (fail gracefully)
-        console.warn('Failed to check for existing application:', error);
-        this.loadAnimal(animalId);
-      },
-    });
-  }
-
   loadAnimal(id: string = '') {
     id = !id ? this.route.snapshot.params['id'] : id;
     if (!id) {
@@ -716,7 +626,6 @@ export class AdoptComponent
     this.isLoadingDeletePermission = false; // No delete permission needed for new applications
     this.canDeleteApp = false; // Reset delete permission for new applications
 
-    // Load animal data (duplicate check is now done before this method is called)
     this.animalService.getSingle(id, this.getAnimalFields()).subscribe({
       next: (animal) => {
         this.animal = animal;

@@ -8,7 +8,7 @@ using Pawfect_API.Models.User;
 using Pawfect_API.Query;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.FileServices;
-using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_API.Models.User;
 using System.Security.Claims;
 using ZstdSharp;
 namespace Pawfect_API.Builders

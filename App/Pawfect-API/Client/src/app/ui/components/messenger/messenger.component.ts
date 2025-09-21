@@ -93,6 +93,9 @@ export class MessengerComponent extends BaseComponent implements OnInit {
   // Message input
   messageControl = new FormControl('');
 
+  // Timeouts
+  private markMessagesReadTimeout?: any;
+
   @ViewChild('messagesContainer') messagesContainer?: ElementRef;
   @ViewChild('messageInput') messageInput?: ElementRef;
 
@@ -117,6 +120,12 @@ export class MessengerComponent extends BaseComponent implements OnInit {
 
     // Initialize hub service
     this.messengerHubService.init();
+
+    // Monitor SignalR connection status
+    this.messengerHubService.isConnected$
+      .pipe(takeUntil(this._destroyed))
+      .subscribe((isConnected) => {
+      });
   }
 
   override ngOnDestroy(): void {
@@ -131,6 +140,11 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     }
     if (this.unreadCountRefreshTimeout) {
       clearTimeout(this.unreadCountRefreshTimeout);
+    }
+
+    // Clear mark messages as read timeout
+    if (this.markMessagesReadTimeout) {
+      clearTimeout(this.markMessagesReadTimeout);
     }
 
     // Disconnect from hub when component is destroyed
@@ -361,7 +375,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
       )
       .subscribe((message) => {
         if (message) {
-          // Update conversation preview without re-querying
           this.updateConversationPreview(message);
 
           // Refresh unread count when new message arrives from another user
@@ -378,8 +391,11 @@ export class MessengerComponent extends BaseComponent implements OnInit {
             this.scrollToBottom();
 
             // Auto-mark as read if conversation is open and message is from other user
+            // Use a small delay to avoid race conditions with SignalR
             if (message.sender?.id !== this.currentUser?.id) {
-              this.markSingleMessageAsRead(message);
+              setTimeout(() => {
+                this.markSingleMessageAsRead(message);
+              }, 100);
             }
           }
         }
@@ -449,8 +465,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
       )
       .subscribe((message) => {
         if (message) {
-          // This event should contain the most up-to-date message information
-          // including readBy status, so we update the conversation preview
           this.updateConversationPreview(message);
         }
       });
@@ -581,7 +595,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           this.openConversation(conversation);
         },
         error: (error) => {
-          
           this.isCreatingConversation = false;
         },
       });
@@ -621,6 +634,9 @@ export class MessengerComponent extends BaseComponent implements OnInit {
       }
     }
 
+    // Mark unread messages as read when opening conversation
+    this.markUnreadMessagesAsReadOnOpen();
+
     // Focus message input after opening
     setTimeout(() => {
       if (this.messageInput?.nativeElement) {
@@ -640,6 +656,11 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     this.messages = [];
     this.selectedMessageId = undefined;
     this.messageControl.setValue('');
+
+    // Validate conversation previews when returning to conversation list
+    setTimeout(() => {
+      this.validateAndFixConversationPreviews();
+    }, 100);
   }
 
   private loadMessages(): void {
@@ -726,7 +747,6 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           this.isLoadingMoreMessages = false;
         },
         error: (error) => {
-         
           this.isLoadingMoreMessages = false;
         },
       });
@@ -925,15 +945,37 @@ export class MessengerComponent extends BaseComponent implements OnInit {
       (c) => c.id === message.conversation?.id
     );
     if (conversation) {
-      // Update last message preview and timestamp
-      conversation.lastMessagePreview = message;
-      conversation.lastMessageAt = message.createdAt;
+      // Check if this message should update the preview
+      const shouldUpdatePreview = message.content && message.content.trim() && (
+        !conversation.lastMessagePreview || 
+        !conversation.lastMessagePreview.createdAt ||
+        new Date(message.createdAt || 0) >= new Date(conversation.lastMessagePreview.createdAt)
+      );
 
-      // Move conversation to top of list
-      const index = this.conversations.indexOf(conversation);
-      if (index > 0) {
-        this.conversations.splice(index, 1);
-        this.conversations.unshift(conversation);
+      if (shouldUpdatePreview) {
+        // Update last message preview and timestamp
+        conversation.lastMessagePreview = message;
+        conversation.lastMessageAt = message.createdAt;
+      } else if (message.id === conversation.lastMessagePreview?.id) {
+        // This is an update to the existing last message (e.g., read status change)
+        // Update the existing preview with new data but preserve content
+        if (conversation.lastMessagePreview) {
+          conversation.lastMessagePreview = {
+            ...conversation.lastMessagePreview,
+            ...message,
+            // Ensure content is preserved if the update doesn't include it
+            content: message.content || conversation.lastMessagePreview.content
+          };
+        }
+      } 
+
+      // Move conversation to top of list only if we updated the preview
+      if (shouldUpdatePreview) {
+        const index = this.conversations.indexOf(conversation);
+        if (index > 0) {
+          this.conversations.splice(index, 1);
+          this.conversations.unshift(conversation);
+        }
       }
     } else {
       // If conversation doesn't exist in list, reload conversations
@@ -949,6 +991,52 @@ export class MessengerComponent extends BaseComponent implements OnInit {
       // Auto-resize textarea
       setTimeout(() => this.autoResizeTextarea(), 0);
     }
+
+    // Mark messages as read when user starts typing
+    this.markUnreadMessagesOnUserInteraction();
+  }
+
+  onMessageInputFocus(): void {
+    // Mark messages as read when user focuses on input
+    this.markUnreadMessagesOnUserInteraction();
+  }
+
+  onMessageInputInput(): void {
+    // Mark messages as read when user types
+    this.markUnreadMessagesOnUserInteraction();
+  }
+
+  private markUnreadMessagesOnUserInteraction(): void {
+    if (!this.currentUser?.id || !this.selectedConversation?.id) return;
+
+    // Don't mark messages as read if we're still loading messages
+    if (this.isLoadingMessages || this.isLoadingMoreMessages) return;
+
+    // Check if there are unread messages in the current conversation
+    const hasUnread = this.messages.some(
+      (message) =>
+        message.sender?.id !== this.currentUser?.id &&
+        !message.readBy?.some((user) => user.id === this.currentUser?.id)
+    );
+
+    if (hasUnread) {
+      this.logService.logFormatted('MessengerComponent' + 'Marking unread messages as read due to user interaction');
+      // Debounce the read operation to avoid too many API calls
+      this.debouncedMarkMessagesAsRead();
+    }
+  }
+
+  private debouncedMarkMessagesAsRead(): void {
+    // Clear existing timeout
+    if (this.markMessagesReadTimeout) {
+      clearTimeout(this.markMessagesReadTimeout);
+    }
+
+    // Set new timeout to mark messages as read after user stops interacting
+    // Increased delay to avoid conflicts with SignalR message flow
+    this.markMessagesReadTimeout = setTimeout(() => {
+      this.markMessagesAsRead();
+    }, 2000);
   }
 
   autoResizeTextarea(): void {
@@ -1024,8 +1112,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
             conversation.lastMessagePreview!.readBy = lastReadMessage.readBy;
           }
         },
-        error: (error) => {
-        },
+        error: (error) => {},
       });
   }
 
@@ -1084,9 +1171,25 @@ export class MessengerComponent extends BaseComponent implements OnInit {
             }
           }
         },
-        error: (error) => {
-        },
+        error: (error) => {},
       });
+  }
+
+  private markUnreadMessagesAsReadOnOpen(): void {
+    if (!this.currentUser?.id || !this.selectedConversation?.id) return;
+
+    // Check if the conversation has unread messages
+    if (!this.hasUnreadMessages(this.selectedConversation)) return;
+
+    this.logService.logFormatted('MessengerComponent' + 'Marking unread messages as read on conversation open');
+    // Wait for messages to load, then mark them as read
+    // Increased delay to ensure messages are fully loaded and avoid conflicts
+    setTimeout(() => {
+      // Double-check that we still have the same conversation open
+      if (this.selectedConversation?.id && !this.isLoadingMessages) {
+        this.markMessagesAsRead();
+      }
+    }, 1000);
   }
 
   getUserPresenceStatus(userId: string): UserStatus | undefined {
@@ -1142,7 +1245,10 @@ export class MessengerComponent extends BaseComponent implements OnInit {
 
   // Always show message preview regardless of read status
   shouldShowMessagePreview(conversation: Conversation): boolean {
-    return !!conversation.lastMessagePreview?.content;
+    const hasContent = conversation.lastMessagePreview?.content && 
+                      conversation.lastMessagePreview.content.trim().length > 0;
+    
+    return !!hasContent;
   }
 
   private setupUnreadMessagesCounter(): void {
@@ -1170,8 +1276,7 @@ export class MessengerComponent extends BaseComponent implements OnInit {
           this.unreadMessagesCount = count;
         }
       },
-      error: (error) => {
-      },
+      error: (error) => {},
     });
   }
 
@@ -1192,6 +1297,20 @@ export class MessengerComponent extends BaseComponent implements OnInit {
     this.unreadMessagesCount = 0;
     // Also refresh from server to ensure accuracy (debounced)
     this.debouncedLoadUnreadCount();
+  }
+
+  private validateAndFixConversationPreviews(): void {
+    let needsReload = false;
+    
+    this.conversations.forEach(conversation => {
+      if (conversation.lastMessagePreview && !conversation.lastMessagePreview.content) {
+        needsReload = true;
+      }
+    });
+    
+    if (needsReload) {
+      this.loadConversations();
+    }
   }
 
   // Navigate to user profile

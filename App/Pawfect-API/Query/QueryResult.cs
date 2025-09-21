@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Query
+﻿namespace Pawfect_API.Query
 {
     public class QueryResult<T> where T: class
     {

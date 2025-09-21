@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.RateLimiting
+﻿namespace Pawfect_API.Data.Entities.Types.RateLimiting
 {
     public class RateLimitConfig
     {

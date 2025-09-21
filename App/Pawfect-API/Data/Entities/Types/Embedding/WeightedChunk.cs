@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Embedding
+namespace Pawfect_API.Data.Entities.Types.Embedding
 {
     public class WeightedChunk<T> where T : INumber<T>
     {

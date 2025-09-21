@@ -1,5 +1,5 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+﻿using Pawfect_API.Data.Entities.Types.Apis;
+using Pawfect_API.Data.Entities.Types.Authorisation;
 
 namespace Pawfect_API.Services.AnimalServices.Extention
 {

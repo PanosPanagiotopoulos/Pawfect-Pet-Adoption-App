@@ -570,18 +570,18 @@
           "SemanticWeight": 0.5
         },
         "BoostSettings": {
-          "ExactPhraseBoost": 45.0,
+          "ExactPhraseBoost": 55.0,
           "PhraseWithSlopBoost": 28.0,
-          "SemanticTextBoost": 42.0,
-          "SynonymBoost": 20.0,
+          "SemanticTextBoost": 55.0,
+          "SynonymBoost": 23.0,
           "DescriptionBoost": 25.0,
           "FuzzySearchBoost": 20.0,
           "HealthTermsBoost": 25.0,
           "AutocompleteBoost": 3.5,
-          "GenderExactBoost": 40.0,
-          "GenderPhraseBoost": 40.0,
-          "NumericRangeBoost": 40.0,
-          "WeightRangeBoost": 40.0
+          "GenderExactBoost": 50.0,
+          "GenderPhraseBoost": 50.0,
+          "NumericRangeBoost": 50.0,
+          "WeightRangeBoost": 50.0
         },
         "ThresholdSettings": {
           "DynamicThresholds": true,

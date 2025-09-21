@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+﻿using Pawfect_API.Data.Entities.EnumTypes;
 
-namespace Pawfect_Pet_Adoption_App_API.Attributes
+namespace Pawfect_API.Attributes
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
     public class RateLimitAttribute : Attribute

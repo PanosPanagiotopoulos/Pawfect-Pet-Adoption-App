@@ -17,11 +17,11 @@ using Pawfect_API.Transactions;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Caching.Memory;
-using Pawfect_Pet_Adoption_App_API.Services.UserServices;
-using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
-using Pawfect_Pet_Adoption_App_API.Models.Authorization;
-using Pawfect_Pet_Adoption_App_API.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_API.Services.UserServices;
+using Pawfect_API.Models.UserAvailability;
+using Pawfect_API.Models.Authorization;
+using Pawfect_API.Attributes;
+using Pawfect_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers 
 { 
@@ -139,30 +139,6 @@ namespace Pawfect_API.Controllers
         [RateLimit(RateLimitLevel.Restrictive)]
         public async Task<IActionResult> RefreshToken()
         {
-            // Extract access token from cookie
-            try
-            {
-                String? token = _cookiesService.GetCookie(JwtService.ACCESS_TOKEN);
-
-                JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-                JwtSecurityToken jwtToken;
-
-                jwtToken = handler.ReadJwtToken(token);
-
-                // Extract token ID (jti)
-                String? tokenId = jwtToken.Id;
-                if (String.IsNullOrEmpty(tokenId)) return Forbid("Failed to find token ID in access token");
-
-                if (!_jwtService.IsTokenRevoked(jwtToken)) return Ok();
-
-                // Extract expiration
-                DateTime? expiration = jwtToken.ValidTo;
-                if (!expiration.HasValue) return Forbid("Failed to find expiration date in access token");
-
-                _jwtService.RevokeToken(tokenId, expiration.Value);
-            }
-            catch (Exception) {}
-
             String? refreshTokenString = _cookiesService.GetCookie(JwtService.REFRESH_TOKEN);
             if (String.IsNullOrEmpty(refreshTokenString)) return Forbid("Refresh token is missing");
 

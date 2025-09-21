@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Models.User
+﻿namespace Pawfect_API.Models.User
 {
     public class UserUpdate
     {

@@ -10,18 +10,18 @@ using Pawfect_API.Models.Lookups;
 using Pawfect_API.Query;
 using Pawfect_API.Services.AnimalServices;
 using Pawfect_API.Transactions;
-using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_API.Query;
 using Pawfect_API.Query.Queries;
 using Microsoft.Extensions.Options;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Authorisation;
+using Pawfect_API.Data.Entities.Types.Authorisation;
 using Microsoft.Extensions.Caching.Memory;
 using Pawfect_API.Services.AuthenticationServices;
 using System.Security.Claims;
 using Pawfect_API.Data.Entities.Types.Cache;
 using Pawfect_API.Services.Convention;
 using Pawfect_API.Services.FileServices;
-using Pawfect_Pet_Adoption_App_API.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_API.Attributes;
+using Pawfect_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {
@@ -84,7 +84,7 @@ namespace Pawfect_API.Controllers
 
             ClaimsPrincipal claimsPrincipal = _authorizationContentResolver.CurrentPrincipal();
             String userId = _claimsExtractor.CurrentUserId(claimsPrincipal);
-            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException();
+            if (!_conventionService.IsValidId(userId)) throw new ForbiddenException();            
 
             String cacheKey = $"{userId}_{animalLookup.GetHashCode()}";
             QueryResult<Animal> queryResult = null;
@@ -132,6 +132,8 @@ namespace Pawfect_API.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             animalLookup.Fields = _animalsConfig.FreeFields;
+            animalLookup.UseVectorSearch = true;
+            animalLookup.UseSemanticSearch = true;
 
             String cacheKey = $"{animalLookup.GetHashCode()}";
             QueryResult<Animal> queryResult = null;

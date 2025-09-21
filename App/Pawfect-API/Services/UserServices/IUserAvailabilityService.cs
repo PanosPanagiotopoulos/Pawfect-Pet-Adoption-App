@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
+﻿using Pawfect_API.Models.UserAvailability;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
+namespace Pawfect_API.Services.UserServices
 {
     public interface IUserAvailabilityService
     {

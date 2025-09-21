@@ -285,9 +285,9 @@ namespace Pawfect_API.Services.FileServices
 			_logger.LogInformation($"Uploaded {((results.Count(r => r.Success))/totalFiles) * 100}% of the files successfully.");
 		}
 
-		public async Task Delete(String id) { await this.Delete(new List<String>() { id }); }
+		public async Task Delete(String id, Boolean applyAuth = true) { await this.Delete(new List<String>() { id }, applyAuth); }
 
-		public async Task Delete(List<String> ids)
+		public async Task Delete(List<String> ids, Boolean applyAuth = true)
 		{
 			if (ids == null || !ids.Any()) return;
 
@@ -301,7 +301,7 @@ namespace Pawfect_API.Services.FileServices
 			List<Data.Entities.File> files = await lookup.EnrichLookup(_queryFactory).CollectAsync();
 
 			OwnedResource ownedResource = _authorizationContentResolver.BuildOwnedResource(new FileLookup() { Ids = [.. files.Select(file => file.Id)] }, [.. files.Select(x => x.OwnerId)]);
-			if (!await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.DeleteFiles))
+			if (applyAuth && !await _authorizationService.AuthorizeOrOwnedAsync(ownedResource, Permission.DeleteFiles))
                 throw new ForbiddenException("You do not have permission to delete files.", typeof(Data.Entities.File), Permission.DeleteFiles);
 
 

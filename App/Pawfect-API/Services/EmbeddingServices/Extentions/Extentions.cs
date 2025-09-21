@@ -1,7 +1,7 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.AnimalEmbeddingValueExtractors;
+﻿using Pawfect_API.Data.Entities.EnumTypes;
+using Pawfect_API.Services.EmbeddingServices.AnimalEmbeddingValueExtractors;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.Extentions
+namespace Pawfect_API.Services.EmbeddingServices.Extentions
 {
     public static class Extentions
     {

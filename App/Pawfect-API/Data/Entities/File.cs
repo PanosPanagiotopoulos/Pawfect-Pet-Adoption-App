@@ -2,7 +2,7 @@
 using MongoDB.Bson.Serialization.Attributes;
 using Pawfect_API.Data.Entities.EnumTypes;
 using Pawfect_API.Models.File;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Data.Entities
 {

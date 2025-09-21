@@ -2,15 +2,15 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Pawfect_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.RateLimiting;
+using Pawfect_API.Attributes;
+using Pawfect_API.Data.Entities.EnumTypes;
+using Pawfect_API.Data.Entities.Types.RateLimiting;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using System.Security.Claims;
 
-namespace Pawfect_Pet_Adoption_App_API.Middlewares
+namespace Pawfect_API.Middlewares
 {
     public class RateLimitingMiddleware
     {

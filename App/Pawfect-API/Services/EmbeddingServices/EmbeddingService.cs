@@ -3,12 +3,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel.Text;
 using Mistral.SDK;
 using Mistral.SDK.DTOs;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Embedding;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
+using Pawfect_API.Data.Entities.Types.Embedding;
+using Pawfect_API.Data.Entities.Types.Mongo;
 using System.Numerics;
 using System.Text.Json;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices
+namespace Pawfect_API.Services.EmbeddingServices
 {
     public class EmbeddingService : IEmbeddingService
     {

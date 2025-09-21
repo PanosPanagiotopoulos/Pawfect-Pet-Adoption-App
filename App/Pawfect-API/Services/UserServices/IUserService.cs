@@ -2,9 +2,9 @@
 using Pawfect_API.Models;
 using Pawfect_API.Models.Lookups;
 using Pawfect_API.Models.User;
-using Pawfect_Pet_Adoption_App_API.Models.Authorization;
-using Pawfect_Pet_Adoption_App_API.Models.User;
-using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
+using Pawfect_API.Models.Authorization;
+using Pawfect_API.Models.User;
+using Pawfect_API.Models.UserAvailability;
 
 namespace Pawfect_API.Services.UserServices
 {

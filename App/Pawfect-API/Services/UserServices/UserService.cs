@@ -24,13 +24,13 @@ using Pawfect_API.Services.FileServices;
 using Pawfect_API.Services.HttpServices;
 using Pawfect_API.Services.ShelterServices;
 using System.Security.Claims;
-using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_API.Models.User;
 using Pawfect_API.Services.Convention;
 using Pawfect_API.Models.Notification;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Pawfect_API.Data.Entities.Types.Apis;
 using Pawfect_API.Services.NotificationServices;
-using Pawfect_Pet_Adoption_App_API.DevTools;
-using Pawfect_Pet_Adoption_App_API.Models.Authorization;
+using Pawfect_API.DevTools;
+using Pawfect_API.Models.Authorization;
 
 namespace Pawfect_API.Services.UserServices
 {

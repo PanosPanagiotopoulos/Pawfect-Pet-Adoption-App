@@ -1,9 +1,9 @@
 {
   "Embedding": {
-    "ApiKey": "%{EmbeddingApiKey}%",
+    "ApiKey": "%{MistralApiKey}%",
     "Model": "mistral-embed",
     "Dims": 1024,
     "ChunkSize": 250,
-    "OverlapSize":  0.15
+    "OverlapSize": 0.15
   }
 }

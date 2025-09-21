@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes
+﻿namespace Pawfect_API.Data.Entities.EnumTypes
 {
     public enum RateLimitLevel : short
     {

@@ -2,7 +2,7 @@
 
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
+using Pawfect_API.Data.Entities.Types.Mongo;
 using System;
 
 namespace Pawfect_API.Services.MongoServices

@@ -5,17 +5,17 @@ using Pawfect_API.Data.Entities.Types.Authorization;
 using Pawfect_API.Exceptions;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.MongoServices;
-using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
+using Pawfect_API.Services.EmbeddingServices;
+using Pawfect_API.Data.Entities.Types.Mongo;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson.Serialization;
-using Pawfect_Pet_Adoption_App_API.Services.TranslationServices;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Animals;
+using Pawfect_API.Services.TranslationServices;
+using Pawfect_API.Data.Entities.Types.Translation;
+using Pawfect_API.Data.Entities.Types.Animals;
 using System.Text.RegularExpressions;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Search;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Embedding;
+using Pawfect_API.Data.Entities.Types.Search;
+using Pawfect_API.Data.Entities.EnumTypes;
+using Pawfect_API.Data.Entities.Types.Embedding;
 
 namespace Pawfect_API.Query.Queries
 {
@@ -68,6 +68,10 @@ namespace Pawfect_API.Query.Queries
 
 		// Ημερομηνία λήξης για φιλτράρισμα (δημιουργήθηκε μέχρι)
 		public DateTime? CreatedTill { get; set; }
+
+        public Boolean? UseVectorSearch { get; set; }
+
+        public Boolean? UseSemanticSearch { get; set; }
 
         private AuthorizationFlags _authorise = AuthorizationFlags.None;
 
@@ -200,8 +204,13 @@ namespace Pawfect_API.Query.Queries
 
             String multilingualQuery = await _translationService.TranslateAsync(this.CleanQuery(), null, SupportedLanguages.English);
 
-            Task<List<AnimalSearchResult>> vectorSearchTask = this.AnimalVectorSearch(filterDoc, multilingualQuery);
-            Task<List<AnimalSearchResult>> semanticSearchTask = this.AnimalSemanticSearch(filterDoc, multilingualQuery);
+            Task<List<AnimalSearchResult>> vectorSearchTask = Task.FromResult(new List<AnimalSearchResult>());
+            if (this.UseVectorSearch.GetValueOrDefault(false))
+                vectorSearchTask = Task.FromResult(new List<AnimalSearchResult>());
+
+            Task<List<AnimalSearchResult>> semanticSearchTask = Task.FromResult(new List<AnimalSearchResult>());
+            if (this.UseSemanticSearch.GetValueOrDefault(false))
+                 semanticSearchTask = this.AnimalSemanticSearch(filterDoc, multilingualQuery);
 
             List<AnimalSearchResult>[] results = await Task.WhenAll(vectorSearchTask, semanticSearchTask);
 

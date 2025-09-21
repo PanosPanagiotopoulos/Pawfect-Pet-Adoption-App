@@ -10,10 +10,10 @@ using Pawfect_API.Query;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.FileServices;
 using Pawfect_API.Transactions;
-using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_API.Query;
 using Pawfect_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_API.Attributes;
+using Pawfect_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {

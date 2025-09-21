@@ -10,7 +10,7 @@ using Pawfect_API.Models.Shelter;
 using Pawfect_API.Query;
 using Pawfect_API.Services.ShelterServices;
 using Pawfect_API.Transactions;
-using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_API.Query;
 using Pawfect_API.Query.Queries;
 using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.Convention;
@@ -18,8 +18,8 @@ using Microsoft.Extensions.Options;
 using Pawfect_API.Data.Entities.Types.Cache;
 using System.Security.Claims;
 using Microsoft.Extensions.Caching.Memory;
-using Pawfect_Pet_Adoption_App_API.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_API.Attributes;
+using Pawfect_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {

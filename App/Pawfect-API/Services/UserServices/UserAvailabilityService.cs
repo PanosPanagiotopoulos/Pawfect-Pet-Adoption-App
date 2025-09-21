@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using MongoDB.Driver;
 using Pawfect_API.Repositories.Interfaces;
-using Pawfect_Pet_Adoption_App_API.Models.UserAvailability;
+using Pawfect_API.Models.UserAvailability;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.UserServices
+namespace Pawfect_API.Services.UserServices
 {
     public class UserAvailabilityService: IUserAvailabilityService
     {

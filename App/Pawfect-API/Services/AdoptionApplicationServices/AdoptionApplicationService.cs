@@ -15,8 +15,8 @@ using Pawfect_API.Services.AuthenticationServices;
 using Pawfect_API.Services.Convention;
 using Pawfect_API.Services.FileServices;
 using Pawfect_API.Services.NotificationServices;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
-using Pawfect_Pet_Adoption_App_API.DevTools;
+using Pawfect_API.Data.Entities.Types.Apis;
+using Pawfect_API.DevTools;
 using System.Security.Claims;
 
 namespace Pawfect_API.Services.AdoptionApplicationServices
@@ -200,8 +200,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             foreach (Data.Entities.AdoptionApplication data in datas)
             {
                 AdoptionApplicationLookup lookup = new AdoptionApplicationLookup();
-                lookup.ShelterIds = new List<String> { data.ShelterId };
-                lookup.UserIds = new List<String> { userId };
+                lookup.Ids = new List<String> { data.Id };
                 AuthContext authContext =
                     _contextBuilder.OwnedFrom(lookup, data.UserId)
                                    .AffiliatedWith(lookup, null, data.ShelterId)
@@ -305,8 +304,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             Data.Entities.User user = await _userRepository.FindAsync(user => user.Id == data.UserId, [nameof(Models.User.User.FullName)]);
             String userFirstName = UserDataHelper.GetFirstNameFormatted(user.FullName);
 
-            Data.Entities.Shelter receivingShelter = await _shelterRepository.FindAsync(shelter => shelter.Id == data.ShelterId, new List<String> { nameof(Data.Entities.Shelter.ShelterName) });
-
+            Data.Entities.Shelter receivingShelter = await _shelterRepository.FindAsync(shelter => shelter.Id == data.ShelterId, new List<String> { nameof(Data.Entities.Shelter.UserId), nameof(Data.Entities.Shelter.ShelterName) });
             Data.Entities.Animal referedAnimal = await _animalRepository.FindAsync(animal => animal.Id == data.AnimalId, new List<String> { nameof(Data.Entities.Animal.Name) });
 
             Boolean changeMadeByUser = String.IsNullOrEmpty(await _authorizationContentResolver.CurrentPrincipalShelter());
@@ -392,12 +390,13 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             Data.Entities.Animal animal = await _animalRepository.FindAsync(a => a.Id == rejectedApplications.FirstOrDefault().AnimalId, new List<String> { nameof(Data.Entities.Animal.Name) });
             if (animal == null) throw new NotFoundException("Refering animal from rejected applications not found");
 
+
+            List<String> applicationsUserIds = rejectedApplications.Select(app => app.UserId).Distinct().ToList();
+            Dictionary<String, String> userNames = (await _userRepository.FindManyAsync(u => applicationsUserIds.Contains(u.Id), new List<String> { nameof(Data.Entities.User.Id), nameof(Data.Entities.User.FullName) })).ToDictionary(x => x.Id, x => UserDataHelper.GetFirstNameFormatted(x.FullName));
+
             foreach (Data.Entities.AdoptionApplication app in rejectedApplications)
             {
-                Data.Entities.User user = await _userRepository.FindAsync(u => u.Id == app.UserId, new List<String> { nameof(Data.Entities.User.FullName) });
-                if (user == null) continue;
-
-                String userFirstName = UserDataHelper.GetFirstNameFormatted(user.FullName);
+                String userName = userNames.ContainsKey(app.UserId) ? userNames[app.UserId] : "User";
 
                 // Reuse the "application changed (user)" template; embed the reason in the status text
                 NotificationEvent ev = new NotificationEvent
@@ -408,7 +407,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                     TitleMappings = new Dictionary<String, String>(),
                     ContentMappings = new Dictionary<String, String>
                     {
-                        { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.UserFirstName, userFirstName },
+                        { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.UserFirstName, userName },
                         { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ShelterName, shelter.ShelterName },
                         { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.ApplicationId, app.Id },
                         { _notificationConfig.AdoptionApplicationChangedUserPlaceholders.AnimalName, animal.Name },
@@ -461,7 +460,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
             if (!await this.AuthoriseAdoptionApplication(datas, Permission.DeleteAdoptionApplications))
                 throw new ForbiddenException("Unauthorised access", typeof(Data.Entities.AdoptionApplication), Permission.DeleteAdoptionApplications);
 
-            await _fileService.Value.Delete([.. datas.Where(data => data.AttachedFilesIds != null).SelectMany(data => data.AttachedFilesIds)]);
+            await _fileService.Value.Delete([.. datas.Where(data => data.AttachedFilesIds != null).SelectMany(data => data.AttachedFilesIds)], false);
 
             await _adoptionApplicationRepository.DeleteManyAsync(ids);
         }

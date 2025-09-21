@@ -14,9 +14,9 @@ using Pawfect_API.Transactions;
 using System.Linq;
 using System.Reflection;
 using Pawfect_API.Query.Queries;
-using Pawfect_Pet_Adoption_App_API.Query;
-using Pawfect_Pet_Adoption_App_API.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_API.Query;
+using Pawfect_API.Attributes;
+using Pawfect_API.Data.Entities.EnumTypes;
 
 namespace Pawfect_API.Controllers
 {

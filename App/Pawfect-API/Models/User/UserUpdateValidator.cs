@@ -2,7 +2,7 @@
 using Pawfect_API.Models;
 using Pawfect_API.DevTools;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.User
+namespace Pawfect_API.Models.User
 {
     public class UserUpdateValidator : AbstractValidator<UserUpdate>
     {

@@ -13,4 +13,6 @@ export interface AnimalLookup extends Lookup {
   ageTo?: number;
   createFrom?: Date;
   createdTill?: Date;
+  useVectorSearch?: boolean;
+  useSemanticSearch?: boolean;
 }

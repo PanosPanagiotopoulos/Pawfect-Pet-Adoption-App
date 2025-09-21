@@ -24,6 +24,7 @@ import { Animal } from 'src/app/models/animal/animal.model';
 import { User } from 'src/app/models/user/user.model';
 import { File } from 'src/app/models/file/file.model';
 import { Breed } from 'src/app/models/breed/breed.model';
+import { Shelter } from 'src/app/models/shelter/shelter.model';
 import { Subscription } from 'rxjs';
 import { TranslationService } from 'src/app/common/services/translation.service';
 import { Permission } from 'src/app/common/enum/permission.enum';
@@ -165,7 +166,7 @@ export class ProfileAdoptionApplicationsComponent
       }
     );
   }
- 
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes['tabType'] && !changes['tabType'].firstChange) {
       this.resetPagination();
@@ -229,7 +230,7 @@ export class ProfileAdoptionApplicationsComponent
   }
 
   private setLookupFields(): void {
-    this.lookup.fields = [
+    const baseFields = [
       nameof<AdoptionApplication>((x) => x.id),
       [
         nameof<AdoptionApplication>((x) => x.animal),
@@ -245,13 +246,30 @@ export class ProfileAdoptionApplicationsComponent
         nameof<Animal>((x) => x.attachedPhotos),
         nameof<File>((x) => x.sourceUrl),
       ].join('.'),
-      [
-        nameof<AdoptionApplication>((x) => x.user),
-        nameof<User>((x) => x.fullName),
-      ].join('.'),
       nameof<AdoptionApplication>((x) => x.status),
       nameof<AdoptionApplication>((x) => x.createdAt),
     ];
+
+    if (this.tabType === 'received-applications') {
+      // For received applications, include user (applicant) information
+      baseFields.push(
+        [
+          nameof<AdoptionApplication>((x) => x.user),
+          nameof<User>((x) => x.fullName),
+        ].join('.')
+      );
+    } else {
+      // For requested applications, include shelter information
+      baseFields.push(
+        [
+          nameof<AdoptionApplication>((x) => x.animal),
+          nameof<Animal>((x) => x.shelter),
+          nameof<Shelter>((x) => x.shelterName),
+        ].join('.')
+      );
+    }
+
+    this.lookup.fields = baseFields;
   }
 
   reloadPage(): void {

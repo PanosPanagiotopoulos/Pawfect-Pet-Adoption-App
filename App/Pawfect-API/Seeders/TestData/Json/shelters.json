@@ -1,13 +1,13 @@
 [
   {
-    "Id": "80af4faaef0a9ef900439041",
-    "UserId": "709f3f99def98de900439033",
-    "ShelterName": "Happy Paws Shelter",
-    "Description": "A caring shelter for dogs and cats",
-    "Website": "https://happypaws.org",
+    "Id": "80af4faaef0a9ef900430101",
+    "UserId": "709f3f99def98de900430003",
+    "ShelterName": "Καταφύγιο Άλφα",
+    "Description": "Ένα ζεστό καταφύγιο στο κέντρο της Αθήνας για αδέσποτα σκυλιά και γάτες, με στόχο να βρουν μια οικογένεια που τους αγκαλιάζει.",
+    "Website": "https://alphashelter.gr",
     "SocialMedia": {
-      "Facebook": "https://facebook.com/happypaws",
-      "Instagram": "https://instagram.com/happypaws"
+      "Facebook": "https://facebook.com/alphashelter",
+      "Instagram": "https://instagram.com/alphashelter"
     },
     "OperatingHours": {
       "Monday": "09:00,17:00",
@@ -19,67 +19,19 @@
       "Sunday": "closed"
     },
     "VerificationStatus": 2,
-    "VerifiedById": "709f3f99def98de900439035",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "80af4faaef0a9ef900439042",
-    "UserId": "709f3f99def98de900439034",
-    "ShelterName": "City Animal Rescue",
-    "Description": "Rescuing animals in urban areas",
-    "Website": "https://cityrescue.org",
-    "SocialMedia": {
-      "Facebook": "https://facebook.com/cityrescue",
-      "Instagram": null
-    },
-    "OperatingHours": {
-      "Monday": "08:00,16:00",
-      "Tuesday": "08:00,16:00",
-      "Wednesday": "08:00,16:00",
-      "Thursday": "08:00,16:00",
-      "Friday": "08:00,16:00",
-      "Saturday": "09:00,15:00",
-      "Sunday": "closed"
-    },
-    "VerificationStatus": 2,
-    "VerifiedById": "709f3f99def98de900439035",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "80af4faaef0a9ef900439043",
-    "UserId": "709f3f99def98de900439038",
-    "ShelterName": "Pawsome Haven",
-    "Description": "A safe haven for all pets",
-    "Website": null,
-    "SocialMedia": {
-      "Facebook": null,
-      "Instagram": "https://instagram.com/pawsomehaven"
-    },
-    "OperatingHours": {
-      "Monday": "10:00,18:00",
-      "Tuesday": "10:00,18:00",
-      "Wednesday": "10:00,18:00",
-      "Thursday": "10:00,18:00",
-      "Friday": "10:00,18:00",
-      "Saturday": "11:00,17:00",
-      "Sunday": "closed"
-    },
-    "VerificationStatus": 1,
     "VerifiedById": null,
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
+    "CreatedAt": "2025-01-01T00:00:00Z",
+    "UpdatedAt": "2025-01-01T00:00:00Z"
   },
   {
-    "Id": "80af4faaef0a9ef900439044",
-    "UserId": "709f3f99def98de900439039",
-    "ShelterName": "Furry Friends Rescue",
-    "Description": "Dedicated to saving furry friends",
-    "Website": "https://furryfriends.org",
+    "Id": "80af4faaef0a9ef900430102",
+    "UserId": "709f3f99def98de900430004",
+    "ShelterName": "Κορινθία Προστασία Αστικής Πανίδας",
+    "Description": "Με έδρα την Κόρινθο, η Κορινθία Προστασία Αστικής Πανίδας φροντίζει αδέσποτα ζώα, παρέχοντας ιατρική φροντίδα, τροφή και ζεστό καταφύγιο μέχρι να βρουν μια μόνιμη οικογένεια.",
+    "Website": "https://coprap.gr",
     "SocialMedia": {
-      "Facebook": "https://facebook.com/furryfriends",
-      "Instagram": "https://instagram.com/furryfriends"
+      "Facebook": "https://facebook.com/coprap",
+      "Instagram": "https://instagram.com/coprap"
     },
     "OperatingHours": {
       "Monday": "09:00,17:00",
@@ -87,132 +39,12 @@
       "Wednesday": "09:00,17:00",
       "Thursday": "09:00,17:00",
       "Friday": "09:00,17:00",
-      "Saturday": "10:00,16:00",
+      "Saturday": "10:00,14:00",
       "Sunday": "closed"
     },
     "VerificationStatus": 2,
-    "VerifiedById": "709f3f99def98de900439035",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "80af4faaef0a9ef900439045",
-    "UserId": "709f3f99def98de900439031",
-    "ShelterName": "Urban Paws",
-    "Description": "Shelter for city pets",
-    "Website": null,
-    "SocialMedia": {
-      "Facebook": "https://facebook.com/urbanpaws",
-      "Instagram": null
-    },
-    "OperatingHours": {
-      "Monday": "08:00,16:00",
-      "Tuesday": "08:00,16:00",
-      "Wednesday": "08:00,16:00",
-      "Thursday": "08:00,16:00",
-      "Friday": "08:00,16:00",
-      "Saturday": "09:00,15:00",
-      "Sunday": "closed"
-    },
-    "VerificationStatus": 3,
-    "VerifiedById": "709f3f99def98de900439035",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "80af4faaef0a9ef900439046",
-    "UserId": "709f3f99def98de900439032",
-    "ShelterName": "Safe Haven Shelter",
-    "Description": "A sanctuary for animals",
-    "Website": "https://safehaven.org",
-    "SocialMedia": {
-      "Facebook": null,
-      "Instagram": "https://instagram.com/safehaven"
-    },
-    "OperatingHours": {
-      "Monday": "10:00,18:00",
-      "Tuesday": "10:00,18:00",
-      "Wednesday": "10:00,18:00",
-      "Thursday": "10:00,18:00",
-      "Friday": "10:00,18:00",
-      "Saturday": "11:00,17:00",
-      "Sunday": "closed"
-    },
-    "VerificationStatus": 2,
-    "VerifiedById": "709f3f99def98de900439035",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "80af4faaef0a9ef900439047",
-    "UserId": "709f3f99def98de900439036",
-    "ShelterName": "Pet Paradise",
-    "Description": "A paradise for homeless pets",
-    "Website": "https://petparadise.org",
-    "SocialMedia": {
-      "Facebook": "https://facebook.com/petparadise",
-      "Instagram": "https://instagram.com/petparadise"
-    },
-    "OperatingHours": {
-      "Monday": "09:00,17:00",
-      "Tuesday": "09:00,17:00",
-      "Wednesday": "09:00,17:00",
-      "Thursday": "09:00,17:00",
-      "Friday": "09:00,17:00",
-      "Saturday": "10:00,16:00",
-      "Sunday": "closed"
-    },
-    "VerificationStatus": 2,
-    "VerifiedById": "709f3f99def98de900439035",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "80af4faaef0a9ef900439048",
-    "UserId": "709f3f99def98de900439037",
-    "ShelterName": "Kindred Spirits",
-    "Description": "Helping animals find loving homes",
-    "Website": null,
-    "SocialMedia": {
-      "Facebook": "https://facebook.com/kindredspirits",
-      "Instagram": null
-    },
-    "OperatingHours": {
-      "Monday": "08:00,16:00",
-      "Tuesday": "08:00,16:00",
-      "Wednesday": "08:00,16:00",
-      "Thursday": "08:00,16:00",
-      "Friday": "08:00,16:00",
-      "Saturday": "09:00,15:00",
-      "Sunday": "closed"
-    },
-    "VerificationStatus": 1,
     "VerifiedById": null,
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
-  },
-  {
-    "Id": "80af4faaef0a9ef900439049",
-    "UserId": "709f3f99def98de90043903a",
-    "ShelterName": "Forever Homes",
-    "Description": "Finding forever homes for pets",
-    "Website": "https://foreverhomes.org",
-    "SocialMedia": {
-      "Facebook": null,
-      "Instagram": "https://instagram.com/foreverhomes"
-    },
-    "OperatingHours": {
-      "Monday": "10:00,18:00",
-      "Tuesday": "10:00,18:00",
-      "Wednesday": "10:00,18:00",
-      "Thursday": "10:00,18:00",
-      "Friday": "10:00,18:00",
-      "Saturday": "11:00,17:00",
-      "Sunday": "closed"
-    },
-    "VerificationStatus": 2,
-    "VerifiedById": "709f3f99def98de900439035",
-    "CreatedAt": "2023-01-01T00:00:00Z",
-    "UpdatedAt": "2023-01-01T00:00:00Z"
+    "CreatedAt": "2025-01-01T00:00:00Z",
+    "UpdatedAt": "2025-01-01T00:00:00Z"
   }
 ]

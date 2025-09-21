@@ -9,6 +9,7 @@ using Pawfect_Messenger.Models.Conversation;
 using Pawfect_Messenger.Models.Lookups;
 using Pawfect_Messenger.Query;
 using Pawfect_Messenger.Query.Interfaces;
+using Pawfect_Messenger.Query.Queries;
 using Pawfect_Messenger.Services.AuthenticationServices;
 using Pawfect_Messenger.Services.Convention;
 using Pawfect_Messenger.Services.MessageServices;
@@ -70,6 +71,9 @@ namespace Pawfect_Messenger.Services.ConversationServices
             // Deduplicate & sanitize
             model.Participants = model.Participants.Distinct().ToList();
 
+            // Apply create conversation user role breakdown rules
+            await this.ApplyParticipantRules(model.Participants);
+
             DateTime now = DateTime.UtcNow;
             Data.Entities.Conversation data = new Data.Entities.Conversation
             {
@@ -99,6 +103,26 @@ namespace Pawfect_Messenger.Services.ConversationServices
 
 
             return (await _builderFactory.Builder<ConversationBuilder>().Build([data], censoredFields)).FirstOrDefault();
+        }
+
+        // Apply participant rules
+        // Rules: A conversation must be between: 1 User , 1 Shelter
+        private async Task ApplyParticipantRules(List<String> participants)
+        {
+            if (participants.Count < 2) throw new InvalidOperationException("A conversation must have at least 2 participants.");
+            UserQuery userQuery = _queryFactory.Query<UserQuery>();
+            userQuery.Ids = participants;
+            userQuery.Fields = new List<String> { nameof(Data.Entities.User.Id), nameof(Data.Entities.User.ShelterId) };
+            userQuery.Offset = 0;
+            userQuery.PageSize = 2;
+
+            List<Data.Entities.User> users = await userQuery.CollectAsync();
+            
+            int userCount = users.Count(u => String.IsNullOrEmpty(u.ShelterId));
+            int shelterCount = users.Count - userCount;
+
+            if (userCount != 1) throw new InvalidOperationException("A conversation must have only one User.");
+            if (shelterCount != 1) throw new InvalidOperationException("A conversation must have only one Shelter.");
         }
 
         public async Task Delete(String id) { await Delete(new List<String>() { id }); }

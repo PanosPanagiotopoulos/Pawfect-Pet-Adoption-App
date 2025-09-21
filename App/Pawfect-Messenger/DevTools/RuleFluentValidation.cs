@@ -21,7 +21,7 @@ namespace Pawfect_Messenger.DevTools
         /// <returns>Επιστρέφει true αν το id είναι έγκυρο ObjectId, αλλιώς false.</returns>
         public static Boolean IsObjectId(String id)
         {
-            if (id == null) return true;
+            if (id == null) return false;
 
             return ObjectId.TryParse(id, out _);
         }

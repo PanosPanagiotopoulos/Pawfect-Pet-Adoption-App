@@ -33,7 +33,7 @@ namespace Pawfect_Messenger.Censors
             List<String> censoredFields = new List<String>();
 
             // Check if user can browse messages
-            if (await _authorizationService.AuthorizeAsync(Permission.BrowseMessages))
+            if (await _authorizationService.AuthorizeOrOwnedOrAffiliated(context, Permission.BrowseMessages))
             {
                 censoredFields.AddRange(ExtractNonPrefixed(fields));
                 censoredFields = [.. censoredFields.Distinct()];

@@ -577,7 +577,8 @@
           #messageInput
           [formControl]="messageControl"
           (keydown)="onMessageInputKeydown($event)"
-          (input)="autoResizeTextarea()"
+          (focus)="onMessageInputFocus()"
+          (input)="onMessageInputInput(); autoResizeTextarea()"
           class="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-0 transition-all duration-200 resize-none messenger-textarea"
           [placeholder]="'APP.MESSENGER.TYPE_MESSAGE' | translate"
           [disabled]="isSendingMessage"

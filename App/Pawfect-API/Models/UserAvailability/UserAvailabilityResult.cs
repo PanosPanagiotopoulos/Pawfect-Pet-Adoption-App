@@ -1,4 +1,4 @@
-﻿namespace Pawfect_Pet_Adoption_App_API.Models.UserAvailability
+﻿namespace Pawfect_API.Models.UserAvailability
 {
     public class UserAvailabilityResult
     {

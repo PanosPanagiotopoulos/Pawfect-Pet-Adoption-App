@@ -9,13 +9,13 @@ using Pawfect_API.Query;
 using Pawfect_API.Transactions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Pawfect_Pet_Adoption_App_API.Query;
+using Pawfect_API.Query;
 using Pawfect_API.Exceptions;
 using Pawfect_API.Services.BreedServices;
-using Pawfect_Pet_Adoption_App_API.Attributes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.EnumTypes;
+using Pawfect_API.Attributes;
+using Pawfect_API.Data.Entities.EnumTypes;
 
-namespace Pawfect_Pet_Adoption_App_API.Controllers
+namespace Pawfect_API.Controllers
 {
     [ApiController]
     [Route("api/breeds")]

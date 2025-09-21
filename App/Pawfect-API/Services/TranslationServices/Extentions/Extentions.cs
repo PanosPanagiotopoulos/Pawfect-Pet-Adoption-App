@@ -1,6 +1,6 @@
-﻿using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Translation;
+﻿using Pawfect_API.Data.Entities.Types.Translation;
 
-namespace Pawfect_Pet_Adoption_App_API.Services.TranslationServices.Extentions
+namespace Pawfect_API.Services.TranslationServices.Extentions
 {
     public static class Extention
     {

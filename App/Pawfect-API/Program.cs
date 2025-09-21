@@ -34,15 +34,16 @@ using Serilog;
 
 using System.Text;
 using Pawfect_API.BackgroundTasks.RefreshTokensCleanupTask.Extensions;
-using Pawfect_Pet_Adoption_App_API.Middlewares;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
-using Pawfect_Pet_Adoption_App_API.Services.EmbeddingServices.Extentions;
+using Pawfect_API.Middlewares;
+using Pawfect_API.Data.Entities.Types.Apis;
+using Pawfect_API.Services.EmbeddingServices.Extentions;
 using Pawfect_API.Services.MongoServices;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
-using Pawfect_Pet_Adoption_App_API.Services.TranslationServices.Extentions;
+using Pawfect_API.Data.Entities.Types.Mongo;
+using Pawfect_API.Services.TranslationServices.Extentions;
 using Vonage.Voice.EventWebhooks;
 using Microsoft.Extensions.Configuration;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.RateLimiting;
+using Pawfect_API.Data.Entities.Types.RateLimiting;
+using Pawfect_API.Services.AiAssistantServices.Extentions;
 
 public class Program
 {
@@ -123,6 +124,7 @@ public class Program
         AddConfigurationFiles(configBuilder, configurationPaths, "translation", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "notification", env);
         AddConfigurationFiles(configBuilder, configurationPaths, "rate-limit", env);
+        AddConfigurationFiles(configBuilder, configurationPaths, "ai-assistant", env);
 
 
         // Load environment variables
@@ -213,7 +215,8 @@ public class Program
         .AddRefreshTokenCleanupTask(builder.Configuration.GetSection("BackgroundTasks:RefreshTokenCleanupTask"))
         .AddCookiesServices()
 		.AddEmbeddingServices(builder.Configuration.GetSection("Embedding"))
-        .AddTranslationServices(builder.Configuration.GetSection("Translation"));
+        .AddTranslationServices(builder.Configuration.GetSection("Translation"))
+		.AddAiAssistantServices(builder.Configuration.GetSection("AiAssistant"));
 
 
         // CORS

@@ -105,6 +105,8 @@ export class ProfileAnimalsComponent implements OnInit, OnChanges, OnDestroy {
     ageTo: undefined,
     query: '',
     shelterIds: [],
+    useVectorSearch: true,
+    useSemanticSearch: true,
   };
 
   readonly adoptionStatusOptions = [

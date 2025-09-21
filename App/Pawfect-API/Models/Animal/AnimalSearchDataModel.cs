@@ -1,8 +1,8 @@
 ﻿using Pawfect_API.Data.Entities.EnumTypes;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Mongo;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Search;
+using Pawfect_API.Data.Entities.Types.Mongo;
+using Pawfect_API.Data.Entities.Types.Search;
 
-namespace Pawfect_Pet_Adoption_App_API.Models.Animal
+namespace Pawfect_API.Models.Animal
 {
     public class AnimalSearchDataModel : ISearchDataModel<String>
     {

@@ -1,6 +1,6 @@
 ﻿using Pawfect_API.Middleware;
 
-namespace Pawfect_Pet_Adoption_App_API.Middlewares
+namespace Pawfect_API.Middlewares
 {
     public class VerifiedUserMiddleware
     {

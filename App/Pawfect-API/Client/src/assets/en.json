@@ -907,7 +907,8 @@
         "APPLICANT": "Applicant",
         "STATUS": "Status",
         "SEARCH_LABEL": "Search",
-        "SEARCH_PLACEHOLDER": "Search by applicant name, animal name, etc."
+        "SEARCH_PLACEHOLDER": "Search by applicant name, animal name, etc.",
+        "SHELTER": "Shelter"
       },
       "SHELTER_INFO": {
         "TITLE": "Shelter Information",

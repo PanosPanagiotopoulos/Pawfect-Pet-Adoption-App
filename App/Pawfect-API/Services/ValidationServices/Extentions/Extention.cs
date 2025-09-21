@@ -3,6 +3,7 @@ using FluentValidation.AspNetCore;
 
 using Pawfect_API.Models;
 using Pawfect_API.Models.AdoptionApplication;
+using Pawfect_API.Models.AiAssistant;
 using Pawfect_API.Models.Animal;
 using Pawfect_API.Models.AnimalType;
 using Pawfect_API.Models.Breed;
@@ -10,7 +11,7 @@ using Pawfect_API.Models.File;
 using Pawfect_API.Models.Report;
 using Pawfect_API.Models.Shelter;
 using Pawfect_API.Models.User;
-using Pawfect_Pet_Adoption_App_API.Models.User;
+using Pawfect_API.Models.User;
 
 namespace Pawfect_API.Services.ValidationServices.Extentions
 {
@@ -32,8 +33,9 @@ namespace Pawfect_API.Services.ValidationServices.Extentions
 			services.AddValidatorsFromAssemblyContaining<AdoptionApplicationValidator>();
 			services.AddValidatorsFromAssemblyContaining<RegisterValidator>();
 			services.AddValidatorsFromAssemblyContaining<FileValidator>();
+            services.AddValidatorsFromAssemblyContaining<CompletionsRequestValidator>();
 
-			return services;
+            return services;
 		}
 	}
 

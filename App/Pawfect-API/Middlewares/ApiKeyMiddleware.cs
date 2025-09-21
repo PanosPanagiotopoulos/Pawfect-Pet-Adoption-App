@@ -1,9 +1,9 @@
 ﻿using Pawfect_API.Middlewares;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using Pawfect_Pet_Adoption_App_API.Data.Entities.Types.Apis;
+using Pawfect_API.Data.Entities.Types.Apis;
 
-namespace Pawfect_Pet_Adoption_App_API.Middlewares
+namespace Pawfect_API.Middlewares
 {
     public class ApiKeyMiddleware
     {

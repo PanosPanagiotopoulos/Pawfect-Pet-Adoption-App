@@ -37,6 +37,10 @@
         // Ημερομηνία λήξης για φιλτράρισμα (δημιουργήθηκε μέχρι)
         public DateTime? CreatedTill { get; set; }
 
+        public Boolean? UseVectorSearch { get; set; }
+
+        public Boolean? UseSemanticSearch { get; set; }
+
         /// <summary>
         /// Εμπλουτίζει το AnimalQuery με τα φίλτρα και τις επιλογές του lookup.
         /// </summary>
@@ -57,6 +61,8 @@
             if (this.AgeTo.HasValue) animalQuery.AgeTo = this.AgeTo;
             if (this.CreateFrom.HasValue) animalQuery.CreateFrom = this.CreateFrom;
             if (this.CreatedTill.HasValue) animalQuery.CreatedTill = this.CreatedTill;
+            if (this.UseVectorSearch.HasValue) animalQuery.UseVectorSearch = this.UseVectorSearch;
+            if (this.UseSemanticSearch.HasValue) animalQuery.UseSemanticSearch = this.UseSemanticSearch;
             if (!String.IsNullOrEmpty(this.Query)) animalQuery.Query = this.Query;
 
             animalQuery.Fields = animalQuery.FieldNamesOf([.. this.Fields]);
