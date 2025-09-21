@@ -106,7 +106,8 @@ import {
   lucideMessageSquare,
   lucideCalendar,
   lucideCompass,
-  lucideSend
+  lucideSend,
+  lucideBot
 } from '@ng-icons/lucide';
 
 import { AppComponent } from './app.component';
@@ -119,6 +120,7 @@ import { BaseHttpService } from './common/services/base-http.service';
 import { HeaderComponent } from './ui/components/home/shared/header/header.component';
 import { LoadingComponent } from './ui/components/loading/loading.component';
 import { MessengerModule } from './ui/components/messenger/messenger.module';
+import { AiAssistantModule } from './ui/components/ai-assistant/ai-assistant.module';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
@@ -268,12 +270,14 @@ export function initializeApp(
       lucideRocket,
       lucideMessageSquare,
       lucideCalendar,
+      lucideBot,
       lucideCompass,
       lucideSend,
     }),
     HeaderComponent,
     LoadingComponent,
     MessengerModule,
+    AiAssistantModule,
     TranslatePipe,
   ],
   providers: [

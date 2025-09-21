@@ -81,13 +81,17 @@
           [disabled]="isSaving || isLoadingExcelAnimals"
           [attr.title]="'APP.ANIMALS.EXCEL_IMPORT.TITLE' | translate"
         >
-          <ng-icon 
-            [name]="isLoadingExcelAnimals ? 'lucideLoader' : 'lucideSheet'" 
+          <ng-icon
+            [name]="isLoadingExcelAnimals ? 'lucideLoader' : 'lucideSheet'"
             class="w-4 h-4"
             [ngClass]="{ 'animate-spin': isLoadingExcelAnimals }"
           ></ng-icon>
           <span class="hidden sm:inline">
-            {{ isLoadingExcelAnimals ? ('APP.COMMONS.LOADING' | translate) : 'Excel' }}
+            {{
+              isLoadingExcelAnimals
+                ? ("APP.COMMONS.LOADING" | translate)
+                : "Excel"
+            }}
           </span>
         </button>
 
@@ -163,10 +167,10 @@
       </div>
       <div class="ml-4">
         <h3 class="text-lg font-semibold text-white">
-          {{ 'APP.ANIMALS.EXCEL_IMPORT.PROCESSING_ANIMALS' | translate }}
+          {{ "APP.ANIMALS.EXCEL_IMPORT.PROCESSING_ANIMALS" | translate }}
         </h3>
         <p class="text-gray-400 text-sm">
-          {{ 'APP.ANIMALS.EXCEL_IMPORT.PLEASE_WAIT' | translate }}
+          {{ "APP.ANIMALS.EXCEL_IMPORT.PLEASE_WAIT" | translate }}
         </p>
       </div>
     </div>
@@ -192,18 +196,28 @@
                 >({{ animalForms.length }})</span
               >
             </h3>
-            
+
             <!-- Overall status summary -->
             <div class="mb-4 p-3 bg-white/5 rounded-lg border border-white/10">
               <div class="flex items-center justify-between text-sm">
-                <span class="text-gray-400">{{ "APP.ANIMALS.ADD.FORMS_STATUS" | translate }}:</span>
+                <span class="text-gray-400"
+                  >{{ "APP.ANIMALS.ADD.FORMS_STATUS" | translate }}:</span
+                >
                 <div class="flex items-center gap-2">
                   <span class="text-green-300">{{ getValidFormsCount() }}</span>
                   <span class="text-gray-500">/</span>
                   <span class="text-gray-300">{{ animalForms.length }}</span>
-                  <ng-icon 
-                    [name]="getValidFormsCount() === animalForms.length ? 'lucideCheck' : 'lucideCircleAlert'" 
-                    [class]="getValidFormsCount() === animalForms.length ? 'text-green-400' : 'text-red-400'"
+                  <ng-icon
+                    [name]="
+                      getValidFormsCount() === animalForms.length
+                        ? 'lucideCheck'
+                        : 'lucideCircleAlert'
+                    "
+                    [class]="
+                      getValidFormsCount() === animalForms.length
+                        ? 'text-green-400'
+                        : 'text-red-400'
+                    "
                     [size]="'16'"
                   ></ng-icon>
                 </div>
@@ -219,18 +233,24 @@
                 <div
                   class="flex items-center justify-between p-3 rounded-lg border-2 transition-all duration-200 relative"
                   [ngClass]="{
-                    'border-primary-500/50 bg-primary-500/10': !formData.isCollapsed,
-                    'border-white/20 bg-white/5 hover:border-white/30': formData.isCollapsed
+                    'border-primary-500/50 bg-primary-500/10':
+                      !formData.isCollapsed,
+                    'border-white/20 bg-white/5 hover:border-white/30':
+                      formData.isCollapsed
                   }"
                 >
                   <!-- Active indicator -->
-                  <div 
+                  <div
                     *ngIf="!formData.isCollapsed"
                     class="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 rounded-r-full"
                   ></div>
                   <div class="flex items-center gap-3 flex-1 min-w-0">
                     <ng-icon
-                      [name]="formData.isCollapsed ? 'lucideFolder' : 'lucideFolderOpen'"
+                      [name]="
+                        formData.isCollapsed
+                          ? 'lucideFolder'
+                          : 'lucideFolderOpen'
+                      "
                       class="w-4 h-4 flex-shrink-0"
                       [ngClass]="{
                         'text-primary-400': !formData.isCollapsed,
@@ -238,7 +258,7 @@
                       }"
                     ></ng-icon>
                     <div class="flex-1 min-w-0">
-                      <p 
+                      <p
                         class="text-sm font-medium truncate"
                         [ngClass]="{
                           'text-white': !formData.isCollapsed,
@@ -254,17 +274,35 @@
                           class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-300"
                         >
                           <ng-icon name="lucideCheck" class="w-3 h-3"></ng-icon>
-                          <span>{{ "APP.ANIMALS.ADD.FORM_VALID" | translate }}</span>
+                          <span>{{
+                            "APP.ANIMALS.ADD.FORM_VALID" | translate
+                          }}</span>
                         </span>
-                        
+
                         <!-- Validation errors -->
-                        <div *ngIf="!getFormValidationSummary(formData.form).valid && getFormValidationErrors(formData.form).length > 0" class="space-y-1 max-w-full">
+                        <div
+                          *ngIf="
+                            !getFormValidationSummary(formData.form).valid &&
+                            getFormValidationErrors(formData.form).length > 0
+                          "
+                          class="space-y-1 max-w-full"
+                        >
                           <div
-                            *ngFor="let error of getFormValidationErrors(formData.form); trackBy: trackByError"
+                            *ngFor="
+                              let error of getFormValidationErrors(
+                                formData.form
+                              );
+                              trackBy: trackByError
+                            "
                             class="flex items-start gap-1 px-2 py-1 rounded text-xs bg-red-500/20 text-red-300 border border-red-500/30"
                           >
-                            <ng-icon name="lucideCircleAlert" class="w-3 h-3 mt-0.5 flex-shrink-0"></ng-icon>
-                            <span class="leading-tight text-left break-words">{{ error | translate }}</span>
+                            <ng-icon
+                              name="lucideCircleAlert"
+                              class="w-3 h-3 mt-0.5 flex-shrink-0"
+                            ></ng-icon>
+                            <span class="leading-tight text-left break-words">{{
+                              error | translate
+                            }}</span>
                           </div>
                         </div>
                       </div>
@@ -567,7 +605,10 @@
                         (click)="toggleDropdown(i, 'breed')"
                         class="w-full flex items-center justify-between px-4 py-2 bg-white/5 border border-white/20 rounded-lg text-white hover:border-white/30 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         [attr.aria-expanded]="formData.dropdownStates.breed"
-                        [disabled]="!formData.form.get('animalTypeId')?.value || isLoadingBreeds"
+                        [disabled]="
+                          !formData.form.get('animalTypeId')?.value ||
+                          isLoadingBreeds
+                        "
                       >
                         <span
                           [ngClass]="{
@@ -606,7 +647,9 @@
                         class="absolute z-50 w-full mt-1 bg-white/95 backdrop-blur-md border border-white/20 rounded-lg shadow-xl py-1 max-h-60 overflow-y-auto custom-scrollbar"
                       >
                         <li
-                          *ngIf="!isLoadingBreeds && filteredBreeds.length === 0"
+                          *ngIf="
+                            !isLoadingBreeds && filteredBreeds.length === 0
+                          "
                           class="px-4 py-2 text-gray-500 text-sm italic"
                         >
                           {{ "APP.ANIMALS.ADD.NO_BREEDS_FOUND" | translate }}
@@ -772,88 +815,148 @@
                   </div>
 
                   <!-- Image Preview Slider -->
-                  <div class="lg:col-span-2 image-slider" *ngIf="getImageFiles(formData).length > 0">
+                  <div
+                    class="lg:col-span-2 image-slider"
+                    *ngIf="getImageFiles(formData).length > 0"
+                  >
                     <label class="block text-sm font-medium text-gray-400 mb-2">
                       {{ "APP.ANIMALS.ADD.IMAGE_PREVIEW" | translate }}
                     </label>
-                    
+
                     <!-- Current Image Filename Display -->
-                    <div class="mb-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                    <div
+                      class="mb-3 p-3 bg-white/5 rounded-lg border border-white/10"
+                    >
                       <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                          <ng-icon name="lucideImage" [size]="'16'" class="text-primary-400"></ng-icon>
+                          <ng-icon
+                            name="lucideImage"
+                            [size]="'16'"
+                            class="text-primary-400"
+                          ></ng-icon>
                           <span class="text-sm font-medium text-white">
                             {{ "APP.ANIMALS.ADD.CURRENT_IMAGE" | translate }}:
                           </span>
                         </div>
                         <div class="flex items-center gap-2">
-                          <span class="text-sm text-gray-300 font-mono bg-white/10 px-2 py-1 rounded">
-                            {{ getCurrentImageFile(formData)?.name || ('APP.ANIMALS.ADD.NO_FILE_NAME' | translate) }}
+                          <span
+                            class="text-sm text-gray-300 font-mono bg-white/10 px-2 py-1 rounded"
+                          >
+                            {{
+                              getCurrentImageFile(formData)?.name ||
+                                ("APP.ANIMALS.ADD.NO_FILE_NAME" | translate)
+                            }}
                           </span>
                           <span class="text-xs text-gray-400">
-                            ({{ getCurrentImageIndex(formData.id) + 1 }}/{{ getImageFiles(formData).length }})
+                            ({{ getCurrentImageIndex(formData.id) + 1 }}/{{
+                              getImageFiles(formData).length
+                            }})
                           </span>
                         </div>
                       </div>
                     </div>
-                    
-                    <div class="relative bg-white/5 rounded-xl border border-white/20 overflow-hidden slider-container">
+
+                    <div
+                      class="relative bg-white/5 rounded-xl border border-white/20 overflow-hidden slider-container"
+                    >
                       <!-- Main Image Display -->
                       <div class="relative aspect-video bg-gray-800">
-                        <img 
+                        <img
                           [src]="getCurrentImageFile(formData) | fileToUrl"
-                          [alt]="'Preview image ' + (getCurrentImageIndex(formData.id) + 1)"
+                          [alt]="
+                            'Preview image ' +
+                            (getCurrentImageIndex(formData.id) + 1)
+                          "
                           class="w-full h-full object-cover slider-image transition-transform duration-300 ease-in-out"
                           [ngClass]="{
-                            'animate-slide-in-left': getSlideDirection(formData.id) === 'left',
-                            'animate-slide-in-right': getSlideDirection(formData.id) === 'right'
+                            'animate-slide-in-left':
+                              getSlideDirection(formData.id) === 'left',
+                            'animate-slide-in-right':
+                              getSlideDirection(formData.id) === 'right'
                           }"
                           *ngIf="getCurrentImageFile(formData)"
                         />
-                        
+
                         <!-- Placeholder when no image -->
-                        <div 
+                        <div
                           *ngIf="!getCurrentImageFile(formData)"
                           class="w-full h-full flex items-center justify-center text-gray-400"
                         >
                           <div class="text-center">
-                            <ng-icon name="lucideImage" [size]="'48'" class="mx-auto mb-2"></ng-icon>
-                            <p class="text-sm">{{ "APP.ANIMALS.ADD.NO_IMAGES_UPLOADED" | translate }}</p>
+                            <ng-icon
+                              name="lucideImage"
+                              [size]="'48'"
+                              class="mx-auto mb-2"
+                            ></ng-icon>
+                            <p class="text-sm">
+                              {{
+                                "APP.ANIMALS.ADD.NO_IMAGES_UPLOADED" | translate
+                              }}
+                            </p>
                           </div>
                         </div>
-                        
+
                         <!-- Navigation Arrows -->
                         <button
                           *ngIf="getImageFiles(formData).length > 1"
                           type="button"
-                          (click)="previousImage(formData.id, getImageFiles(formData).length)"
+                          (click)="
+                            previousImage(
+                              formData.id,
+                              getImageFiles(formData).length
+                            )
+                          "
                           class="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white slider-nav-button shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
-                          [attr.aria-label]="'APP.ANIMALS.ADD.PREVIOUS_IMAGE' | translate"
+                          [attr.aria-label]="
+                            'APP.ANIMALS.ADD.PREVIOUS_IMAGE' | translate
+                          "
                         >
-                          <ng-icon name="lucideChevronLeft" [size]="'18'"></ng-icon>
+                          <ng-icon
+                            name="lucideChevronLeft"
+                            [size]="'18'"
+                          ></ng-icon>
                         </button>
-                        
+
                         <button
                           *ngIf="getImageFiles(formData).length > 1"
                           type="button"
-                          (click)="nextImage(formData.id, getImageFiles(formData).length)"
+                          (click)="
+                            nextImage(
+                              formData.id,
+                              getImageFiles(formData).length
+                            )
+                          "
                           class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white slider-nav-button shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
-                          [attr.aria-label]="'APP.ANIMALS.ADD.NEXT_IMAGE' | translate"
+                          [attr.aria-label]="
+                            'APP.ANIMALS.ADD.NEXT_IMAGE' | translate
+                          "
                         >
-                          <ng-icon name="lucideChevronRight" [size]="'18'"></ng-icon>
+                          <ng-icon
+                            name="lucideChevronRight"
+                            [size]="'18'"
+                          ></ng-icon>
                         </button>
-                        
+
                         <!-- Image Counter -->
-                        <div class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/20">
-                          {{ getCurrentImageIndex(formData.id) + 1 }} / {{ getImageFiles(formData).length }}
+                        <div
+                          class="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/20"
+                        >
+                          {{ getCurrentImageIndex(formData.id) + 1 }} /
+                          {{ getImageFiles(formData).length }}
                         </div>
                       </div>
-                      
+
                       <!-- Thumbnail Navigation -->
-                      <div class="p-3 bg-white/5" *ngIf="getImageFiles(formData).length > 1">
+                      <div
+                        class="p-3 bg-white/5"
+                        *ngIf="getImageFiles(formData).length > 1"
+                      >
                         <div class="flex gap-2 overflow-x-auto thumbnail-nav">
                           <div
-                            *ngFor="let imageFile of getImageFiles(formData); let idx = index"
+                            *ngFor="
+                              let imageFile of getImageFiles(formData);
+                              let idx = index
+                            "
                             class="flex-shrink-0 flex flex-col items-center gap-1"
                           >
                             <button
@@ -861,23 +964,29 @@
                               (click)="goToImage(formData.id, idx)"
                               class="w-16 h-16 rounded-lg overflow-hidden border-2 thumbnail-button"
                               [ngClass]="{
-                                'border-primary-500': getCurrentImageIndex(formData.id) === idx,
-                                'border-white/20 hover:border-white/40': getCurrentImageIndex(formData.id) !== idx
+                                'border-primary-500':
+                                  getCurrentImageIndex(formData.id) === idx,
+                                'border-white/20 hover:border-white/40':
+                                  getCurrentImageIndex(formData.id) !== idx
                               }"
-                              [title]="imageFile?.file?.name || 'Image ' + (idx + 1)"
+                              [title]="
+                                imageFile?.file?.name || 'Image ' + (idx + 1)
+                              "
                             >
-                              <img 
+                              <img
                                 [src]="imageFile?.file | fileToUrl"
                                 [alt]="'Thumbnail ' + (idx + 1)"
                                 class="w-full h-full object-cover"
                                 *ngIf="imageFile?.file"
                               />
                             </button>
-                            <span 
+                            <span
                               class="text-xs text-gray-400 max-w-16 truncate text-center"
                               [title]="imageFile?.file?.name"
                             >
-                              {{ imageFile?.file?.name || 'Image ' + (idx + 1) }}
+                              {{
+                                imageFile?.file?.name || "Image " + (idx + 1)
+                              }}
                             </span>
                           </div>
                         </div>

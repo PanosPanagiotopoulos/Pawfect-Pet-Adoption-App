@@ -1,7 +1,7 @@
 {
   "AiAssistant": {
     "ApiKey": "%{MistralApiKey}%",
-    "InstructionsPath": "AiTemplates/ai_assistant_instructions.txt",
+    "InstructionsPath": "AiTemplates/AiAssistant/ai_assistant_instructions.txt",
     "RagContextPlaceholder": "{RAG-CONTEXT}",
     "RagBatchSize": 10,
     "ContextFields": [
@@ -17,8 +17,9 @@
       "AnimalType.Description",
       "Breed.Name",
       "Breed.Description",
-      "Shelter.Id",
-      "Shelter.ShelterName"
+      "Shelter.ShelterName",
+      "Shelter.User.Id",
+      "Shelter.User.Location"
     ]
   }
 }

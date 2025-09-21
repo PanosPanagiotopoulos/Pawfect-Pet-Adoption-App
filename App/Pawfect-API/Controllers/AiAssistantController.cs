@@ -26,7 +26,7 @@ namespace Pawfect_API.Controllers
         }
 
         [HttpPost("completions")]
-        [Authorize]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Completions([FromBody] CompletionsRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);

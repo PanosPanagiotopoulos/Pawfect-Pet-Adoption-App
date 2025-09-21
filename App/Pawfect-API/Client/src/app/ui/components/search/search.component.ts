@@ -92,40 +92,26 @@ export class SearchComponent
       searchQuery: this.searchControl,
     });
 
-    // Initialize search suggestions with translated text
+    // Initialize search suggestions with translation keys
     this.searchSuggestions = [
       {
-        text: this.translationService.translate(
-          'APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY'
-        ),
-        query: this.translationService.translate(
-          'APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY_QUERY'
-        ),
+        text: 'APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY',
+        query: 'APP.SEARCH.SUGGESTIONS.CHILD_FRIENDLY_QUERY',
         icon: 'lucideHeart',
       },
       {
-        text: this.translationService.translate(
-          'APP.SEARCH.SUGGESTIONS.SMALL_SIZE'
-        ),
-        query: this.translationService.translate(
-          'APP.SEARCH.SUGGESTIONS.SMALL_SIZE_QUERY'
-        ),
+        text: 'APP.SEARCH.SUGGESTIONS.SMALL_SIZE',
+        query: 'APP.SEARCH.SUGGESTIONS.SMALL_SIZE_QUERY',
         icon: 'lucideDog',
       },
       {
-        text: this.translationService.translate(
-          'APP.SEARCH.SUGGESTIONS.ACTIVE'
-        ),
-        query: this.translationService.translate(
-          'APP.SEARCH.SUGGESTIONS.ACTIVE_QUERY'
-        ),
+        text: 'APP.SEARCH.SUGGESTIONS.ACTIVE',
+        query: 'APP.SEARCH.SUGGESTIONS.ACTIVE_QUERY',
         icon: 'lucideActivity',
       },
       {
-        text: this.translationService.translate('APP.SEARCH.SUGGESTIONS.QUIET'),
-        query: this.translationService.translate(
-          'APP.SEARCH.SUGGESTIONS.QUIET_QUERY'
-        ),
+        text: 'APP.SEARCH.SUGGESTIONS.QUIET',
+        query: 'APP.SEARCH.SUGGESTIONS.QUIET_QUERY',
         icon: 'lucideMoon',
       },
     ];
@@ -210,19 +196,17 @@ export class SearchComponent
     } else {
       // Handle form validation errors if needed
       this.error = {
-        title: this.translationService.translate(
-          'APP.SEARCH.ERRORS.SEARCH_ERROR_TITLE'
-        ),
-        message: this.translationService.translate(
-          'APP.SEARCH.ERRORS.SEARCH_ERROR_MESSAGE'
-        ),
+        title: 'APP.SEARCH.ERRORS.SEARCH_ERROR_TITLE',
+        message: 'APP.SEARCH.ERRORS.SEARCH_ERROR_MESSAGE',
       };
       this.cdr.markForCheck();
     }
   }
 
   applySearchSuggestion(suggestion: SearchSuggestion) {
-    this.searchControl.setValue(suggestion.query);
+    // Translate the query before setting it
+    const translatedQuery = this.translationService.translate(suggestion.query);
+    this.searchControl.setValue(translatedQuery);
     this.onSearch();
   }
 

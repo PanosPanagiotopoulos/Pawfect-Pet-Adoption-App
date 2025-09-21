@@ -225,22 +225,16 @@ namespace Pawfect_Messenger.Services.AuthenticationServices
             String userId = _claimsExtractor.CurrentUserId(CurrentPrincipal());
             if (String.IsNullOrWhiteSpace(userId)) return [];
 
-            if (!_memoryCache.TryGetValue($"conversations_of_{userId}", out String userConversations))
-            {
-                ConversationQuery conversationQuery = _queryFactory.Query<ConversationQuery>();
-                conversationQuery.Offset = 0;
-                conversationQuery.PageSize = 1000000;
-                conversationQuery.Participants = [userId];
-                conversationQuery.Fields = [nameof(Models.Conversation.Conversation.Id)];
+            ConversationQuery conversationQuery = _queryFactory.Query<ConversationQuery>();
+            conversationQuery.Offset = 0;
+            conversationQuery.PageSize = 1000000;
+            conversationQuery.Participants = [userId];
+            conversationQuery.Fields = [nameof(Models.Conversation.Conversation.Id)];
 
-                 List<String> userConversationsIds = (await conversationQuery.CollectAsync())?.Select(c => c.Id).ToList() ?? [];
+            List<String> userConversationsIds = (await conversationQuery.CollectAsync())?.Select(c => c.Id).ToList() ?? [];
 
-                userConversations = JsonHelper.SerializeObjectFormattedSafe(userConversationsIds);
 
-                _memoryCache.Set($"conversations_of_{userId}", userConversations, TimeSpan.FromMinutes(_cacheConfig.QueryCacheTime));
-            }
-
-            return JsonHelper.DeserializeObjectFormattedSafe<List<String>>(userConversations);
+            return userConversationsIds;
         }
     }
 }

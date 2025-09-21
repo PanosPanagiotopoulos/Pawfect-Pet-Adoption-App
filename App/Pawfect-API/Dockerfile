@@ -32,6 +32,7 @@ WORKDIR /app
 
 COPY --from=server-build /app/publish .
 COPY --from=client-build /static ./wwwroot
+COPY --from=server-build /src/AiTemplates ./AiTemplates
 
 
 ENV ASPNETCORE_ENVIRONMENT=Production \

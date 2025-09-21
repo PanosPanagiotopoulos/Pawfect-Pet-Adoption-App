@@ -1,6 +1,8 @@
-﻿namespace Pawfect_API.Data.Entities.Types.AiContext
+﻿using MongoDB.Driver;
+
+namespace Pawfect_API.Data.Entities.Types.AiContext
 {
-    public class AnimalContext
+    public class AnimalContext : IEquatable<AnimalContext>
     {
         // Is Focused Document
         public Boolean IsFocusedDocument { get; set; }
@@ -24,6 +26,7 @@
         // Shelter
         public String ShelterId { get; set; }
         public String ShelterName { get; set; }
+        public Location ShelterLocation { get; set; }
 
 
         public static AnimalContext FromAnimalModel(Models.Animal.Animal animal) => FromAnimalModels([animal], [animal.Id]).FirstOrDefault();
@@ -52,9 +55,22 @@
                 AnimalTypeDescription = a.AnimalType?.Description,
                 BreedName = a.Breed?.Name,
                 BreedDescription = a.Breed?.Description,
-                ShelterId = a.Shelter?.Id,
+                ShelterId = a.Shelter?.User?.Id,
+                ShelterLocation = a.Shelter?.User?.Location,
                 ShelterName = a.Shelter?.ShelterName
-            }).ToList();
+            }).Distinct().ToList();
         }
+
+        public Boolean Equals(AnimalContext other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+
+            return String.Equals(this.Id, other.Id, StringComparison.Ordinal);
+        }
+
+        public override Boolean Equals(Object other) => this.Equals(other as AnimalContext);
+
+        public override int GetHashCode() => this.Id?.GetHashCode() ?? 0;
     }
 }

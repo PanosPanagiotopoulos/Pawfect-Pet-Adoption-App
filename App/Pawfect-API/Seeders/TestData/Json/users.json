@@ -48,7 +48,7 @@
     "Email": "shelter.alpha@example.com",
     "Password": "user",
     "FullName": "Καταφύγιο Άλφα",
-    "Roles": [ 1, 2 ],
+    "Roles": [ 2 ],
     "Phone": "+302101234569",
     "Location": {
       "Address": "Οδός Πειραιώς",
@@ -70,7 +70,7 @@
     "Email": "coprap@gmail.com",
     "Password": "user",
     "FullName": "Ελένη Παπαδοπούλου",
-    "Roles": [ 1, 2 ],
+    "Roles": [ 2 ],
     "Phone": "+302746123456",
     "Location": {
       "Address": "Οδός Αγίων Θεοδώρων",

@@ -3,7 +3,7 @@ import { BaseHttpService } from '../common/services/base-http.service';
 import { InstallationConfigurationService } from '../common/services/installation-configuration.service';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { CompletionsRequest, CompletionsResponse } from '../models/ai-assistant/ai-assistant';
+import { CompletionsRequest, CompletionsResponse } from '../models/ai-assistant/ai-assistant.model';
 
 @Injectable({
   providedIn: 'root',

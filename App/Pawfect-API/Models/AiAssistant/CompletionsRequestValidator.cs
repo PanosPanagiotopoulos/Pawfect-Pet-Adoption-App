@@ -20,6 +20,13 @@ namespace Pawfect_API.Models.AiAssistant
                 .Must(RuleFluentValidation.IsObjectId)
                 .WithMessage("ContextAnimalId must be a valid ObjectId.");
             });
+
+            When(request => request.ConversationHistory != null, () =>
+            {
+                RuleForEach(request => request.ConversationHistory)
+                .Must(message => message.Role != default && !String.IsNullOrWhiteSpace(message.Content))
+                .WithMessage("Messages must have valid roles and content");
+            });
         }
     }
 }

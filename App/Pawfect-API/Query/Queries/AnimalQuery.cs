@@ -206,7 +206,7 @@ namespace Pawfect_API.Query.Queries
 
             Task<List<AnimalSearchResult>> vectorSearchTask = Task.FromResult(new List<AnimalSearchResult>());
             if (this.UseVectorSearch.GetValueOrDefault(false))
-                vectorSearchTask = Task.FromResult(new List<AnimalSearchResult>());
+                vectorSearchTask = this.AnimalVectorSearch(filterDoc, multilingualQuery);
 
             Task<List<AnimalSearchResult>> semanticSearchTask = Task.FromResult(new List<AnimalSearchResult>());
             if (this.UseSemanticSearch.GetValueOrDefault(false))
@@ -448,17 +448,13 @@ namespace Pawfect_API.Query.Queries
                 { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.SemanticTextBoost)) }
             }));
 
-            // Only add synonyms for longer descriptive queries
-            if (queryAnalysis.MatchType == SearchMatchType.Mixed || queryAnalysis.NeedsSynonymExpansion && queryAnalysis.MatchType == SearchMatchType.Descriptive)
+            searchQueries.Add(new BsonDocument("text", new BsonDocument
             {
-                searchQueries.Add(new BsonDocument("text", new BsonDocument
-                {
-                    { "query", query },
-                    { "path", nameof(Data.Entities.Animal.SemanticText) },
-                    { "synonyms", "pet_synonyms" },
-                    { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.SynonymBoost)) }
-                }));
-            }
+                { "query", query },
+                { "path", nameof(Data.Entities.Animal.SemanticText) },
+                { "synonyms", "pet_synonyms" },
+                { "score", new BsonDocument("boost", new BsonDocument("value", boostSettings.SynonymBoost)) }
+            }));
 
             // Description search with lower boost
             searchQueries.Add(new BsonDocument("text", new BsonDocument
@@ -544,7 +540,7 @@ namespace Pawfect_API.Query.Queries
 
             analysis.IsPartialQuery = words.Length == 1 && query.Length < 4;
 
-            // FIXED: Stricter logic for synonym expansion
+            
             if (analysis.HasExactPhraseIntent)
             {
                 analysis.MatchType = SearchMatchType.Exact;
@@ -553,7 +549,7 @@ namespace Pawfect_API.Query.Queries
                 analysis.AllowFuzzySearch = false;
                 analysis.NeedsSynonymExpansion = false; 
             }
-            else if (words.Length <= 3 && !analysis.HasNumericTerms)
+            else if (words.Length <= 2 && !analysis.HasNumericTerms)
             {
                 analysis.MatchType = SearchMatchType.Phrase;
                 analysis.PhraseSlop = 1;
@@ -561,7 +557,7 @@ namespace Pawfect_API.Query.Queries
                 analysis.AllowFuzzySearch = false; 
                 analysis.NeedsSynonymExpansion = false; 
             }
-            else if (words.Length > 5)
+            else if (words.Length > 3)
             {
                 analysis.MatchType = SearchMatchType.Descriptive;
                 analysis.PhraseSlop = 3; 

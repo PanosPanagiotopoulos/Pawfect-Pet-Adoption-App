@@ -848,6 +848,7 @@
           "WEBSITE": "Visit Our Website",
           "OPERATING_HOURS": "Visit Us",
           "CLOSED": "Currently Closed",
+          "ABOUT": "About",
           "ADDITIONAL_INFO": "Companion Details",
           "LISTED_ON": "Available Since",
           "LAST_UPDATED": "Profile Updated",
@@ -1177,6 +1178,22 @@
       "MESSAGE_FAILED": "Failed to send",
       "CREATING_CONVERSATION": "Creating conversation...",
       "VIEW_PROFILE": "View profile"
+    },
+    "AI_ASSISTANT": {
+      "NAME": "PawBot",
+      "SUBTITLE": "Your Pet Adoption Assistant",
+      "WELCOME_TITLE": "Ready to Find Your Perfect Match?",
+      "WELCOME_MESSAGE": "Hi! I'm here to help you discover amazing pets available for adoption. You can ask me about specific animals by selecting one above, or ask general questions about pets based on your preferences like breed, age, size, or personality traits!",
+      "SEARCH_ANIMAL": "Pick the animal to talk about!",
+      "SEARCH_PLACEHOLDER": "Type animal name...",
+      "MESSAGE_PLACEHOLDER": "Ask about pets, breeds, or your preferences...",
+      "PRESS_ENTER": "Press Enter to send",
+      "THINKING": "Thinking...",
+      "TYPING": "Click to skip typing animation",
+      "SELECTED_CONTEXT": "Focused Animal Selected",
+      "NO_ANIMALS_FOUND": "No animals found",
+      "TRY_DIFFERENT_SEARCH": "Try a different search term",
+      "ERROR_MESSAGE": "Sorry, I'm having trouble right now. Please try again later."
     }
   }
 } 

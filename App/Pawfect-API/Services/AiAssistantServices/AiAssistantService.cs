@@ -11,6 +11,8 @@ using Pawfect_API.DevTools;
 using System.Text.RegularExpressions;
 using Mistral.SDK;
 using Pawfect_API.Exceptions;
+using Microsoft.AspNetCore.Server.HttpSys;
+using Microsoft.Extensions.AI;
 
 namespace Pawfect_API.Services.AiAssistantServices
 {
@@ -62,14 +64,15 @@ namespace Pawfect_API.Services.AiAssistantServices
                 focusedAnimalLookup?.EnrichLookup(_queryFactory).Authorise(AuthorizationFlags.OwnerOrPermissionOrAffiliation).CollectAsync() ?? Task.FromResult(new List<Data.Entities.Animal>())
             );
 
-            if (includesFocusedAnimal && contextData[1] == null || contextData[1].Count == 0)
+            if (includesFocusedAnimal && (contextData[1] == null || contextData[1].Count == 0))
                 throw new NotFoundException("Focused animal was not found");
 
-            List<Animal> ragContext = await _builderFactory.Builder<AnimalBuilder>()
-            .Build(
-                contextData[0].Concat(contextData[1]).ToList(),
-                _aiAssistantConfig.ContextFields
-            );
+            List<Data.Entities.Animal> datas = contextData[0];
+            Data.Entities.Animal focusedAnimal = contextData[1].FirstOrDefault();
+
+            if (includesFocusedAnimal && datas.FirstOrDefault(x => x.Id.Equals(focusedAnimal.Id)) == null) datas.Add(focusedAnimal);
+             
+            List<Animal> ragContext = await _builderFactory.Builder<AnimalBuilder>().Build(datas, _aiAssistantConfig.ContextFields);
 
             List<AnimalContext> animalContexts = AnimalContext.FromAnimalModels(ragContext, includesFocusedAnimal ? [request.ContextAnimalId] : null);
 
@@ -78,22 +81,12 @@ namespace Pawfect_API.Services.AiAssistantServices
 
             using MistralClient client = new MistralClient(_aiAssistantConfig.ApiKey);
 
+            List<Mistral.SDK.DTOs.ChatMessage> messages = this.ExtractMessages(request.ConversationHistory, instructions, prompt);
+
             Mistral.SDK.DTOs.ChatCompletionRequest chatRequest = new Mistral.SDK.DTOs.ChatCompletionRequest()
             {
-                Model = ModelDefinitions.OpenMixtral8x7b,
-                Messages = new List<Mistral.SDK.DTOs.ChatMessage>()
-                {
-                    new Mistral.SDK.DTOs.ChatMessage()
-                    {
-                        Role = Mistral.SDK.DTOs.ChatMessage.RoleEnum.System,
-                        Content = instructions
-                    },
-                    new Mistral.SDK.DTOs.ChatMessage()
-                    {
-                        Role = Mistral.SDK.DTOs.ChatMessage.RoleEnum.User,
-                        Content = prompt
-                    }
-                },
+                Model = ModelDefinitions.MistralMedium,
+                Messages = messages,
                 Temperature = (Decimal) 0.5,
                 TopP = (Decimal) 0.5,
                 MaxTokens = 3000,
@@ -108,13 +101,102 @@ namespace Pawfect_API.Services.AiAssistantServices
                 throw new Exception("No response from AI service.");
             }
 
-            return new CompletionsResponse()
+            CompletionsResponse completionsResponse = new CompletionsResponse()
             {
-                 Response = response.Choices.FirstOrDefault()?.Message?.Content ?? "No response"
+                Response = this.CleanAssistantOutput(response.Choices.FirstOrDefault()?.Message?.Content ?? "No response")
             };
+
+            return completionsResponse;
         }
 
-        private String CleanPrompt(String prompt) => Regex.Replace(Regex.Replace(prompt ?? "", @"[^\w\s]", "").ToLowerInvariant().Trim(), @"\s+", " ").Trim();
+        private List<Mistral.SDK.DTOs.ChatMessage> ExtractMessages(List<AiMessage> history, String instructions, String prompt)
+        {
+            List<Mistral.SDK.DTOs.ChatMessage> messages = new List<Mistral.SDK.DTOs.ChatMessage>()
+                {
+                    new Mistral.SDK.DTOs.ChatMessage()
+                    {
+                        Role = Mistral.SDK.DTOs.ChatMessage.RoleEnum.System,
+                        Content = instructions
+                    },
+                };
 
+            if (history != null)
+            {
+                messages.AddRange(history.Select(historyMessage => new Mistral.SDK.DTOs.ChatMessage()
+                {
+                    Role = historyMessage.Role == Data.Entities.EnumTypes.AiMessageRole.User ? Mistral.SDK.DTOs.ChatMessage.RoleEnum.User : Mistral.SDK.DTOs.ChatMessage.RoleEnum.Assistant,
+                    Content = historyMessage.Content
+                }));
+            }
+
+            messages.Add(new Mistral.SDK.DTOs.ChatMessage()
+            {
+                Role = Mistral.SDK.DTOs.ChatMessage.RoleEnum.User,
+                Content = prompt
+            });
+
+
+            return messages;
+        }
+        private String CleanAssistantOutput(String raw)
+        {
+            if (String.IsNullOrWhiteSpace(raw))
+                return String.Empty;
+
+            String content = raw;
+
+            // If wrapped in <assistant-output>...</assistant-output>, keep only inner
+            Regex assistantWrapperRegex = new Regex(
+                @"<assistant-output>(?<inner>[\s\S]*?)</assistant-output>",
+                RegexOptions.IgnoreCase
+            );
+            Match wrapperMatch = assistantWrapperRegex.Match(content);
+            if (wrapperMatch.Success)
+                content = wrapperMatch.Groups["inner"].Value;
+
+            // Remove fenced code blocks ```...```
+            content = Regex.Replace(
+                content,
+                @"^```[a-zA-Z0-9]*\s*$",
+                String.Empty,
+                RegexOptions.Multiline
+            );
+
+            // Remove markdown headings (#, ##, ...)
+            content = Regex.Replace(content, @"^\s*#{1,6}\s.*?$", String.Empty, RegexOptions.Multiline);
+
+            // Remove horizontal rules (---, ___, ***)
+            content = Regex.Replace(content, @"^\s*([-_*])\1\1[\1\s]*$", String.Empty, RegexOptions.Multiline);
+
+            // Remove common echoed labels / indicators (existing ones)
+            content = Regex.Replace(
+                content,
+                @"^\s*(Assistant Response\s*\(Text\)|Animal Recommendations\s*\(HTML\)|Suggestions\s*\(Text\)|INPUT\s*\(RAG CONTEXT\)\s*:?)\s*$",
+                String.Empty,
+                RegexOptions.Multiline | RegexOptions.IgnoreCase
+            );
+
+            // Remove echoed headings from the template (strict no-echo policy)
+            content = Regex.Replace(
+                content,
+                @"^\s*(ROLE|MISSION|PLATFORM|DATA\s+CONTEXT|RELEVANCE\s*&\s*FILTERING|EXPLANATION\s+QUALITY|BEHAVIOR\s+RULES|FORMAT\s+RULES|OUTPUT\s+STRUCTURE|INPUT(\s*\(RAG\s*CONTEXT\))?)\s*:?\s*$",
+                String.Empty,
+                RegexOptions.Multiline | RegexOptions.IgnoreCase
+            );
+
+            // Remove stray fences on their own lines
+            content = Regex.Replace(content, @"^(```|~~~)\s*$", String.Empty, RegexOptions.Multiline);
+
+            // Safety: strip any nested/duplicated <assistant-output> wrappers that might remain
+            content = assistantWrapperRegex.Replace(content, m => m.Groups["inner"].Value);
+
+            // Final tidy
+            return content.Trim();
+        }
+
+
+
+
+        private String CleanPrompt(String prompt) => Regex.Replace((prompt ?? "").Trim(), @"\s+", " ");
     }
 }

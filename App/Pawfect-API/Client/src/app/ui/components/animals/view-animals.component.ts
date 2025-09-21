@@ -117,8 +117,16 @@ export class ViewAnimalsComponent implements OnInit, OnDestroy {
         nameof<Animal>((x) => x.animalType),
         nameof<AnimalType>((x) => x.name),
       ].join('.'),
+      [
+        nameof<Animal>((x) => x.animalType),
+        nameof<AnimalType>((x) => x.description),
+      ].join('.'),
       [nameof<Animal>((x) => x.breed), nameof<Breed>((x) => x.id)].join('.'),
       [nameof<Animal>((x) => x.breed), nameof<Breed>((x) => x.name)].join('.'),
+      [
+        nameof<Animal>((x) => x.breed),
+        nameof<Breed>((x) => x.description),
+      ].join('.'),
       [nameof<Animal>((x) => x.shelter), nameof<Shelter>((x) => x.id)].join(
         '.'
       ),
@@ -281,7 +289,10 @@ export class ViewAnimalsComponent implements OnInit, OnDestroy {
   }
 
   getShelterProfilePicture(): string {
-    return this.animal?.shelter?.user?.profilePhoto?.sourceUrl || 'assets/placeholder.jpg';
+    return (
+      this.animal?.shelter?.user?.profilePhoto?.sourceUrl ||
+      'assets/placeholder.jpg'
+    );
   }
 
   onShelterImageError(event: Event) {
