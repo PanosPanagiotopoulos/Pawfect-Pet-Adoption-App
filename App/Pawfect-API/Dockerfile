@@ -15,7 +15,6 @@ RUN ng build --base-href=/ pawfect-match-angular --configuration=production --de
 RUN mkdir -p /static && cp -r ../wwwroot/* /static/
 
 
-
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS server-build
 WORKDIR /src
 

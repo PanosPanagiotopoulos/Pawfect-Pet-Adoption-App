@@ -81,7 +81,7 @@
    ```
 
 2. **Απόκτηση αρχείων secrets**
-   Ζητήστε να λάβετε το αρχείο `secrets.zip` εδώ: https://drive.google.com/file/d/1301JtecBfHfGApBhtLEovLVMe50S1Txs/view?usp=sharing.  
+   Ζητήστε να λάβετε το αρχείο `secrets.zip` εδώ: https://drive.google.com/file/d/1QJgc-T26nftKBVv249wbDT0DX41qlzri/view?usp=sharing
    Εξάγετε το **μέσα στο `/App`** ώστε να έχετε:
 
    ```
@@ -92,17 +92,20 @@
 
    /App/frontend_secrets/
      environment.Production.ts
+     environment.Development.ts
    ```
 
 3. **Αντιγραφή του Angular environment πριν το build**
    ```bash
    # Linux/macOS
    cp ./frontend_secrets/environment.Production.ts ./Pawfect-API/Client/src/environments/environment.Production.ts
+   cp ./frontend_secrets/environment.Development.ts ./Pawfect-API/Client/src/environments/environment.Development.ts
    ```
 
    ```powershell
    # Windows PowerShell
    Copy-Item .frontend_secrets\environment.Production.ts .\Pawfect-API\Client\src\environments\environment.Production.ts -Force
+   Copy-Item .frontend_secrets\environment.Development.ts .\Pawfect-API\Client\src\environments\environment.Development.ts -Force
    ```
 
 4. **Build και εκκίνηση containers**
