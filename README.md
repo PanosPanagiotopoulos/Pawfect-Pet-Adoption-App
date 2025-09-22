@@ -81,7 +81,7 @@
    ```
 
 2. **Απόκτηση αρχείων secrets**
-   Ζητήστε να λάβετε το αρχείο `secrets.zip` εδώ: https://drive.google.com/file/d/1p1bCmD_b7C4JTp1PhbUPQVG3k5lbjT_I/view?usp=sharing
+   Ζητήστε να λάβετε το αρχείο `secrets.zip` εδώ: https://drive.google.com/file/d/1p1bCmD_b7C4JTp1PhbUPQVG3k5lbjT_I/view?usp=drive_link
    Εξάγετε το **μέσα στο `/App`** ώστε να έχετε:
 
    ```
