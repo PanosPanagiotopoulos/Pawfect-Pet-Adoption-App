@@ -6,7 +6,7 @@ RUN npm i -g @angular/cli@18
 WORKDIR /src/Client
 
 COPY Client/package*.json ./
-RUN npm ci --legacy-peer-deps       
+RUN npm install --legacy-peer-deps --force 
 
 COPY Client/ ./
 RUN ng build --base-href=/ pawfect-match-angular --configuration=production --delete-output-path --build-optimizer=false
