@@ -1,140 +1,116 @@
 # Pawfect - Εφαρμογή Υιοθεσίας Ζώων
 
-Το Pawfect είναι μια εφαρμογή που δημιουργήθηκε για να συνδέει τους χρήστες με καταφύγια ζώων, καθιστώντας τη διαδικασία εύρεσης και υιοθεσίας κατοικιδίων απλή, αποδοτική και φιλική προς τον χρήστη. Η εφαρμογή περιλαμβάνει ένα ολοκληρωμένο σύστημα αναζήτησης και φιλτραρίσματος, μηνύματα σε πραγματικό χρόνο, έναν βοηθητικό chatbot για προτάσεις ζώων και εργαλεία διαχείρισης για τους διαχειριστές με σκοπό την οργάνωση των αιτημάτων υιοθεσίας και των καταχωρήσεων ζώων.
+Το **Pawfect** είναι μια σύγχρονη πλατφόρμα υιοθεσίας ζώων που αναπτύχθηκε με στόχο να συνδέει τους χρήστες με καταφύγια και να καθιστά τη διαδικασία αναζήτησης και υιοθεσίας κατοικιδίων πιο **εύκολη, έξυπνη και ασφαλή**.  
+
+Η αρχιτεκτονική του συστήματος βασίζεται σε **μικροϋπηρεσίες** και περιλαμβάνει:
+
+- **.NET και C# (Backend)**: Παρέχουν μια στιβαρή και επεκτάσιμη βάση για REST APIs, authentication/authorization με JWT, worker services για ειδοποιήσεις και ασφαλή middleware pipelines.
+- **Angular (Frontend)**: Δυναμική, responsive SPA διεπαφή με TypeScript, RxJS, Reactive Forms και Material UI για μοντέρνο, φιλικό προς τον χρήστη σχεδιασμό.
+- **MongoDB Atlas (Database)**: NoSQL document database για ευέλικτη αποθήκευση δεδομένων (χρήστες, καταφύγια, ζώα, αιτήσεις υιοθεσίας, μηνύματα).
+- **SignalR (Real-time)**: Εξασφαλίζει άμεση επικοινωνία και ειδοποιήσεις σε πραγματικό χρόνο.
+- **GraphQL-Inspired Query Layer**: Επιτρέπει client-driven ερωτήματα με φίλτρα, sorting και pagination, μειώνοντας το over-fetching.
+- **Authentication & Authorization**: JWT tokens, role-based access (User, Shelter, Admin), με συμμόρφωση σε OWASP standards.
+- **SendGrid (Emails) & Vonage (SMS)**: Για αξιόπιστες ειδοποιήσεις και επικοινωνία με χρήστες.
+- **Mistral AI (AI Recommendations)**: Παρέχει έξυπνες προτάσεις υιοθεσίας και conversational guidance με RAG (Retrieval-Augmented Generation).
+- **AWS S3 (Storage)**: Για ασφαλή και κλιμακώσιμη αποθήκευση αρχείων και εικόνων.
+- **Docker (Deployment)**: Containerization των υπηρεσιών για φορητότητα, συνέπεια και εύκολη ανάπτυξη.
+
+Η επιλογή αυτών των τεχνολογιών διασφαλίζει ότι η πλατφόρμα είναι **ασφαλής, επεκτάσιμη, cloud-ready** και προσαρμοσμένη στις μελλοντικές ανάγκες.
+
+---
 
 ## Περιεχόμενα
 
 - [Χαρακτηριστικά](#χαρακτηριστικά)
 - [Αρχιτεκτονική](#αρχιτεκτονική)
 - [Τεχνολογίες](#τεχνολογίες)
-- [Εγκατάσταση](#εγκατάσταση)
-- [Χρήση](#χρήση)
-- [API Documentation](#api-documentation)
-- [Contributing](#contributing)
-- [Άδεια Χρήσης](#άδεια-χρήσης)
+- [Εγκατάσταση με Docker](#εγκατάσταση-με-docker)
+---
 
 ## Χαρακτηριστικά
 
 - **Πιστοποίηση Χρήστη και Διαχείριση Δικαιωμάτων Πρόσβασης**
+- **Διαχείριση Προφίλ** (χρήστες, καταφύγια, ζώα)
+- **Σύνθετη Αναζήτηση και Chatbot Προτάσεων**
+- **Σύστημα Μηνυμάτων σε Πραγματικό Χρόνο**
+- **Ειδοποιήσεις μέσω Email και SMS**
+- **Πίνακας Διαχείρισης για Admins**
 
-  - Υποστήριξη ρόλων χρήστη (Χρήστης, Καταφύγιο, Διαχειριστής) με έλεγχο πρόσβασης βάσει ρόλου.
-  - Ενσωμάτωση OAuth για είσοδο μέσω Google.
-  - Διπλή πιστοποίηση (2FA) για αυξημένη ασφάλεια στους διαχειριστές.
-
-- **Διαχείριση Προφίλ**
-
-  - Οι χρήστες μπορούν να δημιουργούν και να ενημερώνουν τα προσωπικά τους προφίλ.
-  - Τα καταφύγια μπορούν να διαχειρίζονται τις καταχωρήσεις ζώων, να ενημερώνουν την κατάσταση των ζώων (π.χ., διαθέσιμο, υιοθετημένο), και να επεξεργάζονται τα στοιχεία προφίλ τους.
-
-- **Σύνθετη Αναζήτηση και Φιλτράρισμα**
-
-  - Επιτρέπει την αναζήτηση ζώων με βάση τη ράτσα, την ηλικία, την κατάσταση υγείας και τη συμπεριφορά.
-  - Αναζήτηση μέσω chatbot για να προτείνει ζώα με βάση τις προτιμήσεις του χρήστη.
-
-- **Σύστημα Μηνυμάτων**
-
-  - Μηνύματα σε πραγματικό χρόνο μεταξύ χρηστών και καταφυγίων.
-  - Ειδοποιήσεις για νέα μηνύματα και αιτήματα υιοθεσίας.
-  - Δυνατότητα αναφοράς και εποπτείας μηνυμάτων.
-
-- **Πίνακας Διαχείρισης**
-  - Εργαλεία για τη διαχείριση χρηστών, καταχωρήσεων ζώων και αναφερόμενων μηνυμάτων.
-  - Πρόσβαση σε στατιστικά στοιχεία της εφαρμογής και αναφορές.
+---
 
 ## Αρχιτεκτονική
 
-Η εφαρμογή ακολουθεί μια **αρχιτεκτονική μικροϋπηρεσιών** με **REST API** που υποστηρίζει κλιμακωσιμότητα και ευελιξία μέσω ενός αποκεντρωμένου frontend και backend.
+Η εφαρμογή ακολουθεί αρχιτεκτονική **microservices**, όπου κάθε υπηρεσία (API, Notifications, Messenger) εκτελείται ανεξάρτητα μέσα σε **Docker containers**.  
 
-### Backend
+- **Backend**: ASP.NET Core Web API, SignalR, Worker Services  
+- **Frontend**: Angular SPA  
+- **Database**: MongoDB Atlas  
+- **Messaging**: WebSockets μέσω SignalR  
+- **Storage**: AWS S3  
 
-- Αναπτύσσεται με **.NET** και **MongoDB**.
-- **JWT** για ασφαλή πιστοποίηση χρηστών.
-- **WebSockets** για μηνύματα και ενημερώσεις σε πραγματικό χρόνο.
-- Κρυπτογράφηση δεδομένων για ευαίσθητες πληροφορίες.
-- Χρήση AWS για αποθήκευση αρχείων (π.χ., εικόνες ζώων).
-
-### Frontend
-
-- Αναπτύχθηκε χρησιμοποιώντας **Angular**.
-- Περιλαμβάνει στοιχεία διασύνδεσης (π.χ., μπάρα αναζήτησης, διαχείριση προφίλ, διεπαφή συνομιλίας).
-- Σχεδιασμός φιλικός προς τον χρήστη και πλήρως προσαρμοστικός.
+---
 
 ## Τεχνολογίες
 
-- **Frontend**: Angular, RxJS, Angular Router
-- **Backend**: .NET Core, Web API
-- **Βάση Δεδομένων**: MongoDB
-- **Αυθεντικοποίηση**: JWT, OAuth (Google), 2FA για διαχειριστές
-- **Αποθήκευση Αρχείων**: AWS S3 Buckets
-- **Επικοινωνία σε Πραγματικό Χρόνο**: WebSockets
-- **Άλλες Τεχνολογίες**: AI-based chatbot για αντιστοίχιση ζώων
+- **Backend**: .NET, ASP.NET Core, C#  
+- **Frontend**: Angular, RxJS, Angular Router  
+- **Database**: MongoDB Atlas  
+- **Auth**: JWT, OAuth2, Role-based access  
+- **Notifications**: SendGrid (Email), Vonage (SMS)  
+- **AI**: Mistral AI (RAG-based recommendations)  
+- **Storage**: AWS S3  
+- **Deployment**: Docker, Docker Compose  
 
-## Setup
+---
 
-1. **Clone the Repository**
+## Εγκατάσταση με Docker
 
+Η εφαρμογή χρησιμοποιεί **Docker Compose** για να εκκινεί όλα τα services.
+
+### Προαπαιτούμενα
+- Docker Desktop ή Docker Engine  
+- Docker Compose v2+  
+- Git  
+
+### Βήματα Εγκατάστασης
+
+1. **Clone του Repository**
    ```bash
-   git clone https://github.com/yourusername/pawfect.git
+   git clone https://github.com/PanosPanagiotopoulos/Pawfect-Pet-Adoption-App.git Pawfect
+   cd Pawfect/App
    ```
 
-   ```bash
-   cd pawfect
+2. **Απόκτηση αρχείων secrets**
+   Ζητήστε να λάβετε το αρχείο `secrets.zip` εδώ: https://drive.google.com/file/d/1301JtecBfHfGApBhtLEovLVMe50S1Txs/view?usp=sharing.  
+   Εξάγετε το **μέσα στο `/App`** ώστε να έχετε:
+
+   ```
+   /App/secrets/
+     pawfect-api.environment.json
+     pawfect-notifications.environment.json
+     pawfect-messenger.environment.json
+
+   /App/frontend_secrets/
+     environment.Production.ts
    ```
 
-2. **Backend Setup**
-   Install .NET dependencies:
+3. **Αντιγραφή του Angular environment πριν το build**
    ```bash
-   cd backend
-   dotnet restore
-   ```
-3. **Configure MongoDB and AWS S3 credentials in appsettings.json.**
-
-4. **Run the backend**
-   ```bash
-   dotnet run
-   ```
-5. **Frontend setup**
-
-   ```bash
-   cd frontend
-   npm install
+   # Linux/macOS
+   cp ./frontend_secrets/environment.Production.ts ./Pawfect-API/Client/src/environments/environment.Production.ts
    ```
 
-   # Ρυθμίσεις Βάσης Δεδομένων
+   ```powershell
+   # Windows PowerShell
+   Copy-Item .frontend_secrets\environment.Production.ts .\Pawfect-API\Client\src\environments\environment.Production.ts -Force
+   ```
 
-## Συλλογές MongoDB:
+4. **Build και εκκίνηση containers**
+   ```bash
+   docker compose up --build
+   ```
 
-- **Users**: Αποθηκεύει στοιχεία χρηστών και ρόλους.
-- **Shelters**: Αποθηκεύει στοιχεία "καταφυγίων" χρηστών.
-- **Animals**: Αποθηκεύει καταχωρήσεις ζώων, καταστάσεις και πληροφορίες καταφυγίων.
-- **AdoptionApplications**: Παρακολουθεί αιτήματα υιοθεσίας.
-- **Messages**: Διαχειρίζεται συνομιλίες μεταξύ χρηστών και καταφυγίων.
-- **Conversations**: Διαττηρεί τους τις συζητήσεις των χρηστών στο σύστημα
-- **Breeds**: Διαττηρεί τις ράτσες ζώων που εμπεριέχει το σύστημα
-- **Types**: Διαττηρεί τους τύπος ζώων που εμπεριέχει το σύστημα
-- **Notifications**: Διαττηρεί τους τις ειδοποιήσεις των χρηστών στο σύστημα
-- **Reports**: Διαττηρεί τις αναφορές χρηστών για δυσλειτουργέια του συτήματος ή προβληαμτική συμπεριφορά χρηστών
-
-## Χρήση
-
-### Εγγραφή και Είσοδος Χρήστη
-
-- Οι χρήστες μπορούν να εγγραφούν και να συνδεθούν με δικαιώματα πρόσβασης ανάλογα με τον ρόλο τους.
-
-### Αναζήτηση και Υιοθεσία Ζώων
-
-- Αναζητήστε ζώα με συγκεκριμένα κριτήρια ή χρησιμοποιήστε τον βοηθητικό chatbot για βοήθεια.
-- Κάντε αίτηση υιοθεσίας μέσω των σελίδων προφίλ των ζώων.
-
-### Μηνύματα
-
-- Συνδεθείτε με τα καταφύγια σε πραγματικό χρόνο για να ρωτήσετε σχετικά με διαθέσιμα ζώα.
-- Λάβετε ειδοποιήσεις για νέα μηνύματα και ενημερώσεις.
-
-### Εργαλεία Διαχειριστή
-
-- Οι διαχειριστές μπορούν να διαχειρίζονται χρήστες, να εποπτεύουν αιτήσεις υιοθεσίας και να μεσολαβούν σε μηνύματα.
-
-## API Docs
-
-Η τεκμηρίωση του API είναι διαθέσιμη μέσω Swagger στη διεύθυνση http://localhost:5000/swagger όταν server είναι ενεργός.
+5. **Πρόσβαση στις υπηρεσίες**
+   - Main API & Angular frontend → [http://localhost:5000](http://localhost:5000)  
+   - Notifications API → [http://localhost:5001](http://localhost:5001)  
+   - Messenger API → [http://localhost:5002](http://localhost:5002)  

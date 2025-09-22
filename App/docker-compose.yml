@@ -12,10 +12,11 @@ services:
       - ASPNETCORE_URLS=http://+:8080
     ports:
       - "5000:8080"
+    volumes:
+      - ./secrets/pawfect-api.environment.json:/app/Configuration/Production/environment.json:ro
     networks:
       - pawfect-network
 
-  # Notifications API
   notifications-api:
     build:
       context: ./Pawfect-Notifications
@@ -27,10 +28,11 @@ services:
       - ASPNETCORE_URLS=http://+:8081
     ports:
       - "5001:8081"
+    volumes:
+      - ./secrets/pawfect-notifications.environment.json:/app/Configuration/Production/environment.json:ro
     networks:
       - pawfect-network
 
-  # Messenger
   messenger:
     build:
       context: ./Pawfect-Messenger
@@ -42,6 +44,8 @@ services:
       - ASPNETCORE_URLS=http://+:8082
     ports:
       - "5002:8082"
+    volumes:
+      - ./secrets/pawfect-messenger.environment.json:/app/Configuration/Production/environment.json:ro
     networks:
       - pawfect-network
 

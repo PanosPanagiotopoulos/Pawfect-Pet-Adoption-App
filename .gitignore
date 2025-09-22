@@ -1,3 +1,8 @@
+# Secrets
+secrets/
+App/secrets/
+App/frontend_secrets/
+
 # Node Modules
 App/Pawfect-API/Client/node_modules/
 App/Pawfect-API/Client/.vscode/
