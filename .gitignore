@@ -14,7 +14,8 @@ App/Pawfect-API/Client/out-tsc/
 
 # Environment and Configuration Files
 App/Pawfect-API/Client/.env
-App/Pawfect-API/Client/src/environments
+App/Pawfect-API/Client/src/environments/environment.Development.ts
+App/Pawfect-API/Client/src/environments/environment.Production.ts
 App/Pawfect-API/Client/prompt.MD
 
 App/Pawfect-API/Client/package-lock.json
