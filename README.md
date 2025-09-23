@@ -104,8 +104,8 @@
 
    ```powershell
    # Windows PowerShell
-   Copy-Item .frontend_secrets\environment.Production.ts .\Pawfect-API\Client\src\environments\environment.Production.ts -Force
-   Copy-Item .frontend_secrets\environment.Development.ts .\Pawfect-API\Client\src\environments\environment.Development.ts -Force
+   Copy-Item .\frontend_secrets\environment.Production.ts .\Pawfect-API\Client\src\environments\environment.Production.ts -Force
+   Copy-Item .\frontend_secrets\environment.Development.ts .\Pawfect-API\Client\src\environments\environment.Development.ts -Force
    ```
 
 4. **Build και εκκίνηση containers**
