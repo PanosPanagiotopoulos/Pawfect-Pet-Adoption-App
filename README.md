@@ -110,6 +110,9 @@
 
 4. **Build και εκκίνηση containers**
    ```bash
+   docker compose build --parallel
+   docker compose up
+   ή
    docker compose up --build
    ```
 
