@@ -55,7 +55,7 @@ namespace Pawfect_API.Services.AuthenticationServices
         public async Task<String> CurrentPrincipalShelter()
         {
             String userId = _claimsExtractor.CurrentUserId(CurrentPrincipal());
-            if (!_conventionService.IsValidId(userId)) throw new UnAuthenticatedException("No authenticated user found");
+            if (!_conventionService.IsValidId(userId)) return null;
 
             // Check cache
             if (_memoryCache.TryGetValue(userId, out String cachedShelterId)) return cachedShelterId;

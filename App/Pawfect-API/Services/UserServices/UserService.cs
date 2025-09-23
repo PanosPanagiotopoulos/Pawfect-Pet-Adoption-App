@@ -681,9 +681,9 @@ namespace Pawfect_API.Services.UserServices
 				if (userPersist.Role == UserRole.User)
                     workingUser.Roles = new List<UserRole> { UserRole.User };
                 else if (userPersist.Role == UserRole.Shelter)
-                    workingUser.Roles = new List<UserRole> { UserRole.User, UserRole.Shelter };
+                    workingUser.Roles = new List<UserRole> { UserRole.Shelter };
                 else if (userPersist.Role == UserRole.Admin)
-                    workingUser.Roles = new List<UserRole> { UserRole.User, UserRole.Shelter, UserRole.Admin };
+                    workingUser.Roles = new List<UserRole> { UserRole.Admin };
 
                 // Hash τα credentials συνθηματικών του χρήστη
                 this.HashLoginCredentials(ref workingUser);
