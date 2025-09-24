@@ -85,7 +85,7 @@ namespace Pawfect_API.Services.AiAssistantServices
 
             Mistral.SDK.DTOs.ChatCompletionRequest chatRequest = new Mistral.SDK.DTOs.ChatCompletionRequest()
             {
-                Model = ModelDefinitions.MistralMedium,
+                Model = ModelDefinitions.MistralSmall,
                 Messages = messages,
                 Temperature = (Decimal) 0.5,
                 TopP = (Decimal) 0.5,
