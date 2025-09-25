@@ -22,6 +22,7 @@ import { CommonModule } from '@angular/common';
           [src]="imageUrl || 'assets/placeholder.jpg'" 
           [alt]="name || 'User avatar'"
           class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110"
+          style="aspect-ratio: 1 / 1;"
           (error)="onImageError($event)" />
         <ng-icon 
           *ngIf="showFallbackIcon"

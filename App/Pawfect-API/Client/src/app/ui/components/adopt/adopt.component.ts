@@ -352,6 +352,7 @@ import { Permission } from 'src/app/common/enum/permission.enum';
                       "
                       [alt]="adoptionApplication?.user?.fullName || 'User'"
                       class="w-16 h-16 rounded-full object-cover border-2 border-primary-400/30"
+                      style="aspect-ratio: 1 / 1;"
                     />
                   </div>
 
@@ -560,6 +561,7 @@ export class AdoptComponent
       // Reset form state flags
       this.formSaved = false;
       this.formDeleted = false;
+      this.hasUnsavedChangesFlag = false;
 
       if (applicationId) {
         this.isEditMode = true;
@@ -641,6 +643,7 @@ export class AdoptComponent
   onApplicationSubmitted(id: string) {
     if (id) {
       this.formSaved = true; // Mark form as saved to prevent guard dialog
+      this.hasUnsavedChangesFlag = false; // Reset the unsaved changes flag
       if (this.isEditMode) {
         window.location.reload();
       } else {
@@ -728,6 +731,7 @@ export class AdoptComponent
       nameof<AdoptionApplication>((x) => x.id),
       nameof<AdoptionApplication>((x) => x.status),
       nameof<AdoptionApplication>((x) => x.applicationDetails),
+      nameof<AdoptionApplication>((x) => x.rejectReasson),
       nameof<AdoptionApplication>((x) => x.createdAt),
       nameof<AdoptionApplication>((x) => x.updatedAt),
       ...this.getAnimalFieldsForApplication(),
@@ -1110,6 +1114,7 @@ export class AdoptComponent
 
         // Check if status changed (for shelter users)
         let statusChanged = false;
+        let rejectReasonChanged = false;
         if (
           this.adoptionFormComponent?.applicationForm?.get('status')?.enabled &&
           this.adoptionFormComponent?.canManageApplicationStatus &&
@@ -1118,9 +1123,18 @@ export class AdoptComponent
           const currentStatus = form.get('status')?.value;
           const originalStatus = this.adoptionApplication.status;
           statusChanged = currentStatus !== originalStatus;
+
+          // Check if rejection reason changed
+          const currentRejectReason = form.get('rejectReasson')?.value || '';
+          const originalRejectReason =
+            this.adoptionApplication.rejectReasson || '';
+          rejectReasonChanged =
+            currentRejectReason.trim() !== originalRejectReason.trim();
         }
 
-        return detailsChanged || filesChanged || statusChanged;
+        return (
+          detailsChanged || filesChanged || statusChanged || rejectReasonChanged
+        );
       }
 
       // Fallback: if we don't have original data, consider any dirty state as changes

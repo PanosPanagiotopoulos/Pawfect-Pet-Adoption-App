@@ -15,6 +15,7 @@ import { nameof } from 'ts-simple-nameof';
 import { Conversation } from '../models/conversation/conversation.model';
 import { User } from '../models/user/user.model';
 import { File } from '../models/file/file.model';
+import { Shelter } from '../models/shelter/shelter.model';
 
 @Injectable({
   providedIn: 'root',
@@ -102,21 +103,29 @@ export class MessageService {
         nameof<Message>((x) => x.conversation),
         nameof<Conversation>((x) => x.id),
       ].join('.'),
-
-      [nameof<Message>((x) => x.sender), nameof<User>((x) => x.fullName)].join(
-        '.'
-      ),
-
+      [
+        nameof<Message>((x) => x.sender), 
+        nameof<User>((x) => x.fullName)
+      ].join('.'),
+      [
+        nameof<Message>((x) => x.sender), 
+        nameof<User>((x) => x.shelter),
+        nameof<Shelter>((x) => x.shelterName),
+      ].join('.'),
       [
         nameof<Message>((x) => x.sender),
         nameof<User>((x) => x.profilePhoto),
         nameof<File>((x) => x.sourceUrl),
       ].join('.'),
-
-      [nameof<Message>((x) => x.readBy), nameof<User>((x) => x.fullName)].join(
-        '.'
-      ),
-
+      [
+        nameof<Message>((x) => x.readBy), 
+        nameof<User>((x) => x.fullName)
+      ].join('.'),
+      [
+        nameof<Message>((x) => x.readBy), 
+        nameof<User>((x) => x.shelter),
+        nameof<Shelter>((x) => x.shelterName),
+      ].join('.'),
       [
         nameof<Message>((x) => x.readBy),
         nameof<User>((x) => x.profilePhoto),

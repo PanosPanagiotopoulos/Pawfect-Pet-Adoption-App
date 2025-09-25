@@ -10,22 +10,25 @@ import { TranslationService } from 'src/app/common/services/translation.service'
     <div class="space-y-8">
       <!-- Shelter Header -->
       <div class="flex items-center space-x-4">
-        <div
-          class="relative w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br from-primary-500/20 to-accent-500/20 group"
-        >
+        <div class="relative">
           <img
             *ngIf="shelter.user?.profilePhoto?.sourceUrl"
             [src]="shelter.user?.profilePhoto?.sourceUrl"
             [alt]="shelter.shelterName"
-            class="w-full h-full object-cover transform transition-transform duration-300 group-hover:scale-110"
+            class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg transform transition-transform duration-300 hover:scale-110"
+            style="aspect-ratio: 1 / 1;"
           />
-          <ng-icon
+          <div
             *ngIf="!shelter.user?.profilePhoto?.sourceUrl"
-            name="lucideHouse"
-            [size]="'32'"
-            class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-primary-400 stroke-[2.5px]"
+            class="w-16 h-16 rounded-full bg-gradient-to-br from-primary-500/20 to-accent-500/20 border-4 border-white shadow-lg flex items-center justify-center"
           >
-          </ng-icon>
+            <ng-icon
+              name="lucideHouse"
+              [size]="'32'"
+              class="text-primary-400 stroke-[2.5px]"
+            >
+            </ng-icon>
+          </div>
         </div>
 
         <div>

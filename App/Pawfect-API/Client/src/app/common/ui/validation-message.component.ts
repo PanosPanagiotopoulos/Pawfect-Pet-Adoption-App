@@ -1,4 +1,4 @@
-import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AbstractControl } from '@angular/forms';
 import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
@@ -7,13 +7,12 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
   selector: 'app-validation-message',
   standalone: true,
   imports: [CommonModule, TranslatePipe],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       *ngIf="shouldShowErrors()"
       [id]="id"
       role="alert"
-      class="absolute -bottom-6 left-0 text-sm text-red-400 transition-all duration-300"
+      class="mt-1 text-sm text-red-400 transition-all duration-300"
     >
       <!-- Required field -->
       <div *ngIf="control?.errors?.['required']">

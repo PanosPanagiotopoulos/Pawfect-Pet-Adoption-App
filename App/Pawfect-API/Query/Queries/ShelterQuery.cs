@@ -12,15 +12,17 @@ namespace Pawfect_API.Query.Queries
 {
 	public class ShelterQuery : BaseQuery<Data.Entities.Shelter>
 	{
+        private readonly MongoDbService _mongoDbService;
         public ShelterQuery
         (
             MongoDbService mongoDbService,
             IAuthorizationService AuthorizationService,
             ClaimsExtractor claimsExtractor,
-            IAuthorizationContentResolver AuthorizationContentResolver
+            IAuthorizationContentResolver authorizationContentResolver
 
-        ) : base(mongoDbService, AuthorizationService, AuthorizationContentResolver, claimsExtractor)
+        ) : base(mongoDbService, AuthorizationService, authorizationContentResolver, claimsExtractor)
         {
+            this._mongoDbService = mongoDbService;
         }
 
         // Λίστα με τα IDs των καταφυγίων για φιλτράρισμα
@@ -44,7 +46,7 @@ namespace Pawfect_API.Query.Queries
 
         // Εφαρμόζει τα καθορισμένα φίλτρα στο ερώτημα
         // Έξοδος: FilterDefinition<Shelter> - ο ορισμός φίλτρου που θα χρησιμοποιηθεί στο ερώτημα
-        public override Task<FilterDefinition<Data.Entities.Shelter>> ApplyFilters()
+        public override async Task<FilterDefinition<Data.Entities.Shelter>> ApplyFilters()
 		{
             FilterDefinitionBuilder<Data.Entities.Shelter> builder = Builders<Data.Entities.Shelter>.Filter;
             FilterDefinition<Data.Entities.Shelter> filter = builder.Empty;
@@ -170,13 +172,30 @@ namespace Pawfect_API.Query.Queries
 
                     BsonRegularExpression restrictedFuzzyRegex = new BsonRegularExpression(restrictedFuzzyPattern, "i");
                     searchFilters.Add(builder.Regex(nameof(Data.Entities.Shelter.ShelterName), restrictedFuzzyRegex));
+
+                    FilterDefinitionBuilder<Data.Entities.User> userBuilder = Builders<Data.Entities.User>.Filter;
+                    FilterDefinition<Data.Entities.User> userCityFilter = userBuilder.And(
+                        userBuilder.Regex(u => u.Location.City, new BsonRegularExpression(escapedQuery, "i")),
+                        userBuilder.Ne(u => u.ShelterId, null) 
+                    );
+
+                    List<String> matchingUsers = await _mongoDbService
+                        .GetCollection<Data.Entities.User>()
+                        .Find(userCityFilter)
+                        .Project(u => u.Id)
+                        .ToListAsync();
+
+                    if (matchingUsers.Any())
+                    {
+                        searchFilters.Add(builder.In(nameof(Data.Entities.Shelter.UserId), matchingUsers));
+                    }
                 }
 
                 // Combine all search filters with OR
                 filter &= builder.Or(searchFilters);
             }
 
-            return Task.FromResult(filter);
+            return filter;
 		}
 
         public override async Task<FilterDefinition<Data.Entities.Shelter>> ApplyAuthorization(FilterDefinition<Data.Entities.Shelter> filter)

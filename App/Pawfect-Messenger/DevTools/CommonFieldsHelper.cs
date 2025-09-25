@@ -15,12 +15,15 @@
 
                 String.Join('.', nameof(Models.Conversation.Conversation.LastMessagePreview), nameof(Models.Message.Message.Sender), nameof(Models.User.User.FullName)),
                 String.Join('.', nameof(Models.Conversation.Conversation.LastMessagePreview), nameof(Models.Message.Message.Sender), nameof(Models.User.User.ProfilePhoto), nameof(Models.File.File.SourceUrl)),
+                String.Join('.', nameof(Models.Conversation.Conversation.LastMessagePreview), nameof(Models.Message.Message.Sender), nameof(Models.User.User.Shelter), nameof(Models.Shelter.Shelter.ShelterName)),
 
                 String.Join('.', nameof(Models.Conversation.Conversation.CreatedBy), nameof(Models.User.User.FullName)),
+                String.Join('.', nameof(Models.Conversation.Conversation.CreatedBy), nameof(Models.User.User.Shelter), nameof(Models.Shelter.Shelter.ShelterName)),
                 String.Join('.', nameof(Models.Conversation.Conversation.CreatedBy), nameof(Models.User.User.ProfilePhoto), nameof(Models.File.File.SourceUrl)),
 
 
                 String.Join('.', nameof(Models.Conversation.Conversation.Participants), nameof(Models.User.User.FullName)),
+                String.Join('.', nameof(Models.Conversation.Conversation.Participants), nameof(Models.User.User.Shelter), nameof(Models.Shelter.Shelter.ShelterName)),
                 String.Join('.', nameof(Models.Conversation.Conversation.Participants), nameof(Models.User.User.ProfilePhoto), nameof(Models.File.File.SourceUrl)),
             ];
         }
@@ -41,10 +44,12 @@
 
                 // Sender (basic profile preview)
                 String.Join('.', nameof(Models.Message.Message.Sender), nameof(Models.User.User.FullName)),
+                String.Join('.', nameof(Models.Message.Message.Sender), nameof(Models.User.User.Shelter), nameof(Models.Shelter.Shelter.ShelterName)),
                 String.Join('.', nameof(Models.Message.Message.Sender), nameof(Models.User.User.ProfilePhoto), nameof(Models.File.File.SourceUrl)),
 
                 // ReadBy (list of users with minimal preview)
                 String.Join('.', nameof(Models.Message.Message.ReadBy), nameof(Models.User.User.FullName)),
+                String.Join('.', nameof(Models.Message.Message.ReadBy), nameof(Models.User.User.Shelter), nameof(Models.Shelter.Shelter.ShelterName)),
                 String.Join('.', nameof(Models.Message.Message.ReadBy), nameof(Models.User.User.ProfilePhoto), nameof(Models.File.File.SourceUrl)),
             ];
         }

@@ -477,6 +477,18 @@ namespace Pawfect_API.Services.MongoServices
                 _logger.LogInformation($"Created Breed regex index: {_config.IndexSettings.PlainTextIndexNames.BreedNameRegexIndex}");
             }
 
+            if (!await CheckRegularIndexExistsAsync(userCollection, _config.IndexSettings.PlainTextIndexNames.UserCityRegexIndex))
+            {
+                IndexKeysDefinition<BsonDocument> userCityIndexKeys = Builders<BsonDocument>.IndexKeys.Ascending("Location.City");
+                CreateIndexOptions userCityIndexOptions = new CreateIndexOptions
+                {
+                    Name = _config.IndexSettings.PlainTextIndexNames.UserCityRegexIndex,
+                    Collation = new Collation("en", strength: CollationStrength.Primary)
+                };
+                await userCollection.Indexes.CreateOneAsync(new CreateIndexModel<BsonDocument>(userCityIndexKeys, userCityIndexOptions));
+                _logger.LogInformation($"Created User regex index for Location.City: {_config.IndexSettings.PlainTextIndexNames.UserCityRegexIndex}");
+            }
+
             _logger.LogInformation("Multi-language plain text indexes setup completed successfully!");
         }
 

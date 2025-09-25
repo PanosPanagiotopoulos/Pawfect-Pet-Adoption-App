@@ -113,7 +113,7 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
           <app-text-area-input
             [form]="applicationForm"
             controlName="applicationDetails"
-            [label]="'APP.ADOPT.WHY_ADOPT_QUESTION' | translate"
+            [label]="'APP.ADOPT.WHY_ADOPT_QUESTION'"
             [rows]="4"
             [hint]="isApplicationApproved ? ('APP.ADOPT.APPLICATION_APPROVED_READONLY_HINT' | translate) : ('APP.ADOPT.WHY_ADOPT_HINT' | translate)"
           ></app-text-area-input>
@@ -233,6 +233,17 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
                       }}</span>
                     </label>
                   </div>
+                </div>
+
+                <!-- Rejection Reason Field - Only show when Rejected is selected -->
+                <div *ngIf="applicationForm.get('status')?.value === ApplicationStatus.Rejected" class="mt-4">
+                  <app-text-area-input
+                    [form]="applicationForm"
+                    controlName="rejectReasson"
+                    [label]="'APP.ADOPT.REJECTION_REASON'"
+                    [rows]="3"
+                    [hint]="'APP.ADOPT.REJECTION_REASON_HINT'"
+                  ></app-text-area-input>
                 </div>
               </div>
 
@@ -422,12 +433,35 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
       applicationDetails: ['', [Validators.required, Validators.minLength(50)]],
       attachedFiles: [[]],
       status: [{ value: ApplicationStatus.Pending, disabled: true }],
+      rejectReasson: [''], // Will be conditionally validated
     });
   }
 
   ngOnInit() {
     this.initializePermissions();
     this.loadExistingData();
+    this.setupStatusChangeValidation();
+  }
+
+  private setupStatusChangeValidation(): void {
+    // Watch for status changes to conditionally validate rejection reason
+    this.applicationForm.get('status')?.valueChanges.subscribe(status => {
+      this.applyRejectReasonValidation(status);
+    });
+  }
+
+  private applyRejectReasonValidation(status: ApplicationStatus): void {
+    const rejectReasonControl = this.applicationForm.get('rejectReasson');
+    
+    if (status === ApplicationStatus.Rejected) {
+      // Add required and minLength validators when rejected
+      rejectReasonControl?.setValidators([Validators.required, Validators.minLength(10)]);
+    } else {
+      // Remove validators for other statuses
+      rejectReasonControl?.clearValidators();
+    }
+    
+    rejectReasonControl?.updateValueAndValidity();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -596,6 +630,7 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
       this.applicationForm.patchValue({
         applicationDetails: this.adoptionApplication.applicationDetails || '',
         status: this.adoptionApplication.status || ApplicationStatus.Pending,
+        rejectReasson: this.adoptionApplication.rejectReasson || '',
       });
 
       this.existingFiles = this.adoptionApplication.attachedFiles || [];
@@ -606,6 +641,9 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
 
       this.applicationForm.get('attachedFiles')?.setValue(existingFileIds);
       this.initializePermissions();
+
+      // Apply rejection reason validation based on current status
+      this.applyRejectReasonValidation(this.adoptionApplication.status || ApplicationStatus.Pending);
 
       // Disable form controls if application is approved
       if (this.isApplicationApproved) {
@@ -657,6 +695,7 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
         : this.animal.shelter?.id!,
       status: statusToUse,
       applicationDetails: this.applicationForm.get('applicationDetails')?.value,
+      rejectReasson: this.applicationForm.get('rejectReasson')?.value || undefined,
       attachedFilesIds: this.applicationForm.get('attachedFiles')?.value || [],
     };
   }
@@ -666,6 +705,7 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
       nameof<AdoptionApplication>((x) => x.id),
       nameof<AdoptionApplication>((x) => x.status),
       nameof<AdoptionApplication>((x) => x.applicationDetails),
+      nameof<AdoptionApplication>((x) => x.rejectReasson),
       [
         nameof<AdoptionApplication>((x) => x.animal),
         nameof<Animal>((x) => x.id),

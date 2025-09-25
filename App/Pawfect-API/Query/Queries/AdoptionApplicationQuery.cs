@@ -206,7 +206,8 @@ namespace Pawfect_API.Query.Queries
 				projectionFields.Add(nameof(Data.Entities.AdoptionApplication.Id));
 				if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.Status))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.Status));
 				if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.ApplicationDetails))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.ApplicationDetails));
-				if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.CreatedAt))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.CreatedAt));
+                if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.RejectReasson))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.RejectReasson));
+                if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.CreatedAt))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.CreatedAt));
 				if (item.Equals(nameof(Models.AdoptionApplication.AdoptionApplication.UpdatedAt))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.UpdatedAt));
 				if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.User))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.UserId));
 				if (item.StartsWith(nameof(Models.AdoptionApplication.AdoptionApplication.Animal))) projectionFields.Add(nameof(Data.Entities.AdoptionApplication.AnimalId));

@@ -59,7 +59,6 @@ export class SearchComponent
   pageSize = 10;
   currentOffset = 0;
   loadThreshold = 0.75;
-  hasMoreToLoad = true;
   totalAnimalsCount = 0;
 
   isInitialLoad = true;
@@ -182,7 +181,6 @@ export class SearchComponent
       this.currentIndex = 0;
       this.animals = [];
       this.currentAnimalKey = null;
-      this.hasMoreToLoad = true;
 
       // Clear declined animals for new search (allow previously declined animals to appear again)
       this.declinedAnimalIds.clear();
@@ -211,10 +209,6 @@ export class SearchComponent
   }
 
   private loadAnimalsWithCurrentSettings(append: boolean = false) {
-    if (!this.hasMoreToLoad && append) {
-      return;
-    }
-
     if (append) {
       this.isLoadingMore = true;
     }
@@ -225,31 +219,7 @@ export class SearchComponent
       query: this.currentSearchQuery,
       adoptionStatuses: [AdoptionStatus.Available],
       ...this.currentFilters,
-      fields: [
-        nameof<Animal>((x) => x.id),
-        nameof<Animal>((x) => x.name),
-        nameof<Animal>((x) => x.gender),
-        nameof<Animal>((x) => x.description),
-        [
-          nameof<Animal>((x) => x.attachedPhotos),
-          nameof<File>((x) => x.sourceUrl),
-        ].join('.'),
-        nameof<Animal>((x) => x.adoptionStatus),
-        nameof<Animal>((x) => x.weight),
-        nameof<Animal>((x) => x.age),
-        nameof<Animal>((x) => x.healthStatus),
-        [
-          nameof<Animal>((x) => x.animalType),
-          nameof<AnimalType>((x) => x.name),
-        ].join('.'),
-        [nameof<Animal>((x) => x.breed), nameof<Breed>((x) => x.name)].join(
-          '.'
-        ),
-        [
-          nameof<Animal>((x) => x.shelter),
-          nameof<Shelter>((x) => x.shelterName),
-        ].join('.'),
-      ],
+      fields: [],
       sortBy: [nameof<Animal>((x) => x.createdAt)],
       sortDescending: false,
     };
@@ -272,15 +242,12 @@ export class SearchComponent
         // Update total count from response
         this.totalAnimalsCount = response.count || 0;
 
-        if (response.items.length < this.pageSize) {
-          this.hasMoreToLoad = false;
-        }
-
         if (append) {
           this.animals = this.utilsService.combineDistinct(
             this.animals,
             response.items
           );
+          this.isLoadingMore = false;
         } else {
           this.animals = response.items;
 
@@ -311,17 +278,15 @@ export class SearchComponent
   }
 
   checkLoadMore() {
-    // Calculate viewed percentage based on currently loaded animals
-    const viewedPercentage =
-      this.animals.length > 0
-        ? (this.currentIndex + 1) / this.animals.length
-        : 0;
+    if (this.isLoadingMore) {
+      return;
+    }
 
-    if (
-      viewedPercentage >= this.loadThreshold &&
-      !this.isLoadingMore &&
-      this.hasMoreToLoad
-    ) {
+    const currentBatchViewed = this.currentIndex + 1; // How many from current loaded batch we've seen
+    const currentBatchSize = this.animals.length; // Size of current loaded batch
+    const viewedPercentageOfBatch =
+      currentBatchSize > 0 ? currentBatchViewed / currentBatchSize : 0;
+    if (viewedPercentageOfBatch > 0.85) {
       this.loadAnimals(true);
     }
   }
@@ -351,10 +316,8 @@ export class SearchComponent
       this.declinedAnimalIds.add(currentAnimal.id);
     }
 
-    if (this.hasMoreAnimals()) {
-      this.currentIndex++;
-      this.updateCurrentAnimalKey();
-    }
+    this.currentIndex++;
+    this.updateCurrentAnimalKey();
     this.checkLoadMore();
     this.cdr.markForCheck();
   }
@@ -378,7 +341,6 @@ export class SearchComponent
     this.animals = [];
     this.currentAnimalKey = null;
     this.isInitialLoad = true;
-    this.hasMoreToLoad = true;
     this.searchControl.setValue('');
     this.updateQueryParams('');
     this.cdr.markForCheck();
@@ -411,6 +373,12 @@ export class SearchComponent
     this.currentAnimalKey = currentAnimal
       ? `${currentAnimal.id}-${this.currentIndex}`
       : null;
+  }
+
+  private getTotalProcessedAnimals(): number {
+    // Return the total number of animals that have been processed (viewed)
+    // This includes both saved and declined animals
+    return this.savedAnimalIds.size + this.declinedAnimalIds.size;
   }
 
   private updateQueryParams(query: string) {

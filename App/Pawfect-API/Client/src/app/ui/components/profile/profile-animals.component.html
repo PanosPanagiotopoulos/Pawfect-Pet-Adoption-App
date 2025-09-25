@@ -749,6 +749,7 @@
                   [src]="animal.attachedPhotos?.[0]?.sourceUrl || 'assets/placeholder.jpg'"
                   [alt]="animal.name"
                   class="w-12 h-12 rounded-full object-cover border-2 border-white shadow"
+                  style="aspect-ratio: 1 / 1;"
                   (error)="onImageError($event)"
                 />
                 <span class="font-semibold text-gray-900">{{

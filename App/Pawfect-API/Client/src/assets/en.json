@@ -88,6 +88,8 @@
       "REDIRECTING_TO_PROFILE": "Redirecting you to your profile page.",
       "VIEW_APPLICATION_IN_PROFILE": "You can view and edit your application from there.",
       "ERROR_SUMMARY_TITLE": "Please correct the following errors:",
+      "REJECTION_REASON": "Rejection Reason",
+      "REJECTION_REASON_HINT": "Please provide a detailed reason for rejecting this application (minimum 10 characters)",
       "ERRORS": {
         "PET_NOT_FOUND_TITLE": "Pet not found",
         "PET_NOT_FOUND_MESSAGE": "Please check the link or try again later."

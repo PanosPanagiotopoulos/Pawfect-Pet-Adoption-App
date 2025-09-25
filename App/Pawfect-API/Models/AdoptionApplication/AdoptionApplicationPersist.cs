@@ -10,6 +10,7 @@ namespace Pawfect_API.Models.AdoptionApplication
 		public String ShelterId { get; set; }
 		public ApplicationStatus Status { get; set; }
 		public String ApplicationDetails { get; set; }
-		public List<String> AttachedFilesIds { get; set; }
+        public String RejectReasson { get; set; }
+        public List<String> AttachedFilesIds { get; set; }
 	}
 }

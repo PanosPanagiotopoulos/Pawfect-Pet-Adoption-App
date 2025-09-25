@@ -81,7 +81,8 @@ export class ShelterInfoComponent implements OnInit {
     const shelterForm = this.getShelterForm();
     const socialForm = this.getSocialMediaForm();
     const hoursForm = this.getOperatingHoursForm();
-    const anyDirty = !!shelterForm?.dirty || !!socialForm?.dirty || !!hoursForm?.dirty;
+    const anyDirty =
+      !!shelterForm?.dirty || !!socialForm?.dirty || !!hoursForm?.dirty;
     return anyDirty || this.operatingHoursModified;
   }
 

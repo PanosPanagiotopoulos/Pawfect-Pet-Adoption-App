@@ -6,11 +6,15 @@ import { catchError } from 'rxjs/operators';
 import { HttpParams } from '@angular/common/http';
 import { QueryResult } from '../common/models/query-result';
 import { ConversationLookup } from '../lookup/conversation-lookup';
-import { Conversation, ConversationPersist } from '../models/conversation/conversation.model';
+import {
+  Conversation,
+  ConversationPersist,
+} from '../models/conversation/conversation.model';
 import { nameof } from 'ts-simple-nameof';
 import { Message } from '../models/message/message.model';
 import { User } from '../models/user/user.model';
 import { File } from '../models/file/file.model';
+import { Shelter } from '../models/shelter/shelter.model';
 
 @Injectable({
   providedIn: 'root',
@@ -68,90 +72,106 @@ export class ConversationService {
 
   static getConversationFields(): string[] {
     return [
-      nameof<Conversation>(x => x.id),
-      nameof<Conversation>(x => x.createdAt),
-      nameof<Conversation>(x => x.lastMessageAt),
-      
+      nameof<Conversation>((x) => x.id),
+      nameof<Conversation>((x) => x.createdAt),
+      nameof<Conversation>((x) => x.lastMessageAt),
+
       // Last message preview fields
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.id),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.id),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.content),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.content),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.status),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.status),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.createdAt),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.createdAt),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.updatedAt),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.updatedAt),
       ].join('.'),
 
       // Last message sender fields
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.sender),
-        nameof<User>(x => x.id),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.sender),
+        nameof<User>((x) => x.id),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.sender),
-        nameof<User>(x => x.fullName),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.sender),
+        nameof<User>((x) => x.fullName),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.sender),
-        nameof<User>(x => x.profilePhoto),
-        nameof<File>(x => x.sourceUrl),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.sender),
+        nameof<User>((x) => x.shelter),
+        nameof<Shelter>((x) => x.shelterName),
+      ].join('.'),
+      [
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.sender),
+        nameof<User>((x) => x.profilePhoto),
+        nameof<File>((x) => x.sourceUrl),
       ].join('.'),
 
       // Last message readBy fields
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.readBy),
-        nameof<User>(x => x.id),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.readBy),
+        nameof<User>((x) => x.id),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.lastMessagePreview),
-        nameof<Message>(x => x.readBy),
-        nameof<User>(x => x.fullName),
+        nameof<Conversation>((x) => x.lastMessagePreview),
+        nameof<Message>((x) => x.readBy),
+        nameof<User>((x) => x.fullName),
       ].join('.'),
 
       // Conversation creator fields
       [
-        nameof<Conversation>(x => x.createdBy),
-        nameof<User>(x => x.id),
+        nameof<Conversation>((x) => x.createdBy),
+        nameof<User>((x) => x.id),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.createdBy),
-        nameof<User>(x => x.fullName),
+        nameof<Conversation>((x) => x.createdBy),
+        nameof<User>((x) => x.fullName),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.createdBy),
-        nameof<User>(x => x.profilePhoto),
-        nameof<File>(x => x.sourceUrl),
+        nameof<Conversation>((x) => x.createdBy),
+        nameof<User>((x) => x.shelter),
+        nameof<Shelter>((x) => x.shelterName),
+      ].join('.'),
+      [
+        nameof<Conversation>((x) => x.createdBy),
+        nameof<User>((x) => x.profilePhoto),
+        nameof<File>((x) => x.sourceUrl),
       ].join('.'),
 
       // Participants fields
       [
-        nameof<Conversation>(x => x.participants),
-        nameof<User>(x => x.id),
+        nameof<Conversation>((x) => x.participants),
+        nameof<User>((x) => x.id),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.participants),
-        nameof<User>(x => x.fullName),
+        nameof<Conversation>((x) => x.participants),
+        nameof<User>((x) => x.fullName),
       ].join('.'),
       [
-        nameof<Conversation>(x => x.participants),
-        nameof<User>(x => x.profilePhoto),
-        nameof<File>(x => x.sourceUrl),
+        nameof<Conversation>((x) => x.participants),
+        nameof<User>((x) => x.shelter),
+        nameof<Shelter>((x) => x.shelterName),  
+      ].join('.'),
+      [
+        nameof<Conversation>((x) => x.participants),
+        nameof<User>((x) => x.profilePhoto),
+        nameof<File>((x) => x.sourceUrl),
       ].join('.'),
     ];
   }

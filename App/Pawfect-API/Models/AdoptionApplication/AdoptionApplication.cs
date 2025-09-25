@@ -9,8 +9,9 @@ namespace Pawfect_API.Models.AdoptionApplication
 		public Animal.Animal? Animal { get; set; }
 		public Shelter.Shelter? Shelter { get; set; }
 		public ApplicationStatus? Status { get; set; }
-		public String? ApplicationDetails { get; set; }
-		public List<File.File>? AttachedFiles { get; set; }
+		public String ApplicationDetails { get; set; }
+        public String RejectReasson { get; set; }
+        public List<File.File>? AttachedFiles { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }
 	}

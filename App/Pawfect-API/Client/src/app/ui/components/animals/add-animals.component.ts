@@ -735,8 +735,8 @@ export class AddAnimalsComponent
 
   private prefillFormsFromExcel(animals: AnimalPersist[]): void {
     // Clear existing forms
-    this.animalForms = [];
-    this.currentFormIndex = 0;
+    this.animalForms ??= [];
+    this.currentFormIndex = this.animalForms?.length || 0;
 
     // Create forms for each imported animal
     animals.forEach((animal, index) => {
@@ -763,7 +763,7 @@ export class AddAnimalsComponent
       const formData: AnimalFormData = {
         id: newId,
         form: newForm,
-        isCollapsed: index !== 0, // Expand first form, collapse others
+        isCollapsed: true, // Collapse all forms initially
         title: animal.name || 'APP.ANIMALS.ADD.NEW_ANIMAL_TITLE',
         dropdownStates: {
           gender: false,
@@ -776,10 +776,15 @@ export class AddAnimalsComponent
       this.animalForms.push(formData);
     });
 
-    // Load breeds for the first animal if it has an animal type
+    // Show the last imported form (expand it and set as current)
     if (this.animalForms.length > 0) {
-      const firstForm = this.animalForms[0];
-      const animalTypeId = firstForm.form.get('animalTypeId')?.value;
+      const lastFormIndex = this.animalForms.length - 1;
+      this.animalForms[lastFormIndex].isCollapsed = false;
+      this.currentFormIndex = lastFormIndex;
+
+      // Load breeds for the last animal if it has an animal type
+      const lastForm = this.animalForms[lastFormIndex];
+      const animalTypeId = lastForm.form.get('animalTypeId')?.value;
       if (animalTypeId) {
         this.loadBreedsForAnimalType(animalTypeId);
       }

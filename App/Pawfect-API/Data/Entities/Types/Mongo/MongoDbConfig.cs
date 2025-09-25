@@ -35,6 +35,7 @@
         public String AnimalTypeNameRegexIndex { get; set; }
         public String BreedNameTextIndex { get; set; }
         public String BreedNameRegexIndex { get; set; }
+        public String UserCityRegexIndex { get; set; }
     }
 
     public class IndexSynonyms

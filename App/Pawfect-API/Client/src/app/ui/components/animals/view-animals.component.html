@@ -414,6 +414,7 @@
                     [src]="getShelterProfilePicture()"
                     [alt]="animal.shelter.shelterName + ' profile'"
                     class="w-16 h-16 rounded-full object-cover border-2 border-primary-400/30 shadow-lg hover:border-primary-400/60 transition-all duration-300 cursor-pointer"
+                    style="aspect-ratio: 1 / 1;"
                     (click)="navigateToShelterProfile()"
                     (error)="onShelterImageError($event)"
                   />

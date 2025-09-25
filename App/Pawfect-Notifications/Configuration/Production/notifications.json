@@ -19,40 +19,40 @@
       // In-App
       {
         "TemplateId": "53CA00F9-F819-425A-A7DE-FE5153C2E743",
-        "TitlePath": "Templates/InApp/AdoptionApplicationReceived/Adoption_Application_Received.Title.html",
-        "ContentPath": "Templates/InApp/AdoptionApplicationReceived/Adoption_Application_Received.Content.html"
+        "TitlePath": "Templates/InApp/AdoptionApplicationReceived/Adoption_Application_Received.Title.Production.html",
+        "ContentPath": "Templates/InApp/AdoptionApplicationReceived/Adoption_Application_Received.Content.Production.html"
       },
       {
         "TemplateId": "60816EB1-B8B6-446C-A7AE-9EB27EDCD6F6",
-        "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_User.Title.html",
-        "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_User.Content.html"
+        "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_User.Title.Production.html",
+        "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_User.Content.Production.html"
       },
       {
         "TemplateId": "912BC173-1342-4568-9D64-E26850AF47ED",
-        "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Title.html",
-        "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Content.html"
+        "TitlePath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Title.Production.html",
+        "ContentPath": "Templates/InApp/Adoption_Application_Changed/Adoption_Application_Changed_Shelter.Content.Production.html"
       },
       {
         "TemplateId": "E5229D0D-3936-4B87-8DDC-E4FF3F5FBFCC",
-        "TitlePath": "Templates/InApp/Notify_Rejected_Applicants/Notify_Rejected_Applicants.Title.html",
-        "ContentPath": "Templates/InApp/Notify_Rejected_Applicants/Notify_Rejected_Applicants.Content.html"
+        "TitlePath": "Templates/InApp/Notify_Rejected_Applicants/Notify_Rejected_Applicants.Title.Production.html",
+        "ContentPath": "Templates/InApp/Notify_Rejected_Applicants/Notify_Rejected_Applicants.Content.Production.html"
       },
 
       // Email
       {
         "TemplateId": "9E18EB46-89EE-40E4-9FC1-E324635F4186",
-        "TitlePath": "Templates/Emails/Verify_Shelter/Verify_Shelter.Title.html",
-        "ContentPath": "Templates/Emails/Verify_Shelter/Verify_Shelter.Content.html"
+        "TitlePath": "Templates/Emails/Verify_Shelter/Verify_Shelter.Title.Production.html",
+        "ContentPath": "Templates/Emails/Verify_Shelter/Verify_Shelter.Content.Production.html"
       },
       {
         "TemplateId": "4E84F930-A93A-470F-9CFA-58AD31240DCF",
-        "TitlePath": "Templates/Emails/Verification/Verification.Title.html",
-        "ContentPath": "Templates/Emails/Verification/Verification.Content.html"
+        "TitlePath": "Templates/Emails/Verification/Verification.Title.Production.html",
+        "ContentPath": "Templates/Emails/Verification/Verification.Content.Production.html"
       },
       {
         "TemplateId": "529FADA1-9C2F-4F3B-A870-7337D2D154F4",
-        "TitlePath": "Templates/Emails/Reset_Password/Reset_Password.Title.html",
-        "ContentPath": "Templates/Emails/Reset_Password/Reset_Password.Content.html"
+        "TitlePath": "Templates/Emails/Reset_Password/Reset_Password.Title.Production.html",
+        "ContentPath": "Templates/Emails/Reset_Password/Reset_Password.Content.Production.html"
       },
 
       // SMS

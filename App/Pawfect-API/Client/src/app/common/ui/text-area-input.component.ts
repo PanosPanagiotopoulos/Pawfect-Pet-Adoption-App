@@ -3,7 +3,6 @@ import {
   Input,
   Output,
   EventEmitter,
-  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -14,9 +13,8 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
   selector: 'app-text-area-input',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, ValidationMessageComponent, TranslatePipe],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div [formGroup]="form" class="relative group mb-10">
+    <div [formGroup]="form" class="relative group mb-6">
       <!-- Label -->
       <label
         [for]="controlName"
@@ -91,11 +89,10 @@ export class TextAreaInputComponent {
     const isInvalid = control?.invalid && (control?.touched || control?.dirty);
 
     return `
-      border-white/10
       ${
         isInvalid
           ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20'
-          : 'focus:border-primary-500/50 focus:ring-primary-500/20'
+          : 'border-white/10 focus:border-primary-500/50 focus:ring-primary-500/20'
       }
     `;
   }

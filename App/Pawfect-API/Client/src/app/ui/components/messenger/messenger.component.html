@@ -154,15 +154,17 @@
                   else defaultShelterAvatar
                 "
                 [src]="shelter.user?.profilePhoto?.sourceUrl!"
-                [alt]="shelter.user?.fullName || 'User'"
+                [alt]="shelter.shelterName"
                 class="w-8 h-8 rounded-full object-cover"
+                style="aspect-ratio: 1 / 1;"
                 (error)="onImageError($event)"
               />
               <ng-template #defaultShelterAvatar>
                 <img
                   src="assets/placeholder.jpg"
-                  [alt]="shelter.user?.fullName || 'User'"
+                  [alt]="shelter.shelterName || 'User'"
                   class="w-8 h-8 rounded-full object-cover"
+                  style="aspect-ratio: 1 / 1;"
                 />
               </ng-template>
             </div>
@@ -174,7 +176,7 @@
               {{ shelter.shelterName }}
             </h4>
             <p class="text-xs text-gray-500 truncate">
-              {{ shelter.user?.fullName }}
+              {{ shelter.shelterName }}
             </p>
           </div>
         </div>
@@ -195,15 +197,17 @@
               <img
                 *ngIf="user.profilePhoto?.sourceUrl; else defaultUserAvatar"
                 [src]="user.profilePhoto?.sourceUrl!"
-                [alt]="user.fullName || 'User'"
+                [alt]="user.shelter?.shelterName || user.fullName || 'User'"
                 class="w-8 h-8 rounded-full object-cover"
+                style="aspect-ratio: 1 / 1;"
                 (error)="onImageError($event)"
               />
               <ng-template #defaultUserAvatar>
                 <img
                   src="assets/placeholder.jpg"
-                  [alt]="user.fullName || 'User'"
+                  [alt]="user.shelter?.shelterName || user.fullName || 'User'"
                   class="w-8 h-8 rounded-full object-cover"
+                  style="aspect-ratio: 1 / 1;"
                 />
               </ng-template>
             </div>
@@ -212,7 +216,7 @@
           <!-- User Info -->
           <div class="flex-1 min-w-0">
             <h4 class="text-sm font-medium text-gray-900 truncate">
-              {{ user.fullName }}
+              {{ user.shelter?.shelterName || user.fullName }}
             </h4>
             <p class="text-xs text-gray-500 truncate">
               {{ user.email }}
@@ -310,15 +314,17 @@
               [src]="
                 getOtherParticipant(conversation)?.profilePhoto?.sourceUrl!
               "
-              [alt]="getOtherParticipant(conversation)?.fullName || 'User'"
+              [alt]="getOtherParticipant(conversation)?.shelter?.shelterName || getOtherParticipant(conversation)?.fullName"  
               class="w-10 h-10 rounded-full object-cover"
+              style="aspect-ratio: 1 / 1;"
               (error)="onImageError($event)"
             />
             <ng-template #defaultConversationAvatar>
               <img
                 src="assets/placeholder.jpg"
-                [alt]="getOtherParticipant(conversation)?.fullName || 'User'"
+                [alt]="getOtherParticipant(conversation)?.shelter?.shelterName || getOtherParticipant(conversation)?.fullName || 'User'"
                 class="w-10 h-10 rounded-full object-cover"
+                style="aspect-ratio: 1 / 1;"
               />
             </ng-template>
           </div>
@@ -326,14 +332,32 @@
 
         <!-- Conversation Info -->
         <div class="flex-1 min-w-0">
-          <div class="flex items-center justify-between mb-1">
+          <div class="mb-1">
             <h4
               class="text-sm font-medium text-gray-900 truncate"
               [class.font-bold]="hasUnreadMessages(conversation)"
               [class.font-extrabold]="hasUnseenLastMessage(conversation)"
             >
-              {{ getOtherParticipant(conversation)?.fullName }}
+              {{ getOtherParticipant(conversation)?.shelter?.shelterName || getOtherParticipant(conversation)?.fullName }}
             </h4>
+          </div>
+          <p
+            *ngIf="shouldShowMessagePreview(conversation)"
+            class="text-xs text-gray-500 truncate mb-1"
+            [class.font-semibold]="hasUnreadMessages(conversation)"
+            [class.text-gray-700]="hasUnreadMessages(conversation)"
+            [class.font-bold]="hasUnseenLastMessage(conversation)"
+            [class.text-gray-800]="hasUnseenLastMessage(conversation)"
+          >
+            {{ conversation.lastMessagePreview?.content }}
+          </p>
+          <p
+            *ngIf="!shouldShowMessagePreview(conversation)"
+            class="text-xs text-gray-400 italic mb-1"
+          >
+            {{ 'APP.MESSENGER.NO_MESSAGES_YET' | translate }}
+          </p>
+          <div class="flex justify-end">
             <span
               *ngIf="conversation.lastMessageAt"
               class="text-xs text-gray-500"
@@ -344,22 +368,6 @@
               {{ conversation.lastMessageAt | date : "short" }}
             </span>
           </div>
-          <p
-            *ngIf="shouldShowMessagePreview(conversation)"
-            class="text-xs text-gray-500 truncate"
-            [class.font-semibold]="hasUnreadMessages(conversation)"
-            [class.text-gray-700]="hasUnreadMessages(conversation)"
-            [class.font-bold]="hasUnseenLastMessage(conversation)"
-            [class.text-gray-800]="hasUnseenLastMessage(conversation)"
-          >
-            {{ conversation.lastMessagePreview?.content }}
-          </p>
-          <p
-            *ngIf="!shouldShowMessagePreview(conversation)"
-            class="text-xs text-gray-400 italic"
-          >
-            {{ 'APP.MESSENGER.NO_MESSAGES_YET' | translate }}
-          </p>
         </div>
 
         <!-- Unread indicator dot -->
@@ -415,18 +423,20 @@
                   ?.sourceUrl!
               "
               [alt]="
-                getOtherParticipant(selectedConversation)?.fullName || 'User'
+                getOtherParticipant(selectedConversation)?.shelter?.shelterName || getOtherParticipant(selectedConversation)?.fullName || 'User'
               "
               class="w-8 h-8 rounded-full object-cover"
+              style="aspect-ratio: 1 / 1;"
               (error)="onImageError($event)"
             />
             <ng-template #defaultParticipantAvatar>
               <img
                 src="assets/placeholder.jpg"
                 [alt]="
-                  getOtherParticipant(selectedConversation)?.fullName || 'User'
+                  getOtherParticipant(selectedConversation)?.shelter?.shelterName || getOtherParticipant(selectedConversation)?.fullName || 'User'
                 "
                 class="w-8 h-8 rounded-full object-cover"
+                style="aspect-ratio: 1 / 1;"
               />
             </ng-template>
           </button>
@@ -443,7 +453,7 @@
           class="text-sm font-medium text-gray-900 truncate hover:text-primary-600 transition-colors duration-200 focus:outline-none focus:text-primary-600"
           [title]="'APP.MESSENGER.VIEW_PROFILE' | translate"
         >
-          {{ getOtherParticipant(selectedConversation)?.fullName }}
+          {{ getOtherParticipant(selectedConversation)?.shelter?.shelterName || getOtherParticipant(selectedConversation)?.fullName }}
         </button>
       </div>
     </div>
@@ -499,13 +509,15 @@
               [src]="message.sender?.profilePhoto?.sourceUrl!"
               [alt]="message.sender?.fullName || 'User'"
               class="w-6 h-6 rounded-full object-cover"
+              style="aspect-ratio: 1 / 1;"
               (error)="onImageError($event)"
             />
             <ng-template #defaultMessageAvatar>
               <img
                 src="assets/placeholder.jpg"
-                [alt]="message.sender?.fullName || 'User'"
+                [alt]="message.sender?.shelter?.shelterName || message.sender?.fullName || 'User'"
                 class="w-6 h-6 rounded-full object-cover"
+                style="aspect-ratio: 1 / 1;"
               />
             </ng-template>
           </button>

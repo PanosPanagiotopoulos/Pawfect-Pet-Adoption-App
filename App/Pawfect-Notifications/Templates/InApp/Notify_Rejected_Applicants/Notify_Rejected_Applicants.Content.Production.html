@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Status Updated - User Notification</title>
+    <title>Application Auto-Rejected - User Notification</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-    <a href="http://localhost:4200/adopt/edit/{ApplicationId}" style="
+    <a href="http://localhost:5000/adopt/edit/{ApplicationId}" style="
         text-decoration: none;
         display: block;
         cursor: pointer;
@@ -34,7 +34,11 @@
                     <span style="color: #6b7280;">Hi</span>
                     <strong style="color: #4f46e5; font-weight: 600;">{UserFirstName}</strong>!
                     <span style="color: #6b7280; font-size: 0.8125rem;">
-                        {ShelterName} updated your application for
+                        Unfortunately, your application at
+                    </span>
+                    <strong style="color: #4f46e5; font-weight: 600;">{ShelterName}</strong>
+                    <span style="color: #6b7280; font-size: 0.8125rem;">
+                        for
                     </span>
                 </div>
                 <div>
@@ -59,12 +63,12 @@
                 align-items: center;
                 gap: 0.5rem;
             ">
-                <span style="font-size: 0.75rem;">🏷️</span>
+                <span style="font-size: 0.75rem;">🚫</span>
                 <span style="
                     font-size: 0.75rem;
                     color: #166534;
                     font-weight: 500;
-                ">New Status: {ApplicationStatus}</span>
+                ">Status: Rejected — {Reason}</span>
             </div>
 
             <!-- Action -->
@@ -79,7 +83,7 @@
             ">
                 <span>View Application</span>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" />
                 </svg>
             </div>
         </div>
@@ -91,7 +95,7 @@
             box-shadow: 0 3px 12px rgba(79, 70, 229, 0.1);
             border-color: rgba(79, 70, 229, 0.15);
         }
-        
+
         a:focus {
             outline: 2px solid #4f46e5;
             outline-offset: 1px;

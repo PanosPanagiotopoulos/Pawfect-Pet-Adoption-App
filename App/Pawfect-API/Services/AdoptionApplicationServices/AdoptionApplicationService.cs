@@ -107,6 +107,11 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
                     if (data.ShelterId != persist.ShelterId) throw new ForbiddenException("Not allowed action");
                 }
 
+                else
+                {
+                    if (data.Status == ApplicationStatus.Rejected && String.IsNullOrEmpty(persist.RejectReasson)) throw new InvalidOperationException("Reject reason must be provided when rejecting an application");
+                }
+
                 if (await _animalRepository.ExistsAsync(animal => animal.Id == data.AnimalId && animal.AdoptionStatus == AdoptionStatus.Adopted))
                     throw new InvalidOperationException("Animal already is adopted. We are very sorry for the inconvinience");                   
 

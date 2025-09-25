@@ -13,7 +13,8 @@
         "AnimalTypeNameTextIndex": "animal_type_name_text_index",
         "AnimalTypeNameRegexIndex": "animal_type_name_regex_index",
         "BreedNameTextIndex": "breed_name_text_index",
-        "BreedNameRegexIndex": "breed_name_regex_index"
+        "BreedNameRegexIndex": "breed_name_regex_index",
+        "UserCityRegexIndex": "user_city_regex_index"
       },
       "AnimalVectorSearchIndexName": "animals_vector_search_index",
       "AnimalSchemanticIndexName": "animals_text_search_index",

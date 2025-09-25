@@ -11,6 +11,7 @@ export interface AdoptionApplication {
   shelter?: Shelter;
   status?: ApplicationStatus;
   applicationDetails?: string;
+  rejectReasson?: string;
   attachedFiles?: File[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -22,6 +23,7 @@ export interface AdoptionApplicationPersist {
   shelterId: string;
   status: ApplicationStatus;
   applicationDetails: string;
+  rejectReasson?: string;
   attachedFilesIds: string[];
 }
 

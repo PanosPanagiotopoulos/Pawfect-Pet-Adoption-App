@@ -76,7 +76,8 @@ namespace Pawfect_API.Builders
                 Models.AdoptionApplication.AdoptionApplication dto = new Models.AdoptionApplication.AdoptionApplication();
 				dto.Id = e.Id;
 				if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.ApplicationDetails))) dto.ApplicationDetails = e.ApplicationDetails;
-				if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.Status))) dto.Status = e.Status;
+                if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.RejectReasson))) dto.RejectReasson = e.RejectReasson;
+                if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.Status))) dto.Status = e.Status;
 				if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.CreatedAt))) dto.CreatedAt = e.CreatedAt;
 				if (nativeFields.Contains(nameof(Models.AdoptionApplication.AdoptionApplication.UpdatedAt))) dto.UpdatedAt = e.UpdatedAt;
 				if (animalMap != null && animalMap.ContainsKey(e.Id)) dto.Animal = animalMap[e.Id];

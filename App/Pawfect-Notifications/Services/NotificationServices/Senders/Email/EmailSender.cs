@@ -11,6 +11,7 @@ using Pawfect_Notifications.Exceptions;
 using Pawfect_Notifications.DevTools;
 using Microsoft.Extensions.Caching.Memory;
 using Pawfect_Notifications.Data.Entities.Types.Cache;
+using Vonage.VerifyV2;
 
 namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
 {
@@ -18,6 +19,7 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
     {
         private readonly ILogger<EmailSender> _logger;
         private readonly IMemoryCache _memoryCache;
+        private readonly IHostEnvironment _env;
         private readonly CacheConfig _cacheConfig;
         private readonly EmailApiConfig _emailConfig;
         private readonly NotificationTemplates _templates;
@@ -28,11 +30,13 @@ namespace Pawfect_Notifications.Services.NotificationServices.Senders.Email
             IOptions<EmailApiConfig> emailOptions,
             IOptions<NotificationTemplates> templateOptions,
             IMemoryCache memoryCache,
-            IOptions<CacheConfig> cacheOptions
+            IOptions<CacheConfig> cacheOptions,
+            IHostEnvironment env
         )
         {
             this._logger = logger;
             this._memoryCache = memoryCache;
+            this._env = env;
             this._cacheConfig = cacheOptions.Value;
             this._emailConfig = emailOptions.Value;
             this._templates = templateOptions.Value;

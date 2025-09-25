@@ -57,6 +57,7 @@ export interface ProfilePhotoDialogResult {
                 [src]="previewImageUrl"
                 [alt]="data.userName"
                 class="w-28 h-28 rounded-full object-cover border-3 border-white/20 shadow-xl backdrop-blur-sm transition-transform duration-300 group-hover:scale-105"
+                style="aspect-ratio: 1 / 1;"
               >
               <div *ngIf="hasNewPhoto()" class="absolute -top-2 -right-2 bg-gradient-to-r from-green-400 to-green-600 text-white rounded-full p-1.5 shadow-lg animate-pulse">
                 <ng-icon name="lucideCheck" class="w-4 h-4"></ng-icon>

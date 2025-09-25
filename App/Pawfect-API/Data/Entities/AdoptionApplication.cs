@@ -34,7 +34,10 @@ namespace Pawfect_API.Data.Entities
 
 		public String ApplicationDetails { get; set; }
 
-		[BsonRepresentation(BsonType.ObjectId)]
+		[BsonIgnoreIfNull]
+        public String RejectReasson { get; set; }
+
+        [BsonRepresentation(BsonType.ObjectId)]
 		[BsonIgnoreIfNull]
 		public List<String>? AttachedFilesIds { get; set; }
 
