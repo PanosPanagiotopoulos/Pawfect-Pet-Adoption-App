@@ -695,7 +695,7 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
         : this.animal.shelter?.id!,
       status: statusToUse,
       applicationDetails: this.applicationForm.get('applicationDetails')?.value,
-      rejectReasson: this.applicationForm.get('rejectReasson')?.value || undefined,
+      rejectReasson: statusToUse == ApplicationStatus.Rejected ? (this.applicationForm.get('rejectReasson')?.value || undefined) : undefined,
       attachedFilesIds: this.applicationForm.get('attachedFiles')?.value || [],
     };
   }
