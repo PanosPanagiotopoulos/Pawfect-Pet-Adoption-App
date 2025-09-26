@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: pawfect-api
+    env: docker
+    plan: starter
+    dockerfilePath: ./Pawfect-API/Dockerfile
+    dockerContext: ./Pawfect-API
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+    ports:
+      - 5000
+    healthCheckPath: /health
+
+  - type: web
+    name: pawfect-notifications
+    env: docker
+    plan: starter
+    dockerfilePath: ./Pawfect-Notifications/Dockerfile
+    dockerContext: ./Pawfect-Notifications
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+    ports:
+      - 5001
+    healthCheckPath: /health
+
+  - type: web
+    name: pawfect-messenger
+    env: docker
+    plan: starter
+    dockerfilePath: ./Pawfect-Messenger/Dockerfile
+    dockerContext: ./Pawfect-Messenger
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+    ports:
+      - 5002
+    healthCheckPath: /health
