@@ -7,7 +7,6 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
-    port: 8080  
 
   - type: web
     name: pawfect-notifications
@@ -17,7 +16,6 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
-    port: 8081   
 
   - type: web
     name: pawfect-messenger
@@ -27,4 +25,3 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
-    port: 8082
