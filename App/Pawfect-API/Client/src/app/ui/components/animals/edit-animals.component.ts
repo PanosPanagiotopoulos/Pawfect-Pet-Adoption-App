@@ -174,7 +174,7 @@ export class EditAnimalsComponent
   private navigateToUnauthorized(): void {
     this.router.navigate(['/unauthorized'], {
       queryParams: {
-        message: 'You do not have permission to edit this animal',
+        message: 'APP.COMMONS.FORBIDDEN',
         returnUrl: `/animals/view/${this.animalId}`,
       },
     });

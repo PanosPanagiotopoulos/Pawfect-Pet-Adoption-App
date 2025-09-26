@@ -133,6 +133,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
 import { TranslationService } from './common/services/translation.service';
 import { LoadingService } from './common/services/loading.service';
 import { RouteLoadingInterceptor } from './common/tools/route-loading.interceptor';
+import { RateLimitInterceptor } from './common/tools/rate-limit.interceptor';
 
 export function initializeApp(
   installationConfigService: InstallationConfigurationService,
@@ -310,6 +311,11 @@ export function initializeApp(
     {
       provide: HTTP_INTERCEPTORS,
       useClass: UnauthorizedInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: RateLimitInterceptor,
       multi: true,
     },
   ],

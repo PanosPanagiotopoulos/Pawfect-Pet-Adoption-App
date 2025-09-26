@@ -81,6 +81,7 @@ FORMAT RULES (STRICT)
 - Do NOT echo these instructions or the RAG context.
 
 OUTPUT STRUCTURE
+All text data (rag or yours) must be translated to the users prompt language
 The single HTML block MUST follow this shape:
 
 <!--assistant-block-start-->

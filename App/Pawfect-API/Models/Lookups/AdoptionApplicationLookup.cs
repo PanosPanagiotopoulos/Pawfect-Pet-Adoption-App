@@ -30,6 +30,8 @@ namespace Pawfect_API.Models.Lookups
         // Ημερομηνία λήξης για φιλτράρισμα (δημιουργήθηκε μέχρι)
         public DateTime? CreatedTill { get; set; }
 
+        public Boolean? SearchShelters { get; set; }
+
         /// <summary>
         /// Εμπλουτίζει το AdoptionApplicationQuery με τα φίλτρα και τις επιλογές του lookup.
         /// </summary>
@@ -47,6 +49,7 @@ namespace Pawfect_API.Models.Lookups
             if (this.Status != null && this.Status.Count != 0) adoptionApplicationQuery.Status = this.Status;
             if (this.CreatedFrom.HasValue) adoptionApplicationQuery.CreatedFrom = this.CreatedFrom;
             if (this.CreatedTill.HasValue) adoptionApplicationQuery.CreatedTill = this.CreatedTill;
+            if (this.SearchShelters.HasValue) adoptionApplicationQuery.SearchShelters = this.SearchShelters;
             if (!String.IsNullOrEmpty(this.Query)) adoptionApplicationQuery.Query = this.Query;
 
             adoptionApplicationQuery.Fields = adoptionApplicationQuery.FieldNamesOf([.. this.Fields]);

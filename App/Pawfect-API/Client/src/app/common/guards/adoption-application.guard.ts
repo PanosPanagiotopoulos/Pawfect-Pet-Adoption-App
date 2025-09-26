@@ -41,7 +41,7 @@ export class AdoptionApplicationGuard implements CanActivate {
   if (userShelterId) {
     this.router.navigate(['/unauthorized'], {
       queryParams: {
-        message: 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.FORBIDDEN',
+        message: 'APP.COMMONS.FORBIDDEN',
         returnUrl: '/profile?tab=received-applications',
       },
     });

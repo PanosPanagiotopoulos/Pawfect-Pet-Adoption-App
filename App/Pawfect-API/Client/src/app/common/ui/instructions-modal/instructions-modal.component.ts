@@ -8,7 +8,6 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
   selector: 'app-instructions-modal',
   standalone: true,
   imports: [CommonModule, NgIconsModule, TranslatePipe],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div *ngIf="isOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 top-20" (click)="onClose()">
       <!-- Backdrop with blur animation -->

@@ -55,6 +55,7 @@ namespace Pawfect_API.Query.Queries
 
 		// Ημερομηνία λήξης για φιλτράρισμα (δημιουργήθηκε μέχρι)
 		public DateTime? CreatedTill { get; set; }
+        public Boolean? SearchShelters { get; set; }
 
         private AuthorizationFlags _authorise = AuthorizationFlags.None;
 
@@ -136,22 +137,36 @@ namespace Pawfect_API.Query.Queries
 
 			if (!String.IsNullOrEmpty(base.Query))
 			{
-				UserQuery userQuery = _queryFactory.Query<UserQuery>();
-				userQuery.Query = base.Query;
-				userQuery.Offset = 0;
-				userQuery.PageSize = base.PageSize;
-				userQuery.Fields = userQuery.FieldNamesOf([nameof(Models.User.User.Id)]);
-				userQuery = userQuery.Authorise(this._authorise);
+                List<String> userReferenceIds = null;
+				if (this.SearchShelters.GetValueOrDefault(false))
+				{
+                    ShelterQuery shelterQuery = _queryFactory.Query<ShelterQuery>();
+                    shelterQuery.Query = base.Query;
+                    shelterQuery.Offset = 0;
+                    shelterQuery.PageSize = base.PageSize;
+                    shelterQuery.Fields = shelterQuery.FieldNamesOf([String.Join('.', nameof(Models.Shelter.Shelter.User), nameof(Models.User.User.Id))]);
+                    shelterQuery = shelterQuery.Authorise(this._authorise);
 
-				List<String> userIds = (await userQuery.CollectAsync())?.Select(user => user.Id).ToList() ?? [];
-				if (userIds.Any())
-                {
-                    // Convert String IDs to ObjectId for comparison
-                    IEnumerable<ObjectId> referenceIds = userIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
-
-                    // Ensure that only valid ObjectId values are passed in the filter
-                    filter &= builder.In(nameof(Data.Entities.AdoptionApplication.UserId), referenceIds.Where(id => id != ObjectId.Empty));
+                    userReferenceIds = (await shelterQuery.CollectAsync())?.Select(shelter => shelter.UserId).ToList() ?? [];
                 }
+
+                else
+                {
+                    UserQuery userQuery = _queryFactory.Query<UserQuery>();
+                    userQuery.Query = base.Query;
+                    userQuery.Offset = 0;
+                    userQuery.PageSize = base.PageSize;
+                    userQuery.Fields = userQuery.FieldNamesOf([nameof(Models.User.User.Id)]);
+                    userQuery = userQuery.Authorise(this._authorise);
+
+                    userReferenceIds = (await userQuery.CollectAsync())?.Select(user => user.Id).ToList() ?? [];
+                }
+				
+                // Convert String IDs to ObjectId for comparison
+                IEnumerable<ObjectId> referenceIds = userReferenceIds.Select(id => ObjectId.TryParse(id, out ObjectId objectId) ? objectId : ObjectId.Empty);
+
+                // Ensure that only valid ObjectId values are passed in the filter
+                filter &= builder.In(nameof(Data.Entities.AdoptionApplication.UserId), referenceIds.Where(id => id != ObjectId.Empty));
             }
 
 			return filter;

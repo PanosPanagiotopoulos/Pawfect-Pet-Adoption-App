@@ -9,4 +9,5 @@ export interface AdoptionApplicationLookup extends Lookup {
   status?: ApplicationStatus[]; // e.g. Available, Pending, Rejected
   createdFrom?: Date;
   createdTill?: Date;
+  searchShelters?: boolean;
 }

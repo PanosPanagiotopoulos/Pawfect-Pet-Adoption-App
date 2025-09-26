@@ -76,7 +76,7 @@ export class UnauthorizedInterceptor implements HttpInterceptor {
             window.location.hash;
           this.router.navigate(['/unauthorized'], {
             queryParams: {
-              message: 'You do not have permission to access this resource.',
+              message: 'APP.COMMONS.FORBIDDEN',
               returnUrl: attemptedUrl,
             },
           });

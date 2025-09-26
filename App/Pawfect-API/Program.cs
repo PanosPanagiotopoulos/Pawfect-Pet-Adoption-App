@@ -29,19 +29,14 @@ using Pawfect_API.Services.ReportServices.Extentions;
 using Pawfect_API.Services.ShelterServices.Extentions;
 using Pawfect_API.Services.UserServices.Extentions;
 using Pawfect_API.Services.ValidationServices.Extentions;
-
 using Serilog;
-
 using System.Text;
 using Pawfect_API.BackgroundTasks.RefreshTokensCleanupTask.Extensions;
-using Pawfect_API.Middlewares;
 using Pawfect_API.Data.Entities.Types.Apis;
 using Pawfect_API.Services.EmbeddingServices.Extentions;
 using Pawfect_API.Services.MongoServices;
 using Pawfect_API.Data.Entities.Types.Mongo;
 using Pawfect_API.Services.TranslationServices.Extentions;
-using Vonage.Voice.EventWebhooks;
-using Microsoft.Extensions.Configuration;
 using Pawfect_API.Data.Entities.Types.RateLimiting;
 using Pawfect_API.Services.AiAssistantServices.Extentions;
 

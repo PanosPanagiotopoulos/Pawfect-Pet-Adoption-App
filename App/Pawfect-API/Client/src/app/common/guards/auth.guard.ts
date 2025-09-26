@@ -64,7 +64,7 @@ export class AuthGuard implements CanActivate {
   ): void {
     if (isLoggedIn) {
       // User is logged in but lacks permissions - redirect to unauthorized page
-      const message = 'APP.SERVICES.AUTH_GUARD.INSUFFICIENT_PERMISSIONS';
+      const message = 'APP.COMMONS.FORBIDDEN';
       this.router.navigate(['/unauthorized'], {
         queryParams: {
           message: message,

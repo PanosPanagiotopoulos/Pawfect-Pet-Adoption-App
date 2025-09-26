@@ -78,6 +78,7 @@ export class ProfileAdoptionApplicationsComponent
     sortDescending: true,
     status: undefined,
     query: '', // Add search query field
+    searchShelters: false, // Initialize searchShelters flag
   };
 
   readonly sortFields = [
@@ -145,6 +146,18 @@ export class ProfileAdoptionApplicationsComponent
     this.lookup.query = val;
   }
 
+  get searchLabel(): string {
+    return this.tabType === 'received-applications' 
+      ? 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.SEARCH_ADOPTER_LABEL'
+      : 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.SEARCH_SHELTER_LABEL';
+  }
+
+  get searchPlaceholder(): string {
+    return this.tabType === 'received-applications'
+      ? 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.SEARCH_ADOPTER_PLACEHOLDER'
+      : 'APP.PROFILE-PAGE.ADOPTION_APPLICATIONS.SEARCH_SHELTER_PLACEHOLDER';
+  }
+
   constructor(
     private adoptionApplicationService: AdoptionApplicationService,
     private log: LogService,
@@ -159,6 +172,8 @@ export class ProfileAdoptionApplicationsComponent
     this.canEditApplications = this.authService.hasPermission(
       Permission.EditAdoptionApplications
     );
+    // Initialize searchShelters flag based on initial tab type
+    this.lookup.searchShelters = this.tabType === 'adoption-applications';
     this.loadApplications();
     this.translationSub = this.translationService.languageChanged$.subscribe(
       () => {
@@ -169,6 +184,8 @@ export class ProfileAdoptionApplicationsComponent
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['tabType'] && !changes['tabType'].firstChange) {
+      // Update searchShelters flag when tab type changes
+      this.lookup.searchShelters = this.tabType === 'adoption-applications';
       this.resetPagination();
       this.loadApplications();
     }
@@ -258,6 +275,8 @@ export class ProfileAdoptionApplicationsComponent
           nameof<User>((x) => x.fullName),
         ].join('.')
       );
+      // Set searchShelters to false for received applications (searching adopters)
+      this.lookup.searchShelters = false;
     } else {
       // For requested applications, include shelter information
       baseFields.push(
@@ -267,6 +286,8 @@ export class ProfileAdoptionApplicationsComponent
           nameof<Shelter>((x) => x.shelterName),
         ].join('.')
       );
+      // Set searchShelters to true for adoption applications (searching shelters)
+      this.lookup.searchShelters = true;
     }
 
     this.lookup.fields = baseFields;
@@ -372,6 +393,8 @@ export class ProfileAdoptionApplicationsComponent
 
   onSearchQueryChange(value: string) {
     this.lookup.query = value;
+    // Set searchShelters flag based on tab type
+    this.lookup.searchShelters = this.tabType === 'adoption-applications';
     this.resetPagination();
     this.loadApplications();
   }
@@ -381,6 +404,8 @@ export class ProfileAdoptionApplicationsComponent
     this.lookup.sortBy = [];
     this.lookup.sortDescending = true;
     this.lookup.query = ''; // Clear search query
+    // Reset searchShelters flag based on tab type
+    this.lookup.searchShelters = this.tabType === 'adoption-applications';
     this.resetPagination();
     this.loadApplications();
   }

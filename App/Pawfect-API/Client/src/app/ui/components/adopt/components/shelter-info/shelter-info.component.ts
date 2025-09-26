@@ -24,10 +24,8 @@ import { TranslationService } from 'src/app/common/services/translation.service'
           >
             <ng-icon
               name="lucideHouse"
-              [size]="'32'"
-              class="text-primary-400 stroke-[2.5px]"
-            >
-            </ng-icon>
+              class="w-8 h-8 text-primary-400"
+            ></ng-icon>
           </div>
         </div>
 
@@ -61,15 +59,10 @@ import { TranslationService } from 'src/app/common/services/translation.service'
           rel="noopener noreferrer"
           class="flex items-center text-gray-300 group hover:text-white transition-colors"
         >
-          <div
-            class="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center mr-3 group-hover:bg-primary-500/20 transition-colors"
-          >
-            <ng-icon
-              name="lucideMapPin"
-              [size]="'18'"
-              class="text-primary-400 stroke-[2.5px]"
-            ></ng-icon>
-          </div>
+          <ng-icon
+            name="lucideMapPin"
+            class="w-5 h-5 text-primary-400 mr-3 flex-shrink-0"
+          ></ng-icon>
           <span class="group-hover:underline whitespace-nowrap"
             >{{ shelter.user?.location?.address }}
             {{ shelter.user?.location?.number }},
@@ -89,15 +82,10 @@ import { TranslationService } from 'src/app/common/services/translation.service'
           rel="noopener noreferrer"
           class="flex items-center space-x-3 px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/15 transition-all duration-300 group"
         >
-          <div
-            class="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center group-hover:bg-primary-500/20 transition-colors"
-          >
-            <ng-icon
-              name="lucideGlobe"
-              [size]="'18'"
-              class="text-primary-400 stroke-[2.5px]"
-            ></ng-icon>
-          </div>
+          <ng-icon
+            name="lucideGlobe"
+            class="w-5 h-5 text-primary-400 flex-shrink-0"
+          ></ng-icon>
           <span
             class="text-gray-300 group-hover:text-white transition-colors"
             >{{ 'APP.ADOPT.WEBSITE' | translate }}</span
@@ -114,15 +102,10 @@ import { TranslationService } from 'src/app/common/services/translation.service'
             rel="noopener noreferrer"
             class="flex items-center space-x-3 px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/15 transition-all duration-300 group"
           >
-            <div
-              class="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center group-hover:bg-primary-500/20 transition-colors"
-            >
-              <ng-icon
-                name="lucideFacebook"
-                [size]="'18'"
-                class="text-primary-400 stroke-[2.5px]"
-              ></ng-icon>
-            </div>
+            <ng-icon
+              name="lucideFacebook"
+              class="w-5 h-5 text-primary-400 flex-shrink-0"
+            ></ng-icon>
             <span class="text-gray-300 group-hover:text-white transition-colors"
               >Facebook</span
             >
@@ -136,15 +119,10 @@ import { TranslationService } from 'src/app/common/services/translation.service'
             rel="noopener noreferrer"
             class="flex items-center space-x-3 px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/15 transition-all duration-300 group"
           >
-            <div
-              class="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center group-hover:bg-primary-500/20 transition-colors"
-            >
-              <ng-icon
-                name="lucideInstagram"
-                [size]="'18'"
-                class="text-primary-400 stroke-[2.5px]"
-              ></ng-icon>
-            </div>
+            <ng-icon
+              name="lucideInstagram"
+              class="w-5 h-5 text-primary-400 flex-shrink-0"
+            ></ng-icon>
             <span class="text-gray-300 group-hover:text-white transition-colors"
               >Instagram</span
             >
@@ -157,8 +135,7 @@ import { TranslationService } from 'src/app/common/services/translation.service'
         <div class="flex items-center space-x-3">
           <ng-icon
             name="lucideClock"
-            [size]="'24'"
-            class="text-primary-400 stroke-[2.5px]"
+            class="w-6 h-6 text-primary-400 flex-shrink-0"
           ></ng-icon>
           <h4 class="text-lg font-medium text-white">
             {{ 'APP.ADOPT.OPERATING_HOURS' | translate }}
@@ -170,16 +147,9 @@ import { TranslationService } from 'src/app/common/services/translation.service'
               class="px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/15 transition-all duration-300"
             >
               <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                  <ng-icon
-                    name="lucideClock1"
-                    [size]="'16'"
-                    class="text-primary-400 stroke-[2.5px]"
-                  ></ng-icon>
-                  <span class="text-gray-300">{{
-                    day.translationKey | translate
-                  }}</span>
-                </div>
+                <span class="text-gray-300">{{
+                  day.translationKey | translate
+                }}</span>
                 <span class="text-gray-300 ml-2">
                   <ng-container
                     *ngIf="
@@ -216,13 +186,10 @@ export class ShelterInfoComponent implements OnInit {
   ];
 
   constructor(
-    private translationService: TranslationService,
     private router: Router
   ) {}
 
-  ngOnInit() {
-    // No need for language subscription since translate pipe handles live updates
-  }
+  ngOnInit() {}
 
   formatOpenHours(hours: string): string {
     if (!hours || hours === 'closed') {

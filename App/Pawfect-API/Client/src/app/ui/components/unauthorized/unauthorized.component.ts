@@ -154,7 +154,7 @@ export class UnauthorizedComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
-      this.errorMessage = params['message'] || null;
+      this.errorMessage = params['message'] || 'APP.COMMONS.FORBIDDEN';
       this.returnUrl = params['returnUrl'] || null;
     });
   }
