@@ -17,7 +17,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
             <div class="relative flex-shrink-0">
               <div class="flex items-center justify-center">
                 <img
-                  src="https://pouch.jumpshare.com/preview/YOB0F7KelEbAg5_f7Ozmm4XhXGlID4rDsFOrcRjFrVnIxXvMXPsGh5nbjYX81fkeO5GXnnTmoTWQPwanIXyiG1hikDi3u2xEs2dJBcasJ0U"
+                  src="https://i.ibb.co/jvCJnx86/pawfect-logo-1.png"
                   alt="Pawfect Logo"
                   class="object-contain w-24 h-24 sm:w-20 sm:h-20 md:w-24 md:h-24"
                 />

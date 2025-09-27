@@ -10,7 +10,7 @@ import { filter } from 'rxjs/operators';
 export class RouteLoadingInterceptor {
   private currentRoute: string | null = null;
   private safetyTimeout: any = null;
-  private readonly SAFETY_TIMEOUT_MS = 12000; // 12 seconds
+  private readonly SAFETY_TIMEOUT_MS = 7000; // 12 seconds
 
   constructor(
     private router: Router,
