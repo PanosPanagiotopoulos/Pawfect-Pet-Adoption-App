@@ -16,7 +16,9 @@ RUN if [ -f /etc/secrets/environment.Development.ts ]; then \
       cp /etc/secrets/environment.Development.ts ./src/environments/environment.Development.ts; \
     fi
 
-RUN ng build --base-href=/ pawfect-match-angular --configuration=production --delete-output-path --build-optimizer=false
+ENV NODE_OPTIONS="--max-old-space-size=512"
+
+RUN ng build --base-href=/ pawfect-match-angular --configuration=production --build-optimizer=false
 
 RUN mkdir -p /static && cp -r ../wwwroot/* /static/
 
