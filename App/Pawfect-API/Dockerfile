@@ -1,6 +1,5 @@
 ﻿FROM node:20-alpine AS client-build
 
-# Angular CLI for ng build
 RUN npm i -g @angular/cli@18
 
 WORKDIR /src/Client
@@ -9,8 +8,15 @@ COPY Client/package*.json ./
 RUN npm install --force 
 
 COPY Client/ ./
-RUN ng build --base-href=/ pawfect-match-angular --configuration=production --delete-output-path --build-optimizer=false
 
+RUN if [ -f /etc/secrets/environment.Production.ts ]; then \
+      cp /etc/secrets/environment.Production.ts ./src/environments/environment.Production.ts; \
+    fi
+RUN if [ -f /etc/secrets/environment.Development.ts ]; then \
+      cp /etc/secrets/environment.Development.ts ./src/environments/environment.Development.ts; \
+    fi
+
+RUN ng build --base-href=/ pawfect-match-angular --configuration=production --delete-output-path --build-optimizer=false
 
 RUN mkdir -p /static && cp -r ../wwwroot/* /static/
 
@@ -19,6 +25,12 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS server-build
 WORKDIR /src
 
 COPY . ./
+
+# --- Copy backend secret config if it exists ---
+RUN if [ -f /etc/secrets/environment.json ]; then \
+      mkdir -p /src/Pawfect-API/Configuration/Production && \
+      cp /etc/secrets/environment.json /src/Pawfect-API/Configuration/Production/environment.json; \
+    fi
 
 COPY --from=client-build /static ./wwwroot
 
@@ -32,7 +44,6 @@ WORKDIR /app
 COPY --from=server-build /app/publish .
 COPY --from=client-build /static ./wwwroot
 COPY --from=server-build /src/AiTemplates ./AiTemplates
-
 
 ENV ASPNETCORE_ENVIRONMENT=Production \
     ASPNETCORE_URLS=http://+:8080
