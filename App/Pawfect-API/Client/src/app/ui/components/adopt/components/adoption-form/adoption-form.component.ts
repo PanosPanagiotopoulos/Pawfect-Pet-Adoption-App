@@ -113,35 +113,32 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
           <!-- Application Status Display for Regular Users -->
           <div
             *ngIf="isRegularUser"
-            class="mb-6 space-y-4"
+            class="mb-10 space-y-4"
           >
-            <div class="border-t border-white/10 pt-6">
-              <h4
-                class="text-lg font-semibold text-white mb-4 flex items-center space-x-2"
-              >
+            <div class="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 hover:border-primary-500/30 transition-all duration-300">
+              <h4 class="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
                 <ng-icon
-                  name="lucideInfo"
+                  name="lucideCircleAlert"
                   [size]="'20'"
                   class="text-primary-400"
                 ></ng-icon>
-                <span>{{
-                  'APP.ADOPT.APPLICATION_STATUS_INFO' | translate
-                }}</span>
+                <span>{{ 'APP.ADOPT.APPLICATION_STATUS_INFO' | translate }}</span>
               </h4>
 
               <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-400 mb-2">{{
-                  'APP.ADOPT.CURRENT_STATUS' | translate
-                }}</label>
+                <label class="block text-sm font-medium text-gray-400 mb-2">
+                  {{ 'APP.ADOPT.CURRENT_STATUS' | translate }}
+                </label>
                 <div class="flex items-center space-x-3">
                   <span
                     class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border"
-                    [ngClass]="
-                      getStatusChipClass(
-                        adoptionApplication?.status || ApplicationStatus.Pending
-                      )
-                    "
+                    [ngClass]="getStatusChipClass(adoptionApplication?.status || ApplicationStatus.Pending)"
                   >
+                    <ng-icon
+                      [name]="getStatusIcon(adoptionApplication?.status || ApplicationStatus.Pending)"
+                      [size]="'14'"
+                      class="mr-1"
+                    ></ng-icon>
                     {{
                       getStatusTranslationKey(
                         adoptionApplication?.status || ApplicationStatus.Pending
@@ -151,20 +148,23 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
                 </div>
               </div>
 
-              <!-- Rejection Reason Display - Only show when status is rejected -->
+              <!-- Rejection Reason Display -->
               <div 
                 *ngIf="adoptionApplication?.status === ApplicationStatus.Rejected && adoptionApplication?.rejectReasson"
-                class="mt-4"
+                class="mb-4"
               >
-                <label class="block text-sm font-medium text-gray-400 mb-2">{{
-                  'APP.ADOPT.REJECTION_REASON' | translate
-                }}</label>
-                <div class="bg-white/5 border border-white/10 rounded-xl p-4">
-                  <p class="text-gray-300 text-sm whitespace-pre-wrap">{{ adoptionApplication?.rejectReasson }}</p>
+                <label class="block text-sm font-medium text-gray-400 mb-2">
+                  {{ 'APP.ADOPT.REJECTION_REASON' | translate }}
+                </label>
+                <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                  <div class="flex items-start space-x-2">
+                    <ng-icon name="lucideInfo" [size]="'16'" class="text-red-400 mt-0.5 flex-shrink-0"></ng-icon>
+                    <p class="text-red-300 text-sm whitespace-pre-wrap">{{ adoptionApplication?.rejectReasson }}</p>
+                  </div>
                 </div>
               </div>
 
-              <div class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <div class="flex items-start space-x-2">
                   <ng-icon
                     name="lucideInfo"
@@ -570,6 +570,19 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
         return 'bg-red-500/20 text-red-300 border-red-500/30';
       default:
         return 'bg-gray-500/20 text-gray-300 border-gray-500/30';
+    }
+  }
+
+  getStatusIcon(status: ApplicationStatus): string {
+    switch (status) {
+      case ApplicationStatus.Pending:
+        return 'lucideClock';
+      case ApplicationStatus.Approved:
+        return 'lucideCheck';
+      case ApplicationStatus.Rejected:
+        return 'lucideCircleX';
+      default:
+        return 'lucideClock';
     }
   }
 
