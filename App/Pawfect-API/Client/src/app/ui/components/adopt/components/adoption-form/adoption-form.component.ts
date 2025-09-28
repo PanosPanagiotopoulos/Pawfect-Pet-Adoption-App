@@ -110,6 +110,75 @@ import { ErrorDetails } from 'src/app/common/ui/error-message-banner.component';
             </div>
           </div>
 
+          <!-- Application Status Display for Regular Users -->
+          <div
+            *ngIf="isRegularUser"
+            class="mb-6 space-y-4"
+          >
+            <div class="border-t border-white/10 pt-6">
+              <h4
+                class="text-lg font-semibold text-white mb-4 flex items-center space-x-2"
+              >
+                <ng-icon
+                  name="lucideInfo"
+                  [size]="'20'"
+                  class="text-primary-400"
+                ></ng-icon>
+                <span>{{
+                  'APP.ADOPT.APPLICATION_STATUS_INFO' | translate
+                }}</span>
+              </h4>
+
+              <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-400 mb-2">{{
+                  'APP.ADOPT.CURRENT_STATUS' | translate
+                }}</label>
+                <div class="flex items-center space-x-3">
+                  <span
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border"
+                    [ngClass]="
+                      getStatusChipClass(
+                        adoptionApplication?.status || ApplicationStatus.Pending
+                      )
+                    "
+                  >
+                    {{
+                      getStatusTranslationKey(
+                        adoptionApplication?.status || ApplicationStatus.Pending
+                      ) | translate
+                    }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Rejection Reason Display - Only show when status is rejected -->
+              <div 
+                *ngIf="adoptionApplication?.status === ApplicationStatus.Rejected && adoptionApplication?.rejectReasson"
+                class="mt-4"
+              >
+                <label class="block text-sm font-medium text-gray-400 mb-2">{{
+                  'APP.ADOPT.REJECTION_REASON' | translate
+                }}</label>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-4">
+                  <p class="text-gray-300 text-sm whitespace-pre-wrap">{{ adoptionApplication?.rejectReasson }}</p>
+                </div>
+              </div>
+
+              <div class="mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div class="flex items-start space-x-2">
+                  <ng-icon
+                    name="lucideInfo"
+                    [size]="'16'"
+                    class="text-blue-400 mt-0.5 flex-shrink-0"
+                  ></ng-icon>
+                  <p class="text-sm text-blue-300">
+                    {{ 'APP.ADOPT.APPLICATION_STATUS_USER_INFO' | translate }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <app-text-area-input
             [form]="applicationForm"
             controlName="applicationDetails"
@@ -389,6 +458,11 @@ export class AdoptionFormComponent implements OnInit, OnChanges {
   // Computed property to check if application is approved and should be read-only
   get isApplicationApproved(): boolean {
     return this.isEditMode && this.adoptionApplication?.status === ApplicationStatus.Approved;
+  }
+
+  // Computed property to check if user is a regular user (not shelter user)
+  get isRegularUser(): boolean {
+    return this.isEditMode && !this.canManageApplicationStatus && !this.isCurrentUserShelter;
   }
 
   // Helper method to format file size

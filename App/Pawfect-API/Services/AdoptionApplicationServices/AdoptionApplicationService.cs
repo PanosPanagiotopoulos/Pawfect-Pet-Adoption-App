@@ -109,7 +109,7 @@ namespace Pawfect_API.Services.AdoptionApplicationServices
 
                 else
                 {
-                    if (data.Status == ApplicationStatus.Rejected && String.IsNullOrEmpty(persist.RejectReasson)) throw new InvalidOperationException("Reject reason must be provided when rejecting an application");
+                    if (persist.Status == ApplicationStatus.Rejected && String.IsNullOrEmpty(persist.RejectReasson)) throw new InvalidOperationException("Reject reason must be provided when rejecting an application");
                 }
 
                 if (await _animalRepository.ExistsAsync(animal => animal.Id == data.AnimalId && animal.AdoptionStatus == AdoptionStatus.Adopted))

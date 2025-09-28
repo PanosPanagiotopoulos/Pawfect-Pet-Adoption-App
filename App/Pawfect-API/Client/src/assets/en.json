@@ -90,6 +90,8 @@
       "ERROR_SUMMARY_TITLE": "Please correct the following errors:",
       "REJECTION_REASON": "Rejection Reason",
       "REJECTION_REASON_HINT": "Please provide a detailed reason for rejecting this application (minimum 10 characters)",
+      "APPLICATION_STATUS_INFO": "Application Status",
+      "APPLICATION_STATUS_USER_INFO": "Your application status is managed by the shelter. You will be notified of any changes.",
       "ERRORS": {
         "PET_NOT_FOUND_TITLE": "Pet not found",
         "PET_NOT_FOUND_MESSAGE": "Please check the link or try again later."
