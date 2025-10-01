@@ -132,6 +132,7 @@ App/Pawfect-Notifications/*.txt
 /*.txt
 /*.pdf
 /*.docx
+/*.pptx
 /*.zip
 
 # Ignore specific file types in /App directory
