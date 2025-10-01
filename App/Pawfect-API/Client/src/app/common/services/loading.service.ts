@@ -102,11 +102,21 @@ export class LoadingService {
     this.routeTimeouts.set(route, timeoutId);
   }
 
+  // In LoadingService
   stopRouteLoading(route: string): void {
     if (this.routeTimeouts.has(route)) {
       clearTimeout(this.routeTimeouts.get(route));
       this.routeTimeouts.delete(route);
       
+      // FIX: Also remove the corresponding requestId from activeRequests
+      // Find and remove any requestIds for this route
+      this.activeRequests.forEach(requestId => {
+        if (requestId.startsWith(`route-${route}`)) {
+          this.activeRequests.delete(requestId);
+        }
+      });
+      
+      this.updateLoadingState();
     }
   }
 

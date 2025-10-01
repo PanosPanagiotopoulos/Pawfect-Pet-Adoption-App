@@ -27,8 +27,7 @@ import { TranslatePipe } from 'src/app/common/tools/translate.pipe';
       ></app-pet-details-dialog>
     </div>
   `,
-  standalone: false,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class SavedAnimalsGridComponent {
   @Input() animals: Animal[] = [];
